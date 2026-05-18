@@ -38,7 +38,7 @@ export function Navbar() {
             : "mix-blend-difference"
         }`}
       >
-        <div className={`flex w-full items-center justify-between px-4 sm:px-8 lg:px-16 py-4 sm:py-6 ${isLight ? "text-foreground" : "text-white"}`}>
+        <div className={`flex w-full items-center justify-between px-4 sm:px-8 lg:px-16 py-4 sm:py-6 ${isLight && navUseSolidBar ? "text-foreground" : "text-white"}`}>
           <Link
             to="/"
             onClick={() => setMobileNavOpen(false)}
