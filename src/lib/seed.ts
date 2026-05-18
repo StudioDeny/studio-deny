@@ -2,7 +2,7 @@
 import type { Product } from "./products";
 import type { Order, OrderStatus } from "./orders";
 
-const FLAG = "sd_seeded_v2";
+const FLAG = "sd_seeded_v3";
 
 const IMG = (q: string) =>
   `https://images.unsplash.com/${q}?auto=format&fit=crop&w=900&q=70`;
@@ -19,7 +19,7 @@ const DUMMY_PRODUCTS: Product[] = [
   // Outerwear
   { slug: "noir-puffer", name: "Noir Puffer", category: "Outerwear", brand: "studio-deny", price: 6499, compareAt: 7999, image: IMG("photo-1544022613-e87ca75a784a"), hoverImage: IMG("photo-1591047139829-d91aecb6caea"), badge: "LAST PIECE", sizes: ["M","L","XL"], colors: [{ name: "Obsidian", hex: "#0a0a0a" }], description: "Down-fill puffer with matte ripstop shell.", material: "Recycled poly, 700 fill down.", stock: 3 },
   { slug: "city-trench", name: "City Trench Coat", category: "Outerwear", brand: "studio-deny", price: 5999, image: IMG("photo-1539109136881-3be0616acf4b"), hoverImage: IMG("photo-1591047139829-d91aecb6caea"), sizes: ["S","M","L","XL"], colors: [{ name: "Asphalt", hex: "#2c2c2c" }], description: "Drop-shoulder trench with belt and storm flap.", material: "Cotton-poly twill.", stock: 8 },
-  { slug: "deny-windbreaker", name: "Deny Windbreaker", category: "Outerwear", brand: "studio-deny", price: 3499, image: IMG("photo-1552374196-1ab2a1c593e8"), hoverImage: IMG("photo-1622445275576-721325763afe"), badge: "NEW DROP", sizes: ["S","M","L","XL"], colors: [{ name: "Acid", hex: "#C8FF00" }], description: "Lightweight packable shell.", material: "Coated nylon.", stock: 18 },
+  { slug: "deny-windbreaker", name: "Deny Windbreaker", category: "Outerwear", brand: "studio-deny", price: 3499, image: IMG("photo-1551537482-f2075a1d41f2"), hoverImage: IMG("photo-1614786269829-d24616faf56d"), badge: "NEW DROP", sizes: ["S","M","L","XL"], colors: [{ name: "Acid", hex: "#C8FF00" }], description: "Lightweight packable shell.", material: "Coated nylon.", stock: 18 },
   // Accessories
   { slug: "side-shoulder-bag", name: "Side Shoulder Bag", category: "Accessories", brand: "studio-deny", price: 1599, image: IMG("photo-1547949003-9792a18a2601"), hoverImage: IMG("photo-1564422170194-896b89110ef8"), sizes: ["One Size"], colors: [{ name: "Black", hex: "#0a0a0a" }], description: "Compact crossbody with magnetic flap.", material: "Recycled nylon.", stock: 28 },
   { slug: "static-beanie", name: "Static Beanie", category: "Accessories", brand: "studio-deny", price: 699, image: IMG("photo-1578587018452-892bacefd3f2"), hoverImage: IMG("photo-1576871337632-b9aef4c17ab9"), sizes: ["One Size"], colors: [{ name: "Charcoal", hex: "#2a2a2a" }, { name: "Cream", hex: "#f5efe6" }], description: "Ribbed knit beanie with woven tab.", material: "Wool-acrylic blend.", stock: 40 },
@@ -80,10 +80,16 @@ export function seedIfEmpty() {
   if (typeof window === "undefined") return;
   if (localStorage.getItem(FLAG)) return;
   try {
-    // Add dummy products as custom products (won't override base set).
-    const existingCustom = JSON.parse(localStorage.getItem("sd_products_custom") || "[]");
-    const existingSlugs = new Set(existingCustom.map((p: Product) => p.slug));
-    const merged = [...existingCustom, ...DUMMY_PRODUCTS.filter((p) => !existingSlugs.has(p.slug))];
+    // Add dummy products as custom products. On version bump, refresh images for existing seed products.
+    const existingCustom: Product[] = JSON.parse(localStorage.getItem("sd_products_custom") || "[]");
+    const seedSlugs = new Set(DUMMY_PRODUCTS.map((p) => p.slug));
+    const migrated = existingCustom.map((p: Product) => {
+      if (!seedSlugs.has(p.slug)) return p;
+      const seed = DUMMY_PRODUCTS.find((d) => d.slug === p.slug)!;
+      return { ...p, image: seed.image, hoverImage: seed.hoverImage };
+    });
+    const existingSlugs = new Set(migrated.map((p: Product) => p.slug));
+    const merged = [...migrated, ...DUMMY_PRODUCTS.filter((p) => !existingSlugs.has(p.slug))];
     localStorage.setItem("sd_products_custom", JSON.stringify(merged));
 
     // Seed orders only if none exist.
