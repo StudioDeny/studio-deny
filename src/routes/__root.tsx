@@ -1,5 +1,4 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-import appCss from "../styles.css?url";
+import { Outlet, Link, createRootRoute } from "@tanstack/react-router";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
@@ -24,42 +23,9 @@ function NotFoundComponent() {
 }
 
 export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "STUDIO/DENY — Streetwear For The Restless" },
-      { name: "description", content: "Studio Deny — heavyweight streetwear, raw graphics, made in India. Hoodies, tees, cargos, outerwear." },
-      { name: "theme-color", content: "#0a0a0a" },
-      { property: "og:title", content: "STUDIO/DENY — Streetwear For The Restless" },
-      { property: "og:description", content: "Studio Deny — heavyweight streetwear, raw graphics, made in India. Hoodies, tees, cargos, outerwear." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "STUDIO/DENY — Streetwear For The Restless" },
-      { name: "twitter:description", content: "Studio Deny — heavyweight streetwear, raw graphics, made in India. Hoodies, tees, cargos, outerwear." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/04e730b6-aeba-4b7e-9dd1-6d17fd50bd0d/id-preview-e756d3f8--448be5e7-43c6-474c-9b04-a818e2322d4d.lovable.app-1778439509223.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/04e730b6-aeba-4b7e-9dd1-6d17fd50bd0d/id-preview-e756d3f8--448be5e7-43c6-474c-9b04-a818e2322d4d.lovable.app-1778439509223.png" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [{ rel: "stylesheet", href: appCss }],
-  }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
 });
-
-function RootShell({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en" className="dark">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
 
 import { Preloader } from "@/components/layout/Preloader";
 import { useEffect } from "react";

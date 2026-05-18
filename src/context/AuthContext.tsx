@@ -15,18 +15,16 @@ type AuthCtx = {
 
 const Ctx = createContext<AuthCtx | null>(null);
 
-async function resolveRole(userId: string): Promise<"user" | "admin"> {
-  const { data } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .maybeSingle();
+async function resolveRole(): Promise<"user" | "admin"> {
+  // Uses a SECURITY DEFINER function — bypasses RLS, always reliable.
+  const { data, error } = await supabase.rpc("get_my_role");
+  if (error) console.warn("[resolveRole]", error.message);
   if (!data) return "user";
-  return data.role === "admin" || data.role === "staff" ? "admin" : "user";
+  return data === "admin" || data === "staff" ? "admin" : "user";
 }
 
 async function toAppUser(supaUser: SupaUser): Promise<User> {
-  const role = await resolveRole(supaUser.id);
+  const role = await resolveRole();
   return {
     id: supaUser.id,
     email: supaUser.email ?? "",
@@ -40,20 +38,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Restore existing session on mount
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        setUser(await toAppUser(session.user));
-      }
-      setLoading(false);
-    });
-
-    // Keep auth state in sync (login, logout, token refresh, OAuth callback)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        setUser(await toAppUser(session.user));
-      } else {
-        setUser(null);
+    // Use onAuthStateChange exclusively — the recommended Supabase pattern.
+    // INITIAL_SESSION fires on mount with the stored session (or null) so we
+    // never need a separate getSession() call, which would race with this.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      try {
+        if (session?.user) {
+          setUser(await toAppUser(session.user));
+        } else {
+          setUser(null);
+        }
+      } finally {
+        // Only flip loading off once we know the initial auth state.
+        if (event === "INITIAL_SESSION") setLoading(false);
       }
     });
 

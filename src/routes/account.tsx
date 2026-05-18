@@ -12,15 +12,17 @@ export const Route = createFileRoute("/account")({
 });
 
 function Account() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
+    if (loading) return;
     if (!user) navigate({ to: "/login" });
     else setOrders(ordersFor(user.email));
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center text-mono text-xs tracking-widest text-muted-foreground">LOADING…</div>;
   if (!user) return null;
 
   return (

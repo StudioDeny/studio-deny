@@ -56,8 +56,14 @@ function Signup() {
       <form
         onSubmit={handleSubmit(async (d) => {
           setLoading(true);
-          try { await signup(d.email, d.password, d.name); toast.success("Account created"); navigate({ to: "/account" }); }
-          catch { toast.error("Signup failed"); }
+          try {
+            await signup(d.email, d.password, d.name);
+            toast.success("Account created! You can now log in.");
+            navigate({ to: "/login" });
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : "Signup failed";
+            toast.error(msg);
+          }
           finally { setLoading(false); }
         })}
         className="space-y-4"

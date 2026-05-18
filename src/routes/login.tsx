@@ -55,9 +55,22 @@ function Login() {
       <form
         onSubmit={handleSubmit(async (d) => {
           setLoading(true);
-          try { await login(d.email, d.password); toast.success("Welcome back"); navigate({ to: "/account" }); }
-          catch { toast.error("Login failed"); }
-          finally { setLoading(false); }
+          try {
+            await login(d.email, d.password);
+            toast.success("Welcome back");
+            navigate({ to: "/account" });
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : "Login failed";
+            if (msg.toLowerCase().includes("email not confirmed")) {
+              toast.error("Please confirm your email first — check your inbox.");
+            } else if (msg.toLowerCase().includes("invalid login credentials")) {
+              toast.error("Wrong email or password.");
+            } else {
+              toast.error(msg);
+            }
+          } finally {
+            setLoading(false);
+          }
         })}
         className="space-y-4"
       >
