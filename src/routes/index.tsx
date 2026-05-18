@@ -1,59 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { ArrowRight, ChevronDown, Star, Package, Zap, Shield, CheckCircle, Instagram } from "lucide-react";
+import { ArrowRight, ChevronDown, Star } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { NewArrivalsSection } from "@/components/home/NewArrivalsSection";
+import { WhyUsSection } from "@/components/home/WhyUsSection";
+import { InstagramFeedSection } from "@/components/home/InstagramFeedSection";
+import { NewsletterSection } from "@/components/home/NewsletterSection";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
-
-function NewsletterForm() {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "done">("idle");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !email.includes("@")) return;
-    setStatus("submitting");
-    setTimeout(() => setStatus("done"), 700);
-  };
-
-  if (status === "done") {
-    return (
-      <div className="mt-8 flex flex-col items-center gap-3">
-        <div className="text-secondary font-bold text-mono" style={{ fontSize: "11px", letterSpacing: "0.25em" }}>
-          ✓ YOU'RE ON THE LIST
-        </div>
-        <p className="text-muted-foreground text-mono" style={{ fontSize: "12px" }}>
-          We'll hit you first when the next drop goes live.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="your@email.com"
-        className="flex-1 bg-surface border border-border px-4 h-12 text-mono text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors"
-        style={{ fontSize: "13px" }}
-        required
-      />
-      <button
-        type="submit"
-        disabled={status === "submitting"}
-        className="h-12 px-6 bg-primary text-primary-foreground font-bold text-mono hover:glow-primary transition-all disabled:opacity-50 whitespace-nowrap"
-        style={{ fontSize: "11px", letterSpacing: "0.2em" }}
-      >
-        {status === "submitting" ? "…" : "GET EARLY ACCESS"}
-      </button>
-    </form>
-  );
-}
 
 function Index() {
   const [scrollY, setScrollY] = useState(0);
@@ -572,46 +528,7 @@ function Index() {
         </div>
       </section>
 
-      {/* Why Us */}
-      <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border/30">
-        <div className="max-w-[1320px] mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="mb-12"
-          >
-            <div className="text-mono text-primary mb-3" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ WHY STUDIO DENY</div>
-            <h2 className="text-display leading-none" style={{ fontSize: "clamp(36px, 7vw, 80px)" }}>
-              BUILT DIFFERENT.
-              <br />
-              <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.35)" }}>STAYS DIFFERENT.</span>
-            </h2>
-          </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              { Icon: Package, label: "PREMIUM GSM FABRIC", desc: "300+ GSM heavyweight cotton. Structured, substantial, and built to outlast trends by decades." },
-              { Icon: Zap, label: "LIMITED DROPS ONLY", desc: "Every piece ships in limited quantities. Own something not everyone has — because that's the point." },
-              { Icon: Shield, label: "BUILT TO LAST", desc: "Reinforced stitching, pre-shrunk cotton, stress-tested hardware. Wear it hard for years." },
-              { Icon: CheckCircle, label: "RESPONSIBLE CRAFT", desc: "Ethically produced in small-batch facilities. Quality you can feel and a process you can stand behind." },
-            ].map(({ Icon, label, desc }, idx) => (
-              <motion.div
-                key={label}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: idx * 0.1 }}
-                viewport={{ once: true }}
-                className="border border-border/50 bg-surface/20 p-6 group hover:border-primary/40 hover:bg-surface/40 transition-all duration-300"
-              >
-                <Icon className="size-5 text-primary mb-4 group-hover:scale-110 transition-transform duration-300" />
-                <div className="text-mono font-bold mb-2" style={{ fontSize: "11px", letterSpacing: "0.2em" }}>{label}</div>
-                <p className="text-muted-foreground leading-relaxed" style={{ fontSize: "13px" }}>{desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <WhyUsSection />
 
       {/* Brand Story Section */}
       <section id="about" className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 border-y border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.01)]">
@@ -636,98 +553,9 @@ function Index() {
         </motion.div>
       </section>
 
-      {/* Instagram Feed */}
-      <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 border-t border-border/30">
-        <div className="max-w-[1320px] mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="flex items-end justify-between mb-8"
-          >
-            <div>
-              <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ THE COMMUNITY</div>
-              <h2 className="text-display leading-none" style={{ fontSize: "clamp(32px, 6vw, 64px)" }}>@STUDIODENY</h2>
-            </div>
-            <a
-              href="https://instagram.com/studiodeny"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-mono"
-              style={{ fontSize: "11px", letterSpacing: "0.2em" }}
-            >
-              FOLLOW <Instagram className="size-3.5" />
-            </a>
-          </motion.div>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 md:gap-2">
-            {[
-              "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=400&q=80",
-              "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=400&q=80",
-              "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=400&q=80",
-              "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
-              "https://images.unsplash.com/photo-1551537482-f2075a1d41f2?w=400&q=80",
-              "https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?w=400&q=80",
-            ].map((src, idx) => (
-              <motion.a
-                key={src}
-                href="https://instagram.com/studiodeny"
-                target="_blank"
-                rel="noopener noreferrer"
-                initial={{ opacity: 0, scale: 0.94 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: idx * 0.07 }}
-                viewport={{ once: true }}
-                className="relative overflow-hidden group block"
-                style={{ aspectRatio: "1/1" }}
-              >
-                <img
-                  src={src}
-                  alt={`Studio Deny community post ${idx + 1}`}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex items-center justify-center">
-                  <Instagram className="size-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
-              </motion.a>
-            ))}
-          </div>
-          <div className="mt-5 text-center sm:hidden">
-            <a
-              href="https://instagram.com/studiodeny"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-mono"
-              style={{ fontSize: "11px", letterSpacing: "0.2em" }}
-            >
-              FOLLOW ON INSTAGRAM <Instagram className="size-3.5" />
-            </a>
-          </div>
-        </div>
-      </section>
+      <InstagramFeedSection />
 
-      {/* Newsletter */}
-      <section id="cta-end" className="py-20 sm:py-28 border-t border-border/30">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          viewport={{ once: true }}
-          className="max-w-[760px] mx-auto px-4 sm:px-8 text-center"
-        >
-          <div className="text-mono text-primary mb-3" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ DROP ALERTS</div>
-          <h2 className="text-display leading-[0.88]" style={{ fontSize: "clamp(2.3rem,9vw,6rem)" }}>
-            READY FOR THE
-            <br />
-            NEXT DROP?
-          </h2>
-          <p className="mt-4 opacity-80 max-w-md mx-auto text-mono" style={{ fontSize: "14px" }}>
-            Be first in line when new pieces launch. No spam, just early access.
-          </p>
-          <NewsletterForm />
-        </motion.div>
-      </section>
+      <NewsletterSection />
     </div>
   );
 }

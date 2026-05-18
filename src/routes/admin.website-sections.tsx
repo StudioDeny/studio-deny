@@ -14,6 +14,10 @@ type HeroConfig = { title: string; subtitle: string; cta_label: string; cta_href
 type MarqueeConfig = { items: string[]; speed: number };
 type ArrivalsConfig = { eyebrow: string; title: string; subtitle: string; cta_label: string; product_slugs: string[] };
 type LookbookConfig = { images: string[]; title: string };
+type WhyUsFeature = { label: string; desc: string };
+type WhyUsConfig = { eyebrow: string; title: string; subtitle: string; features: WhyUsFeature[] };
+type InstagramConfig = { eyebrow: string; title: string; handle: string; image_urls: string[] };
+type NewsletterConfig = { eyebrow: string; title: string; subtitle: string; cta_label: string };
 
 function AdminWebsiteSections() {
   const [sections, setSections] = useState<WebsiteSection[]>([]);
@@ -244,6 +248,85 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               onChange={(e) => set("images", e.target.value.split("\n").map((s) => s.trim()).filter(Boolean))}
               className="inp"
             />
+          </F>
+        </div>
+      );
+    }
+    case "why_us": {
+      const c = cfg as Partial<WhyUsConfig>;
+      const features: WhyUsFeature[] = c.features ?? [];
+      return (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <F label="EYEBROW"><input value={c.eyebrow ?? ""} onChange={(e) => set("eyebrow", e.target.value)} className="inp" /></F>
+            <F label="TITLE"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" /></F>
+          </div>
+          <F label="SUBTITLE (second line)"><input value={c.subtitle ?? ""} onChange={(e) => set("subtitle", e.target.value)} className="inp" /></F>
+          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mt-4 mb-2">PILLARS (4 items)</div>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="border border-border p-3 space-y-2">
+              <div className="text-mono text-[10px] text-muted-foreground">PILLAR {i + 1}</div>
+              <F label="LABEL">
+                <input
+                  value={features[i]?.label ?? ""}
+                  onChange={(e) => {
+                    const next = [...features];
+                    next[i] = { ...next[i], label: e.target.value };
+                    set("features", next);
+                  }}
+                  className="inp"
+                />
+              </F>
+              <F label="DESCRIPTION">
+                <textarea
+                  rows={2}
+                  value={features[i]?.desc ?? ""}
+                  onChange={(e) => {
+                    const next = [...features];
+                    next[i] = { ...next[i], desc: e.target.value };
+                    set("features", next);
+                  }}
+                  className="inp"
+                />
+              </F>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    case "instagram_feed": {
+      const c = cfg as Partial<InstagramConfig>;
+      const urls = c.image_urls ?? [];
+      return (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <F label="EYEBROW"><input value={c.eyebrow ?? ""} onChange={(e) => set("eyebrow", e.target.value)} className="inp" /></F>
+            <F label="TITLE (e.g. @handle)"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" /></F>
+          </div>
+          <F label="INSTAGRAM HANDLE (no @)"><input value={c.handle ?? ""} onChange={(e) => set("handle", e.target.value)} className="inp" /></F>
+          <F label="IMAGE URLS (one per line, up to 6)">
+            <textarea
+              rows={8}
+              value={urls.join("\n")}
+              onChange={(e) => set("image_urls", e.target.value.split("\n").map((s) => s.trim()).filter(Boolean).slice(0, 6))}
+              className="inp"
+              placeholder="https://images.unsplash.com/..."
+            />
+          </F>
+        </div>
+      );
+    }
+    case "newsletter": {
+      const c = cfg as Partial<NewsletterConfig>;
+      return (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <F label="EYEBROW"><input value={c.eyebrow ?? ""} onChange={(e) => set("eyebrow", e.target.value)} className="inp" /></F>
+            <F label="CTA BUTTON LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" /></F>
+          </div>
+          <F label="HEADING"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" /></F>
+          <F label="SUBTEXT">
+            <textarea rows={2} value={c.subtitle ?? ""} onChange={(e) => set("subtitle", e.target.value)} className="inp" />
           </F>
         </div>
       );
