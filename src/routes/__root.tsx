@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRoute } from "@tanstack/react-router";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -36,6 +37,7 @@ function RootComponent() {
   useEffect(() => { seedIfEmpty(); }, []);
 
   return (
+    <ThemeProvider>
     <AuthProvider>
       <Preloader />
       <WishlistProvider>
@@ -59,5 +61,6 @@ function RootComponent() {
       </CartProvider>
       </WishlistProvider>
     </AuthProvider>
+    </ThemeProvider>
   );
 }

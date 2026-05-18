@@ -28,15 +28,32 @@
   --background: #0A0A0A;
   --foreground: #FFFFFF;
   --surface: #171717;
-  
+
   --primary: #FFFFFF;
   --primary-foreground: #0A0A0A;
   --secondary: #262626;
   --secondary-foreground: #FFFFFF;
-  
+
   --muted: #262626;
   --muted-foreground: #A3A3A3;
   --border: rgba(255, 255, 255, 0.1);
+}
+
+.light {
+  color-scheme: light;
+
+  --background: #F8F8F8;
+  --foreground: #0A0A0A;
+  --surface: #EEEEEE;
+
+  --primary: #0A0A0A;
+  --primary-foreground: #F8F8F8;
+  --secondary: #E2E2E2;
+  --secondary-foreground: #0A0A0A;
+
+  --muted: #E8E8E8;
+  --muted-foreground: #555555;
+  --border: rgba(0, 0, 0, 0.1);
 }
 
 @layer base {
