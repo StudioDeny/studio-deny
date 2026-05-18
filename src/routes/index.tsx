@@ -662,7 +662,7 @@ function Index() {
           </motion.div>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 md:gap-2">
             {[
-              "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&q=80",
+              "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=400&q=80",
               "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=400&q=80",
               "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=400&q=80",
               "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
