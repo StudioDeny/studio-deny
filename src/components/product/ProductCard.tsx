@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Heart, ShoppingBag } from "lucide-react";
+import { Heart, ShoppingBag, Eye } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { QuickViewModal } from "./QuickViewModal";
 
 export function ProductCard({ 
   product, 
@@ -17,6 +18,7 @@ export function ProductCard({
   const [hover, setHover] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
   const [added, setAdded] = useState(false);
+  const [quickView, setQuickView] = useState(false);
   const wished = has(product.slug);
 
   const handleQuickAdd = (size: string) => {
@@ -78,6 +80,23 @@ export function ProductCard({
               background: "linear-gradient(to top, rgba(9,9,9,0.6) 0%, transparent 60%)",
             }}
           />
+
+          {/* Quick view trigger */}
+          <button
+            aria-label="Quick view"
+            onClick={(e) => { e.preventDefault(); setQuickView(true); }}
+            className={`absolute inset-x-0 flex items-center justify-center transition-all duration-300 ${
+              hover && !showSizes ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+            style={{ top: "50%", transform: "translateY(-50%)" }}
+          >
+            <span
+              className="text-mono text-white/90 bg-black/40 backdrop-blur-sm px-4 py-2 border border-white/20 flex items-center gap-2 hover:bg-black/60 transition-colors"
+              style={{ fontSize: "10px", letterSpacing: "0.3em" }}
+            >
+              <Eye className="size-3.5" /> QUICK VIEW
+            </span>
+          </button>
 
           {/* Badge */}
           {product.badge && (
@@ -191,6 +210,8 @@ export function ProductCard({
           </div>
         </div>
       </Link>
+
+      <QuickViewModal product={product} open={quickView} onClose={() => setQuickView(false)} />
     </div>
   );
 }
