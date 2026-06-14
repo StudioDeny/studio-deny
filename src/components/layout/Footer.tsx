@@ -3,37 +3,28 @@ import { Newsletter } from "./Newsletter";
 import { Instagram, Twitter, Youtube } from "lucide-react";
 
 export function Footer() {
-  const cols: { h: string; l: { label: string; to: string }[] }[] = [
-    {
-      h: "SHOP",
-      l: [
-        { label: "New Drops", to: "/shop" },
-        { label: "Tops", to: "/shop?cat=Tops" },
-        { label: "Bottoms", to: "/shop?cat=Bottoms" },
-        { label: "Outerwear", to: "/shop?cat=Outerwear" },
-        { label: "Accessories", to: "/shop?cat=Accessories" },
-        { label: "Sale", to: "/shop?sale=1" },
-      ],
-    },
-    {
-      h: "BRAND",
-      l: [
-        { label: "About", to: "/about" },
-        { label: "Lookbook", to: "/lookbook" },
-        { label: "Contact", to: "/contact" },
-        { label: "Policies", to: "/policies" },
-      ],
-    },
-    {
-      h: "HELP",
-      l: [
-        { label: "FAQ", to: "/faq" },
-        { label: "Size Guide", to: "/size-guide" },
-        { label: "Refer & Earn", to: "/refer" },
-        { label: "Rewards", to: "/rewards" },
-        { label: "My Orders", to: "/account" },
-      ],
-    },
+  const cols: { h: string; l: { label: string; to: string; search?: Record<string, string> }[] }[] = [
+    { h: "SHOP", l: [
+      { label: "New Drops", to: "/shop" },
+      { label: "Tops", to: "/shop", search: { cat: "Tops" } },
+      { label: "Bottoms", to: "/shop", search: { cat: "Bottoms" } },
+      { label: "Outerwear", to: "/shop", search: { cat: "Outerwear" } },
+      { label: "Accessories", to: "/shop", search: { cat: "Accessories" } },
+      { label: "Sale", to: "/shop", search: { sale: "1" } },
+    ]},
+    { h: "BRAND", l: [
+      { label: "About", to: "/about" },
+      { label: "Lookbook", to: "/lookbook" },
+      { label: "Contact", to: "/contact" },
+      { label: "Policies", to: "/policies" },
+    ]},
+    { h: "HELP", l: [
+      { label: "FAQ", to: "/faq" },
+      { label: "Size Guide", to: "/size-guide" },
+      { label: "Refer & Earn", to: "/refer" },
+      { label: "Rewards", to: "/rewards" },
+      { label: "My Orders", to: "/account" },
+    ]},
   ];
 
   return (
@@ -99,13 +90,9 @@ export function Footer() {
             <ul className="space-y-3">
               {c.l.map((i) => (
                 <li key={i.label}>
-                  <a
-                    href={i.to}
-                    className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-0.5 inline-block"
-                    style={{ fontSize: "13px" }}
-                  >
+                  <Link to={i.to} search={i.search as never} className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-0.5 inline-block" style={{ fontSize: "13px" }}>
                     {i.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

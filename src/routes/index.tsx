@@ -2,6 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { ArrowRight, ChevronDown, Star } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { NewArrivalsSection } from "@/components/home/NewArrivalsSection";
+import { WhyUsSection } from "@/components/home/WhyUsSection";
+import { InstagramFeedSection } from "@/components/home/InstagramFeedSection";
+import { NewsletterSection } from "@/components/home/NewsletterSection";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -155,6 +159,9 @@ function Index() {
           ))}
         </div>
       </section>
+
+      {/* New Arrivals (admin-editable) */}
+      <NewArrivalsSection />
 
       {/* Showcase / Collection Sections */}
       <section className="relative py-16 sm:py-24 max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16">
@@ -506,7 +513,7 @@ function Index() {
               >
                 <div className="flex gap-1">
                   {[0, 1, 2, 3, 4].map((n) => (
-                    <Star key={n} className="w-3.5 h-3.5 fill-current opacity-90" />
+                    <Star key={n} className="w-3.5 h-3.5 fill-white text-white opacity-90" />
                   ))}
                 </div>
                 <p className="text-lg sm:text-xl leading-relaxed opacity-90 text-display">
@@ -520,6 +527,8 @@ function Index() {
           </div>
         </div>
       </section>
+
+      <WhyUsSection />
 
       {/* Brand Story Section */}
       <section id="about" className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 border-y border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.01)]">
@@ -544,29 +553,9 @@ function Index() {
         </motion.div>
       </section>
 
-      {/* Final CTA */}
-      <section id="cta-end" className="py-20 sm:py-28">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          viewport={{ once: true }}
-          className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 text-center"
-        >
-          <h2 className="text-[clamp(2.3rem,9vw,6rem)] leading-[0.88] tracking-[-0.03em] uppercase text-display">
-            READY FOR THE NEXT DROP?
-          </h2>
-          <p className="text-base sm:text-lg mt-4 opacity-80 max-w-xl mx-auto text-mono">
-            Be first in line when new pieces launch. No spam, just access.
-          </p>
-          <Link
-            to="/signup"
-            className="mt-6 inline-flex items-center gap-2 text-sm tracking-[0.2em] uppercase opacity-90 hover:opacity-100 transition-opacity min-h-11 text-mono"
-          >
-            Get Early Access <ArrowRight className="w-4 h-4" />
-          </Link>
-        </motion.div>
-      </section>
+      <InstagramFeedSection />
+
+      <NewsletterSection />
     </div>
   );
 }

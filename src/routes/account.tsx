@@ -12,15 +12,17 @@ export const Route = createFileRoute("/account")({
 });
 
 function Account() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
+    if (loading) return;
     if (!user) navigate({ to: "/login" });
     else setOrders(ordersFor(user.email));
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center text-mono text-xs tracking-widest text-muted-foreground">LOADING…</div>;
   if (!user) return null;
 
   return (
@@ -37,7 +39,7 @@ function Account() {
               <ShieldCheck className="size-4" /> ADMIN
             </Link>
           )}
-          <button onClick={() => { logout(); navigate({ to: "/" }); }} className="border border-border px-4 h-10 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">
+          <button onClick={async () => { await logout(); navigate({ to: "/" }); }} className="border border-border px-4 h-10 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">
             <LogOut className="size-4" /> LOG OUT
           </button>
         </div>
@@ -54,7 +56,7 @@ function Account() {
           {orders.map((o) => (
             <li key={o.id} className="border border-border bg-surface p-4 flex flex-wrap items-center gap-4 justify-between hover:border-primary transition-colors">
               <div>
-                <div className="text-mono text-xs">#{o.id}</div>
+                <div className="text-mono text-xs">{o.order_number ?? o.id}</div>
                 <div className="text-xs text-muted-foreground">{new Date(o.createdAt).toLocaleString()}</div>
               </div>
               <div className="flex gap-1">

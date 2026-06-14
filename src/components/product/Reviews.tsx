@@ -35,7 +35,7 @@ function Stars({ value }: { value: number }) {
   return (
     <div className="inline-flex">
       {[1, 2, 3, 4, 5].map((i) => (
-        <Star key={i} className={`size-4 ${i <= Math.round(value) ? "fill-secondary text-secondary" : "text-muted-foreground"}`} />
+        <Star key={i} className={`size-4 ${i <= Math.round(value) ? "fill-white text-white" : "text-muted-foreground"}`} />
       ))}
     </div>
   );

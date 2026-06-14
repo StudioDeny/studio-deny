@@ -1,11 +1,16 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sun, Moon } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 
 export function Navbar() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const isLight = theme === "light";
   const location = useLocation();
   const isHomeRoute = location.pathname === "/";
 
@@ -24,10 +29,16 @@ export function Navbar() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
         className={`fixed top-0 left-0 right-0 z-[100] flex flex-col transition-[background,backdrop-filter] duration-300 ${
-          navUseSolidBar ? "bg-[rgba(10,10,10,0.82)] backdrop-blur-md mix-blend-normal border-b border-white/[0.06]" : "mix-blend-difference"
+          navUseSolidBar
+            ? isLight
+              ? "bg-white/90 backdrop-blur-md border-b border-black/[0.08]"
+              : "bg-[rgba(10,10,10,0.82)] backdrop-blur-md mix-blend-normal border-b border-white/[0.06]"
+            : isLight
+            ? "bg-transparent"
+            : "mix-blend-difference"
         }`}
       >
-        <div className="flex w-full items-center justify-between px-4 sm:px-8 lg:px-16 py-4 sm:py-6 text-white">
+        <div className={`flex w-full items-center justify-between px-4 sm:px-8 lg:px-16 py-4 sm:py-6 ${isLight && navUseSolidBar ? "text-foreground" : "text-white"}`}>
           <Link
             to="/"
             onClick={() => setMobileNavOpen(false)}
@@ -35,22 +46,47 @@ export function Navbar() {
           >
             <span className="text-[1.65rem] sm:text-[2.5rem] leading-none">STUDIO DENY</span>
           </Link>
-          <div className="hidden sm:flex gap-6 lg:gap-8 items-center font-body">
+          <div className="hidden sm:flex gap-5 lg:gap-7 items-center font-body">
             <Link to="/shop" className="text-sm tracking-wide hover:opacity-60 transition-opacity">SHOP</Link>
+            <Link to="/collections/$slug" params={{ slug: "men" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity">MEN</Link>
+            <Link to="/collections/$slug" params={{ slug: "women" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity">WOMEN</Link>
+            <Link to="/collections/$slug" params={{ slug: "accessories" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">ACCESSORIES</Link>
             <Link to="/lookbook" className="text-sm tracking-wide hover:opacity-60 transition-opacity">LOOKBOOK</Link>
-            <Link to="/about" className="text-sm tracking-wide hover:opacity-60 transition-opacity">ABOUT</Link>
+            <Link to="/about" className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">ABOUT</Link>
+            <Link to="/contact" className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">CONTACT</Link>
             <Link to="/cart" className="text-sm tracking-wide hover:opacity-60 transition-opacity">CART</Link>
-            <div className="w-[1px] h-4 bg-white/20 mx-2 hidden lg:block"></div>
-            <Link to="/login" className="text-sm tracking-wide hover:opacity-60 transition-opacity">LOGIN</Link>
-            <Link to="/signup" className="text-sm tracking-wide hover:opacity-60 transition-opacity">SIGNUP</Link>
+            <div className="w-[1px] h-4 bg-white/20 mx-1 hidden lg:block"></div>
+            {user ? (
+              <Link to="/account" className="text-sm tracking-wide hover:opacity-60 transition-opacity uppercase">ACCOUNT</Link>
+            ) : (
+              <Link to="/login" className="text-sm tracking-wide hover:opacity-60 transition-opacity uppercase">LOGIN</Link>
+            )}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
+              className="size-8 flex items-center justify-center hover:opacity-60 transition-opacity"
+            >
+              {isLight ? <Moon className="size-4" strokeWidth={1.5} /> : <Sun className="size-4" strokeWidth={1.5} />}
+            </button>
           </div>
-          <button
-            type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-sm sm:hidden -mr-1 hover:bg-white/10 transition-colors"
-            onClick={() => setMobileNavOpen((o) => !o)}
-          >
-            {mobileNavOpen ? <X className="h-6 w-6" strokeWidth={1.5} /> : <Menu className="h-6 w-6" strokeWidth={1.5} />}
-          </button>
+          <div className="flex items-center gap-1 sm:hidden">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
+              className="flex h-11 w-11 items-center justify-center rounded-sm hover:opacity-60 transition-opacity"
+            >
+              {isLight ? <Moon className="size-4" strokeWidth={1.5} /> : <Sun className="size-4" strokeWidth={1.5} />}
+            </button>
+            <button
+              type="button"
+              className="flex h-11 w-11 items-center justify-center rounded-sm -mr-1 hover:opacity-60 transition-opacity"
+              onClick={() => setMobileNavOpen((o) => !o)}
+            >
+              {mobileNavOpen ? <X className="h-6 w-6" strokeWidth={1.5} /> : <Menu className="h-6 w-6" strokeWidth={1.5} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Nav */}
@@ -60,14 +96,29 @@ export function Navbar() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="flex flex-col gap-1 border-t border-white/[0.08] px-4 pb-5 pt-2 sm:hidden overflow-hidden text-white bg-background"
+              className="flex flex-col gap-1 border-t border-border px-4 pb-5 pt-2 sm:hidden overflow-hidden text-foreground bg-background"
             >
               <Link to="/shop" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">SHOP</Link>
+              <Link to="/collections/$slug" params={{ slug: "men" }} onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">MEN</Link>
+              <Link to="/collections/$slug" params={{ slug: "women" }} onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">WOMEN</Link>
+              <Link to="/collections/$slug" params={{ slug: "accessories" }} onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">ACCESSORIES</Link>
               <Link to="/lookbook" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">LOOKBOOK</Link>
               <Link to="/about" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">ABOUT</Link>
-              <Link to="/cart" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide border-b border-white/[0.08]">CART</Link>
-              <Link to="/login" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide text-gray-400 hover:text-white transition-colors">LOGIN</Link>
-              <Link to="/signup" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide text-gray-400 hover:text-white transition-colors">SIGNUP</Link>
+              <Link to="/contact" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">CONTACT</Link>
+              <Link to="/cart" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide border-b border-border">CART</Link>
+              {user ? (
+                <Link to="/account" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide text-muted-foreground hover:text-foreground transition-colors uppercase">ACCOUNT</Link>
+              ) : (
+                <Link to="/login" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide text-muted-foreground hover:text-foreground transition-colors uppercase">LOGIN</Link>
+              )}
+              <button
+                type="button"
+                onClick={() => { toggleTheme(); setMobileNavOpen(false); }}
+                className="py-3 text-sm tracking-wide text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-left"
+              >
+                {isLight ? <Moon className="size-4" strokeWidth={1.5} /> : <Sun className="size-4" strokeWidth={1.5} />}
+                {isLight ? "DARK MODE" : "LIGHT MODE"}
+              </button>
             </motion.div>
           )}
         </AnimatePresence>

@@ -52,7 +52,7 @@ function Dashboard() {
         <ul className="border border-border bg-surface divide-y divide-border">
           {orders.slice(0, 8).map((o) => (
             <li key={o.id} className="p-4 flex items-center justify-between text-sm flex-wrap gap-3">
-              <div className="text-mono text-xs">#{o.id}</div>
+              <div className="text-mono text-xs">{o.order_number ?? o.id}</div>
               <div className="text-muted-foreground">{o.userEmail}</div>
               <div>{o.items.length} item(s)</div>
               <div className="text-mono">{formatINR(o.total)}</div>

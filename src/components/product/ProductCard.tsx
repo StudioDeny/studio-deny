@@ -1,16 +1,24 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Heart, ShoppingBag } from "lucide-react";
+import { Heart, ShoppingBag, Eye } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { QuickViewModal } from "./QuickViewModal";
 
-export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
+export function ProductCard({ 
+  product, 
+  index = 0
+}: { 
+  product: Product; 
+  index?: number;
+}) {
   const { add } = useCart();
   const { has, toggle } = useWishlist();
   const [hover, setHover] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
   const [added, setAdded] = useState(false);
+  const [quickView, setQuickView] = useState(false);
   const wished = has(product.slug);
 
   const handleQuickAdd = (size: string) => {
@@ -73,6 +81,23 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             }}
           />
 
+          {/* Quick view trigger */}
+          <button
+            aria-label="Quick view"
+            onClick={(e) => { e.preventDefault(); setQuickView(true); }}
+            className={`absolute inset-x-0 flex items-center justify-center transition-all duration-300 ${
+              hover && !showSizes ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+            style={{ top: "50%", transform: "translateY(-50%)" }}
+          >
+            <span
+              className="text-mono text-white/90 bg-black/40 backdrop-blur-sm px-4 py-2 border border-white/20 flex items-center gap-2 hover:bg-black/60 transition-colors"
+              style={{ fontSize: "10px", letterSpacing: "0.3em" }}
+            >
+              <Eye className="size-3.5" /> QUICK VIEW
+            </span>
+          </button>
+
           {/* Badge */}
           {product.badge && (
             <span
@@ -104,34 +129,34 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             <Heart className={`size-3.5 ${wished ? "fill-primary" : ""}`} />
           </button>
 
-          {/* Quick add — desktop */}
+          {/* Quick add — desktop hover, always visible (compact) on mobile */}
           <div
-            className={`absolute inset-x-0 bottom-0 hidden md:block transition-all duration-300 ${
-              hover ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
+            className={`absolute inset-x-0 bottom-0 transition-all duration-300 ${
+              hover ? "md:translate-y-0 md:opacity-100" : "md:translate-y-full md:opacity-0"
             }`}
           >
             {added ? (
               <div
-                className="w-full text-mono font-bold text-center py-3 bg-secondary text-secondary-foreground"
+                className="w-full text-mono font-bold text-center py-2.5 md:py-3 bg-secondary text-secondary-foreground"
                 style={{ fontSize: "11px", letterSpacing: "0.2em" }}
               >
-                ✓ ADDED TO BAG
+                ✓ ADDED
               </div>
             ) : !showSizes ? (
               <button
                 onClick={(e) => { e.preventDefault(); setShowSizes(true); }}
-                className="w-full bg-foreground text-background text-mono font-bold py-3 hover:bg-primary hover:text-primary-foreground transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-foreground/95 text-background text-mono font-bold py-2.5 md:py-3 hover:bg-primary hover:text-primary-foreground transition-colors flex items-center justify-center gap-2"
                 style={{ fontSize: "11px", letterSpacing: "0.2em" }}
               >
                 <ShoppingBag className="size-3.5" /> QUICK ADD
               </button>
             ) : (
-              <div className="flex bg-foreground text-background">
+              <div className="flex bg-foreground text-background overflow-x-auto">
                 {product.sizes.map((s) => (
                   <button
                     key={s}
                     onClick={(e) => { e.preventDefault(); handleQuickAdd(s); }}
-                    className="flex-1 text-mono py-3 hover:bg-primary hover:text-primary-foreground transition-colors border-l border-black/10 first:border-l-0"
+                    className="flex-1 min-w-[36px] text-mono py-2.5 md:py-3 hover:bg-primary hover:text-primary-foreground transition-colors border-l border-black/10 first:border-l-0"
                     style={{ fontSize: "11px" }}
                   >
                     {s}
@@ -185,6 +210,8 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
           </div>
         </div>
       </Link>
+
+      <QuickViewModal product={product} open={quickView} onClose={() => setQuickView(false)} />
     </div>
   );
 }

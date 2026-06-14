@@ -45,7 +45,7 @@ function OrderPage() {
       </div>
       <div className="text-mono text-[11px] tracking-[0.3em] text-secondary mb-2">◢ ORDER {order.status}</div>
       <h1 className="text-display text-5xl md:text-7xl">{order.status === "CANCELLED" ? "CANCELLED." : order.status === "REFUNDED" ? "REFUNDED." : "YOU'RE IN."}</h1>
-      <p className="text-muted-foreground mt-3">Order <span className="text-mono text-foreground">#{order.id}</span> — confirmation sent to <span className="text-foreground">{order.userEmail}</span>.</p>
+      <p className="text-muted-foreground mt-3">Order <span className="text-mono text-foreground">{order.order_number ?? order.id}</span> — confirmation sent to <span className="text-foreground">{order.userEmail}</span>.</p>
 
       <div className="mt-10 grid md:grid-cols-2 gap-6">
         <div className="border border-border p-5 bg-surface">

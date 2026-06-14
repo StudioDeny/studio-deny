@@ -48,7 +48,7 @@ function AdminOrders() {
             <tbody className="divide-y divide-border">
               {orders.map((o) => (
                 <tr key={o.id}>
-                  <td className="p-3 text-mono text-xs">#{o.id}</td>
+                  <td className="p-3 text-mono text-xs">{o.order_number ?? o.id}</td>
                   <td className="p-3 text-muted-foreground">{o.userEmail}</td>
                   <td className="p-3 text-muted-foreground text-xs">{new Date(o.createdAt).toLocaleDateString()}</td>
                   <td className="p-3 text-mono">{formatINR(o.total)}</td>

@@ -9,7 +9,8 @@ import denim from "@/assets/p-denim.jpg";
 export type Product = {
   slug: string;
   name: string;
-  category: "Tops" | "Bottoms" | "Outerwear" | "Accessories";
+  category: string;
+  brand?: string;
   price: number;
   compareAt?: number;
   image: string;

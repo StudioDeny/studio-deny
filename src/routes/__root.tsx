@@ -1,8 +1,8 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-import appCss from "../styles.css?url";
+import { Outlet, Link, createRootRoute } from "@tanstack/react-router";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -24,43 +24,22 @@ function NotFoundComponent() {
 }
 
 export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "STUDIO/DENY — Streetwear For The Restless" },
-      { name: "description", content: "Studio Deny — heavyweight streetwear, raw graphics, made in India. Hoodies, tees, cargos, outerwear." },
-      { name: "theme-color", content: "#0a0a0a" },
-      { property: "og:title", content: "STUDIO/DENY" },
-      { property: "og:description", content: "Streetwear for the ones who refuse to blend in." },
-      { property: "og:type", content: "website" },
-    ],
-    links: [{ rel: "stylesheet", href: appCss }],
-  }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
 });
 
-function RootShell({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en" className="dark">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
+import { Preloader } from "@/components/layout/Preloader";
+import { useEffect } from "react";
+import { seedIfEmpty } from "@/lib/seed";
 
 function RootComponent() {
   const isHome = useRouterState({ select: (s) => s.location.pathname === "/" });
+  useEffect(() => { seedIfEmpty(); }, []);
 
   return (
+    <ThemeProvider>
     <AuthProvider>
+      <Preloader />
       <WishlistProvider>
       <CartProvider>
         <Navbar />
@@ -82,5 +61,6 @@ function RootComponent() {
       </CartProvider>
       </WishlistProvider>
     </AuthProvider>
+    </ThemeProvider>
   );
 }

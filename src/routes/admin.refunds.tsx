@@ -39,7 +39,7 @@ function Refunds() {
         {eligible.length === 0 ? <Empty /> : (
           <Table rows={eligible.map((o) => ({
             cells: [
-              `#${o.id}`, o.userEmail, new Date(o.createdAt).toLocaleDateString(), formatINR(o.total), o.status,
+              o.order_number ?? o.id, o.userEmail, new Date(o.createdAt).toLocaleDateString(), formatINR(o.total), o.status,
             ],
             actions: <button onClick={() => refund(o.id, o.total)} className="border border-primary text-primary px-3 h-8 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground">REFUND</button>,
           }))} />
@@ -50,7 +50,7 @@ function Refunds() {
         {refunded.length === 0 ? <Empty /> : (
           <Table rows={refunded.map((o) => ({
             cells: [
-              `#${o.id}`, o.userEmail,
+              o.order_number ?? o.id, o.userEmail,
               o.refundedAt ? new Date(o.refundedAt).toLocaleDateString() : "—",
               formatINR(o.refundAmount ?? 0), "REFUNDED",
             ],
@@ -62,7 +62,7 @@ function Refunds() {
         {cancelled.length === 0 ? <Empty /> : (
           <Table rows={cancelled.map((o) => ({
             cells: [
-              `#${o.id}`, o.userEmail,
+              o.order_number ?? o.id, o.userEmail,
               o.cancelledAt ? new Date(o.cancelledAt).toLocaleDateString() : "—",
               formatINR(o.total), "CANCELLED",
             ],
