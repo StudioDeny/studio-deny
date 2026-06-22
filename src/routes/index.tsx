@@ -287,6 +287,39 @@ function Index() {
         </div>
       </section>
 
+      {/* Cinematic Video Section 1 */}
+      <section className="relative h-[80vh] w-full overflow-hidden flex items-center justify-center my-16 border-y border-[rgba(255,255,255,0.1)]">
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          className="absolute inset-0 w-full h-full object-cover opacity-50 scale-105"
+        >
+          <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-background/80" />
+        <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-[clamp(4rem,12vw,10rem)] leading-[0.8] font-display uppercase tracking-[-0.04em] text-white">
+              MOTION
+              <br />
+              <span className="text-transparent" style={{ WebkitTextStroke: "1.5px rgba(255,255,255,0.5)" }}>
+                PICTURE
+              </span>
+            </h2>
+            <p className="mt-8 text-lg md:text-xl text-white/80 text-mono tracking-[0.2em] max-w-2xl mx-auto leading-relaxed">
+              CAPTURING THE ESSENCE OF THE STREETS. RAW, UNFILTERED, AND IN CONSTANT MOTION.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
       <div className="w-full h-px bg-[rgba(255,255,255,0.1)]" />
       {/* Visual Collections Grid */}
       <section className="py-12 sm:py-16 px-4 sm:px-8 lg:px-16 max-w-[1560px] mx-auto">
@@ -556,6 +589,43 @@ function Index() {
         </div>
       </section>
 
+      {/* Cinematic Video Section 2: Split Screen */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 border-y border-[rgba(255,255,255,0.1)]">
+        <div className="order-2 lg:order-1 flex flex-col justify-center p-12 md:p-24 bg-[rgba(255,255,255,0.02)] border-r border-[rgba(255,255,255,0.1)]">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <span className="inline-flex items-center px-4 py-1.5 border border-white/20 text-white text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-8 bg-white/5">
+              BEHIND THE SEAMS
+            </span>
+            <h2 className="text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-8">
+              CRAFTED FOR
+              <br />
+              <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.4)" }}>
+                THE STREETS
+              </span>
+            </h2>
+            <p className="text-base sm:text-lg opacity-80 text-mono max-w-lg leading-relaxed">
+              Every stitch, every cut, every fabric choice is deliberate. We design for movement, durability, and a silhouette that refuses to be ignored.
+            </p>
+          </motion.div>
+        </div>
+        <div className="order-1 lg:order-2 relative h-[50vh] lg:h-auto min-h-[500px] overflow-hidden">
+          <video 
+            autoPlay 
+            loop 
+            muted 
+            playsInline 
+            className="absolute inset-0 w-full h-full object-cover grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-1000 scale-105"
+          >
+            <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4" />
+          </video>
+        </div>
+      </section>
+
 
       {/* Community Section */}
       <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 relative overflow-hidden">
@@ -785,7 +855,7 @@ function Index() {
 
 
       {/* Loyalty Program Section */}
-      <section className="py-20 sm:py-32 px-4 sm:px-8 lg:px-16 border-y border-[rgba(255,255,255,0.1)] bg-[#050505] relative overflow-hidden">
+      <section className="py-32 sm:py-48 px-4 sm:px-8 lg:px-16 border-y border-[rgba(255,255,255,0.1)] bg-[#050505] relative overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
         
         <div className="max-w-[1200px] mx-auto relative z-10 text-center">
@@ -795,17 +865,17 @@ function Index() {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <span className="inline-flex items-center px-3 py-1 border border-white/20 text-white text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-6 bg-white/5">
+            <span className="inline-flex items-center px-4 py-1.5 border border-white/20 text-white text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-10 bg-white/5">
               THE DENY SYNDICATE
             </span>
-            <h2 className="text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-6">
+            <h2 className="text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-10">
               LOYALTY HAS ITS
               <br />
               <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.4)" }}>
                 REWARDS
               </span>
             </h2>
-            <p className="text-base sm:text-lg opacity-75 max-w-2xl mx-auto text-mono mb-10">
+            <p className="text-base sm:text-lg opacity-75 max-w-2xl mx-auto text-mono mb-16 leading-relaxed">
               Join our exclusive loyalty program. Earn points on every purchase, unlock early access to drops, and get access to members-only products.
             </p>
             
