@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Package, Zap, Shield, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useTheme } from "@/context/ThemeContext";
 
 type Feature = { label: string; desc: string };
 type WhyUsConfig = {
@@ -26,6 +27,8 @@ const DEFAULTS: WhyUsConfig = {
 };
 
 export function WhyUsSection() {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const [cfg, setCfg] = useState<WhyUsConfig>(DEFAULTS);
   const [visible, setVisible] = useState(true);
 
@@ -64,7 +67,7 @@ export function WhyUsSection() {
           <h2 className="text-display leading-none" style={{ fontSize: "clamp(36px, 7vw, 80px)" }}>
             {cfg.title}
             <br />
-            <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.35)" }}>
+            <span className="text-transparent" style={{ WebkitTextStroke: isLight ? "2px rgba(0,0,0,0.55)" : "1px rgba(255,255,255,0.35)" }}>
               {cfg.subtitle}
             </span>
           </h2>

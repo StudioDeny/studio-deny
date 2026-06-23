@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { ordersFor, type Order } from "@/lib/orders";
 import { getSettings } from "@/lib/settings";
 import {
@@ -26,6 +27,8 @@ const TIER_COLORS: Record<string, string> = {
 
 function Rewards() {
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const [orders, setOrders] = useState<Order[]>([]);
   const settings = getSettings();
 
@@ -41,19 +44,18 @@ function Rewards() {
   const next = [...TIERS].find((t) => t.min > points);
   const pct = next ? Math.min(100, Math.round((points / next.min) * 100)) : 100;
 
-  // Progress toward entry qualification (for non-members)
   const bestOrder = qualifyingOrderValue(orders);
   const entryPct = Math.min(100, Math.round((bestOrder / entryThreshold) * 100));
 
   return (
     <section className="px-4 md:px-8 max-w-6xl mx-auto pb-24">
       {/* Hero */}
-      <div className="text-center py-20 md:py-32 border-b border-[rgba(255,255,255,0.1)] mb-16">
+      <div className="text-center py-20 md:py-32 border-b border-border mb-16">
         <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-6">◢ THE DENY SYNDICATE</div>
         <h1 className="text-display text-[clamp(3rem,8vw,7rem)] leading-[0.9] tracking-[-0.03em] uppercase max-w-4xl mx-auto mb-8">
           LOYALTY PAYS.
           <br />
-          <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.4)" }}>
+          <span className="text-transparent" style={{ WebkitTextStroke: isLight ? "2px rgba(0,0,0,0.55)" : "1px rgba(255,255,255,0.4)" }}>
             EXCLUSIVITY REWARDS.
           </span>
         </h1>
@@ -64,11 +66,11 @@ function Rewards() {
         <div className="flex items-center justify-center gap-4 flex-wrap">
           {!user ? (
             <>
-              <Link to="/login" className="px-8 py-4 bg-white text-black text-xs tracking-widest uppercase hover:bg-white/90 transition-colors font-bold text-mono">Join the Syndicate</Link>
-              <Link to="/login" className="px-8 py-4 border border-[rgba(255,255,255,0.2)] text-xs tracking-widest uppercase hover:border-white transition-colors text-mono">Log In</Link>
+              <Link to="/login" className="px-8 py-4 bg-foreground text-background text-xs tracking-widest uppercase hover:opacity-80 transition-opacity font-bold text-mono">Join the Syndicate</Link>
+              <Link to="/login" className="px-8 py-4 border border-border text-xs tracking-widest uppercase hover:border-foreground transition-colors text-mono">Log In</Link>
             </>
           ) : (
-            <Link to="/shop" className="px-10 py-4 bg-white text-black text-xs tracking-widest uppercase hover:bg-white/90 transition-colors font-bold text-mono">
+            <Link to="/shop" className="px-10 py-4 bg-foreground text-background text-xs tracking-widest uppercase hover:opacity-80 transition-opacity font-bold text-mono">
               {member ? "Shop to Earn Points" : `Spend ₹${entryThreshold.toLocaleString()} to Unlock`}
             </Link>
           )}
@@ -79,7 +81,7 @@ function Rewards() {
         {/* Left: status card */}
         <div className="lg:col-span-7">
           {!user ? (
-            <div className="border border-dashed border-[rgba(255,255,255,0.2)] p-12 text-center h-full flex flex-col justify-center items-center">
+            <div className="border border-dashed border-border p-12 text-center h-full flex flex-col justify-center items-center">
               <Sparkles className="size-8 text-primary mb-4 opacity-50" />
               <h3 className="text-display text-3xl mb-2 uppercase">Unlock Your Status</h3>
               <p className="text-muted-foreground text-mono text-sm max-w-xs mb-6">
@@ -89,7 +91,7 @@ function Rewards() {
             </div>
           ) : !member ? (
             /* Not yet qualified */
-            <div className="border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.02)] p-8 md:p-12 h-full flex flex-col">
+            <div className="border border-border bg-surface/30 p-8 md:p-12 h-full flex flex-col">
               <div className="flex items-center gap-3 mb-8">
                 <Lock className="size-5 text-muted-foreground shrink-0" />
                 <div className="text-mono text-[11px] tracking-[0.25em] text-muted-foreground uppercase">Not Yet Qualified</div>
@@ -112,7 +114,7 @@ function Rewards() {
                     <span>HIGHEST SINGLE ORDER</span>
                     <span>₹{bestOrder.toLocaleString()} / ₹{entryThreshold.toLocaleString()}</span>
                   </div>
-                  <div className="h-1.5 bg-[rgba(255,255,255,0.1)] overflow-hidden">
+                  <div className="h-1.5 bg-border overflow-hidden">
                     <div
                       className="h-full bg-muted-foreground transition-all duration-1000 ease-out"
                       style={{ width: `${entryPct}%` }}
@@ -127,7 +129,7 @@ function Rewards() {
               <div className="mt-auto">
                 <Link
                   to="/shop"
-                  className="inline-flex items-center gap-2 px-8 py-3 bg-white text-black text-xs tracking-widest uppercase hover:bg-white/90 transition-colors font-bold text-mono"
+                  className="inline-flex items-center gap-2 px-8 py-3 bg-foreground text-background text-xs tracking-widest uppercase hover:opacity-80 transition-opacity font-bold text-mono"
                 >
                   Shop Now → Qualify
                 </Link>
@@ -135,10 +137,10 @@ function Rewards() {
             </div>
           ) : (
             /* Qualified member */
-            <div className="border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] p-8 md:p-12 h-full">
+            <div className="border border-border bg-surface/30 p-8 md:p-12 h-full">
               <div className="flex items-center gap-3 mb-8">
-                <CheckCircle className="size-5 text-emerald-400 shrink-0" />
-                <div className="text-mono text-[11px] tracking-[0.25em] text-emerald-400 uppercase">Active Member</div>
+                <CheckCircle className="size-5 text-emerald-500 shrink-0" />
+                <div className="text-mono text-[11px] tracking-[0.25em] text-emerald-600 dark:text-emerald-400 uppercase">Active Member</div>
               </div>
 
               <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
@@ -163,7 +165,7 @@ function Rewards() {
                     <span className="uppercase">{tier.name}</span>
                     <span className="uppercase">{next.name} · {(next.min - points).toLocaleString()} pts to unlock</span>
                   </div>
-                  <div className="h-1.5 bg-[rgba(255,255,255,0.1)] overflow-hidden">
+                  <div className="h-1.5 bg-border overflow-hidden">
                     <div className="h-full bg-primary glow-primary transition-all duration-1000 ease-out" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
@@ -200,9 +202,9 @@ function Rewards() {
           ].map((c) => (
             <div
               key={c.t}
-              className="border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.01)] p-6 flex gap-6 items-center group hover:border-[rgba(255,255,255,0.3)] transition-colors"
+              className="border border-border bg-surface/10 p-6 flex gap-6 items-center group hover:border-foreground/40 hover:bg-surface/30 transition-colors"
             >
-              <div className="size-12 shrink-0 bg-[rgba(255,255,255,0.05)] flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="size-12 shrink-0 bg-surface/30 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <c.icon className="size-5 text-primary" />
               </div>
               <div>
@@ -213,7 +215,7 @@ function Rewards() {
           ))}
 
           {/* Tier breakdown */}
-          <div className="border border-[rgba(255,255,255,0.1)] p-6 space-y-3">
+          <div className="border border-border p-6 space-y-3 bg-surface/20">
             <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-3">TIER BREAKDOWN</div>
             {[...TIERS].map((t) => (
               <div key={t.name} className="flex items-center justify-between">
@@ -229,9 +231,9 @@ function Rewards() {
           </div>
 
           {user && member && (
-            <div className="mt-2 border border-[rgba(255,255,255,0.1)] p-6 flex items-center gap-4 bg-primary/5">
+            <div className="mt-2 border border-border p-6 flex items-center gap-4 bg-primary/5">
               <Trophy className="size-6 text-primary shrink-0" />
-              <p className="text-xs text-mono text-white/80 leading-relaxed">
+              <p className="text-xs text-mono text-foreground/80 leading-relaxed">
                 {orders.filter((o) => o.status !== "CANCELLED" && o.status !== "REFUNDED").length} valid order{orders.length === 1 ? "" : "s"} · {points.toLocaleString()} pts total · ₹{redeemValue.toLocaleString()} value
               </p>
             </div>

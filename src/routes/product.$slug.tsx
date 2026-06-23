@@ -219,7 +219,7 @@ function PDP() {
               <button
                 key={src}
                 onClick={() => setMainImg(src)}
-                className={`h-1 transition-all duration-300 ${mainImg === src ? "w-8 bg-primary glow-primary-sm" : "w-4 bg-white/40"}`}
+                className={`h-1 transition-all duration-300 ${mainImg === src ? "w-8 bg-primary glow-primary-sm" : "w-4 bg-foreground/40"}`}
                 aria-label="Change image"
               />
             ))}
@@ -288,7 +288,7 @@ function PDP() {
                   disabled={!opt.inStock}
                   className={`h-12 border text-mono transition-all duration-200 flex items-center justify-center relative ${
                     size === opt.size
-                      ? "bg-foreground text-background border-foreground font-bold shadow-[0_0_15px_rgba(255,255,255,0.15)]"
+                      ? "bg-foreground text-background border-foreground font-bold shadow-[0_0_15px_rgba(128,128,128,0.2)]"
                       : opt.inStock
                       ? "border-border text-muted-foreground hover:border-primary hover:text-primary bg-surface/50"
                       : "border-border/30 text-muted-foreground/30 bg-surface/20 cursor-not-allowed line-through"

@@ -326,18 +326,18 @@ function Index() {
       </section>
 
       {/* Cinematic Video Section 1 */}
-      <section className="relative h-[80vh] w-full overflow-hidden flex items-center justify-center my-16 border-y border-border">
+      <section className="relative h-[80vh] w-full overflow-hidden flex items-center justify-center my-16 border-y border-border bg-[#0A0A0A]">
         <video
           autoPlay
           loop
           muted
           playsInline
           preload="none"
-          className="absolute inset-0 w-full h-full object-cover opacity-50 scale-105"
+          className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105"
         >
           <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-background/80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/70" />
         <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -348,7 +348,7 @@ function Index() {
             <h2 className="text-[clamp(4rem,12vw,10rem)] leading-[0.8] font-display uppercase tracking-[-0.04em] text-white">
               MOTION
               <br />
-              <span className="text-transparent" style={{ WebkitTextStroke: "1.5px rgba(255,255,255,0.5)" }}>
+              <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(255,255,255,0.65)" }}>
                 PICTURE
               </span>
             </h2>
@@ -451,9 +451,9 @@ function Index() {
                   className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover/item:scale-105"
                   style={{ backgroundImage: `url('${item.img}')` }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-8 left-6 sm:bottom-12 sm:left-10 z-10">
-                  <p className="text-[clamp(2.5rem,8vw,5.5rem)] leading-none tracking-[-0.04em] uppercase text-display whitespace-pre-line">
+                  <p className="text-[clamp(2.5rem,8vw,5.5rem)] leading-none tracking-[-0.04em] uppercase text-display whitespace-pre-line text-white">
                     {item.title}
                   </p>
                 </div>
@@ -506,7 +506,7 @@ function Index() {
                 <h2 className="text-[clamp(3rem,8vw,6rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-4">
                   PREMIUM FABRIC.
                   <br />
-                  <span className="text-transparent" style={{ WebkitTextStroke: isLight ? "1px rgba(0,0,0,0.3)" : "1px rgba(255,255,255,0.35)" }}>
+                  <span className="text-transparent" style={{ WebkitTextStroke: isLight ? "2px rgba(0,0,0,0.55)" : "1px rgba(255,255,255,0.35)" }}>
                     UNCOMPROMISED QUALITY.
                   </span>
                 </h2>
@@ -539,7 +539,7 @@ function Index() {
                       className="group cursor-pointer border-b border-border pb-6 sm:pb-8 last:border-0"
                     >
                       <div className="flex items-center justify-between mb-4 transition-colors duration-300">
-                        <h3 className={`text-4xl sm:text-5xl lg:text-6xl text-display uppercase tracking-wider transition-colors duration-300 ${activeFabric.id === fabric.id ? 'text-foreground' : 'text-foreground/40 group-hover:text-foreground/70'}`}>
+                        <h3 className={`text-4xl sm:text-5xl lg:text-6xl text-display uppercase tracking-wider transition-colors duration-300 ${activeFabric.id === fabric.id ? 'text-foreground' : 'text-foreground/50 group-hover:text-foreground/80'}`}>
                           {fabric.name}
                         </h3>
                         <ArrowRight className={`w-6 h-6 transition-all duration-300 ${activeFabric.id === fabric.id ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`} />
@@ -643,7 +643,7 @@ function Index() {
             <h2 className="text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-8">
               CRAFTED FOR
               <br />
-              <span className="text-transparent" style={{ WebkitTextStroke: isLight ? "1px rgba(0,0,0,0.3)" : "1px rgba(255,255,255,0.4)" }}>
+              <span className="text-transparent" style={{ WebkitTextStroke: isLight ? "2px rgba(0,0,0,0.55)" : "1px rgba(255,255,255,0.4)" }}>
                 THE STREETS
               </span>
             </h2>
@@ -669,7 +669,7 @@ function Index() {
 
       {/* Community Section */}
       <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.04),transparent_60%)]" />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: isLight ? 'radial-gradient(circle at 30% 50%, rgba(13,11,9,0.05), transparent 60%)' : 'radial-gradient(circle at 30% 50%, rgba(255,255,255,0.04), transparent 60%)' }} />
         <div className="max-w-[1560px] mx-auto relative z-10">
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 grid-flow-row-dense auto-rows-[minmax(140px,auto)] md:auto-rows-[240px] gap-3 sm:gap-6">
@@ -921,7 +921,7 @@ function Index() {
                     <br />
                     HAS ITS
                     <br />
-                    <span className="text-transparent" style={{ WebkitTextStroke: "1.5px rgba(255,255,255,0.35)" }}>
+                    <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(255,255,255,0.5)" }}>
                       REWARDS.
                     </span>
                   </h2>

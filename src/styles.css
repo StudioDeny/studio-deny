@@ -53,7 +53,7 @@
 
   --muted: #CCC6BA;
   --muted-foreground: #48433D;
-  --border: rgba(0, 0, 0, 0.16);
+  --border: rgba(0, 0, 0, 0.22);
 }
 
 @layer base {
