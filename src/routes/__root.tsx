@@ -37,7 +37,7 @@ export const Route = createRootRoute({
 });
 
 import { Preloader } from "@/components/layout/Preloader";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { seedIfEmpty } from "@/lib/seed";
 
 function RootComponent() {
