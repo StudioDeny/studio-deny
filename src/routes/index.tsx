@@ -11,6 +11,8 @@ import { supabase } from "@/lib/supabase";
 import { NewArrivalsSection } from "@/components/home/NewArrivalsSection";
 import { WhyUsSection } from "@/components/home/WhyUsSection";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
+import { LoyaltyModal } from "@/components/home/LoyaltyModal";
+import { getSettings } from "@/lib/settings";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -99,6 +101,7 @@ function Index() {
 
   return (
     <div className="bg-background text-foreground overflow-x-hidden min-h-screen font-body">
+      <LoyaltyModal />
       {/* Hero Section */}
       <section className="relative min-h-[82vh] sm:min-h-[86vh] w-full flex items-center justify-center overflow-hidden px-4 sm:px-8 lg:px-16 pt-28 sm:pt-32 pb-16">
         <video
@@ -886,40 +889,111 @@ function Index() {
 
 
       {/* Loyalty Program Section */}
-      <section className="py-32 sm:py-48 px-4 sm:px-8 lg:px-16 border-y border-[rgba(255,255,255,0.1)] bg-[#050505] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
-        
-        <div className="max-w-[1200px] mx-auto relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <span className="inline-flex items-center px-4 py-1.5 border border-white/20 text-white text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-10 bg-white/5">
-              THE DENY SYNDICATE
-            </span>
-            <h2 className="text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-10">
-              LOYALTY HAS ITS
-              <br />
-              <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.4)" }}>
-                REWARDS
-              </span>
-            </h2>
-            <p className="text-base sm:text-lg opacity-75 max-w-2xl mx-auto text-mono mb-16 leading-relaxed">
-              Join our exclusive loyalty program. Earn points on every purchase, unlock early access to drops, and get access to members-only products.
-            </p>
-            
-            <Link
-              to="/rewards"
-              className="inline-flex items-center gap-2 px-10 py-4 border border-white text-white hover:bg-white hover:text-black transition-colors duration-300 text-sm sm:text-base tracking-[0.14em] uppercase text-mono"
-            >
-              Read More
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
-        </div>
-      </section>
+      {(() => {
+        const ls = getSettings();
+        return (
+          <section className="py-24 sm:py-36 px-4 sm:px-8 lg:px-16 border-y border-[rgba(255,255,255,0.1)] bg-[#050505] relative overflow-hidden">
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20 pointer-events-none" />
+
+            <div className="max-w-[1280px] mx-auto relative z-10">
+              <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+
+                {/* Left: headline + copy */}
+                <motion.div
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8 }}
+                  viewport={{ once: true }}
+                >
+                  <span className="inline-flex items-center gap-2 px-4 py-1.5 border border-white/20 bg-white/5 text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-8">
+                    ◆ THE DENY SYNDICATE
+                  </span>
+                  <h2 className="text-[clamp(3rem,7vw,6rem)] leading-[0.88] tracking-[-0.03em] uppercase text-display mb-8">
+                    LOYALTY
+                    <br />
+                    HAS ITS
+                    <br />
+                    <span className="text-transparent" style={{ WebkitTextStroke: "1.5px rgba(255,255,255,0.35)" }}>
+                      REWARDS.
+                    </span>
+                  </h2>
+                  <p className="text-white/60 text-sm sm:text-base text-mono leading-relaxed mb-10 max-w-md">
+                    One qualifying drop unlocks you into our private pool.
+                    After that, every rupee you spend earns points — and every point is real money off your next order.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      to="/rewards"
+                      className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-black text-xs tracking-[0.14em] uppercase text-mono font-bold hover:bg-white/90 transition-colors"
+                    >
+                      JOIN THE SYNDICATE <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <Link
+                      to="/shop"
+                      className="inline-flex items-center gap-2 px-8 py-3.5 border border-white/20 text-white text-xs tracking-[0.14em] uppercase text-mono hover:border-white/60 transition-colors"
+                    >
+                      SHOP TO QUALIFY
+                    </Link>
+                  </div>
+                </motion.div>
+
+                {/* Right: cards */}
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, delay: 0.15 }}
+                  viewport={{ once: true }}
+                  className="space-y-4"
+                >
+                  {/* How it works — 3 steps */}
+                  {[
+                    {
+                      step: "01",
+                      label: "QUALIFY",
+                      desc: `Place a single order of ₹${ls.entryThreshold.toLocaleString()} or more. One order, one shot — cumulative purchases don't count.`,
+                    },
+                    {
+                      step: "02",
+                      label: "EARN POINTS",
+                      desc: `After qualifying, earn 1 point for every ₹${ls.rupeesPerEarnedPoint} you spend. ₹200 order = 4 pts.`,
+                    },
+                    {
+                      step: "03",
+                      label: "REDEEM",
+                      desc: `Each point = ₹${ls.rupeesPerPoint} off at checkout. No expiry. No minimum. Stack with tier discounts.`,
+                    },
+                  ].map((item) => (
+                    <div key={item.step} className="flex gap-5 border border-white/10 bg-white/[0.02] p-5 hover:border-white/20 transition-colors group">
+                      <div className="text-display text-[2.5rem] leading-none text-white/10 group-hover:text-white/20 transition-colors shrink-0 w-12">
+                        {item.step}
+                      </div>
+                      <div>
+                        <div className="text-mono text-[10px] tracking-[0.2em] text-primary mb-1">{item.label}</div>
+                        <p className="text-white/60 text-sm text-mono leading-relaxed">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Tier strip */}
+                  <div className="grid grid-cols-4 gap-1.5 pt-2">
+                    {[
+                      { name: "ROOKIE", pts: "0 pts", style: "border-white/10 bg-white/[0.02]" },
+                      { name: "RUNNER", pts: "1,000 pts", style: "border-blue-500/30 bg-blue-500/5" },
+                      { name: "RIOT", pts: "3,000 pts", style: "border-primary/40 bg-primary/5" },
+                      { name: "LEGEND", pts: "8,000 pts", style: "border-primary/60 bg-primary/10" },
+                    ].map((t) => (
+                      <div key={t.name} className={`border ${t.style} p-3 text-center`}>
+                        <div className="text-mono text-[9px] tracking-widest text-white/70 mb-1">{t.name}</div>
+                        <div className="text-mono text-[8px] text-white/30">{t.pts}</div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* FAQ Section */}
       {faqItems.length > 0 && (

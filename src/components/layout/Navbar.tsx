@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X, Sun, Moon, Trophy } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -53,8 +53,14 @@ export function Navbar() {
             <Link to="/collections/$slug" params={{ slug: "accessories" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">ACCESSORIES</Link>
             <Link to="/lookbook" className="text-sm tracking-wide hover:opacity-60 transition-opacity">LOOKBOOK</Link>
             <Link to="/about" className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">ABOUT</Link>
-            <Link to="/rewards" className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">REWARDS</Link>
             <Link to="/contact" className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">CONTACT</Link>
+            <Link
+              to="/rewards"
+              className="inline-flex items-center gap-1.5 text-xs tracking-[0.15em] font-semibold px-3 py-1.5 border border-white/25 hover:border-white/60 transition-colors text-mono"
+            >
+              <Trophy className="w-3 h-3 opacity-80" />
+              REWARDS
+            </Link>
             <Link to="/cart" className="text-sm tracking-wide hover:opacity-60 transition-opacity">CART</Link>
             <div className="w-[1px] h-4 bg-white/20 mx-1 hidden lg:block"></div>
             {user ? (
@@ -105,7 +111,9 @@ export function Navbar() {
               <Link to="/collections/$slug" params={{ slug: "accessories" }} onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">ACCESSORIES</Link>
               <Link to="/lookbook" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">LOOKBOOK</Link>
               <Link to="/about" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">ABOUT</Link>
-              <Link to="/rewards" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">REWARDS</Link>
+              <Link to="/rewards" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide flex items-center gap-2">
+                <Trophy className="w-3.5 h-3.5 opacity-60" /> REWARDS
+              </Link>
               <Link to="/contact" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">CONTACT</Link>
               <Link to="/cart" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide border-b border-border">CART</Link>
               {user ? (
