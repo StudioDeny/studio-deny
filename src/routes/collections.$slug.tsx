@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { productsInCategory, findCategoryBySlug, listCategories } from "@/lib/catalog";
+import type { Product } from "@/lib/productsStore";
 import { ProductCard } from "@/components/product/ProductCard";
 import { SlidersHorizontal, X } from "lucide-react";
 
@@ -13,7 +14,7 @@ type Sort = "new" | "low" | "high" | "name";
 
 function CollectionPage() {
   const { slug } = Route.useParams();
-  const [items, setItems] = useState(() => productsInCategory(slug));
+  const [items, setItems] = useState<Product[]>([]);
   const [mobileFilters, setMobileFilters] = useState(false);
   const [sort, setSort] = useState<Sort>("new");
   const [maxPrice, setMaxPrice] = useState<number | "">("");
@@ -22,7 +23,7 @@ function CollectionPage() {
   const [selSizes, setSelSizes] = useState<string[]>([]);
 
   useEffect(() => {
-    setItems(productsInCategory(slug));
+    productsInCategory(slug).then(setItems);
     setSelSizes([]); setMaxPrice(""); setOnSale(false); setInStock(false); setSort("new");
   }, [slug]);
 

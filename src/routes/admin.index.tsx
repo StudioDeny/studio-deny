@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { listOrders, type Order } from "@/lib/orders";
-import { listProducts } from "@/lib/productsStore";
+import { listAllAdminProducts } from "@/lib/productsStore";
 import { formatINR } from "@/context/CartContext";
 import { TrendingUp, Package, ShoppingBag, Users } from "lucide-react";
 
@@ -11,7 +11,11 @@ export const Route = createFileRoute("/admin/")({
 
 function Dashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
-  useEffect(() => setOrders(listOrders()), []);
+  const [productCount, setProductCount] = useState(0);
+  useEffect(() => {
+    setOrders(listOrders());
+    listAllAdminProducts().then((p) => setProductCount(p.length));
+  }, []);
 
   const valid = orders.filter((o) => o.status !== "CANCELLED" && o.status !== "REFUNDED");
   const revenue = valid.reduce((s, o) => s + o.total, 0);
@@ -21,7 +25,7 @@ function Dashboard() {
   const stats = [
     { label: "REVENUE", value: formatINR(revenue), icon: TrendingUp },
     { label: "ORDERS", value: orders.length, icon: ShoppingBag },
-    { label: "PRODUCTS", value: listProducts().length, icon: Package },
+    { label: "PRODUCTS", value: productCount, icon: Package },
     { label: "CUSTOMERS", value: customers, icon: Users },
   ];
 

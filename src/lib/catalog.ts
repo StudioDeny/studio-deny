@@ -62,8 +62,9 @@ export function findCategoryBySlug(slug: string): Category | undefined {
   return listCategories().find((c) => c.slug.toLowerCase() === slug.toLowerCase() || slugify(c.name) === slug.toLowerCase());
 }
 
-export function productsInCategory(catSlug: string) {
+export async function productsInCategory(catSlug: string) {
   const cat = findCategoryBySlug(catSlug);
   const target = (cat?.name ?? catSlug).toLowerCase();
-  return listProducts().filter((p) => p.category.toLowerCase() === target);
+  const all = await listProducts();
+  return all.filter((p) => p.category.toLowerCase() === target);
 }

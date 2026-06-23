@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { getStoredProduct, upsertProduct } from "@/lib/productsStore";
+import { getStoredProduct, upsertProduct, type Product } from "@/lib/productsStore";
 import { toast } from "sonner";
-import type { Product } from "@/lib/products";
 import { ProductForm } from "./admin.products.new";
 import { supabase } from "@/lib/supabase";
 import { Plus, X } from "lucide-react";
@@ -14,14 +13,13 @@ export const Route = createFileRoute("/admin/products/$slug")({
 type Variant = {
   id?: string;
   product_id: string;
-  size: string;
-  color?: string;
-  color_hex?: string;
+  size: string | null;
+  color?: string | null;
+  color_hex?: string | null;
   stock: number;
-  price?: number;
-  compare_price?: number;
-  sku?: string;
-  is_active?: boolean;
+  price?: number | null;
+  compare_price?: number | null;
+  sku?: string | null;
 };
 
 function EditProduct() {
@@ -34,7 +32,7 @@ function EditProduct() {
   const [editing, setEditing] = useState<Variant | null>(null);
 
   useEffect(() => {
-    setP(getStoredProduct(slug) ?? null);
+    getStoredProduct(slug).then((product) => setP(product));
     fetchVariants();
   }, [slug]);
 
@@ -44,7 +42,6 @@ function EditProduct() {
       .from("product_variants")
       .select("*")
       .eq("product_id", slug)
-      .eq("is_active", true)
       .order("size");
     setVariants(data ?? []);
     setLoading(false);
@@ -89,7 +86,7 @@ function EditProduct() {
     <div>
       <ProductForm
         initial={p}
-        onSave={(np) => { upsertProduct(np); toast.success("Saved"); nav({ to: "/admin/products" }); }}
+        onSave={async (np) => { await upsertProduct(np); toast.success("Saved"); nav({ to: "/admin/products" }); }}
       />
 
       <div className="max-w-2xl mt-14 pt-10 border-t border-border">
@@ -192,7 +189,7 @@ function VariantModal({
   const set = <K extends keyof Variant>(k: K, val: Variant[K]) => setV((prev) => ({ ...prev, [k]: val }));
 
   const submit = () => {
-    if (!v.size.trim()) { toast.error("Size is required"); return; }
+    if (!(v.size ?? "").trim()) { toast.error("Size is required"); return; }
     onSave(v);
   };
 
@@ -208,7 +205,7 @@ function VariantModal({
           <div className="grid grid-cols-2 gap-4">
             <label className="block">
               <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SIZE *</div>
-              <input value={v.size} onChange={(e) => set("size", e.target.value)} className="inp" placeholder="S, M, L, XL…" />
+              <input value={v.size ?? ""} onChange={(e) => set("size", e.target.value)} className="inp" placeholder="S, M, L, XL…" />
             </label>
             <label className="block">
               <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">STOCK *</div>

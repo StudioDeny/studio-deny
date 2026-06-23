@@ -1,11 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { listProducts, deleteProduct } from "@/lib/productsStore";
+import { listAllAdminProducts, deleteProduct, type Product } from "@/lib/productsStore";
 import { listCategories } from "@/lib/catalog";
 import { formatINR } from "@/context/CartContext";
 import { Plus, Pencil, Trash2, Settings2, Search } from "lucide-react";
 import { toast } from "sonner";
-import type { Product } from "@/lib/products";
 
 export const Route = createFileRoute("/admin/products/")({
   component: AdminProducts,
@@ -15,8 +14,8 @@ function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [active, setActive] = useState<string>("ALL");
   const [q, setQ] = useState("");
-  const refresh = () => setProducts(listProducts());
-  useEffect(refresh, []);
+  const refresh = async () => { const data = await listAllAdminProducts(); setProducts(data); };
+  useEffect(() => { refresh(); }, []);
 
   const cats = listCategories();
   const counts = useMemo(() => {
@@ -29,9 +28,11 @@ function AdminProducts() {
     .filter((p) => active === "ALL" || p.category === active)
     .filter((p) => !q || p.name.toLowerCase().includes(q.toLowerCase()) || p.slug.includes(q.toLowerCase()));
 
-  const remove = (slug: string) => {
+  const remove = async (slug: string) => {
     if (!confirm("Delete this product?")) return;
-    deleteProduct(slug); refresh(); toast.success("Product deleted");
+    await deleteProduct(slug);
+    await refresh();
+    toast.success("Product deleted");
   };
 
   return (

@@ -123,12 +123,13 @@ export const createOrder = (params: {
   supabase.from("order_items").insert(
     params.items.map((i) => ({
       order_id: order.id,
-      product_id: i.product.slug,
+      product_slug: i.product.slug,
+      product_name: i.product.name,
       variant_id: i.variantId ?? null,
       size: i.size,
+      color: null,
       qty: i.qty,
       unit_price: i.product.price,
-      total_price: i.qty * i.product.price,
     }))
   ).then(({ error }) => {
     if (error) console.warn("order_items sync:", error.message);

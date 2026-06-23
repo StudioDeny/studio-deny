@@ -1,5 +1,26 @@
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
+export type DBProduct = {
+  slug: string;
+  name: string;
+  category: string;
+  brand: string | null;
+  price: number;
+  compare_at: number | null;
+  image: string;
+  hover_image: string;
+  badge: string | null;
+  sizes: string[];
+  colors: { name: string; hex: string }[];
+  description: string;
+  material: string;
+  stock: number;
+  is_active: boolean;
+  is_featured: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type AppRole = "admin" | "staff" | "customer";
 export type PaymentMethod = "RAZORPAY" | "COD";
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
@@ -16,135 +37,167 @@ export type LoyaltyTier = "ROOKIE" | "RUNNER" | "RIOT" | "LEGEND";
 export interface Database {
   public: {
     Tables: {
-      announcement_bars: {
-        Row: AnnouncementBar;
-        Insert: Omit<AnnouncementBar, "id" | "created_at">;
-        Update: Partial<Omit<AnnouncementBar, "id" | "created_at">>;
-      };
-      website_sections: {
-        Row: WebsiteSection;
-        Insert: Omit<WebsiteSection, "id" | "created_at">;
-        Update: Partial<Omit<WebsiteSection, "id" | "created_at">>;
-      };
-      navigation_menus: {
-        Row: NavigationMenu;
-        Insert: Omit<NavigationMenu, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<NavigationMenu, "id" | "created_at">>;
-      };
-      faq_items: {
-        Row: FaqItem;
-        Insert: Omit<FaqItem, "id" | "created_at">;
-        Update: Partial<Omit<FaqItem, "id" | "created_at">>;
-      };
-      testimonials: {
-        Row: Testimonial;
-        Insert: Omit<Testimonial, "id" | "created_at">;
-        Update: Partial<Omit<Testimonial, "id" | "created_at">>;
-      };
-      media_assets: {
-        Row: MediaAsset;
-        Insert: Omit<MediaAsset, "id" | "created_at">;
-        Update: Partial<Omit<MediaAsset, "id" | "created_at">>;
-      };
-      brand_settings: {
-        Row: BrandSettings;
-        Insert: Omit<BrandSettings, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<BrandSettings, "id" | "created_at">>;
-      };
-      theme_settings: {
-        Row: ThemeSettings;
-        Insert: Omit<ThemeSettings, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<ThemeSettings, "id" | "created_at">>;
-      };
-      seo_settings: {
-        Row: SeoSettings;
-        Insert: Omit<SeoSettings, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<SeoSettings, "id" | "created_at">>;
-      };
-      settings: {
-        Row: AppSettings;
-        Insert: Omit<AppSettings, "id" | "updated_at">;
-        Update: Partial<Omit<AppSettings, "id">>;
-      };
-      notification_templates: {
-        Row: NotificationTemplate;
-        Insert: Omit<NotificationTemplate, "id" | "created_at">;
-        Update: Partial<Omit<NotificationTemplate, "id" | "created_at">>;
-      };
-      notification_queue: {
-        Row: NotificationQueue;
-        Insert: Omit<NotificationQueue, "id" | "created_at">;
-        Update: Partial<Omit<NotificationQueue, "id" | "created_at">>;
-      };
-      whatsapp_logs: {
-        Row: WhatsappLog;
-        Insert: Omit<WhatsappLog, "id" | "created_at">;
-        Update: Partial<Omit<WhatsappLog, "id" | "created_at">>;
-      };
-      marketing_campaigns: {
-        Row: MarketingCampaign;
-        Insert: Omit<MarketingCampaign, "id" | "created_at">;
-        Update: Partial<Omit<MarketingCampaign, "id" | "created_at">>;
-      };
-      profiles: {
-        Row: Profile;
-        Insert: Omit<Profile, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<Profile, "id" | "created_at">>;
-      };
-      user_roles: {
-        Row: UserRole;
-        Insert: Omit<UserRole, "id" | "created_at">;
-        Update: Partial<Omit<UserRole, "id" | "created_at">>;
-      };
-      addresses: {
-        Row: Address;
-        Insert: Omit<Address, "id" | "created_at">;
-        Update: Partial<Omit<Address, "id" | "created_at">>;
+      products: {
+        Row: DBProduct;
+        Insert: Omit<DBProduct, "created_at" | "updated_at">;
+        Update: Partial<Omit<DBProduct, "created_at" | "updated_at">>;
+        Relationships: [];
       };
       product_variants: {
         Row: ProductVariant;
         Insert: Omit<ProductVariant, "id" | "created_at">;
         Update: Partial<Omit<ProductVariant, "id" | "created_at">>;
+        Relationships: [];
+      };
+      announcement_bars: {
+        Row: AnnouncementBar;
+        Insert: Omit<AnnouncementBar, "id" | "created_at">;
+        Update: Partial<Omit<AnnouncementBar, "id" | "created_at">>;
+        Relationships: [];
+      };
+      website_sections: {
+        Row: WebsiteSection;
+        Insert: Omit<WebsiteSection, "id" | "created_at">;
+        Update: Partial<Omit<WebsiteSection, "id" | "created_at">>;
+        Relationships: [];
+      };
+      navigation_menus: {
+        Row: NavigationMenu;
+        Insert: Omit<NavigationMenu, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<NavigationMenu, "id" | "created_at">>;
+        Relationships: [];
+      };
+      faq_items: {
+        Row: FaqItem;
+        Insert: Omit<FaqItem, "id" | "created_at">;
+        Update: Partial<Omit<FaqItem, "id" | "created_at">>;
+        Relationships: [];
+      };
+      testimonials: {
+        Row: Testimonial;
+        Insert: Omit<Testimonial, "id" | "created_at">;
+        Update: Partial<Omit<Testimonial, "id" | "created_at">>;
+        Relationships: [];
+      };
+      media_assets: {
+        Row: MediaAsset;
+        Insert: Omit<MediaAsset, "id" | "created_at">;
+        Update: Partial<Omit<MediaAsset, "id" | "created_at">>;
+        Relationships: [];
+      };
+      brand_settings: {
+        Row: BrandSettings;
+        Insert: Omit<BrandSettings, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<BrandSettings, "id" | "created_at">>;
+        Relationships: [];
+      };
+      theme_settings: {
+        Row: ThemeSettings;
+        Insert: Omit<ThemeSettings, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<ThemeSettings, "id" | "created_at">>;
+        Relationships: [];
+      };
+      seo_settings: {
+        Row: SeoSettings;
+        Insert: Omit<SeoSettings, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<SeoSettings, "id" | "created_at">>;
+        Relationships: [];
+      };
+      settings: {
+        Row: AppSettings;
+        Insert: Omit<AppSettings, "id" | "updated_at">;
+        Update: Partial<Omit<AppSettings, "id">>;
+        Relationships: [];
+      };
+      notification_templates: {
+        Row: NotificationTemplate;
+        Insert: Omit<NotificationTemplate, "id" | "created_at">;
+        Update: Partial<Omit<NotificationTemplate, "id" | "created_at">>;
+        Relationships: [];
+      };
+      notification_queue: {
+        Row: NotificationQueue;
+        Insert: Omit<NotificationQueue, "id" | "created_at">;
+        Update: Partial<Omit<NotificationQueue, "id" | "created_at">>;
+        Relationships: [];
+      };
+      whatsapp_logs: {
+        Row: WhatsappLog;
+        Insert: Omit<WhatsappLog, "id" | "created_at">;
+        Update: Partial<Omit<WhatsappLog, "id" | "created_at">>;
+        Relationships: [];
+      };
+      marketing_campaigns: {
+        Row: MarketingCampaign;
+        Insert: Omit<MarketingCampaign, "id" | "created_at">;
+        Update: Partial<Omit<MarketingCampaign, "id" | "created_at">>;
+        Relationships: [];
+      };
+      profiles: {
+        Row: Profile;
+        Insert: Omit<Profile, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<Profile, "id" | "created_at">>;
+        Relationships: [];
+      };
+      user_roles: {
+        Row: UserRole;
+        Insert: Omit<UserRole, "id" | "created_at">;
+        Update: Partial<Omit<UserRole, "id" | "created_at">>;
+        Relationships: [];
+      };
+      addresses: {
+        Row: Address;
+        Insert: Omit<Address, "id" | "created_at">;
+        Update: Partial<Omit<Address, "id" | "created_at">>;
+        Relationships: [];
       };
       order_items: {
         Row: OrderItem;
         Insert: Omit<OrderItem, "id" | "created_at">;
         Update: Partial<Omit<OrderItem, "id" | "created_at">>;
+        Relationships: [];
       };
       carts: {
         Row: Cart;
         Insert: Omit<Cart, "id" | "created_at" | "updated_at">;
         Update: Partial<Omit<Cart, "id" | "created_at">>;
+        Relationships: [];
       };
       cart_items: {
         Row: CartItem;
         Insert: Omit<CartItem, "id" | "created_at">;
         Update: Partial<Omit<CartItem, "id" | "created_at">>;
+        Relationships: [];
       };
       wishlist_items: {
         Row: WishlistItem;
         Insert: Omit<WishlistItem, "id" | "created_at">;
         Update: Partial<Omit<WishlistItem, "id" | "created_at">>;
+        Relationships: [];
       };
       loyalty_balances: {
         Row: LoyaltyBalance;
         Insert: Omit<LoyaltyBalance, "id" | "created_at" | "updated_at">;
         Update: Partial<Omit<LoyaltyBalance, "id" | "created_at">>;
+        Relationships: [];
       };
       loyalty_transactions: {
         Row: LoyaltyTransaction;
         Insert: Omit<LoyaltyTransaction, "id" | "created_at">;
         Update: Partial<Omit<LoyaltyTransaction, "id" | "created_at">>;
+        Relationships: [];
       };
       coupons: {
         Row: Coupon;
         Insert: Omit<Coupon, "id" | "created_at">;
         Update: Partial<Omit<Coupon, "id" | "created_at">>;
+        Relationships: [];
       };
       admin_notifications: {
         Row: AdminNotification;
         Insert: Omit<AdminNotification, "id" | "created_at">;
         Update: Partial<Omit<AdminNotification, "id" | "created_at">>;
+        Relationships: [];
       };
     };
     Views: Record<string, never>;
@@ -362,7 +415,7 @@ export type ProductVariant = {
   color: string | null;
   color_hex: string | null;
   stock: number;
-  price: number;
+  price: number | null;
   compare_price: number | null;
   sku: string | null;
   created_at: string;

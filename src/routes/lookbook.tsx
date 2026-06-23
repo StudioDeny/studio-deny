@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { listProducts } from "@/lib/productsStore";
-const products = listProducts();
+import { useEffect, useState } from "react";
+import { listProducts, type Product } from "@/lib/productsStore";
 
 export const Route = createFileRoute("/lookbook")({
   component: Lookbook,
@@ -8,6 +8,8 @@ export const Route = createFileRoute("/lookbook")({
 });
 
 function Lookbook() {
+  const [products, setProducts] = useState<Product[]>([]);
+  useEffect(() => { listProducts().then(setProducts); }, []);
   return (
     <section className="px-4 md:px-8 mt-8 md:mt-12">
       <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-2">◢ DROP 014</div>

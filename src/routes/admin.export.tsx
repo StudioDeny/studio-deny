@@ -34,10 +34,12 @@ function ExportPage() {
   const [counts, setCounts] = useState({ orders: 0, products: 0, customers: 0 });
   useEffect(() => {
     const orders = listOrders();
-    setCounts({
-      orders: orders.length,
-      products: listProducts().length,
-      customers: new Set(orders.map((o) => o.userEmail)).size,
+    listProducts().then((prods) => {
+      setCounts({
+        orders: orders.length,
+        products: prods.length,
+        customers: new Set(orders.map((o) => o.userEmail)).size,
+      });
     });
   }, []);
 
@@ -55,8 +57,8 @@ function ExportPage() {
     toast.success(`Exported ${orders.length} orders`);
   };
 
-  const exportProducts = (fmt: "csv" | "json") => {
-    const list = listProducts();
+  const exportProducts = async (fmt: "csv" | "json") => {
+    const list = await listProducts();
     if (fmt === "csv") downloadFile("products.csv", toCSV(list as unknown as Record<string, unknown>[]), "text/csv");
     else downloadFile("products.json", JSON.stringify(list, null, 2), "application/json");
     toast.success(`Exported ${list.length} products`);
@@ -76,10 +78,10 @@ function ExportPage() {
     toast.success(`Exported ${rows.length} customers`);
   };
 
-  const exportFullDb = () => {
+  const exportFullDb = async () => {
     const dump = {
       exportedAt: new Date().toISOString(),
-      products: listProducts(),
+      products: await listProducts(),
       orders: listOrders(),
       categories: listCategories(),
       brands: listBrands(),
@@ -91,7 +93,7 @@ function ExportPage() {
           }, {} as Record<string, string | null>)
         : {},
     };
-    downloadFile(`studio-deny-db-${Date.now()}.json`, JSON.stringify(dump, null, 2), "application/json");
+    downloadFile(`studio-deny-db-${new Date().toISOString()}.json`, JSON.stringify(dump, null, 2), "application/json");
     toast.success("Full database exported");
   };
 

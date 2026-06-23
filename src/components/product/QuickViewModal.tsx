@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import { X, ArrowRight, Heart } from "lucide-react";
-import type { Product } from "@/lib/products";
+import type { Product } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 

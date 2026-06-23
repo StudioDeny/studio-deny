@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { listOrders, type Order } from "@/lib/orders";
 import { formatINR } from "@/context/CartContext";
-import { listProducts } from "@/lib/productsStore";
+import { listAllAdminProducts, type Product } from "@/lib/productsStore";
 
 export const Route = createFileRoute("/admin/analytics")({
   component: Analytics,
@@ -10,7 +10,8 @@ export const Route = createFileRoute("/admin/analytics")({
 
 function Analytics() {
   const [orders, setOrders] = useState<Order[]>([]);
-  useEffect(() => setOrders(listOrders()), []);
+  const [inv, setInv] = useState<Product[]>([]);
+  useEffect(() => { setOrders(listOrders()); listAllAdminProducts().then(setInv); }, []);
 
   const m = useMemo(() => {
     const valid = orders.filter((o) => o.status !== "CANCELLED" && o.status !== "REFUNDED");
@@ -40,12 +41,11 @@ function Analytics() {
     }
     const max = Math.max(1, ...days.map((d) => d.rev));
 
-    const inv = listProducts();
     const lowStock = inv.filter((p) => p.stock > 0 && p.stock <= 5).length;
     const sold = inv.filter((p) => p.stock === 0).length;
 
     return { revenue, refunded, aov, customers: customers.size, repeat, top, days, max, lowStock, sold, totalOrders: orders.length };
-  }, [orders]);
+  }, [orders, inv]);
 
   return (
     <div>

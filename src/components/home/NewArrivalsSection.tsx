@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getSettings, type ArrivalsConfig } from "@/lib/settings";
 import { listProducts } from "@/lib/productsStore";
-import type { Product } from "@/lib/products";
+import type { Product } from "@/lib/productsStore";
 import { formatINR } from "@/context/CartContext";
 
 export function NewArrivalsSection() {
@@ -14,16 +14,16 @@ export function NewArrivalsSection() {
   useEffect(() => {
     const s = getSettings();
     setCfg(s.arrivals);
-    const all = listProducts();
-    let chosen: Product[];
-    if (s.arrivals.productSlugs.length) {
-      const map = new Map(all.map((p) => [p.slug, p] as const));
-      chosen = s.arrivals.productSlugs.map((slug) => map.get(slug)).filter(Boolean) as Product[];
-    } else {
-      // Fallback: most recent (NEW DROP badge first), max 8
-      chosen = [...all].sort((a, b) => (a.badge === "NEW DROP" ? -1 : 0) - (b.badge === "NEW DROP" ? -1 : 0)).slice(0, 8);
-    }
-    setItems(chosen.slice(0, 8));
+    listProducts().then((all) => {
+      let chosen: Product[];
+      if (s.arrivals.productSlugs.length) {
+        const map = new Map(all.map((p) => [p.slug, p] as const));
+        chosen = s.arrivals.productSlugs.map((slug) => map.get(slug)).filter(Boolean) as Product[];
+      } else {
+        chosen = [...all].sort((a, b) => (a.badge === "NEW DROP" ? -1 : 0) - (b.badge === "NEW DROP" ? -1 : 0)).slice(0, 8);
+      }
+      setItems(chosen.slice(0, 8));
+    });
   }, []);
 
   if (!cfg || !cfg.enabled || items.length === 0) return null;

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Heart, ShoppingBag, Eye } from "lucide-react";
-import type { Product } from "@/lib/products";
+import type { Product } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { QuickViewModal } from "./QuickViewModal";

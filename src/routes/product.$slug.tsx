@@ -1,8 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { listProducts, getStoredProduct as getProduct } from "@/lib/productsStore";
-const products = listProducts();
+import { listProducts, getStoredProduct as getProduct, type Product } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reviews } from "@/components/product/Reviews";
@@ -13,8 +12,8 @@ import { supabase } from "@/lib/supabase";
 type SizeOption = { size: string; inStock: boolean; variantId?: string; price?: number };
 
 export const Route = createFileRoute("/product/$slug")({
-  loader: ({ params }) => {
-    const product = getProduct(params.slug);
+  loader: async ({ params }) => {
+    const product = await getProduct(params.slug);
     if (!product) throw notFound();
     return { product };
   },
@@ -71,8 +70,14 @@ function PDP() {
   const [sizeOptions, setSizeOptions] = useState<SizeOption[]>([]);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [ctaVisible, setCtaVisible] = useState(true);
+  const [related, setRelated] = useState<Product[]>([]);
   const ctaRef = useRef<HTMLButtonElement>(null);
-  const related = products.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 4);
+
+  useEffect(() => {
+    listProducts().then((all) =>
+      setRelated(all.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 4))
+    );
+  }, [product.category, product.slug]);
 
   // Fetch Supabase variants; fall back to product.sizes if none
   useEffect(() => {
@@ -80,12 +85,11 @@ function PDP() {
       .from("product_variants")
       .select("id, size, stock, price, color, color_hex")
       .eq("product_id", product.slug)
-      .eq("is_active", true)
       .order("size")
       .then(({ data }) => {
         if (data && data.length > 0) {
-          setSizeOptions(data.map((v) => ({
-            size: v.size,
+          setSizeOptions(data.filter((v) => v.size != null).map((v) => ({
+            size: v.size as string,
             inStock: v.stock > 0,
             variantId: v.id,
             price: v.price ?? undefined,
@@ -261,7 +265,7 @@ function PDP() {
               </Link>
             </div>
             <div className="grid grid-cols-4 lg:grid-cols-5 gap-2.5">
-              {(sizeOptions.length > 0 ? sizeOptions : product.sizes.map((s: string) => ({ size: s, inStock: true }))).map((opt) => (
+              {(sizeOptions.length > 0 ? sizeOptions : product.sizes.map((s: string) => ({ size: s, inStock: true }))).map((opt: SizeOption) => (
                 <button
                   key={opt.size}
                   onClick={() => handleSizeSelect(opt)}
@@ -408,7 +412,7 @@ function PDP() {
         <div className="flex items-center gap-3 max-w-screen-sm mx-auto">
           <div className="flex-1 overflow-x-auto scrollbar-none">
             <div className="flex gap-1.5 min-w-max pb-0.5">
-              {(sizeOptions.length > 0 ? sizeOptions : product.sizes.map((s: string) => ({ size: s, inStock: true }))).map((opt) => (
+              {(sizeOptions.length > 0 ? sizeOptions : product.sizes.map((s: string) => ({ size: s, inStock: true }))).map((opt: SizeOption) => (
                 <button
                   key={opt.size}
                   onClick={() => handleSizeSelect(opt)}

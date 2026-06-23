@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import type { WebsiteSection, SectionType } from "@/types/database";
 import { ChevronUp, ChevronDown, Pencil, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { listProducts } from "@/lib/productsStore";
+import { listProducts, type Product } from "@/lib/productsStore";
 
 export const Route = createFileRoute("/admin/website-sections")({
   component: AdminWebsiteSections,
@@ -146,7 +146,7 @@ function AdminWebsiteSections() {
               <button onClick={() => setEditing(null)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
             </div>
             <div className="p-5">
-              <SectionConfigForm section={editing} onChange={(c) => setEditing({ ...editing, config: c })} />
+              <SectionConfigForm section={editing} onChange={(c) => setEditing({ ...editing, config: c as import("@/types/database").Json })} />
             </div>
             <div className="flex gap-3 p-5 border-t border-border">
               <button onClick={saveConfig} disabled={saving} className="bg-primary text-primary-foreground h-10 px-6 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50">
@@ -166,6 +166,8 @@ function AdminWebsiteSections() {
 function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onChange: (c: unknown) => void }) {
   const cfg = (section.config ?? {}) as Record<string, unknown>;
   const set = (k: string, v: unknown) => onChange({ ...cfg, [k]: v });
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  useEffect(() => { listProducts().then(setAllProducts); }, []);
 
   switch (section.section_type as SectionType) {
     case "hero": {
@@ -201,7 +203,6 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
     }
     case "new_arrivals": {
       const c = cfg as Partial<ArrivalsConfig>;
-      const allProducts = listProducts();
       const selected = c.product_slugs ?? [];
       return (
         <div className="space-y-3">

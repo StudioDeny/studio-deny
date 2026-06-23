@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useWishlist } from "@/context/WishlistContext";
-import { listProducts } from "@/lib/productsStore";
-const products = listProducts();
+import { listProducts, type Product } from "@/lib/productsStore";
 import { ProductCard } from "@/components/product/ProductCard";
 
 export const Route = createFileRoute("/wishlist")({
@@ -11,7 +11,9 @@ export const Route = createFileRoute("/wishlist")({
 
 function WishlistPage() {
   const { slugs, clear } = useWishlist();
-  const items = products.filter((p) => slugs.includes(p.slug));
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  useEffect(() => { listProducts().then(setAllProducts); }, []);
+  const items = allProducts.filter((p) => slugs.includes(p.slug));
 
   return (
     <section className="px-4 md:px-8 mt-8 md:mt-12">

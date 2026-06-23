@@ -63,7 +63,7 @@ function buildOrders(allProducts: Product[]): Order[] {
     const id = "SD" + (created.toString(36).toUpperCase()) + i;
     const status = rand(STATUSES);
     orders.push({
-      id, invoiceNo: "INV-" + id, userEmail: `${name.toLowerCase()}${i}@example.com`,
+      id, order_number: id, invoiceNo: "INV-" + id, userEmail: `${name.toLowerCase()}${i}@example.com`,
       items, subtotal, shipping, taxRate, tax, discount: 0, extraLines: [], total,
       status,
       address: { name, phone: "+91 98" + Math.floor(10000000 + Math.random() * 89999999), line1: `${Math.floor(Math.random() * 200) + 1} Studio Lane`, city, state, pincode: pin },

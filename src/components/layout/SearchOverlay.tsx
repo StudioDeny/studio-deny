@@ -19,10 +19,13 @@ const pushRecent = (q: string) => {
 export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [q, setQ] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
+  const [products, setProducts] = useState<Awaited<ReturnType<typeof listProducts>>>([]);
   const navigate = useNavigate();
 
   // refresh products + recent each time it opens
-  const products = useMemo(() => (open ? listProducts() : []), [open]);
+  useEffect(() => {
+    if (open) listProducts().then(setProducts);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;

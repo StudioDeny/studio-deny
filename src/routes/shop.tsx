@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { categories, type Category, type Product } from "@/lib/products";
-import { listProducts } from "@/lib/productsStore";
+import { categories, type Category } from "@/lib/products";
+import { listProducts, type Product } from "@/lib/productsStore";
 import { ProductCard } from "@/components/product/ProductCard";
 import { X, SlidersHorizontal, Search as SearchIcon, ChevronDown } from "lucide-react";
 
@@ -57,7 +57,7 @@ function Shop() {
   const [products, setProducts] = useState<Product[]>([]);
   const [mobileFilters, setMobileFilters] = useState(false);
 
-  useEffect(() => setProducts(listProducts()), []);
+  useEffect(() => { listProducts().then(setProducts); }, []);
 
   const cat = ((categories as readonly string[]).includes(search.cat ?? "") ? search.cat : "All") as Category;
   const q = search.q ?? "";

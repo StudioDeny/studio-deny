@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getSettings, saveSettings, type LoyaltySettings } from "@/lib/settings";
-import { listProducts } from "@/lib/productsStore";
+import { listProducts, type Product } from "@/lib/productsStore";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
 
@@ -11,8 +11,8 @@ export const Route = createFileRoute("/admin/arrivals")({
 
 function ArrivalsAdmin() {
   const [s, setS] = useState<LoyaltySettings | null>(null);
-  const [products, setProducts] = useState<ReturnType<typeof listProducts>>([]);
-  useEffect(() => { setS(getSettings()); setProducts(listProducts()); }, []);
+  const [products, setProducts] = useState<Product[]>([]);
+  useEffect(() => { setS(getSettings()); listProducts().then(setProducts); }, []);
   if (!s) return <div className="text-mono text-xs">LOADING…</div>;
 
   const a = s.arrivals;
