@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { listBrands, listCategories, upsertBrand, upsertCategory, deleteBrand, deleteCategory, slugify, type Brand, type Category } from "@/lib/catalog";
+import {
+  upsertBrand, upsertCategory, deleteBrand, deleteCategory,
+  listBrands, listCategories, slugify,
+  type Brand, type Category,
+} from "@/lib/catalog";
 import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -15,25 +19,48 @@ function AdminCatalog() {
   const [newBrand, setNewBrand] = useState("");
   const [editing, setEditing] = useState<{ kind: "cat" | "brand"; slug: string; name: string } | null>(null);
 
-  const refresh = () => { setCats(listCategories()); setBrands(listBrands()); };
-  useEffect(refresh, []);
+  // Load from localStorage on mount (client-only)
+  useEffect(() => {
+    setCats(listCategories());
+    setBrands(listBrands());
+  }, []);
 
   const addCat = () => {
-    if (!newCat.trim()) return;
-    upsertCategory({ slug: slugify(newCat), name: newCat.trim() });
-    setNewCat(""); refresh(); toast.success("Category added");
+    const name = newCat.trim();
+    if (!name) return;
+    const item: Category = { slug: slugify(name), name };
+    const next = upsertCategory(item); // returns updated list, also persists to localStorage
+    setCats(next);
+    setNewCat("");
+    toast.success(`"${name}" added`);
   };
+
   const addBrand = () => {
-    if (!newBrand.trim()) return;
-    upsertBrand({ slug: slugify(newBrand), name: newBrand.trim() });
-    setNewBrand(""); refresh(); toast.success("Brand added");
+    const name = newBrand.trim();
+    if (!name) return;
+    const item: Brand = { slug: slugify(name), name };
+    const next = upsertBrand(item);
+    setBrands(next);
+    setNewBrand("");
+    toast.success(`"${name}" added`);
+  };
+
+  const removeCat = (slug: string) => {
+    if (!confirm("Delete this category?")) return;
+    setCats(deleteCategory(slug));
+  };
+
+  const removeBrand = (slug: string) => {
+    if (!confirm("Delete this brand?")) return;
+    setBrands(deleteBrand(slug));
   };
 
   const saveEdit = () => {
     if (!editing) return;
-    if (editing.kind === "cat") upsertCategory({ slug: editing.slug, name: editing.name });
-    else upsertBrand({ slug: editing.slug, name: editing.name });
-    setEditing(null); refresh(); toast.success("Updated");
+    if (editing.kind === "cat") setCats(upsertCategory({ slug: editing.slug, name: editing.name }));
+    else setBrands(upsertBrand({ slug: editing.slug, name: editing.name }));
+    setEditing(null);
+    toast.success("Updated");
   };
 
   return (
@@ -47,7 +74,7 @@ function AdminCatalog() {
           <List
             items={cats.map((c) => ({ slug: c.slug, name: c.name }))}
             onEdit={(it) => setEditing({ kind: "cat", slug: it.slug, name: it.name })}
-            onDelete={(slug) => { if (confirm("Delete category?")) { deleteCategory(slug); refresh(); } }}
+            onDelete={(slug) => removeCat(slug)}
             editing={editing?.kind === "cat" ? editing : null}
             setEditing={(p) => setEditing(p ? { kind: "cat", ...p } : null)}
             onSaveEdit={saveEdit}
@@ -58,7 +85,7 @@ function AdminCatalog() {
           <List
             items={brands.map((b) => ({ slug: b.slug, name: b.name }))}
             onEdit={(it) => setEditing({ kind: "brand", slug: it.slug, name: it.name })}
-            onDelete={(slug) => { if (confirm("Delete brand?")) { deleteBrand(slug); refresh(); } }}
+            onDelete={(slug) => removeBrand(slug)}
             editing={editing?.kind === "brand" ? editing : null}
             setEditing={(p) => setEditing(p ? { kind: "brand", ...p } : null)}
             onSaveEdit={saveEdit}
@@ -78,7 +105,12 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-function AddRow({ value, onChange, onAdd, placeholder }: { value: string; onChange: (v: string) => void; onAdd: () => void; placeholder: string }) {
+function AddRow({ value, onChange, onAdd, placeholder }: {
+  value: string;
+  onChange: (v: string) => void;
+  onAdd: () => void;
+  placeholder: string;
+}) {
   return (
     <div className="flex gap-2 mb-4">
       <input
@@ -88,7 +120,11 @@ function AddRow({ value, onChange, onAdd, placeholder }: { value: string; onChan
         placeholder={placeholder}
         className="flex-1 bg-background border border-border h-10 px-3 text-sm"
       />
-      <button type="button" onClick={onAdd} className="bg-foreground text-background px-3 h-10 inline-flex items-center gap-1 text-mono text-xs tracking-widest hover:opacity-80 transition-opacity">
+      <button
+        type="button"
+        onClick={onAdd}
+        className="bg-foreground text-background px-3 h-10 inline-flex items-center gap-1 text-mono text-xs tracking-widest hover:opacity-80 transition-opacity shrink-0"
+      >
         <Plus className="size-3" /> ADD
       </button>
     </div>
@@ -113,10 +149,13 @@ function List({ items, onEdit, onDelete, editing, setEditing, onSaveEdit }: {
           <li key={it.slug} className="flex items-center gap-2 p-2">
             {isEdit ? (
               <>
-                <input value={editing!.name} onChange={(e) => setEditing({ slug: editing!.slug, name: e.target.value })}
-                  className="flex-1 bg-background border border-border h-8 px-2 text-sm" />
-                <button onClick={onSaveEdit} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Check className="size-3" /></button>
-                <button onClick={() => setEditing(null)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><X className="size-3" /></button>
+                <input
+                  value={editing!.name}
+                  onChange={(e) => setEditing({ slug: editing!.slug, name: e.target.value })}
+                  className="flex-1 bg-background border border-border h-8 px-2 text-sm"
+                />
+                <button type="button" onClick={onSaveEdit} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Check className="size-3" /></button>
+                <button type="button" onClick={() => setEditing(null)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><X className="size-3" /></button>
               </>
             ) : (
               <>
@@ -124,8 +163,8 @@ function List({ items, onEdit, onDelete, editing, setEditing, onSaveEdit }: {
                   <div className="text-sm font-semibold">{it.name}</div>
                   <div className="text-mono text-[10px] text-muted-foreground">{it.slug}</div>
                 </div>
-                <button onClick={() => onEdit(it)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Pencil className="size-3" /></button>
-                <button onClick={() => onDelete(it.slug)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Trash2 className="size-3" /></button>
+                <button type="button" onClick={() => onEdit(it)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Pencil className="size-3" /></button>
+                <button type="button" onClick={() => onDelete(it.slug)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Trash2 className="size-3" /></button>
               </>
             )}
           </li>

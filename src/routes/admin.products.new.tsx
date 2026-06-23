@@ -34,8 +34,14 @@ export function ProductForm({
   const [brands, setBrands] = useState(() => listBrands());
 
   useEffect(() => {
-    setCats(listCategories());
-    setBrands(listBrands());
+    const refresh = () => {
+      setCats(listCategories());
+      setBrands(listBrands());
+    };
+    refresh();
+    // Re-read on window focus so categories added in Catalog tab appear immediately
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
   }, []);
 
   const [p, setP] = useState<Product>(
