@@ -35,7 +35,7 @@ function Account() {
         </div>
         <div className="flex gap-2">
           {user.role === "admin" && (
-            <Link to="/admin" className="border border-secondary text-secondary px-4 h-10 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:bg-secondary hover:text-secondary-foreground">
+            <Link to="/admin" className="border border-primary text-primary px-4 h-10 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:bg-primary hover:text-primary-foreground">
               <ShieldCheck className="size-4" /> ADMIN
             </Link>
           )}

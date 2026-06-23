@@ -53,7 +53,7 @@ export function CartDrawer() {
         </div>
 
         {/* Shipping progress */}
-        <div className="px-5 py-4 border-b border-border" style={{ background: "rgba(0,0,0,0.2)" }}>
+        <div className="px-5 py-4 border-b border-border" style={{ background: "var(--color-surface)" }}>
           {subtotal >= FREE_SHIP ? (
             <p className="text-mono text-secondary flex items-center gap-2" style={{ fontSize: "11px", letterSpacing: "0.25em" }}>
               <span className="size-1.5 bg-secondary rounded-full pulse-dot inline-block" />
@@ -160,7 +160,7 @@ export function CartDrawer() {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t border-border p-5 space-y-4" style={{ background: "rgba(0,0,0,0.3)" }}>
+          <div className="border-t border-border p-5 space-y-4" style={{ background: "var(--color-muted)" }}>
             {/* Breakdown */}
             <div className="space-y-2 text-mono" style={{ fontSize: "11px", letterSpacing: "0.15em" }}>
               <div className="flex justify-between text-muted-foreground">

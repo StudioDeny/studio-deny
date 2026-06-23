@@ -105,7 +105,7 @@ export function Footer() {
       {/* Bottom bar */}
       <div
         className="border-t border-border px-4 md:px-8 py-6 flex flex-col md:flex-row gap-4 items-center justify-between"
-        style={{ background: "rgba(0,0,0,0.3)" }}
+        style={{ background: "var(--color-muted)" }}
       >
         <div className="text-mono text-muted-foreground text-center md:text-left" style={{ fontSize: "10px", letterSpacing: "0.25em" }}>
           © {new Date().getFullYear()} STUDIO/DENY · ALL RIGHTS RESERVED

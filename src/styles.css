@@ -1,10 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&display=swap');
-
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant light (&:is(.light *));
 
 @theme inline {
   --font-display: 'Bebas Neue', system-ui, sans-serif;
@@ -14,7 +13,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
-  
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -42,18 +41,19 @@
 .light {
   color-scheme: light;
 
-  --background: #F8F8F8;
-  --foreground: #0A0A0A;
-  --surface: #EEEEEE;
+  /* Warm editorial cream — premium, high-contrast, magazine-feel */
+  --background: #F4F0EA;
+  --foreground: #0D0B09;
+  --surface: #D9D3C8;
 
-  --primary: #0A0A0A;
-  --primary-foreground: #F8F8F8;
-  --secondary: #E2E2E2;
-  --secondary-foreground: #0A0A0A;
+  --primary: #0D0B09;
+  --primary-foreground: #F4F0EA;
+  --secondary: #C4BDB1;
+  --secondary-foreground: #0D0B09;
 
-  --muted: #E8E8E8;
-  --muted-foreground: #555555;
-  --border: rgba(0, 0, 0, 0.1);
+  --muted: #CCC6BA;
+  --muted-foreground: #48433D;
+  --border: rgba(0, 0, 0, 0.16);
 }
 
 @layer base {
@@ -73,6 +73,21 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Light mode: rich gradient instead of flat colour */
+  .light body {
+    background: linear-gradient(
+      150deg,
+      #FAF8F4 0%,
+      #F4F0EA 20%,
+      #EDE6DA 50%,
+      #F0EAE1 75%,
+      #F7F3EE 100%
+    );
+    background-attachment: fixed;
+    background-color: #F4F0EA; /* fallback */
+  }
+
   h1, h2, h3, h4 {
     font-family: var(--font-display);
     letter-spacing: 0.01em;
@@ -99,6 +114,20 @@
 @layer utilities {
   .text-display { font-family: var(--font-display); }
   .text-mono { font-family: var(--font-body); }
+
+  /* Glow effects */
+  .glow-primary {
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.12), 0 0 60px rgba(255, 255, 255, 0.05);
+  }
+  .glow-primary-sm {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.12);
+  }
+  .text-glow-primary {
+    text-shadow: 0 0 40px rgba(255, 255, 255, 0.35);
+  }
+  .glow-lime {
+    box-shadow: 0 0 20px rgba(132, 204, 22, 0.55), 0 0 40px rgba(132, 204, 22, 0.25);
+  }
 
   /* Ticker Animation */
   .ticker-scroll {
@@ -130,5 +159,10 @@
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Reduce motion for perf */
+  @media (prefers-reduced-motion: reduce) {
+    .ticker-scroll { animation: none; }
   }
 }

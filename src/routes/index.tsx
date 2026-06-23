@@ -8,6 +8,7 @@ import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "fra
 import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Star, Layers, Scissors, ShieldCheck, Plus, Minus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { useTheme } from "@/context/ThemeContext";
 import { NewArrivalsSection } from "@/components/home/NewArrivalsSection";
 import { WhyUsSection } from "@/components/home/WhyUsSection";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
@@ -31,6 +32,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const [scrollY, setScrollY] = useState(0);
   const heroParallax = Math.min(scrollY * 0.4, 120);
 
@@ -109,6 +112,7 @@ function Index() {
           loop
           muted
           playsInline
+          preload="metadata"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             filter: "brightness(0.35)",
@@ -150,7 +154,7 @@ function Index() {
               </Link>
               <Link
                 to="/shop"
-                className="px-8 py-3 min-h-11 border border-gray-700 text-sm tracking-[0.14em] hover:border-white transition-colors duration-300 inline-flex items-center justify-center text-mono"
+                className="px-8 py-3 min-h-11 border border-border text-sm tracking-[0.14em] hover:border-white transition-colors duration-300 inline-flex items-center justify-center text-mono"
               >
                 VIEW LOOKBOOK
               </Link>
@@ -172,7 +176,7 @@ function Index() {
       </section>
 
       {/* Marquee */}
-      <section className="relative border-y border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] overflow-hidden">
+      <section className="relative border-y border-border bg-surface/30 overflow-hidden">
         <div className="flex">
           {[0, 1].map((dup) => (
             <div
@@ -181,14 +185,14 @@ function Index() {
               className="flex shrink-0 items-center ticker-scroll"
             >
               {[
-                { dot: "#ffffff", label: "NEW DROP", text: "SS26 Studio Bomber & Cargo Set — Available Now" },
-                { dot: "#888888", label: "RESTOCK", text: "Essential Hoodie in Black & Slate — Limited Units" },
-                { dot: "#ffffff", label: "ALERT", text: "Members get 48-hr early access to next drop" },
+                { label: "NEW DROP", text: "SS26 Studio Bomber & Cargo Set — Available Now", bright: true },
+                { label: "RESTOCK", text: "Essential Hoodie in Black & Slate — Limited Units", bright: false },
+                { label: "ALERT", text: "Members get 48-hr early access to next drop", bright: true },
               ].map((item, i) => (
                 <span key={i} className="inline-flex items-center gap-3 px-8 py-3 whitespace-nowrap text-[11px] sm:text-xs tracking-[0.18em] uppercase text-mono">
                   <span
-                    className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
-                    style={{ backgroundColor: item.dot, boxShadow: `0 0 6px ${item.dot}` }}
+                    className="inline-block w-1.5 h-1.5 rounded-full shrink-0 bg-foreground"
+                    style={{ opacity: item.bright ? 1 : 0.4 }}
                   />
                   <span className="opacity-40">{item.label}</span>
                   <span className="opacity-80">{item.text}</span>
@@ -212,7 +216,7 @@ function Index() {
           <button
             type="button"
             onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
-            className="w-full flex items-center justify-between bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.1)] text-white py-3 px-5 text-sm uppercase tracking-wider outline-none transition-colors"
+            className="w-full flex items-center justify-between bg-surface/30 border border-border text-foreground py-3 px-5 text-sm uppercase tracking-wider outline-none transition-colors"
           >
             <span>{selectedCategory}</span>
             <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${mobileDropdownOpen ? "rotate-180" : ""}`} />
@@ -225,7 +229,7 @@ function Index() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="absolute top-full left-0 right-0 mt-2 bg-[#0A0A0A] border border-[rgba(255,255,255,0.1)] shadow-2xl flex flex-col text-left overflow-hidden"
+                className="absolute top-full left-0 right-0 mt-2 bg-background border border-border shadow-2xl flex flex-col text-left overflow-hidden"
               >
                 {['ALL','NEW COLLECTION','TOPS','BOTTOMS','OUTERWEAR','ACCESSORIES'].map((cat) => (
                   <button
@@ -235,8 +239,8 @@ function Index() {
                       setSelectedCategory(cat);
                       setMobileDropdownOpen(false);
                     }}
-                    className={`px-5 py-3 text-sm uppercase tracking-wider transition-colors hover:bg-white/5 ${
-                      selectedCategory === cat ? "text-primary bg-primary/5" : "text-white/70"
+                    className={`px-5 py-3 text-sm uppercase tracking-wider transition-colors hover:bg-surface/40 ${
+                      selectedCategory === cat ? "text-primary bg-primary/5" : "text-muted-foreground"
                     }`}
                   >
                     {cat}
@@ -257,7 +261,7 @@ function Index() {
               className={`px-5 py-2 border text-sm uppercase transition-colors ${
                 selectedCategory === cat
                   ? 'border-primary text-primary bg-primary/10'
-                  : 'border-gray-700 hover:border-primary hover:text-primary'
+                  : 'border-border hover:border-primary hover:text-primary'
               }`}
             >
               {cat}
@@ -282,7 +286,7 @@ function Index() {
               <button
                 type="button"
                 onClick={() => setShowAllProducts(true)}
-                className="inline-flex items-center gap-2 px-8 py-3 border border-gray-700 text-sm tracking-[0.14em] uppercase hover:border-primary hover:text-primary transition-colors text-mono"
+                className="inline-flex items-center gap-2 px-8 py-3 border border-border text-sm tracking-[0.14em] uppercase hover:border-primary hover:text-primary transition-colors text-mono"
               >
                 View All
                 <ArrowRight className="w-4 h-4" />
@@ -292,7 +296,7 @@ function Index() {
         </section>
       )}
 
-      <div className="w-full h-px bg-[rgba(255,255,255,0.1)]" />
+      <div className="w-full h-px bg-border" />
       {/* Best Sellers */}
       <section className="py-12 sm:py-16 px-4 sm:px-8 lg:px-16 max-w-[1560px] mx-auto">
         <motion.div
@@ -314,7 +318,7 @@ function Index() {
         <div className="mt-8 text-center sm:hidden">
           <Link
             to="/shop"
-            className="inline-flex items-center gap-2 px-8 py-3 border border-gray-700 text-sm tracking-[0.14em] uppercase hover:border-primary hover:text-primary transition-colors text-mono"
+            className="inline-flex items-center gap-2 px-8 py-3 border border-border text-sm tracking-[0.14em] uppercase hover:border-primary hover:text-primary transition-colors text-mono"
           >
             Shop All <ArrowRight className="w-4 h-4" />
           </Link>
@@ -322,12 +326,13 @@ function Index() {
       </section>
 
       {/* Cinematic Video Section 1 */}
-      <section className="relative h-[80vh] w-full overflow-hidden flex items-center justify-center my-16 border-y border-[rgba(255,255,255,0.1)]">
-        <video 
-          autoPlay 
-          loop 
-          muted 
-          playsInline 
+      <section className="relative h-[80vh] w-full overflow-hidden flex items-center justify-center my-16 border-y border-border">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="none"
           className="absolute inset-0 w-full h-full object-cover opacity-50 scale-105"
         >
           <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4" />
@@ -354,7 +359,7 @@ function Index() {
         </div>
       </section>
 
-      <div className="w-full h-px bg-[rgba(255,255,255,0.1)]" />
+      <div className="w-full h-px bg-border" />
       {/* Visual Collections Grid */}
       <section className="py-12 sm:py-16 px-4 sm:px-8 lg:px-16 max-w-[1560px] mx-auto">
         <motion.div
@@ -377,7 +382,7 @@ function Index() {
             <Link
               key={col.title}
               to={col.link}
-              className="group relative h-[50vh] sm:h-[60vh] overflow-hidden border border-[rgba(255,255,255,0.1)] block"
+              className="group relative h-[50vh] sm:h-[60vh] overflow-hidden border border-border block"
             >
               <div
                 className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
@@ -405,9 +410,9 @@ function Index() {
 
 
 
-      <div className="w-full h-px bg-[rgba(255,255,255,0.1)]" />
+      <div className="w-full h-px bg-border" />
       {/* Lookbook Section */}
-      <section className="py-14 sm:py-20 bg-[rgba(255,255,255,0.01)] overflow-hidden">
+      <section className="py-14 sm:py-20 bg-surface/10 overflow-hidden">
         <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -486,7 +491,7 @@ function Index() {
         const [activeFabric, setActiveFabric] = useState(fabricCategories[0]);
 
         return (
-          <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-y border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)]">
+          <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-y border-border bg-surface/30">
             <div className="max-w-[1560px] mx-auto">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -495,13 +500,13 @@ function Index() {
                 viewport={{ once: true }}
                 className="mb-12 sm:mb-16"
               >
-                <span className="inline-flex items-center px-3 py-1 border border-[rgba(255,255,255,0.2)] text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-4">
+                <span className="inline-flex items-center px-3 py-1 border border-border text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-4">
                   THE DETAILS
                 </span>
                 <h2 className="text-[clamp(3rem,8vw,6rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-4">
                   PREMIUM FABRIC.
                   <br />
-                  <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.35)" }}>
+                  <span className="text-transparent" style={{ WebkitTextStroke: isLight ? "1px rgba(0,0,0,0.3)" : "1px rgba(255,255,255,0.35)" }}>
                     UNCOMPROMISED QUALITY.
                   </span>
                 </h2>
@@ -509,7 +514,7 @@ function Index() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
                 {/* Image Side */}
-                <div className="order-1 relative h-[45vh] sm:h-[60vh] lg:h-[80vh] overflow-hidden border border-[rgba(255,255,255,0.1)]">
+                <div className="order-1 relative h-[45vh] sm:h-[60vh] lg:h-[80vh] overflow-hidden border border-border">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeFabric.id}
@@ -531,10 +536,10 @@ function Index() {
                       key={fabric.id}
                       onMouseEnter={() => setActiveFabric(fabric)}
                       onClick={() => setActiveFabric(fabric)}
-                      className="group cursor-pointer border-b border-[rgba(255,255,255,0.1)] pb-6 sm:pb-8 last:border-0"
+                      className="group cursor-pointer border-b border-border pb-6 sm:pb-8 last:border-0"
                     >
                       <div className="flex items-center justify-between mb-4 transition-colors duration-300">
-                        <h3 className={`text-4xl sm:text-5xl lg:text-6xl text-display uppercase tracking-wider transition-colors duration-300 ${activeFabric.id === fabric.id ? 'text-white' : 'text-white/40 group-hover:text-white/70'}`}>
+                        <h3 className={`text-4xl sm:text-5xl lg:text-6xl text-display uppercase tracking-wider transition-colors duration-300 ${activeFabric.id === fabric.id ? 'text-foreground' : 'text-foreground/40 group-hover:text-foreground/70'}`}>
                           {fabric.name}
                         </h3>
                         <ArrowRight className={`w-6 h-6 transition-all duration-300 ${activeFabric.id === fabric.id ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`} />
@@ -542,7 +547,7 @@ function Index() {
                       
                       <div className={`overflow-hidden transition-all duration-500 ease-in-out ${activeFabric.id === fabric.id ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}`}>
                         <div className="pt-2">
-                          <h4 className="text-sm tracking-[0.15em] uppercase text-mono mb-3 opacity-90 text-white">
+                          <h4 className="text-sm tracking-[0.15em] uppercase text-mono mb-3 opacity-90 text-foreground">
                             {fabric.title}
                           </h4>
                           <p className="text-base opacity-70 text-mono leading-relaxed max-w-lg">
@@ -597,19 +602,19 @@ function Index() {
             ].map((t, idx) => (
               <div
                 key={idx}
-                className="shrink-0 w-[320px] sm:w-[380px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] p-6 sm:p-8 flex flex-col justify-between mr-5"
+                className="shrink-0 w-[320px] sm:w-[380px] border border-border bg-surface/30 p-6 sm:p-8 flex flex-col justify-between mr-5"
               >
                 <div>
                   <div className="flex gap-1 mb-4">
                     {[0, 1, 2, 3, 4].map((n) => (
-                      <Star key={n} className="w-3.5 h-3.5 fill-white text-white opacity-80" />
+                      <Star key={n} className="w-3.5 h-3.5 fill-foreground text-foreground opacity-80" />
                     ))}
                   </div>
                   <p className="text-base sm:text-lg leading-relaxed opacity-90 text-display">
                     "{t.quote}"
                   </p>
                 </div>
-                <div className="mt-6 pt-4 border-t border-[rgba(255,255,255,0.1)]">
+                <div className="mt-6 pt-4 border-t border-border">
                   <p className="text-sm tracking-[0.1em] uppercase text-mono opacity-80">
                     {t.name}
                   </p>
@@ -624,21 +629,21 @@ function Index() {
       </section>
 
       {/* Cinematic Video Section 2: Split Screen */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 border-y border-[rgba(255,255,255,0.1)]">
-        <div className="order-2 lg:order-1 flex flex-col justify-center p-12 md:p-24 bg-[rgba(255,255,255,0.02)] border-r border-[rgba(255,255,255,0.1)]">
+      <section className="grid grid-cols-1 lg:grid-cols-2 border-y border-border">
+        <div className="order-2 lg:order-1 flex flex-col justify-center p-12 md:p-24 bg-surface/30 border-r border-border">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <span className="inline-flex items-center px-4 py-1.5 border border-white/20 text-white text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-8 bg-white/5">
+            <span className="inline-flex items-center px-4 py-1.5 border border-border text-foreground text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-8 bg-surface/30">
               BEHIND THE SEAMS
             </span>
             <h2 className="text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-8">
               CRAFTED FOR
               <br />
-              <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.4)" }}>
+              <span className="text-transparent" style={{ WebkitTextStroke: isLight ? "1px rgba(0,0,0,0.3)" : "1px rgba(255,255,255,0.4)" }}>
                 THE STREETS
               </span>
             </h2>
@@ -648,11 +653,12 @@ function Index() {
           </motion.div>
         </div>
         <div className="order-1 lg:order-2 relative h-[50vh] lg:h-auto min-h-[500px] overflow-hidden">
-          <video 
-            autoPlay 
-            loop 
-            muted 
-            playsInline 
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="none"
             className="absolute inset-0 w-full h-full object-cover grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-1000 scale-105"
           >
             <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4" />
@@ -674,9 +680,9 @@ function Index() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              className="col-span-2 md:col-span-2 md:row-span-2 border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] p-6 sm:p-12 flex flex-col justify-center"
+              className="col-span-2 md:col-span-2 md:row-span-2 border border-border bg-surface/30 p-6 sm:p-12 flex flex-col justify-center"
             >
-              <span className="inline-flex self-start items-center px-3 py-1 border border-[rgba(255,255,255,0.2)] text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-6">
+              <span className="inline-flex self-start items-center px-3 py-1 border border-border text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-6">
                 JOIN THE MOVEMENT
               </span>
               <h2 className="text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-6">
@@ -687,7 +693,7 @@ function Index() {
               </p>
               <Link
                 to="/signup"
-                className="inline-flex self-start items-center gap-2 px-8 py-3 border border-white bg-white text-black hover:bg-transparent hover:text-white transition-colors duration-300 text-sm tracking-[0.14em] uppercase text-mono"
+                className="inline-flex self-start items-center gap-2 px-8 py-3 border border-foreground bg-foreground text-background hover:bg-transparent hover:text-foreground transition-colors duration-300 text-sm tracking-[0.14em] uppercase text-mono"
               >
                 Join the Community
                 <ArrowRight className="w-4 h-4" />
@@ -700,11 +706,12 @@ function Index() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               viewport={{ once: true }}
-              className="col-span-1 row-span-2 md:col-span-1 md:row-span-2 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+              className="col-span-1 row-span-2 md:col-span-1 md:row-span-2 relative group overflow-hidden border border-border"
             >
               <img
                 src="https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&q=80&w=800"
                 alt="Community member"
+                loading="lazy"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -719,7 +726,7 @@ function Index() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               viewport={{ once: true }}
-              className="col-span-1 min-h-[140px] md:min-h-0 border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] p-4 sm:p-6 flex flex-col justify-center items-center text-center"
+              className="col-span-1 min-h-[140px] md:min-h-0 border border-border bg-surface/30 p-4 sm:p-6 flex flex-col justify-center items-center text-center"
             >
               <p className="text-5xl sm:text-6xl lg:text-7xl font-display tracking-[-0.02em] mb-2 text-primary">50K+</p>
               <p className="text-[10px] sm:text-xs tracking-[0.2em] uppercase opacity-60 text-mono">Members</p>
@@ -731,7 +738,7 @@ function Index() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
               viewport={{ once: true }}
-              className="col-span-1 min-h-[140px] md:min-h-0 border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] p-4 sm:p-6 flex flex-col justify-center items-center text-center"
+              className="col-span-1 min-h-[140px] md:min-h-0 border border-border bg-surface/30 p-4 sm:p-6 flex flex-col justify-center items-center text-center"
             >
               <p className="text-5xl sm:text-6xl lg:text-7xl font-display tracking-[-0.02em] mb-2 text-primary">120+</p>
               <p className="text-[10px] sm:text-xs tracking-[0.2em] uppercase opacity-60 text-mono">Cities</p>
@@ -743,11 +750,12 @@ function Index() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               viewport={{ once: true }}
-              className="col-span-2 md:col-span-2 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+              className="col-span-2 md:col-span-2 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-border"
             >
               <img
                 src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1200"
                 alt="Community vibe"
+                loading="lazy"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -762,7 +770,7 @@ function Index() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.5 }}
               viewport={{ once: true }}
-              className="col-span-1 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+              className="col-span-1 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-border"
             >
               <img
                 src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&q=80&w=600"
@@ -781,7 +789,7 @@ function Index() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
               viewport={{ once: true }}
-              className="col-span-1 min-h-[140px] md:min-h-0 border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] p-4 sm:p-6 flex flex-col justify-center items-center text-center"
+              className="col-span-1 min-h-[140px] md:min-h-0 border border-border bg-surface/30 p-4 sm:p-6 flex flex-col justify-center items-center text-center"
             >
               <p className="text-5xl sm:text-6xl lg:text-7xl font-display tracking-[-0.02em] mb-2 text-primary">25K+</p>
               <p className="text-[10px] sm:text-xs tracking-[0.2em] uppercase opacity-60 text-mono">Pieces Sold</p>
@@ -794,7 +802,7 @@ function Index() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.7 }}
               viewport={{ once: true }}
-              className="col-span-1 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+              className="col-span-1 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-border"
             >
               <img
                 src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600"
@@ -813,7 +821,7 @@ function Index() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.8 }}
               viewport={{ once: true }}
-              className="col-span-1 row-span-2 md:col-span-1 md:row-span-2 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+              className="col-span-1 row-span-2 md:col-span-1 md:row-span-2 relative group overflow-hidden border border-border"
             >
               <img
                 src="https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=80&w=800"
@@ -832,7 +840,7 @@ function Index() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.9 }}
               viewport={{ once: true }}
-              className="col-span-2 md:col-span-2 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+              className="col-span-2 md:col-span-2 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-border"
             >
               <img
                 src="https://images.unsplash.com/photo-1543322748-33df6d3db806?auto=format&fit=crop&q=80&w=1200"
@@ -851,7 +859,7 @@ function Index() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 1.0 }}
               viewport={{ once: true }}
-              className="col-span-1 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+              className="col-span-1 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-border"
             >
               <img
                 src="https://images.unsplash.com/photo-1492447166138-50c3889fccb1?auto=format&fit=crop&q=80&w=600"
@@ -870,7 +878,7 @@ function Index() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 1.1 }}
               viewport={{ once: true }}
-              className="col-span-2 md:col-span-2 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+              className="col-span-2 md:col-span-2 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-border"
             >
               <img
                 src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1200"
@@ -892,7 +900,7 @@ function Index() {
       {(() => {
         const ls = getSettings();
         return (
-          <section className="py-24 sm:py-36 px-4 sm:px-8 lg:px-16 border-y border-[rgba(255,255,255,0.1)] bg-[#050505] relative overflow-hidden">
+          <section className="py-24 sm:py-36 px-4 sm:px-8 lg:px-16 border-y border-border bg-[#050505] relative overflow-hidden">
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20 pointer-events-none" />
 
             <div className="max-w-[1280px] mx-auto relative z-10">
@@ -997,7 +1005,7 @@ function Index() {
 
       {/* FAQ Section */}
       {faqItems.length > 0 && (
-        <section className="py-20 sm:py-28 px-4 sm:px-8 lg:px-16 border-t border-[rgba(255,255,255,0.1)]">
+        <section className="py-20 sm:py-28 px-4 sm:px-8 lg:px-16 border-t border-border">
           <div className="max-w-[900px] mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1006,7 +1014,7 @@ function Index() {
               viewport={{ once: true }}
               className="mb-12 sm:mb-16"
             >
-              <span className="inline-flex items-center px-4 py-1.5 border border-white/20 text-white text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-6 bg-white/5">
+              <span className="inline-flex items-center px-4 py-1.5 border border-border text-foreground text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-6 bg-surface/30">
                 NEED TO KNOW
               </span>
               <h2 className="text-[clamp(3rem,8vw,6rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display">
@@ -1016,7 +1024,7 @@ function Index() {
               </h2>
             </motion.div>
 
-            <div className="divide-y divide-[rgba(255,255,255,0.1)]">
+            <div className="divide-y divide-border">
               {faqItems.map((item, idx) => (
                 <motion.div
                   key={item.id}
@@ -1033,7 +1041,7 @@ function Index() {
                     <span className="text-base sm:text-lg font-display uppercase tracking-wide pr-8 group-hover:opacity-70 transition-opacity">
                       {item.question}
                     </span>
-                    <span className="shrink-0 border border-[rgba(255,255,255,0.2)] w-8 h-8 flex items-center justify-center transition-colors group-hover:border-white">
+                    <span className="shrink-0 border border-border w-8 h-8 flex items-center justify-center transition-colors group-hover:border-foreground">
                       {openFaq === item.id ? (
                         <Minus className="w-3.5 h-3.5" />
                       ) : (
@@ -1060,7 +1068,7 @@ function Index() {
               ))}
             </div>
 
-            <div className="mt-10 pt-8 border-t border-[rgba(255,255,255,0.1)] flex items-center justify-between flex-wrap gap-4">
+            <div className="mt-10 pt-8 border-t border-border flex items-center justify-between flex-wrap gap-4">
               <p className="text-sm opacity-60 text-mono">Still have questions?</p>
               <Link
                 to="/faq"
