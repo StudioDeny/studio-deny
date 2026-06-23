@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { buildMeta, buildLinks, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/about")({
   component: About,
   head: () => ({
-    meta: [
-      { title: "About — STUDIO/DENY" },
-      { name: "description", content: "Studio Deny is streetwear for the restless. Made in India, built for the world." },
-    ],
+    meta: buildMeta({
+      title: "Our Story — STUDIO/DENY",
+      description: "Born in a Mumbai garage in 2022. Studio Deny is streetwear for the restless — heavyweight cuts, raw graphics, made in India.",
+      url: `${SITE_URL}/about`,
+    }),
+    links: buildLinks(`${SITE_URL}/about`),
   }),
 });
 

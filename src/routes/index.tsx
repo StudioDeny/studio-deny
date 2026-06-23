@@ -3,6 +3,7 @@ import { ProductCard } from "@/components/product/ProductCard";
 import type { Product } from "@/lib/products";
 import { productsInCategory } from "@/lib/catalog";
 import { listProducts } from "@/lib/productsStore";
+import { buildMeta, buildLinks, SITE_URL, orgJsonLd, websiteJsonLd } from "@/lib/seo";
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Star, Layers, Scissors, ShieldCheck } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -12,6 +13,18 @@ import { NewsletterSection } from "@/components/home/NewsletterSection";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  head: () => ({
+    meta: buildMeta({
+      title: "STUDIO/DENY — Streetwear For The Restless",
+      description: "Studio Deny — heavyweight streetwear, raw graphics, made in India. Limited drops. Hoodies, tees, cargos, outerwear.",
+      url: SITE_URL,
+    }),
+    links: buildLinks(SITE_URL),
+    scripts: [
+      { type: "application/ld+json", children: orgJsonLd() },
+      { type: "application/ld+json", children: websiteJsonLd() },
+    ],
+  }),
 });
 
 function Index() {
@@ -30,16 +43,24 @@ function Index() {
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>('ALL');
   const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
+  const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    listProducts().then((all) => {
+      setBestSellers(all.filter((p: any) => p.badge === 'SALE' || p.compare_at));
+    });
+  }, []);
+
   useEffect(() => {
     setShowAllProducts(false);
     if (selectedCategory === 'ALL') {
-      setCategoryProducts(listProducts());
+      listProducts().then(setCategoryProducts);
     } else if (selectedCategory === 'NEW COLLECTION') {
-      setCategoryProducts(listProducts().filter((p) => p.badge === 'NEW DROP'));
+      listProducts().then((all) => setCategoryProducts(all.filter((p) => p.badge === 'NEW DROP')));
     } else if (selectedCategory) {
-      setCategoryProducts(productsInCategory(selectedCategory));
+      productsInCategory(selectedCategory).then(setCategoryProducts);
     } else {
       setCategoryProducts([]);
     }
@@ -270,12 +291,9 @@ function Index() {
           </h2>
         </motion.div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
-          {listProducts()
-            .filter((p) => p.badge === 'SALE' || p.compareAt)
-            .slice(0, 4)
-            .map((product, idx) => (
-              <ProductCard key={product.slug} product={product} index={idx} />
-            ))}
+          {bestSellers.slice(0, 4).map((product, idx) => (
+            <ProductCard key={product.slug} product={product} index={idx} />
+          ))}
         </div>
         <div className="mt-8 text-center sm:hidden">
           <Link

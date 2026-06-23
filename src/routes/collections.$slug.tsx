@@ -4,10 +4,30 @@ import { productsInCategory, findCategoryBySlug, listCategories } from "@/lib/ca
 import type { Product } from "@/lib/productsStore";
 import { ProductCard } from "@/components/product/ProductCard";
 import { SlidersHorizontal, X } from "lucide-react";
+import { buildMeta, buildLinks, SITE_URL, collectionJsonLd } from "@/lib/seo";
+
+const COL_DESC: Record<string, string> = {
+  men: "Shop men's streetwear from Studio Deny. Heavyweight tees, oversized hoodies, cargos, and outerwear — built for those who move different.",
+  women: "Shop women's streetwear from Studio Deny. Premium fabrics, raw silhouettes, and limited drops made for the streets.",
+  accessories: "Studio Deny accessories — caps, bags, and essentials that complete the fit without trying too hard.",
+  tops: "Shop all tops from Studio Deny. Graphic tees, shirts, and hoodies in heavyweight cotton with a structured, oversized cut.",
+  bottoms: "Cargos, joggers, and trousers from Studio Deny. Built for movement, styled for the streets.",
+  outerwear: "Studio Deny outerwear. Bombers, windbreakers, and jackets that outlast every season.",
+};
 
 export const Route = createFileRoute("/collections/$slug")({
   component: CollectionPage,
-  head: ({ params }) => ({ meta: [{ title: `${params.slug.toUpperCase()} — STUDIO/DENY` }] }),
+  head: ({ params }) => {
+    const slug = params.slug;
+    const name = slug.replace(/-/g, " ").toUpperCase();
+    const desc = COL_DESC[slug] ?? `Shop the ${name} collection from Studio Deny. Limited drops, premium streetwear.`;
+    const url = `${SITE_URL}/collections/${slug}`;
+    return {
+      meta: buildMeta({ title: `${name} Collection — STUDIO/DENY`, description: desc, url }),
+      links: buildLinks(url),
+      scripts: [{ type: "application/ld+json", children: collectionJsonLd(name, url) }],
+    };
+  },
 });
 
 type Sort = "new" | "low" | "high" | "name";

@@ -1,10 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { listProducts, type Product } from "@/lib/productsStore";
+import { buildMeta, buildLinks, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/lookbook")({
   component: Lookbook,
-  head: () => ({ meta: [{ title: "Lookbook — STUDIO/DENY" }] }),
+  head: () => ({
+    meta: buildMeta({
+      title: "Lookbook — STUDIO/DENY",
+      description: "Curated fits and editorial photography from Studio Deny. See how the pieces move, layer, and live.",
+      url: `${SITE_URL}/lookbook`,
+    }),
+    links: buildLinks(`${SITE_URL}/lookbook`),
+  }),
 });
 
 function Lookbook() {

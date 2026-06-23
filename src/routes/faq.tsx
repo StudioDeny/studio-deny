@@ -1,14 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
+import { buildMeta, buildLinks, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/faq")({
   component: FAQ,
   head: () => ({
-    meta: [
-      { title: "FAQ — STUDIO/DENY" },
-      { name: "description", content: "Shipping, returns, sizing, customs — all your questions, answered." },
-    ],
+    meta: buildMeta({
+      title: "FAQ — STUDIO/DENY",
+      description: "Shipping timelines, returns, sizing, customs duties — every question about Studio Deny, answered.",
+      url: `${SITE_URL}/faq`,
+    }),
+    links: buildLinks(`${SITE_URL}/faq`),
   }),
 });
 

@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { buildMeta, buildLinks, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/size-guide")({
   component: SizeGuide,
   head: () => ({
-    meta: [
-      { title: "Size Guide — STUDIO/DENY" },
-      { name: "description", content: "Measurements in cm for tops, bottoms, and outerwear. Our cuts run oversized." },
-    ],
+    meta: buildMeta({
+      title: "Size Guide — STUDIO/DENY",
+      description: "Exact measurements in cm for every Studio Deny piece. Our cuts run oversized — find your perfect fit before you drop.",
+      url: `${SITE_URL}/size-guide`,
+    }),
+    links: buildLinks(`${SITE_URL}/size-guide`),
   }),
 });
 

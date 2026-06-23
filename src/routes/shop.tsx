@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { buildMeta, buildLinks, SITE_URL } from "@/lib/seo";
 import { useEffect, useMemo, useState } from "react";
 import { categories, type Category } from "@/lib/products";
 import { listProducts, type Product } from "@/lib/productsStore";
@@ -33,10 +34,12 @@ export const Route = createFileRoute("/shop")({
   }),
   component: Shop,
   head: () => ({
-    meta: [
-      { title: "Shop — STUDIO/DENY" },
-      { name: "description", content: "Shop the latest streetwear drops from Studio Deny. Hoodies, tees, cargos, outerwear — all built in the dark." },
-    ],
+    meta: buildMeta({
+      title: "Shop All Drops — STUDIO/DENY",
+      description: "Shop the latest streetwear drops from Studio Deny. Hoodies, tees, cargos, outerwear — limited runs, built different.",
+      url: `${SITE_URL}/shop`,
+    }),
+    links: buildLinks(`${SITE_URL}/shop`),
   }),
 });
 

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { buildMeta, buildLinks, SITE_URL, productJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { listProducts, getStoredProduct as getProduct, type Product } from "@/lib/productsStore";
@@ -17,17 +18,32 @@ export const Route = createFileRoute("/product/$slug")({
     if (!product) throw notFound();
     return { product };
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.product.name} — STUDIO/DENY` },
-          { name: "description", content: loaderData.product.description },
-          { property: "og:title", content: `${loaderData.product.name} — STUDIO/DENY` },
-          { property: "og:description", content: loaderData.product.description },
-          { property: "og:image", content: loaderData.product.image },
-        ]
-      : [],
-  }),
+  head: ({ loaderData }) => {
+    if (!loaderData) return { meta: [] };
+    const p = loaderData.product;
+    const url = `${SITE_URL}/product/${p.slug}`;
+    return {
+      meta: buildMeta({
+        title: `${p.name} — STUDIO/DENY`,
+        description: p.description,
+        image: p.image,
+        url,
+        type: "product",
+      }),
+      links: buildLinks(url),
+      scripts: [
+        { type: "application/ld+json", children: productJsonLd({ ...p, stock: p.stock, compare_at: p.compare_at }) },
+        {
+          type: "application/ld+json",
+          children: breadcrumbJsonLd([
+            { name: "Home", url: SITE_URL },
+            { name: "Shop", url: `${SITE_URL}/shop` },
+            { name: p.name, url },
+          ]),
+        },
+      ],
+    };
+  },
   component: PDP,
   notFoundComponent: () => (
     <div className="px-4 py-32 text-center min-h-[70vh] flex flex-col items-center justify-center">

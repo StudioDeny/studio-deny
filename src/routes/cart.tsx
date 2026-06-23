@@ -4,7 +4,7 @@ import { Minus, Plus, Trash2, ArrowRight, ShieldCheck, ShoppingBag } from "lucid
 
 export const Route = createFileRoute("/cart")({
   component: CartPage,
-  head: () => ({ meta: [{ title: "Bag — STUDIO/DENY" }] }),
+  head: () => ({ meta: [{ title: "Bag — STUDIO/DENY" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 const FREE_SHIP = 999;

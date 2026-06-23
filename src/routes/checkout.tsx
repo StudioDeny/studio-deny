@@ -17,7 +17,7 @@ import { Lock, Sparkles, Truck } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
   component: Checkout,
-  head: () => ({ meta: [{ title: "Checkout — STUDIO/DENY" }] }),
+  head: () => ({ meta: [{ title: "Checkout — STUDIO/DENY" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 const schema = z.object({

@@ -8,7 +8,12 @@ export const Route = createFileRoute("/admin/seo")({
   component: AdminSeo,
 });
 
-const PAGE_SLUGS = ["home", "shop", "about", "contact", "cart", "checkout"];
+const PAGE_SLUGS = [
+  "home", "shop", "about", "contact", "faq", "lookbook",
+  "size-guide", "policies", "rewards", "refer",
+  "collections/men", "collections/women", "collections/accessories",
+  "collections/tops", "collections/bottoms", "collections/outerwear",
+];
 
 function AdminSeo() {
   const [pages, setPages] = useState<SeoSettings[]>([]);

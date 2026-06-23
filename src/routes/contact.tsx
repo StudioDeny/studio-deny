@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { buildMeta, buildLinks, SITE_URL } from "@/lib/seo";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +9,14 @@ import { Mail, MapPin, MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/contact")({
   component: Contact,
-  head: () => ({ meta: [{ title: "Contact — STUDIO/DENY" }] }),
+  head: () => ({
+    meta: buildMeta({
+      title: "Contact Us — STUDIO/DENY",
+      description: "Get in touch with Studio Deny. For orders, collabs, wholesale, and press — we reply within 24 hours.",
+      url: `${SITE_URL}/contact`,
+    }),
+    links: buildLinks(`${SITE_URL}/contact`),
+  }),
 });
 
 const schema = z.object({
