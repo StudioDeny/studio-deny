@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { listOrders } from "@/lib/orders";
-import { listProducts } from "@/lib/productsStore";
-import { listCategories, listBrands } from "@/lib/catalog";
-import { getSettings } from "@/lib/settings";
-import { Download, Database } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { Download, Database, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/export")({
@@ -30,112 +27,276 @@ function toCSV(rows: Record<string, unknown>[]): string {
   return [keys.join(","), ...rows.map((r) => keys.map((k) => escape(r[k])).join(","))].join("\n");
 }
 
-function ExportPage() {
-  const [counts, setCounts] = useState({ orders: 0, products: 0, customers: 0 });
-  useEffect(() => {
-    const orders = listOrders();
-    listProducts().then((prods) => {
-      setCounts({
-        orders: orders.length,
-        products: prods.length,
-        customers: new Set(orders.map((o) => o.userEmail)).size,
-      });
-    });
-  }, []);
+async function fetchAll(table: string, select = "*") {
+  const { data, error } = await supabase.from(table).select(select);
+  if (error) { toast.error(`${table}: ${error.message}`); return []; }
+  return data ?? [];
+}
 
-  const exportOrders = (fmt: "csv" | "json") => {
-    const orders = listOrders();
+const TABLES = [
+  { key: "products", label: "PRODUCTS" },
+  { key: "product_variants", label: "VARIANTS" },
+  { key: "orders", label: "ORDERS" },
+  { key: "order_items", label: "ORDER ITEMS" },
+  { key: "profiles", label: "PROFILES" },
+  { key: "user_roles", label: "ROLES" },
+  { key: "loyalty_balances", label: "LOYALTY" },
+  { key: "loyalty_transactions", label: "LOYALTY TXN" },
+  { key: "faq_items", label: "FAQ" },
+  { key: "testimonials", label: "TESTIMONIALS" },
+  { key: "announcement_bars", label: "ANNOUNCEMENTS" },
+  { key: "website_sections", label: "SECTIONS" },
+  { key: "notification_templates", label: "NOTIF TEMPLATES" },
+  { key: "notification_queue", label: "NOTIF QUEUE" },
+  { key: "whatsapp_logs", label: "WHATSAPP LOGS" },
+  { key: "marketing_campaigns", label: "CAMPAIGNS" },
+];
+
+type Counts = Record<string, number>;
+
+function ExportPage() {
+  const [counts, setCounts] = useState<Counts>({});
+  const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState<string | null>(null);
+
+  const loadCounts = async () => {
+    setLoading(true);
+    const results = await Promise.all(
+      TABLES.map(async ({ key }) => {
+        const { count, error } = await supabase
+          .from(key)
+          .select("*", { count: "exact", head: true });
+        return [key, error ? 0 : (count ?? 0)] as [string, number];
+      })
+    );
+    setCounts(Object.fromEntries(results));
+    setLoading(false);
+  };
+
+  useEffect(() => { loadCounts(); }, []);
+
+  const exportTable = async (table: string, fmt: "csv" | "json", label: string) => {
+    setExporting(table + fmt);
+    const rows = await fetchAll(table);
+    if (!rows.length) { toast.error("No data to export"); setExporting(null); return; }
+    const ts = new Date().toISOString().slice(0, 10);
     if (fmt === "csv") {
-      downloadFile("orders.csv", toCSV(orders.map((o) => ({
-        id: o.id, order_number: o.order_number ?? o.id, invoiceNo: o.invoiceNo, customer: o.userEmail, status: o.status,
-        items: o.items.length, subtotal: o.subtotal, tax: o.tax, total: o.total,
-        date: new Date(o.createdAt).toISOString(),
-      }))), "text/csv");
+      downloadFile(`${table}_${ts}.csv`, toCSV(rows as Record<string, unknown>[]), "text/csv");
     } else {
-      downloadFile("orders.json", JSON.stringify(orders, null, 2), "application/json");
+      downloadFile(`${table}_${ts}.json`, JSON.stringify(rows, null, 2), "application/json");
+    }
+    toast.success(`Exported ${rows.length} ${label} rows`);
+    setExporting(null);
+  };
+
+  const exportOrders = async (fmt: "csv" | "json") => {
+    setExporting("orders" + fmt);
+    const [orders, items] = await Promise.all([
+      fetchAll("orders"),
+      fetchAll("order_items"),
+    ]);
+    const ts = new Date().toISOString().slice(0, 10);
+    if (fmt === "csv") {
+      downloadFile(`orders_${ts}.csv`, toCSV(orders as Record<string, unknown>[]), "text/csv");
+      downloadFile(`order_items_${ts}.csv`, toCSV(items as Record<string, unknown>[]), "text/csv");
+    } else {
+      const combined = orders.map((o: any) => ({
+        ...o,
+        items: (items as any[]).filter((i) => i.order_id === o.id),
+      }));
+      downloadFile(`orders_${ts}.json`, JSON.stringify(combined, null, 2), "application/json");
     }
     toast.success(`Exported ${orders.length} orders`);
+    setExporting(null);
   };
 
   const exportProducts = async (fmt: "csv" | "json") => {
-    const list = await listProducts();
-    if (fmt === "csv") downloadFile("products.csv", toCSV(list as unknown as Record<string, unknown>[]), "text/csv");
-    else downloadFile("products.json", JSON.stringify(list, null, 2), "application/json");
-    toast.success(`Exported ${list.length} products`);
+    setExporting("products" + fmt);
+    const [products, variants] = await Promise.all([
+      fetchAll("products"),
+      fetchAll("product_variants"),
+    ]);
+    const ts = new Date().toISOString().slice(0, 10);
+    if (fmt === "csv") {
+      downloadFile(`products_${ts}.csv`, toCSV(products as Record<string, unknown>[]), "text/csv");
+      downloadFile(`product_variants_${ts}.csv`, toCSV(variants as Record<string, unknown>[]), "text/csv");
+    } else {
+      const combined = products.map((p: any) => ({
+        ...p,
+        variants: (variants as any[]).filter((v) => v.product_id === p.id || v.product_id === p.slug),
+      }));
+      downloadFile(`products_${ts}.json`, JSON.stringify(combined, null, 2), "application/json");
+    }
+    toast.success(`Exported ${products.length} products`);
+    setExporting(null);
   };
 
-  const exportCustomers = () => {
-    const orders = listOrders();
-    const map = new Map<string, { email: string; orders: number; spent: number; lastOrder: number }>();
-    orders.forEach((o) => {
-      const r = map.get(o.userEmail) ?? { email: o.userEmail, orders: 0, spent: 0, lastOrder: 0 };
-      r.orders++; r.spent += (o.status === "REFUNDED" || o.status === "CANCELLED") ? 0 : o.total;
-      r.lastOrder = Math.max(r.lastOrder, o.createdAt);
-      map.set(o.userEmail, r);
-    });
-    const rows = [...map.values()].map((c) => ({ ...c, lastOrder: new Date(c.lastOrder).toISOString() }));
-    downloadFile("customers.csv", toCSV(rows), "text/csv");
+  const exportCustomers = async () => {
+    setExporting("customers");
+    const [profiles, roles] = await Promise.all([
+      fetchAll("profiles"),
+      fetchAll("user_roles"),
+    ]);
+    const roleMap = new Map((roles as any[]).map((r) => [r.user_id, r.role]));
+    const rows = (profiles as any[]).map((p) => ({
+      user_id: p.user_id,
+      email: p.email,
+      name: p.name,
+      phone: p.phone,
+      role: roleMap.get(p.user_id) ?? "customer",
+      created_at: p.created_at,
+    }));
+    const ts = new Date().toISOString().slice(0, 10);
+    downloadFile(`customers_${ts}.csv`, toCSV(rows), "text/csv");
     toast.success(`Exported ${rows.length} customers`);
+    setExporting(null);
   };
 
   const exportFullDb = async () => {
+    setExporting("full");
+    toast.info("Fetching all tables… this may take a moment");
+    const snapshots = await Promise.all(
+      TABLES.map(async ({ key, label }) => {
+        const rows = await fetchAll(key);
+        return [key, rows] as [string, unknown[]];
+      })
+    );
     const dump = {
       exportedAt: new Date().toISOString(),
-      products: await listProducts(),
-      orders: listOrders(),
-      categories: listCategories(),
-      brands: listBrands(),
-      settings: getSettings(),
-      raw: typeof window !== "undefined"
-        ? Object.keys(localStorage).filter((k) => k.startsWith("sd_")).reduce((acc, k) => {
-            acc[k] = localStorage.getItem(k);
-            return acc;
-          }, {} as Record<string, string | null>)
-        : {},
+      source: "supabase",
+      tables: Object.fromEntries(snapshots),
     };
-    downloadFile(`studio-deny-db-${new Date().toISOString()}.json`, JSON.stringify(dump, null, 2), "application/json");
-    toast.success("Full database exported");
+    const ts = new Date().toISOString().slice(0, 10);
+    downloadFile(`studiodeny_backup_${ts}.json`, JSON.stringify(dump, null, 2), "application/json");
+    toast.success("Full Supabase backup exported");
+    setExporting(null);
   };
 
-  const Section = ({ title, count, children }: { title: string; count: number; children: React.ReactNode }) => (
-    <div className="border border-border bg-surface p-5">
-      <div className="flex justify-between items-center mb-4">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">{title}</div>
-        <div className="text-mono text-xs text-muted-foreground">{count} ROWS</div>
-      </div>
-      <div className="flex flex-wrap gap-2">{children}</div>
-    </div>
-  );
+  const totalRows = Object.values(counts).reduce((a, b) => a + b, 0);
 
-  const Btn = ({ onClick, children }: { onClick: () => void; children: React.ReactNode }) => (
-    <button onClick={onClick} className="border border-border h-10 px-4 text-mono text-xs tracking-widest inline-flex items-center gap-2 hover:border-primary hover:text-primary">
-      <Download className="size-3" /> {children}
+  const Btn = ({
+    onClick, children, busy, primary,
+  }: {
+    onClick: () => void; children: React.ReactNode; busy?: boolean; primary?: boolean;
+  }) => (
+    <button
+      onClick={onClick}
+      disabled={!!busy}
+      className={`h-10 px-4 text-mono text-xs tracking-widest inline-flex items-center gap-2 disabled:opacity-50 ${
+        primary
+          ? "bg-primary text-primary-foreground hover:glow-primary"
+          : "border border-border hover:border-primary hover:text-primary"
+      }`}
+    >
+      {busy ? <RefreshCw className="size-3 animate-spin" /> : <Download className="size-3" />}
+      {children}
     </button>
   );
 
   return (
     <div className="max-w-4xl">
-      <h1 className="text-display text-4xl md:text-5xl mb-2">EXPORT.</h1>
-      <p className="text-muted-foreground text-sm mb-8">Download stats, orders, products and the full database.</p>
+      <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
+        <h1 className="text-display text-4xl md:text-5xl">EXPORT.</h1>
+        <button
+          onClick={loadCounts}
+          disabled={loading}
+          className="border border-border h-9 px-3 text-mono text-[10px] tracking-widest inline-flex items-center gap-2 hover:border-primary hover:text-primary disabled:opacity-50"
+        >
+          <RefreshCw className={`size-3 ${loading ? "animate-spin" : ""}`} /> REFRESH
+        </button>
+      </div>
+      <p className="text-muted-foreground text-sm mb-8">
+        Live Supabase backup — {loading ? "counting…" : `${totalRows.toLocaleString()} total rows across ${TABLES.length} tables`}
+      </p>
 
+      {/* Main exports */}
       <div className="grid sm:grid-cols-2 gap-4 mb-6">
-        <Section title="ORDERS" count={counts.orders}>
-          <Btn onClick={() => exportOrders("csv")}>CSV</Btn>
-          <Btn onClick={() => exportOrders("json")}>JSON</Btn>
+        <Section title="ORDERS" count={(counts.orders ?? 0) + (counts.order_items ?? 0)} label="orders + items">
+          <Btn onClick={() => exportOrders("csv")} busy={exporting === "orderscsv"}>CSV</Btn>
+          <Btn onClick={() => exportOrders("json")} busy={exporting === "ordersjson"}>JSON</Btn>
         </Section>
-        <Section title="PRODUCTS" count={counts.products}>
-          <Btn onClick={() => exportProducts("csv")}>CSV</Btn>
-          <Btn onClick={() => exportProducts("json")}>JSON</Btn>
+
+        <Section title="PRODUCTS" count={(counts.products ?? 0) + (counts.product_variants ?? 0)} label="products + variants">
+          <Btn onClick={() => exportProducts("csv")} busy={exporting === "productscsv"}>CSV</Btn>
+          <Btn onClick={() => exportProducts("json")} busy={exporting === "productsjson"}>JSON</Btn>
         </Section>
-        <Section title="CUSTOMERS" count={counts.customers}>
-          <Btn onClick={exportCustomers}>CSV</Btn>
+
+        <Section title="CUSTOMERS" count={(counts.profiles ?? 0)} label="profiles + roles">
+          <Btn onClick={exportCustomers} busy={exporting === "customers"}>CSV</Btn>
         </Section>
-        <Section title="FULL DATABASE" count={3}>
-          <button onClick={exportFullDb} className="bg-primary text-primary-foreground h-10 px-4 text-mono text-xs tracking-widest inline-flex items-center gap-2 hover:glow-primary">
+
+        <Section title="FULL DATABASE BACKUP" count={totalRows} label="all tables">
+          <Btn onClick={exportFullDb} busy={exporting === "full"} primary>
             <Database className="size-3" /> EXPORT EVERYTHING
-          </button>
+          </Btn>
         </Section>
       </div>
+
+      {/* Per-table section */}
+      <h2 className="text-display text-2xl tracking-wider mb-4">ALL TABLES</h2>
+      <div className="border border-border bg-surface overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+            <tr>
+              <th className="text-left p-3">TABLE</th>
+              <th className="text-left p-3">ROWS</th>
+              <th className="text-right p-3">DOWNLOAD</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {TABLES.map(({ key, label }) => (
+              <tr key={key} className="hover:bg-muted/40">
+                <td className="p-3">
+                  <div className="font-semibold text-xs">{key}</div>
+                  <div className="text-mono text-[10px] text-muted-foreground">{label}</div>
+                </td>
+                <td className="p-3 text-mono text-xs">
+                  {loading ? "—" : (counts[key] ?? 0).toLocaleString()}
+                </td>
+                <td className="p-3 text-right">
+                  <div className="inline-flex gap-2">
+                    <button
+                      onClick={() => exportTable(key, "csv", label)}
+                      disabled={exporting === key + "csv"}
+                      className="border border-border h-7 px-2 text-mono text-[10px] tracking-widest inline-flex items-center gap-1 hover:border-primary hover:text-primary disabled:opacity-50"
+                    >
+                      {exporting === key + "csv" ? <RefreshCw className="size-2.5 animate-spin" /> : <Download className="size-2.5" />}
+                      CSV
+                    </button>
+                    <button
+                      onClick={() => exportTable(key, "json", label)}
+                      disabled={exporting === key + "json"}
+                      className="border border-border h-7 px-2 text-mono text-[10px] tracking-widest inline-flex items-center gap-1 hover:border-primary hover:text-primary disabled:opacity-50"
+                    >
+                      {exporting === key + "json" ? <RefreshCw className="size-2.5 animate-spin" /> : <Download className="size-2.5" />}
+                      JSON
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function Section({
+  title, count, label, children,
+}: {
+  title: string; count: number; label: string; children: React.ReactNode;
+}) {
+  return (
+    <div className="border border-border bg-surface p-5">
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">{title}</div>
+        <div className="text-right">
+          <div className="text-mono text-xs text-foreground">{count.toLocaleString()}</div>
+          <div className="text-mono text-[9px] text-muted-foreground uppercase">{label}</div>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2">{children}</div>
     </div>
   );
 }
