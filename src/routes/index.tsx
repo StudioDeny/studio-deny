@@ -5,8 +5,9 @@ import { productsInCategory } from "@/lib/catalog";
 import { listProducts } from "@/lib/productsStore";
 import { buildMeta, buildLinks, SITE_URL, orgJsonLd, websiteJsonLd } from "@/lib/seo";
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
-import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Star, Layers, Scissors, ShieldCheck } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Star, Layers, Scissors, ShieldCheck, Plus, Minus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import { NewArrivalsSection } from "@/components/home/NewArrivalsSection";
 import { WhyUsSection } from "@/components/home/WhyUsSection";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
@@ -46,11 +47,23 @@ function Index() {
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+  const [faqItems, setFaqItems] = useState<{ id: string; question: string; answer: string; category: string }[]>([]);
+  const [openFaq, setOpenFaq] = useState<string | null>(null);
 
   useEffect(() => {
     listProducts().then((all) => {
       setBestSellers(all.filter((p: any) => p.badge === 'SALE' || p.compare_at));
     });
+  }, []);
+
+  useEffect(() => {
+    supabase
+      .from("faq_items")
+      .select("id, question, answer, category")
+      .eq("is_active", true)
+      .order("position")
+      .limit(8)
+      .then(({ data }) => { if (data) setFaqItems(data); });
   }, []);
 
   useEffect(() => {
@@ -907,6 +920,84 @@ function Index() {
           </motion.div>
         </div>
       </section>
+
+      {/* FAQ Section */}
+      {faqItems.length > 0 && (
+        <section className="py-20 sm:py-28 px-4 sm:px-8 lg:px-16 border-t border-[rgba(255,255,255,0.1)]">
+          <div className="max-w-[900px] mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="mb-12 sm:mb-16"
+            >
+              <span className="inline-flex items-center px-4 py-1.5 border border-white/20 text-white text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-6 bg-white/5">
+                NEED TO KNOW
+              </span>
+              <h2 className="text-[clamp(3rem,8vw,6rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display">
+                FREQUENTLY
+                <br />
+                ASKED.
+              </h2>
+            </motion.div>
+
+            <div className="divide-y divide-[rgba(255,255,255,0.1)]">
+              {faqItems.map((item, idx) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: idx * 0.05 }}
+                  viewport={{ once: true }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(openFaq === item.id ? null : item.id)}
+                    className="w-full flex items-center justify-between py-5 sm:py-6 text-left group"
+                  >
+                    <span className="text-base sm:text-lg font-display uppercase tracking-wide pr-8 group-hover:opacity-70 transition-opacity">
+                      {item.question}
+                    </span>
+                    <span className="shrink-0 border border-[rgba(255,255,255,0.2)] w-8 h-8 flex items-center justify-center transition-colors group-hover:border-white">
+                      {openFaq === item.id ? (
+                        <Minus className="w-3.5 h-3.5" />
+                      ) : (
+                        <Plus className="w-3.5 h-3.5" />
+                      )}
+                    </span>
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {openFaq === item.id && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <p className="pb-6 text-base opacity-70 text-mono leading-relaxed max-w-2xl">
+                          {item.answer}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="mt-10 pt-8 border-t border-[rgba(255,255,255,0.1)] flex items-center justify-between flex-wrap gap-4">
+              <p className="text-sm opacity-60 text-mono">Still have questions?</p>
+              <Link
+                to="/faq"
+                className="inline-flex items-center gap-2 text-sm tracking-[0.14em] uppercase text-mono hover:opacity-70 transition-opacity"
+              >
+                View All FAQs <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       <NewsletterSection />
     </div>

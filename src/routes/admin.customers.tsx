@@ -45,7 +45,7 @@ function Customers() {
                   <td className="p-3 text-mono">{r.orders}</td>
                   <td className="p-3 text-mono">{formatINR(r.spent)}</td>
                   <td className="p-3 text-mono">{r.points}</td>
-                  <td className="p-3"><span className="text-mono text-[10px] tracking-widest px-2 py-1 border border-secondary text-secondary">{r.tier}</span></td>
+                  <td className="p-3"><span className="text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">{r.tier}</span></td>
                   <td className="p-3 text-mono text-xs text-muted-foreground">{new Date(r.last).toLocaleDateString()}</td>
                 </tr>
               ))}

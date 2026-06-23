@@ -13,9 +13,9 @@ type UserRow = Profile & { role: AppRole | null; role_id: string | null };
 
 const ROLE_OPTIONS: AppRole[] = ["admin", "staff", "customer"];
 const ROLE_COLORS: Record<AppRole, string> = {
-  admin: "border-primary text-primary",
-  staff: "border-secondary text-secondary",
-  customer: "border-border text-muted-foreground",
+  admin: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  staff: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  customer: "bg-muted text-muted-foreground",
 };
 
 function AdminUsers() {

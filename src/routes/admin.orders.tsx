@@ -65,7 +65,7 @@ function AdminOrders() {
                     <div className="inline-flex gap-2">
                       <Link to="/admin/invoice/$id" params={{ id: o.id }} className="text-mono text-[10px] tracking-widest text-primary hover:underline">INVOICE</Link>
                       {o.status !== "REFUNDED" && (
-                        <button onClick={() => refund(o.id, o.total)} className="text-mono text-[10px] tracking-widest text-secondary hover:underline">REFUND</button>
+                        <button onClick={() => refund(o.id, o.total)} className="text-mono text-[10px] tracking-widest text-red-500 dark:text-red-400 hover:underline">REFUND</button>
                       )}
                     </div>
                   </td>

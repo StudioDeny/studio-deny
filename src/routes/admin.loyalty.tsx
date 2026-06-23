@@ -129,7 +129,7 @@ function LoyaltyDash() {
                 <td className="p-3 text-mono text-xs">{m.points.toLocaleString()} pts</td>
                 <td className="p-3 text-mono text-xs">{formatINR(m.spent)}</td>
                 <td className="p-3">
-                  <span className="text-mono text-[10px] tracking-widest px-2 py-1 border border-secondary text-secondary">{m.tier}</span>
+                  <span className="text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">{m.tier}</span>
                 </td>
               </tr>
             ))}

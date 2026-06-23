@@ -170,7 +170,7 @@ function AdminTestimonials() {
                 <td className="p-3">
                   <button
                     onClick={() => toggle(r.id, !r.is_active)}
-                    className={`text-mono text-[10px] tracking-widest px-2 py-1 border ${r.is_active ? "border-secondary text-secondary" : "border-border text-muted-foreground"}`}
+                    className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}
                   >
                     {r.is_active ? "ACTIVE" : "INACTIVE"}
                   </button>

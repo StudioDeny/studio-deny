@@ -137,7 +137,7 @@ function EditProduct() {
                       ) : <span className="text-muted-foreground">—</span>}
                     </td>
                     <td className="p-3">
-                      <span className={`text-mono text-xs font-semibold ${v.stock === 0 ? "text-secondary" : v.stock <= 5 ? "text-primary" : ""}`}>
+                      <span className={`text-mono text-xs font-semibold ${v.stock === 0 ? "text-red-500 dark:text-red-400" : v.stock <= 5 ? "text-amber-600 dark:text-amber-400" : ""}`}>
                         {v.stock === 0 ? "OUT" : v.stock}
                       </span>
                     </td>
@@ -153,7 +153,7 @@ function EditProduct() {
                         </button>
                         <button
                           onClick={() => deleteVariant(v.id!)}
-                          className="text-mono text-[10px] tracking-widest text-secondary hover:underline"
+                          className="text-mono text-[10px] tracking-widest text-red-500 dark:text-red-400 hover:underline"
                         >
                           DEL
                         </button>

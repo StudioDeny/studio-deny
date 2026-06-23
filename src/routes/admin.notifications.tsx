@@ -19,15 +19,15 @@ export const Route = createFileRoute("/admin/notifications")({
 type Tab = "templates" | "queue" | "logs" | "campaigns";
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "border-yellow-500 text-yellow-500",
-  sent: "border-secondary text-secondary",
-  failed: "border-destructive text-destructive",
-  delivered: "border-secondary text-secondary",
-  read: "border-primary text-primary",
-  draft: "border-border text-muted-foreground",
-  scheduled: "border-yellow-500 text-yellow-500",
-  running: "border-primary text-primary",
-  completed: "border-secondary text-secondary",
+  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  sent: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  failed: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  delivered: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  read: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  draft: "bg-muted text-muted-foreground",
+  scheduled: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  running: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  completed: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
 };
 
 function AdminNotifications() {
@@ -117,7 +117,7 @@ function TemplatesTab() {
                 <td className="p-3">
                   <button
                     onClick={() => toggle(r.id, !r.is_active)}
-                    className={`text-mono text-[10px] tracking-widest px-2 py-1 border ${r.is_active ? "border-secondary text-secondary" : "border-border text-muted-foreground"}`}
+                    className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}
                   >
                     {r.is_active ? "ACTIVE" : "INACTIVE"}
                   </button>
@@ -216,7 +216,7 @@ function QueueTab() {
               <td className="p-3 text-mono text-[11px]">{r.recipient_phone}</td>
               <td className="p-3 text-mono text-[10px] text-muted-foreground hidden md:table-cell">{r.order_id ? `#${r.order_id.slice(0, 8)}` : "—"}</td>
               <td className="p-3">
-                <span className={`text-mono text-[10px] tracking-widest px-2 py-1 border ${STATUS_COLORS[r.status] ?? "border-border text-muted-foreground"}`}>
+                <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${STATUS_COLORS[r.status] ?? "bg-muted text-muted-foreground"}`}>
                   {r.status.toUpperCase()}
                 </span>
               </td>
@@ -286,7 +286,7 @@ function LogsTab() {
                 <td className="p-3 text-mono text-[11px]">{r.recipient_phone}</td>
                 <td className="p-3 text-mono text-[10px] text-muted-foreground hidden md:table-cell">{r.order_id ? `#${r.order_id.slice(0, 8)}` : "—"}</td>
                 <td className="p-3">
-                  <span className={`text-mono text-[10px] tracking-widest px-2 py-1 border ${STATUS_COLORS[r.status] ?? "border-border text-muted-foreground"}`}>
+                  <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${STATUS_COLORS[r.status] ?? "bg-muted text-muted-foreground"}`}>
                     {r.status.toUpperCase()}
                   </span>
                 </td>
@@ -369,7 +369,7 @@ function CampaignsTab() {
                 <td className="p-3 font-semibold">{r.name}</td>
                 <td className="p-3 text-muted-foreground hidden md:table-cell">{r.target_segment ?? "—"}</td>
                 <td className="p-3">
-                  <span className={`text-mono text-[10px] tracking-widest px-2 py-1 border ${STATUS_COLORS[r.status] ?? "border-border text-muted-foreground"}`}>
+                  <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${STATUS_COLORS[r.status] ?? "bg-muted text-muted-foreground"}`}>
                     {r.status.toUpperCase()}
                   </span>
                 </td>
@@ -377,7 +377,7 @@ function CampaignsTab() {
                   {r.scheduled_at ? new Date(r.scheduled_at).toLocaleString() : "—"}
                 </td>
                 <td className="p-3 text-mono text-[10px]">
-                  <span className="text-secondary">{r.sent_count} sent</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">{r.sent_count} sent</span>
                   {" · "}
                   <span className="text-primary">{r.delivered_count} del</span>
                   {" · "}
