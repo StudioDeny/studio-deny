@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { ArrowRight, ChevronDown, Star } from "lucide-react";
+import { ProductCard } from "@/components/product/ProductCard";
+import type { Product } from "@/lib/products";
+import { productsInCategory } from "@/lib/catalog";
+import { listProducts } from "@/lib/productsStore";
+import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Star, Layers, Scissors, ShieldCheck } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { NewArrivalsSection } from "@/components/home/NewArrivalsSection";
 import { WhyUsSection } from "@/components/home/WhyUsSection";
-import { InstagramFeedSection } from "@/components/home/InstagramFeedSection";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
 
 export const Route = createFileRoute("/")({
@@ -15,23 +18,7 @@ function Index() {
   const [scrollY, setScrollY] = useState(0);
   const heroParallax = Math.min(scrollY * 0.4, 120);
 
-  const lookbookRef = useRef<HTMLElement | null>(null);
-  const { scrollYProgress: lookbookProgress } = useScroll({
-    target: lookbookRef,
-    offset: ["start end", "end start"],
-  });
-  const lookbookParallaxA = useSpring(useTransform(lookbookProgress, [0, 1], [-30, 90]), {
-    stiffness: 100, damping: 26,
-  });
-  const lookbookParallaxB = useSpring(useTransform(lookbookProgress, [0, 1], [-20, 72]), {
-    stiffness: 100, damping: 26,
-  });
-  const lookbookTextA = useSpring(useTransform(lookbookProgress, [0, 1], [-40, 28]), {
-    stiffness: 120, damping: 30,
-  });
-  const lookbookTextB = useSpring(useTransform(lookbookProgress, [0, 1], [40, -24]), {
-    stiffness: 120, damping: 30,
-  });
+
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -41,6 +28,22 @@ function Index() {
 
   const [activeShowcase, setActiveShowcase] = useState("NEW DROP");
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>('ALL');
+  const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
+  const [showAllProducts, setShowAllProducts] = useState(false);
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+  useEffect(() => {
+    setShowAllProducts(false);
+    if (selectedCategory === 'ALL') {
+      setCategoryProducts(listProducts());
+    } else if (selectedCategory === 'NEW COLLECTION') {
+      setCategoryProducts(listProducts().filter((p) => p.badge === 'NEW DROP'));
+    } else if (selectedCategory) {
+      setCategoryProducts(productsInCategory(selectedCategory));
+    } else {
+      setCategoryProducts([]);
+    }
+  }, [selectedCategory]);
 
   const showcaseContent: Record<string, { image: string; eyebrow: string; caption: string }> = {
     "NEW DROP": {
@@ -92,7 +95,7 @@ function Index() {
             transition={{ duration: 1, delay: 0.5 }}
             className="space-y-6 sm:space-y-8"
           >
-            <h1 className="text-[clamp(2.4rem,13vw,8.5rem)] leading-[0.88] tracking-[-0.04em] uppercase max-w-4xl text-display">
+            <h1 className="text-[clamp(3.5rem,15vw,10rem)] leading-[0.88] tracking-[-0.04em] uppercase max-w-5xl text-display">
               IN THE CUT
               <br />
               NOT IN THE CROWD
@@ -160,248 +163,218 @@ function Index() {
         </div>
       </section>
 
-      {/* New Arrivals (admin-editable) */}
-      <NewArrivalsSection />
 
-      {/* Showcase / Collection Sections */}
-      <section className="relative py-16 sm:py-24 max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 sm:gap-10 lg:gap-14 items-end">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-            viewport={{ once: true }}
-            className="relative min-h-[62vh] sm:min-h-[78vh] overflow-hidden"
+      {/* Shop by Category */}
+      <section className="py-12 sm:py-16 px-4 sm:px-8 lg:px-16 text-center max-w-[1560px] mx-auto">
+        <h2 className="text-3xl sm:text-4xl md:text-[3.5rem] leading-none font-display uppercase mb-6 md:mb-10">
+          Shop by Category
+        </h2>
+        
+        {/* Custom Mobile Dropdown */}
+        <div className="relative sm:hidden w-full max-w-xs mx-auto z-20">
+          <button
+            type="button"
+            onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+            className="w-full flex items-center justify-between bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.1)] text-white py-3 px-5 text-sm uppercase tracking-wider outline-none transition-colors"
           >
-            {Object.entries(showcaseContent).map(([key, content]) => (
-              <motion.img
-                key={key}
-                src={content.image}
-                alt={`${key} preview`}
-                className="absolute inset-0 w-full h-full object-cover"
-                initial={false}
-                animate={{
-                  opacity: activeShowcase === key ? 1 : 0,
-                  scale: activeShowcase === key ? 1 : 1.04,
-                }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-              />
-            ))}
-            <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.7)] via-transparent to-[rgba(0,0,0,0.2)]" />
-            <div className="absolute bottom-6 sm:bottom-10 left-4 sm:left-8">
-              <p className="text-xs sm:text-sm tracking-[0.22em] uppercase opacity-85 mb-3 text-mono">
-                {showcaseContent[activeShowcase].eyebrow}
-              </p>
-              <h2 className="text-[clamp(2.5rem,10vw,7.6rem)] leading-[0.86] tracking-[-0.045em] uppercase drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)] text-display">
-                {activeShowcase}
-              </h2>
-            </div>
-          </motion.div>
-
-          <div className="space-y-8 sm:space-y-10">
-            <p className="text-xs tracking-[0.2em] uppercase opacity-70 text-mono">
-              Discover the collection through curated pathways.
-            </p>
-            {["NEW DROP", "BEST SELLING", "CATEGORIES"].map((item, idx) => (
+            <span>{selectedCategory}</span>
+            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${mobileDropdownOpen ? "rotate-180" : ""}`} />
+          </button>
+          
+          <AnimatePresence>
+            {mobileDropdownOpen && (
               <motion.div
-                key={item}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: idx * 0.08 }}
-                viewport={{ once: true }}
-                className="border-b border-[rgba(255,255,255,0.22)] pb-3"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-full left-0 right-0 mt-2 bg-[#0A0A0A] border border-[rgba(255,255,255,0.1)] shadow-2xl flex flex-col text-left overflow-hidden"
               >
-                {item === "CATEGORIES" ? (
+                {['ALL','NEW COLLECTION','TOPS','BOTTOMS','OUTERWEAR','ACCESSORIES'].map((cat) => (
                   <button
+                    key={cat}
                     type="button"
-                    onMouseEnter={() => setActiveShowcase(item)}
                     onClick={() => {
-                      setActiveShowcase(item);
-                      setCategoriesOpen(!categoriesOpen);
+                      setSelectedCategory(cat);
+                      setMobileDropdownOpen(false);
                     }}
-                    className="w-full text-left flex items-end justify-between group min-h-11"
+                    className={`px-5 py-3 text-sm uppercase tracking-wider transition-colors hover:bg-white/5 ${
+                      selectedCategory === cat ? "text-primary bg-primary/5" : "text-white/70"
+                    }`}
                   >
-                    <h3 className={`text-[clamp(1.7rem,5.5vw,3.6rem)] leading-[0.95] tracking-[-0.02em] uppercase transition-opacity duration-300 text-display ${activeShowcase === item ? "opacity-100" : "opacity-60 group-hover:opacity-100"}`}>
-                      {item}
-                    </h3>
-                    <span className={`text-xs tracking-[0.2em] uppercase transition-opacity duration-300 text-mono ${activeShowcase === item ? "opacity-80" : "opacity-40"}`}>
-                      {categoriesOpen ? "CLOSE" : "EXPLORE"}
-                    </span>
+                    {cat}
                   </button>
-                ) : (
-                  <Link
-                    to="/shop"
-                    onMouseEnter={() => setActiveShowcase(item)}
-                    className="w-full text-left flex items-end justify-between group min-h-11 cursor-pointer"
-                  >
-                    <h3 className={`text-[clamp(1.7rem,5.5vw,3.6rem)] leading-[0.95] tracking-[-0.02em] uppercase transition-opacity duration-300 text-display ${activeShowcase === item ? "opacity-100" : "opacity-60 group-hover:opacity-100"}`}>
-                      {item}
-                    </h3>
-                    <span className="text-xs tracking-[0.2em] uppercase opacity-40 group-hover:opacity-70 text-mono transition-opacity">
-                      VIEW
-                    </span>
-                  </Link>
-                )}
-                {item === "CATEGORIES" && (
-                  <motion.div
-                    initial={false}
-                    animate={{
-                      height: categoriesOpen ? "auto" : 0,
-                      opacity: categoriesOpen ? 1 : 0,
-                      marginTop: categoriesOpen ? 16 : 0,
-                    }}
-                    className="overflow-hidden"
-                  >
-                    <div className="flex flex-wrap gap-x-5 gap-y-3 pb-1">
-                      {["MEN", "WOMEN", "KIDS", "STREET", "JEANS", "SHIRTS"].map((cat) => (
-                        <Link
-                          key={cat}
-                          to="/shop"
-                          search={{ cat }}
-                          onMouseEnter={() => setActiveShowcase("CATEGORIES")}
-                          className="text-xs sm:text-sm tracking-[0.18em] uppercase opacity-70 hover:opacity-100 transition-opacity text-mono"
-                        >
-                          {cat}
-                        </Link>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
+                ))}
               </motion.div>
-            ))}
-            <p className="text-sm opacity-75 max-w-md leading-relaxed text-mono">
-              {showcaseContent[activeShowcase].caption}
-            </p>
-          </div>
+            )}
+          </AnimatePresence>
         </div>
-      </section>
 
-      {/* Typography Statement Section */}
-      <section className="relative py-24 sm:py-36 px-4 sm:px-8 lg:px-16 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.08),transparent_55%)]" />
-        <motion.div
-          aria-hidden
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 1.2 }}
-          viewport={{ once: true }}
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)",
-            backgroundSize: "56px 56px",
-            maskImage: "radial-gradient(circle at center, black 40%, transparent 85%)",
-          }}
-        />
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          }}
-        />
-        <motion.div
-          aria-hidden
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 0.32, scale: 1 }}
-          transition={{ duration: 1.1 }}
-          viewport={{ once: true }}
-          className="absolute -top-24 -left-16 w-72 h-72 rounded-full blur-3xl bg-[rgba(255,255,255,0.08)]"
-        />
-        <motion.div
-          aria-hidden
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 0.24, scale: 1 }}
-          transition={{ duration: 1.1, delay: 0.15 }}
-          viewport={{ once: true }}
-          className="absolute -bottom-28 -right-20 w-80 h-80 rounded-full blur-3xl bg-[rgba(255,255,255,0.06)]"
-        />
-        <div className="absolute inset-0 pointer-events-none">
-          {[
-            { text: "UTILITY FIT", pos: "top-[20%] left-[8%]" },
-            { text: "HEAVY GSM", pos: "top-[32%] right-[10%]" },
-            { text: "LIMITED DROP", pos: "bottom-[28%] left-[12%]" },
-            { text: "CITY UNIFORM", pos: "bottom-[20%] right-[12%]" },
-          ].map((tag, idx) => (
-            <motion.span
-              key={tag.text}
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 0.34, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.15 * idx }}
-              viewport={{ once: true }}
-              className={`absolute ${tag.pos} hidden md:block text-xs tracking-[0.24em] text-mono`}
+        {/* Desktop Buttons */}
+        <div className="hidden sm:flex flex-wrap justify-center gap-4">
+          {['ALL','NEW COLLECTION','TOPS','BOTTOMS','OUTERWEAR','ACCESSORIES'].map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-5 py-2 border text-sm uppercase transition-colors ${
+                selectedCategory === cat
+                  ? 'border-primary text-primary bg-primary/10'
+                  : 'border-gray-700 hover:border-primary hover:text-primary'
+              }`}
             >
-              {tag.text}
-            </motion.span>
+              {cat}
+            </button>
           ))}
         </div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.2 }}
-          viewport={{ once: true }}
-          className="max-w-[1320px] mx-auto text-center relative z-10"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 0.9, y: 0 }}
-            transition={{ duration: 0.7 }}
-            viewport={{ once: true }}
-            className="mb-4 sm:mb-6"
-          >
-            <span
-              className="inline-flex items-center px-3 py-1 border border-[rgba(255,255,255,0.28)] text-[10px] sm:text-xs tracking-[0.22em] text-mono"
-            >
-              STUDIO DENY DNA
-            </span>
-          </motion.div>
-          <h2
-            className="text-[clamp(2.8rem,16vw,11rem)] leading-[0.82] tracking-[-0.05em] uppercase text-display"
-          >
-            STREET
-            <br />
-            <span className="text-transparent" style={{ WebkitTextStroke: "2px #FFFFFF" }}>
-              IS
-            </span>
-            <br />
-            IDENTITY
-          </h2>
-        </motion.div>
       </section>
 
-      {/* Mid Page CTA */}
-      <section className="py-20 sm:py-28">
+      {/* Category Products Grid */}
+      {categoryProducts.length > 0 && (
+        <section className="py-12 sm:py-16 px-4 sm:px-8 lg:px-16 max-w-[1560px] mx-auto">
+          <h3 className="text-3xl sm:text-4xl md:text-5xl font-display uppercase mb-8 md:mb-12 text-center">
+            {selectedCategory === 'ALL' ? 'All Products' : selectedCategory}
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+            {(showAllProducts ? categoryProducts : categoryProducts.slice(0, 4)).map((product, idx) => (
+              <ProductCard key={product.slug} product={product} index={idx} />
+            ))}
+          </div>
+          {categoryProducts.length > 4 && !showAllProducts && (
+            <div className="mt-10 text-center">
+              <button
+                type="button"
+                onClick={() => setShowAllProducts(true)}
+                className="inline-flex items-center gap-2 px-8 py-3 border border-gray-700 text-sm tracking-[0.14em] uppercase hover:border-primary hover:text-primary transition-colors text-mono"
+              >
+                View All
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
+      <div className="w-full h-px bg-[rgba(255,255,255,0.1)]" />
+      {/* Best Sellers */}
+      <section className="py-12 sm:py-16 px-4 sm:px-8 lg:px-16 max-w-[1560px] mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
+          transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6"
+          className="mb-8 text-center"
         >
-          <div>
-            <p className="text-xs tracking-[0.18em] uppercase opacity-65 mb-2 text-mono">
-              Private Access
-            </p>
-            <h3 className="text-[clamp(2rem,7vw,5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display">
-              MEMBERS
-              <br />
-              GET FIRST LOOK
-            </h3>
-            <p className="text-base mt-3 opacity-80 max-w-md text-mono">
-              Drop alerts and early windows for limited releases.
-            </p>
-          </div>
-          <Link
-            to="/signup"
-            className="inline-flex items-center gap-2 text-sm tracking-[0.18em] uppercase opacity-85 hover:opacity-100 transition-opacity min-h-11 text-mono"
-          >
-            Join Waitlist <ArrowRight className="w-4 h-4" />
-          </Link>
+          <h2 className="text-3xl sm:text-4xl md:text-[3.5rem] leading-none font-display uppercase">
+            Best Sellers
+          </h2>
         </motion.div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+          {listProducts()
+            .filter((p) => p.badge === 'SALE' || p.compareAt)
+            .slice(0, 4)
+            .map((product, idx) => (
+              <ProductCard key={product.slug} product={product} index={idx} />
+            ))}
+        </div>
+        <div className="mt-8 text-center sm:hidden">
+          <Link
+            to="/shop"
+            className="inline-flex items-center gap-2 px-8 py-3 border border-gray-700 text-sm tracking-[0.14em] uppercase hover:border-primary hover:text-primary transition-colors text-mono"
+          >
+            Shop All <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </section>
 
+      {/* Cinematic Video Section 1 */}
+      <section className="relative h-[80vh] w-full overflow-hidden flex items-center justify-center my-16 border-y border-[rgba(255,255,255,0.1)]">
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          className="absolute inset-0 w-full h-full object-cover opacity-50 scale-105"
+        >
+          <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-background/80" />
+        <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-[clamp(4rem,12vw,10rem)] leading-[0.8] font-display uppercase tracking-[-0.04em] text-white">
+              MOTION
+              <br />
+              <span className="text-transparent" style={{ WebkitTextStroke: "1.5px rgba(255,255,255,0.5)" }}>
+                PICTURE
+              </span>
+            </h2>
+            <p className="mt-8 text-lg md:text-xl text-white/80 text-mono tracking-[0.2em] max-w-2xl mx-auto leading-relaxed">
+              CAPTURING THE ESSENCE OF THE STREETS. RAW, UNFILTERED, AND IN CONSTANT MOTION.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      <div className="w-full h-px bg-[rgba(255,255,255,0.1)]" />
+      {/* Visual Collections Grid */}
+      <section className="py-12 sm:py-16 px-4 sm:px-8 lg:px-16 max-w-[1560px] mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="mb-8 text-center"
+        >
+          <h2 className="text-3xl sm:text-4xl md:text-[3.5rem] leading-none font-display uppercase">
+            EXPLORE COLLECTIONS
+          </h2>
+        </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          {[
+            { title: "MEN", link: "/collections/men", img: "https://studio-deny-demo.vercel.app/assets/001_18.JPG" },
+            { title: "WOMEN", link: "/collections/women", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1200" },
+            { title: "ACCESSORIES", link: "/collections/accessories", img: "https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=1200" },
+          ].map((col) => (
+            <Link
+              key={col.title}
+              to={col.link}
+              className="group relative h-[50vh] sm:h-[60vh] overflow-hidden border border-[rgba(255,255,255,0.1)] block"
+            >
+              <div
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                style={{ backgroundImage: `url('${col.img}')` }}
+              />
+              <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors duration-500" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center transition-transform duration-500 group-hover:-translate-y-2">
+                <h2 className="text-5xl sm:text-6xl lg:text-7xl text-display uppercase tracking-wider text-white mb-4">
+                  {col.title}
+                </h2>
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 text-sm tracking-[0.2em] text-mono uppercase text-white border-b border-white pb-1">
+                  Shop Collection <ArrowRight className="w-4 h-4" />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+
+
+
+
+
+
+
+
+      <div className="w-full h-px bg-[rgba(255,255,255,0.1)]" />
       {/* Lookbook Section */}
-      <section id="lookbook" ref={lookbookRef} className="py-14 sm:py-20 bg-[rgba(255,255,255,0.01)]">
-        <div className="max-w-[1320px] mx-auto px-4 sm:px-8 lg:px-16">
+      <section className="py-14 sm:py-20 bg-[rgba(255,255,255,0.01)] overflow-hidden">
+        <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -409,7 +382,7 @@ function Index() {
             viewport={{ once: true }}
             className="mb-8 sm:mb-10"
           >
-            <h2 className="text-[clamp(2rem,8vw,4.5rem)] leading-none tracking-[-0.03em] uppercase text-display">
+            <h2 className="text-[clamp(3rem,10vw,6rem)] leading-none tracking-[-0.03em] uppercase text-display">
               LOOKBOOK
             </h2>
             <p className="text-base sm:text-lg mt-3 opacity-80 max-w-xl text-mono">
@@ -418,142 +391,504 @@ function Index() {
           </motion.div>
         </div>
 
-        <div className="space-y-10 sm:space-y-16">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-            viewport={{ once: true }}
-            className="relative h-[72vh] sm:h-[86vh] overflow-hidden"
+        <div className="flex overflow-hidden group py-4">
+          <div
+            className="flex shrink-0 items-stretch ticker-scroll group-hover:[animation-play-state:paused]"
+            style={{ animationDuration: '40s' }}
           >
-            <motion.div
-              className="absolute inset-x-0 -inset-y-14 bg-cover bg-center"
-              style={{
-                backgroundImage: `url('https://studio-deny-demo.vercel.app/assets/001_18.JPG')`,
-                y: lookbookParallaxA,
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent" />
-            <motion.div className="absolute bottom-8 left-4 sm:bottom-14 sm:left-8 lg:left-16 z-10" style={{ x: lookbookTextA }}>
-              <motion.p
-                initial={{ opacity: 0, x: -40 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                viewport={{ once: true }}
-                className="text-[clamp(2.2rem,9vw,8rem)] leading-none tracking-[-0.04em] uppercase text-display"
+            {[
+              { img: "https://studio-deny-demo.vercel.app/assets/001_18.JPG", title: "SS26\nCOLLECTION" },
+              { img: "https://studio-deny-demo.vercel.app/assets/001_13.JPG", title: "URBAN\nESSENTIALS" },
+              { img: "https://studio-deny-demo.vercel.app/assets/001_18.JPG", title: "SS26\nCOLLECTION" },
+              { img: "https://studio-deny-demo.vercel.app/assets/001_13.JPG", title: "URBAN\nESSENTIALS" },
+              { img: "https://studio-deny-demo.vercel.app/assets/001_18.JPG", title: "SS26\nCOLLECTION" },
+              { img: "https://studio-deny-demo.vercel.app/assets/001_13.JPG", title: "URBAN\nESSENTIALS" },
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                className="group/item relative shrink-0 w-[85vw] sm:w-[60vw] lg:w-[45vw] h-[60vh] sm:h-[75vh] mr-5 overflow-hidden"
               >
-                SS26
-                <br />
-                COLLECTION
-              </motion.p>
-            </motion.div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-            viewport={{ once: true }}
-            className="relative h-[72vh] sm:h-[86vh] overflow-hidden"
-          >
-            <motion.div
-              className="absolute inset-x-0 -inset-y-14 bg-cover bg-center"
-              style={{
-                backgroundImage: `url('https://studio-deny-demo.vercel.app/assets/001_13.JPG')`,
-                y: lookbookParallaxB,
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-transparent to-transparent" />
-            <motion.div className="absolute top-8 right-4 sm:top-14 sm:right-8 lg:right-16 z-10 text-right" style={{ x: lookbookTextB }}>
-              <motion.p
-                initial={{ opacity: 0, x: 40 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                viewport={{ once: true }}
-                className="text-[clamp(2.2rem,9vw,8rem)] leading-none tracking-[-0.04em] uppercase text-display"
-              >
-                URBAN
-                <br />
-                ESSENTIALS
-              </motion.p>
-            </motion.div>
-          </motion.div>
+                <div
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover/item:scale-105"
+                  style={{ backgroundImage: `url('${item.img}')` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-80" />
+                <div className="absolute bottom-8 left-6 sm:bottom-12 sm:left-10 z-10">
+                  <p className="text-[clamp(2.5rem,8vw,5.5rem)] leading-none tracking-[-0.04em] uppercase text-display whitespace-pre-line">
+                    {item.title}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Proof Section */}
-      <section className="py-16 sm:py-24">
+      {/* Fabric Section */}
+      {(() => {
+        const fabricCategories = [
+          {
+            id: "tshirts",
+            name: "T-SHIRTS",
+            title: "300+ GSM HEAVYWEIGHT COTTON",
+            desc: "Substantial, heavyweight fabric that drapes perfectly and doesn't cling. Pre-shrunk for a consistent fit from day one. Engineered pattern making for the perfect relaxed silhouette with dropped shoulders.",
+            img: "https://studio-deny-demo.vercel.app/assets/001_18.JPG",
+          },
+          {
+            id: "shirts",
+            name: "SHIRTS",
+            title: "PREMIUM OXFORD & FLANNEL",
+            desc: "Double-needle stitching on all stress points. Our shirts are constructed with high-density weaves for durability while maintaining breathability. Built to soften and get better with every wash.",
+            img: "https://studio-deny-demo.vercel.app/assets/001_13.JPG",
+          },
+          {
+            id: "jeans",
+            name: "JEANS",
+            title: "14OZ JAPANESE SELVEDGE",
+            desc: "Raw, unwashed denim that molds to your body over time. Custom branded hardware, reinforced belt loops, and hidden rivets. A modern straight-leg cut that stacks perfectly over sneakers.",
+            img: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=1200",
+          }
+        ];
+        const [activeFabric, setActiveFabric] = useState(fabricCategories[0]);
+
+        return (
+          <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-y border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)]">
+            <div className="max-w-[1560px] mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="mb-12 sm:mb-16"
+              >
+                <span className="inline-flex items-center px-3 py-1 border border-[rgba(255,255,255,0.2)] text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-4">
+                  THE DETAILS
+                </span>
+                <h2 className="text-[clamp(3rem,8vw,6rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-4">
+                  PREMIUM FABRIC.
+                  <br />
+                  <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.35)" }}>
+                    UNCOMPROMISED QUALITY.
+                  </span>
+                </h2>
+              </motion.div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+                {/* Image Side */}
+                <div className="order-1 relative h-[45vh] sm:h-[60vh] lg:h-[80vh] overflow-hidden border border-[rgba(255,255,255,0.1)]">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeFabric.id}
+                      initial={{ opacity: 0, scale: 1.05 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.6 }}
+                      className="absolute inset-0 bg-cover bg-center"
+                      style={{ backgroundImage: `url('${activeFabric.img}')` }}
+                    />
+                  </AnimatePresence>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-60" />
+                </div>
+
+                {/* List Side */}
+                <div className="order-2 flex flex-col justify-center space-y-6 sm:space-y-8">
+                  {fabricCategories.map((fabric) => (
+                    <div
+                      key={fabric.id}
+                      onMouseEnter={() => setActiveFabric(fabric)}
+                      onClick={() => setActiveFabric(fabric)}
+                      className="group cursor-pointer border-b border-[rgba(255,255,255,0.1)] pb-6 sm:pb-8 last:border-0"
+                    >
+                      <div className="flex items-center justify-between mb-4 transition-colors duration-300">
+                        <h3 className={`text-4xl sm:text-5xl lg:text-6xl text-display uppercase tracking-wider transition-colors duration-300 ${activeFabric.id === fabric.id ? 'text-white' : 'text-white/40 group-hover:text-white/70'}`}>
+                          {fabric.name}
+                        </h3>
+                        <ArrowRight className={`w-6 h-6 transition-all duration-300 ${activeFabric.id === fabric.id ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`} />
+                      </div>
+                      
+                      <div className={`overflow-hidden transition-all duration-500 ease-in-out ${activeFabric.id === fabric.id ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}`}>
+                        <div className="pt-2">
+                          <h4 className="text-sm tracking-[0.15em] uppercase text-mono mb-3 opacity-90 text-white">
+                            {fabric.title}
+                          </h4>
+                          <p className="text-base opacity-70 text-mono leading-relaxed max-w-lg">
+                            {fabric.desc}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* Testimonials */}
+      <section className="py-16 sm:py-24 overflow-hidden">
         <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="mb-10 sm:mb-14"
+            className="mb-10 sm:mb-14 text-center"
           >
-            <h2 className="text-[clamp(2.1rem,8vw,5.2rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display">
+            <h2 className="text-[clamp(3rem,10vw,7rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display">
               WORN IN
               <br />
               EVERY CITY
             </h2>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-10">
+        </div>
+        <div className="flex overflow-hidden group py-4">
+          <div
+            className="flex shrink-0 items-stretch ticker-scroll group-hover:[animation-play-state:paused]"
+            style={{ animationDuration: '60s' }}
+          >
             {[
-              "“Fit is unreal. It feels premium without trying too hard.”",
-              "“Finally a brand that understands cut, fabric, and movement.”",
-              "“Every drop sells out for a reason. Quality is consistent.”",
-            ].map((quote, idx) => (
-              <motion.div
-                key={quote}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: idx * 0.1 }}
-                viewport={{ once: true }}
-                className="space-y-4"
+              { quote: "Fit is unreal. It feels premium without trying too hard.", name: "Arjun K.", city: "Mumbai" },
+              { quote: "Finally a brand that understands cut, fabric, and movement.", name: "Priya S.", city: "Delhi" },
+              { quote: "Every drop sells out for a reason. Quality is consistent.", name: "Rahul M.", city: "Bangalore" },
+              { quote: "The heavyweight cotton is unmatched. Nothing else comes close.", name: "Sneha D.", city: "Pune" },
+              { quote: "I get compliments every single time I wear Studio Deny.", name: "Vikram T.", city: "Hyderabad" },
+              { quote: "Studio Deny is the only brand I trust for streetwear.", name: "Kiran R.", city: "Chennai" },
+              { quote: "Fit is unreal. It feels premium without trying too hard.", name: "Arjun K.", city: "Mumbai" },
+              { quote: "Finally a brand that understands cut, fabric, and movement.", name: "Priya S.", city: "Delhi" },
+              { quote: "Every drop sells out for a reason. Quality is consistent.", name: "Rahul M.", city: "Bangalore" },
+              { quote: "The heavyweight cotton is unmatched. Nothing else comes close.", name: "Sneha D.", city: "Pune" },
+              { quote: "I get compliments every single time I wear Studio Deny.", name: "Vikram T.", city: "Hyderabad" },
+              { quote: "Studio Deny is the only brand I trust for streetwear.", name: "Kiran R.", city: "Chennai" },
+            ].map((t, idx) => (
+              <div
+                key={idx}
+                className="shrink-0 w-[320px] sm:w-[380px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] p-6 sm:p-8 flex flex-col justify-between mr-5"
               >
-                <div className="flex gap-1">
-                  {[0, 1, 2, 3, 4].map((n) => (
-                    <Star key={n} className="w-3.5 h-3.5 fill-white text-white opacity-90" />
-                  ))}
+                <div>
+                  <div className="flex gap-1 mb-4">
+                    {[0, 1, 2, 3, 4].map((n) => (
+                      <Star key={n} className="w-3.5 h-3.5 fill-white text-white opacity-80" />
+                    ))}
+                  </div>
+                  <p className="text-base sm:text-lg leading-relaxed opacity-90 text-display">
+                    "{t.quote}"
+                  </p>
                 </div>
-                <p className="text-lg sm:text-xl leading-relaxed opacity-90 text-display">
-                  {quote}
-                </p>
-                <p className="text-xs tracking-[0.15em] opacity-60 mt-4 text-mono">
-                  VERIFIED BUYER
-                </p>
-              </motion.div>
+                <div className="mt-6 pt-4 border-t border-[rgba(255,255,255,0.1)]">
+                  <p className="text-sm tracking-[0.1em] uppercase text-mono opacity-80">
+                    {t.name}
+                  </p>
+                  <p className="text-xs tracking-[0.15em] uppercase opacity-50 mt-1 text-mono">
+                    {t.city} · VERIFIED BUYER
+                  </p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <WhyUsSection />
-
-      {/* Brand Story Section */}
-      <section id="about" className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 border-y border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.01)]">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-          viewport={{ once: true }}
-          className="max-w-[1320px] mx-auto"
-        >
-          <h2
-            className="text-[clamp(2rem,8vw,4.5rem)] leading-[0.95] tracking-[-0.03em] mb-6 uppercase text-display"
+      {/* Cinematic Video Section 2: Split Screen */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 border-y border-[rgba(255,255,255,0.1)]">
+        <div className="order-2 lg:order-1 flex flex-col justify-center p-12 md:p-24 bg-[rgba(255,255,255,0.02)] border-r border-[rgba(255,255,255,0.1)]">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
           >
-            WE DON'T FOLLOW TRENDS.
-          </h2>
-          <p
-            className="text-base sm:text-lg leading-relaxed tracking-wide max-w-2xl font-light opacity-85 text-mono"
+            <span className="inline-flex items-center px-4 py-1.5 border border-white/20 text-white text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-8 bg-white/5">
+              BEHIND THE SEAMS
+            </span>
+            <h2 className="text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-8">
+              CRAFTED FOR
+              <br />
+              <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.4)" }}>
+                THE STREETS
+              </span>
+            </h2>
+            <p className="text-base sm:text-lg opacity-80 text-mono max-w-lg leading-relaxed">
+              Every stitch, every cut, every fabric choice is deliberate. We design for movement, durability, and a silhouette that refuses to be ignored.
+            </p>
+          </motion.div>
+        </div>
+        <div className="order-1 lg:order-2 relative h-[50vh] lg:h-auto min-h-[500px] overflow-hidden">
+          <video 
+            autoPlay 
+            loop 
+            muted 
+            playsInline 
+            className="absolute inset-0 w-full h-full object-cover grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-1000 scale-105"
           >
-            Studio Deny represents creators and rule-breakers. We build pieces that fit real movement, hold up daily,
-            and speak before you do.
-          </p>
-        </motion.div>
+            <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4" />
+          </video>
+        </div>
       </section>
 
-      <InstagramFeedSection />
+
+      {/* Community Section */}
+      <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.04),transparent_60%)]" />
+        <div className="max-w-[1560px] mx-auto relative z-10">
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 grid-flow-row-dense auto-rows-[minmax(140px,auto)] md:auto-rows-[240px] gap-3 sm:gap-6">
+            
+            {/* Block 1: Intro & CTA (Spans 2 cols, 2 rows) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="col-span-2 md:col-span-2 md:row-span-2 border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] p-6 sm:p-12 flex flex-col justify-center"
+            >
+              <span className="inline-flex self-start items-center px-3 py-1 border border-[rgba(255,255,255,0.2)] text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-6">
+                JOIN THE MOVEMENT
+              </span>
+              <h2 className="text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-6">
+                OUR COMMUNITY
+              </h2>
+              <p className="text-base sm:text-lg opacity-75 max-w-xl text-mono mb-10">
+                A global tribe of creators, artists, and streetwear obsessives who wear Studio Deny daily. Build with us.
+              </p>
+              <Link
+                to="/signup"
+                className="inline-flex self-start items-center gap-2 px-8 py-3 border border-white bg-white text-black hover:bg-transparent hover:text-white transition-colors duration-300 text-sm tracking-[0.14em] uppercase text-mono"
+              >
+                Join the Community
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </motion.div>
+
+            {/* Block 2: Tall Image (Spans 1 col, 2 rows) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              viewport={{ once: true }}
+              className="col-span-1 row-span-2 md:col-span-1 md:row-span-2 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&q=80&w=800"
+                alt="Community member"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p className="text-xs tracking-[0.15em] text-mono">@streetking</p>
+              </div>
+            </motion.div>
+
+            {/* Block 3: Stat 1 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="col-span-1 min-h-[140px] md:min-h-0 border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] p-4 sm:p-6 flex flex-col justify-center items-center text-center"
+            >
+              <p className="text-5xl sm:text-6xl lg:text-7xl font-display tracking-[-0.02em] mb-2 text-primary">50K+</p>
+              <p className="text-[10px] sm:text-xs tracking-[0.2em] uppercase opacity-60 text-mono">Members</p>
+            </motion.div>
+
+            {/* Block 4: Stat 2 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              viewport={{ once: true }}
+              className="col-span-1 min-h-[140px] md:min-h-0 border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] p-4 sm:p-6 flex flex-col justify-center items-center text-center"
+            >
+              <p className="text-5xl sm:text-6xl lg:text-7xl font-display tracking-[-0.02em] mb-2 text-primary">120+</p>
+              <p className="text-[10px] sm:text-xs tracking-[0.2em] uppercase opacity-60 text-mono">Cities</p>
+            </motion.div>
+
+            {/* Block 5: Wide Image (Spans 2 cols) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+              className="col-span-2 md:col-span-2 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1200"
+                alt="Community vibe"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p className="text-xs tracking-[0.15em] text-mono">@urbandrift</p>
+              </div>
+            </motion.div>
+
+            {/* Block 6: Square Image */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              viewport={{ once: true }}
+              className="col-span-1 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&q=80&w=600"
+                alt="Community member"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p className="text-xs tracking-[0.15em] text-mono">@fitcheck.daily</p>
+              </div>
+            </motion.div>
+
+            {/* Block 7: Stat 3 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              viewport={{ once: true }}
+              className="col-span-1 min-h-[140px] md:min-h-0 border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] p-4 sm:p-6 flex flex-col justify-center items-center text-center"
+            >
+              <p className="text-5xl sm:text-6xl lg:text-7xl font-display tracking-[-0.02em] mb-2 text-primary">25K+</p>
+              <p className="text-[10px] sm:text-xs tracking-[0.2em] uppercase opacity-60 text-mono">Pieces Sold</p>
+            </motion.div>
+
+            {/* Additional Images Added */}
+            {/* Block 8: Square Image */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.7 }}
+              viewport={{ once: true }}
+              className="col-span-1 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600"
+                alt="Community member"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p className="text-xs tracking-[0.15em] text-mono">@denyculture</p>
+              </div>
+            </motion.div>
+
+            {/* Block 9: Tall Image (Spans 1 col, 2 rows) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              viewport={{ once: true }}
+              className="col-span-1 row-span-2 md:col-span-1 md:row-span-2 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=80&w=800"
+                alt="Community member"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p className="text-xs tracking-[0.15em] text-mono">@hypebeast.x</p>
+              </div>
+            </motion.div>
+
+            {/* Block 10: Wide Image (Spans 2 cols) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.9 }}
+              viewport={{ once: true }}
+              className="col-span-2 md:col-span-2 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1543322748-33df6d3db806?auto=format&fit=crop&q=80&w=1200"
+                alt="Community vibe"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p className="text-xs tracking-[0.15em] text-mono">@street.archive</p>
+              </div>
+            </motion.div>
+
+            {/* Block 11: Square Image */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 1.0 }}
+              viewport={{ once: true }}
+              className="col-span-1 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1492447166138-50c3889fccb1?auto=format&fit=crop&q=80&w=600"
+                alt="Community member"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p className="text-xs tracking-[0.15em] text-mono">@neo.tokyo</p>
+              </div>
+            </motion.div>
+
+            {/* Block 12: Wide Image (Spans 2 cols) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 1.1 }}
+              viewport={{ once: true }}
+              className="col-span-2 md:col-span-2 min-h-[140px] md:min-h-0 relative group overflow-hidden border border-[rgba(255,255,255,0.1)]"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1200"
+                alt="Community vibe"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p className="text-xs tracking-[0.15em] text-mono">@runway.street</p>
+              </div>
+            </motion.div>
+
+          </div>
+        </div>
+      </section>
+
+
+      {/* Loyalty Program Section */}
+      <section className="py-32 sm:py-48 px-4 sm:px-8 lg:px-16 border-y border-[rgba(255,255,255,0.1)] bg-[#050505] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
+        
+        <div className="max-w-[1200px] mx-auto relative z-10 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <span className="inline-flex items-center px-4 py-1.5 border border-white/20 text-white text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-10 bg-white/5">
+              THE DENY SYNDICATE
+            </span>
+            <h2 className="text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-10">
+              LOYALTY HAS ITS
+              <br />
+              <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.4)" }}>
+                REWARDS
+              </span>
+            </h2>
+            <p className="text-base sm:text-lg opacity-75 max-w-2xl mx-auto text-mono mb-16 leading-relaxed">
+              Join our exclusive loyalty program. Earn points on every purchase, unlock early access to drops, and get access to members-only products.
+            </p>
+            
+            <Link
+              to="/rewards"
+              className="inline-flex items-center gap-2 px-10 py-4 border border-white text-white hover:bg-white hover:text-black transition-colors duration-300 text-sm sm:text-base tracking-[0.14em] uppercase text-mono"
+            >
+              Read More
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
 
       <NewsletterSection />
     </div>

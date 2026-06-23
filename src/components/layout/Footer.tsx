@@ -30,9 +30,9 @@ export function Footer() {
   return (
     <footer className="border-t border-border mt-24" style={{ background: "var(--color-surface)" }}>
       {/* Upper section */}
-      <div className="px-4 md:px-8 py-16 grid md:grid-cols-4 gap-12">
+      <div className="px-4 md:px-8 py-12 md:py-16 flex flex-col md:flex-row gap-12 md:gap-16 lg:gap-24 max-w-[1560px] mx-auto">
         {/* Brand column */}
-        <div>
+        <div className="md:w-[280px] lg:w-[340px] shrink-0">
           <Link to="/" className="text-display tracking-wider inline-block" style={{ fontSize: "28px" }}>
             STUDIO<span className="text-primary text-glow-primary">/</span>DENY
           </Link>
@@ -82,33 +82,35 @@ export function Footer() {
         </div>
 
         {/* Link columns */}
-        {cols.map((c) => (
-          <div key={c.h}>
-            <div className="text-mono text-primary mb-5" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>
-              {c.h}
+        <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-8 md:gap-12">
+          {cols.map((c) => (
+            <div key={c.h}>
+              <div className="text-mono text-primary mb-5" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>
+                {c.h}
+              </div>
+              <ul className="space-y-3">
+                {c.l.map((i) => (
+                  <li key={i.label}>
+                    <Link to={i.to} search={i.search as never} className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-0.5 inline-block" style={{ fontSize: "13px" }}>
+                      {i.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="space-y-3">
-              {c.l.map((i) => (
-                <li key={i.label}>
-                  <Link to={i.to} search={i.search as never} className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-0.5 inline-block" style={{ fontSize: "13px" }}>
-                    {i.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Bottom bar */}
       <div
-        className="border-t border-border px-4 md:px-8 py-5 flex flex-col md:flex-row gap-3 items-center justify-between"
+        className="border-t border-border px-4 md:px-8 py-6 flex flex-col md:flex-row gap-4 items-center justify-between"
         style={{ background: "rgba(0,0,0,0.3)" }}
       >
-        <div className="text-mono text-muted-foreground" style={{ fontSize: "10px", letterSpacing: "0.25em" }}>
+        <div className="text-mono text-muted-foreground text-center md:text-left" style={{ fontSize: "10px", letterSpacing: "0.25em" }}>
           © {new Date().getFullYear()} STUDIO/DENY · ALL RIGHTS RESERVED
         </div>
-        <div className="flex items-center gap-6 text-mono text-muted-foreground" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
+        <div className="flex flex-wrap justify-center items-center gap-5 sm:gap-6 text-mono text-muted-foreground" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
           <a href="/policies" className="hover:text-foreground transition-colors">PRIVACY</a>
           <a href="/policies" className="hover:text-foreground transition-colors">TERMS</a>
           <Link to="/admin" className="hover:text-primary transition-colors">BUILT IN THE DARK</Link>

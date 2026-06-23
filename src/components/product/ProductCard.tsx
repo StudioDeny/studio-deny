@@ -174,7 +174,7 @@ export function ProductCard({
           </div>
           <div className="mt-1 flex items-start justify-between gap-2">
             <h3
-              className="font-semibold leading-snug group-hover:text-primary transition-colors duration-200"
+              className="font-semibold leading-snug group-hover:text-primary transition-colors duration-200 uppercase tracking-[0.15em]"
               style={{ fontSize: "14px" }}
             >
               {product.name}

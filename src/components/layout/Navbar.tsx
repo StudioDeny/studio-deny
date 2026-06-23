@@ -53,6 +53,7 @@ export function Navbar() {
             <Link to="/collections/$slug" params={{ slug: "accessories" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">ACCESSORIES</Link>
             <Link to="/lookbook" className="text-sm tracking-wide hover:opacity-60 transition-opacity">LOOKBOOK</Link>
             <Link to="/about" className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">ABOUT</Link>
+            <Link to="/rewards" className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">REWARDS</Link>
             <Link to="/contact" className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">CONTACT</Link>
             <Link to="/cart" className="text-sm tracking-wide hover:opacity-60 transition-opacity">CART</Link>
             <div className="w-[1px] h-4 bg-white/20 mx-1 hidden lg:block"></div>
@@ -104,6 +105,7 @@ export function Navbar() {
               <Link to="/collections/$slug" params={{ slug: "accessories" }} onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">ACCESSORIES</Link>
               <Link to="/lookbook" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">LOOKBOOK</Link>
               <Link to="/about" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">ABOUT</Link>
+              <Link to="/rewards" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">REWARDS</Link>
               <Link to="/contact" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">CONTACT</Link>
               <Link to="/cart" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide border-b border-border">CART</Link>
               {user ? (
