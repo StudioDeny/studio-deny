@@ -35,7 +35,7 @@ export const Route = createFileRoute("/shop")({
   component: Shop,
   head: () => ({
     meta: buildMeta({
-      title: "Shop All Drops — STUDIO/DENY",
+      title: "Shop All Drops — STUDIO DENY",
       description: "Shop the latest streetwear drops from Studio Deny. Hoodies, tees, cargos, outerwear — limited runs, built different.",
       url: `${SITE_URL}/shop`,
     }),

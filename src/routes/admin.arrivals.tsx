@@ -28,7 +28,11 @@ function ArrivalsAdmin() {
   return (
     <div>
       <h1 className="text-display text-4xl md:text-5xl mb-2">NEW ARRIVALS.</h1>
-      <p className="text-muted-foreground text-sm mb-8">Curate the homepage drop section. Pick up to 8 products.</p>
+      <p className="text-muted-foreground text-sm mb-2">Curate the "New Arrivals" section that appears on the homepage. Toggle visibility, edit the heading, then pick which products to feature.</p>
+      <div className="flex items-center gap-4 mb-8">
+        <a href="/" target="_blank" rel="noopener noreferrer" className="text-mono text-[11px] tracking-widest text-primary hover:underline">↗ PREVIEW HOMEPAGE</a>
+        <span className="text-muted-foreground text-[11px] text-mono">— changes appear after saving</span>
+      </div>
 
       <div className="border border-border bg-surface p-6 mb-6 grid sm:grid-cols-2 gap-4">
         <label className="flex items-center gap-2 text-sm sm:col-span-2">

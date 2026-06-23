@@ -81,9 +81,14 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 function AddRow({ value, onChange, onAdd, placeholder }: { value: string; onChange: (v: string) => void; onAdd: () => void; placeholder: string }) {
   return (
     <div className="flex gap-2 mb-4">
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-        className="flex-1 bg-background border border-border h-10 px-3 text-sm" />
-      <button onClick={onAdd} className="bg-primary text-primary-foreground px-3 h-10 inline-flex items-center gap-1 text-mono text-xs tracking-widest hover:glow-primary">
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdd(); } }}
+        placeholder={placeholder}
+        className="flex-1 bg-background border border-border h-10 px-3 text-sm"
+      />
+      <button type="button" onClick={onAdd} className="bg-foreground text-background px-3 h-10 inline-flex items-center gap-1 text-mono text-xs tracking-widest hover:opacity-80 transition-opacity">
         <Plus className="size-3" /> ADD
       </button>
     </div>

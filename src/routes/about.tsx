@@ -5,7 +5,7 @@ export const Route = createFileRoute("/about")({
   component: About,
   head: () => ({
     meta: buildMeta({
-      title: "Our Story — STUDIO/DENY",
+      title: "Our Story — STUDIO DENY",
       description: "Born in a Mumbai garage in 2022. Studio Deny is streetwear for the restless — heavyweight cuts, raw graphics, made in India.",
       url: `${SITE_URL}/about`,
     }),

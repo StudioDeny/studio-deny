@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: buildMeta({
-      title: "STUDIO/DENY — Streetwear For The Restless",
+      title: "STUDIO DENY — Streetwear For The Restless",
       description: "Studio Deny — heavyweight streetwear, raw graphics, made in India. Limited drops. Hoodies, tees, cargos, outerwear.",
       url: SITE_URL,
     }),
@@ -198,16 +198,16 @@ function Index() {
               className="flex shrink-0 items-center ticker-scroll"
             >
               {[
-                { label: "NEW DROP", text: "SS26 Studio Bomber & Cargo Set — Available Now", labelCls: "text-lime-400 border-lime-400/40" },
-                { label: "RESTOCK", text: "Essential Hoodie in Black & Slate — Limited Units", labelCls: "text-blue-400 border-blue-400/40" },
-                { label: "ALERT", text: "Members get 48-hr early access to next drop", labelCls: "text-amber-400 border-amber-400/40" },
+                { label: "NEW DROP", text: "SS26 Studio Bomber & Cargo Set — Available Now", labelCls: "text-lime-300 border-lime-400/60 bg-lime-400/15" },
+                { label: "RESTOCK", text: "Essential Hoodie in Black & Slate — Limited Units", labelCls: "text-cyan-300 border-cyan-400/60 bg-cyan-400/15" },
+                { label: "ALERT", text: "Members get 48-hr early access to next drop", labelCls: "text-fuchsia-300 border-fuchsia-400/60 bg-fuchsia-400/15" },
               ].map((item, i) => (
                 <span key={i} className="inline-flex items-center gap-4 px-8 py-3.5 whitespace-nowrap text-[11px] sm:text-xs tracking-[0.18em] uppercase text-mono">
-                  <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] tracking-[0.2em] font-bold ${item.labelCls}`}>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 border text-[9px] tracking-[0.2em] font-bold ${item.labelCls}`}>
                     {item.label}
                   </span>
-                  <span className="text-white/80">{item.text}</span>
-                  <span className="text-white/20 mx-1">◆</span>
+                  <span className="text-white/85">{item.text}</span>
+                  <span className="text-white/30 mx-1">◆</span>
                 </span>
               ))}
             </div>
@@ -982,8 +982,8 @@ function Index() {
                       desc: `Each point = ₹${ls.rupeesPerPoint} off at checkout. No expiry. No minimum. Stack with tier discounts.`,
                     },
                   ].map((item) => (
-                    <div key={item.step} className="flex gap-5 border border-white/10 bg-white/[0.02] p-5 hover:border-white/20 transition-colors group">
-                      <div className="text-display text-[2.5rem] leading-none text-white/10 group-hover:text-white/20 transition-colors shrink-0 w-12">
+                    <div key={item.step} className="flex gap-5 border border-white/20 bg-white/[0.03] p-5 hover:border-white/35 transition-colors group">
+                      <div className="text-display text-[2.5rem] leading-none text-white/25 group-hover:text-white/45 transition-colors shrink-0 w-12">
                         {item.step}
                       </div>
                       <div>
@@ -996,14 +996,14 @@ function Index() {
                   {/* Tier strip */}
                   <div className="grid grid-cols-4 gap-1.5 pt-2">
                     {[
-                      { name: "ROOKIE", pts: "0 pts", style: "border-white/10 bg-white/[0.02]" },
-                      { name: "RUNNER", pts: "1,000 pts", style: "border-blue-500/30 bg-blue-500/5" },
-                      { name: "RIOT", pts: "3,000 pts", style: "border-primary/40 bg-primary/5" },
+                      { name: "ROOKIE", pts: "0 pts", style: "border-white/20 bg-white/[0.04]" },
+                      { name: "RUNNER", pts: "1,000 pts", style: "border-blue-400/50 bg-blue-500/8" },
+                      { name: "RIOT", pts: "3,000 pts", style: "border-primary/50 bg-primary/8" },
                       { name: "LEGEND", pts: "8,000 pts", style: "border-primary/60 bg-primary/10" },
                     ].map((t) => (
                       <div key={t.name} className={`border ${t.style} p-3 text-center`}>
                         <div className="text-mono text-[9px] tracking-widest text-white/70 mb-1">{t.name}</div>
-                        <div className="text-mono text-[8px] text-white/30">{t.pts}</div>
+                        <div className="text-mono text-[8px] text-white/55">{t.pts}</div>
                       </div>
                     ))}
                   </div>

@@ -7,7 +7,7 @@ export const Route = createFileRoute("/faq")({
   component: FAQ,
   head: () => ({
     meta: buildMeta({
-      title: "FAQ — STUDIO/DENY",
+      title: "FAQ — STUDIO DENY",
       description: "Shipping timelines, returns, sizing, customs duties — every question about Studio Deny, answered.",
       url: `${SITE_URL}/faq`,
     }),

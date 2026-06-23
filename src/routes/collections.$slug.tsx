@@ -23,7 +23,7 @@ export const Route = createFileRoute("/collections/$slug")({
     const desc = COL_DESC[slug] ?? `Shop the ${name} collection from Studio Deny. Limited drops, premium streetwear.`;
     const url = `${SITE_URL}/collections/${slug}`;
     return {
-      meta: buildMeta({ title: `${name} Collection — STUDIO/DENY`, description: desc, url }),
+      meta: buildMeta({ title: `${name} Collection — STUDIO DENY`, description: desc, url }),
       links: buildLinks(url),
       scripts: [{ type: "application/ld+json", children: collectionJsonLd(name, url) }],
     };

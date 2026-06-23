@@ -7,7 +7,7 @@ import { Printer } from "lucide-react";
 
 export const Route = createFileRoute("/invoice/$id")({
   component: InvoicePage,
-  head: () => ({ meta: [{ title: "Invoice — STUDIO/DENY" }] }),
+  head: () => ({ meta: [{ title: "Invoice — STUDIO DENY" }] }),
 });
 
 function InvoicePage() {

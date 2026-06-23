@@ -15,7 +15,7 @@ import { Trophy, Zap, Gift, Sparkles, Lock, CheckCircle } from "lucide-react";
 
 export const Route = createFileRoute("/rewards")({
   component: Rewards,
-  head: () => ({ meta: [{ title: "Rewards — STUDIO/DENY" }] }),
+  head: () => ({ meta: [{ title: "Rewards — STUDIO DENY" }] }),
 });
 
 const TIER_COLORS: Record<string, string> = {

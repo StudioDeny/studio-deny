@@ -44,7 +44,7 @@ const DEFAULTS: LoyaltySettings = {
   rupeesPerPoint: 1,
   freeShipping: 2499,
   invoice: {
-    brandName: "STUDIO/DENY",
+    brandName: "STUDIO DENY",
     tagline: "STREETWEAR · MUMBAI · INDIA",
     gstin: "27ABCDE1234F1Z5",
     email: "support@studiodeny.in",
@@ -53,8 +53,8 @@ const DEFAULTS: LoyaltySettings = {
     accent: "#0a0a0a",
     terms:
       "All sales final after 7 days. Returns accepted within 7 days of delivery in unworn condition with tags attached. Subject to Mumbai jurisdiction.",
-    footer: "THANK YOU FOR REPPING STUDIO/DENY",
-    signatory: "Studio/Deny",
+    footer: "THANK YOU FOR REPPING STUDIO DENY",
+    signatory: "Studio Deny",
     taxLabel: "TAX INVOICE",
   },
   arrivals: {

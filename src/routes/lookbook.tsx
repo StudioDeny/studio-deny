@@ -7,7 +7,7 @@ export const Route = createFileRoute("/lookbook")({
   component: Lookbook,
   head: () => ({
     meta: buildMeta({
-      title: "Lookbook — STUDIO/DENY",
+      title: "Lookbook — STUDIO DENY",
       description: "Curated fits and editorial photography from Studio Deny. See how the pieces move, layer, and live.",
       url: `${SITE_URL}/lookbook`,
     }),

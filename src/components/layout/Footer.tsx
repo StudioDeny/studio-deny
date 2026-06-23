@@ -108,7 +108,7 @@ export function Footer() {
         style={{ background: "var(--color-muted)" }}
       >
         <div className="text-mono text-muted-foreground text-center md:text-left" style={{ fontSize: "10px", letterSpacing: "0.25em" }}>
-          © {new Date().getFullYear()} STUDIO/DENY · ALL RIGHTS RESERVED
+          © {new Date().getFullYear()} STUDIO DENY · ALL RIGHTS RESERVED
         </div>
         <div className="flex flex-wrap justify-center items-center gap-5 sm:gap-6 text-mono text-muted-foreground" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
           <a href="/policies" className="hover:text-foreground transition-colors">PRIVACY</a>

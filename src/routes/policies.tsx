@@ -24,7 +24,7 @@ export const Route = createFileRoute("/policies")({
   component: Policies,
   head: () => ({
     meta: buildMeta({
-      title: "Shipping, Returns & Privacy — STUDIO/DENY",
+      title: "Shipping, Returns & Privacy — STUDIO DENY",
       description: "Free shipping over ₹999. 7-day returns. International shipping to 30+ countries. Full Studio Deny policies.",
       url: `${SITE_URL}/policies`,
     }),

@@ -24,7 +24,7 @@ export const Route = createFileRoute("/product/$slug")({
     const url = `${SITE_URL}/product/${p.slug}`;
     return {
       meta: buildMeta({
-        title: `${p.name} — STUDIO/DENY`,
+        title: `${p.name} — STUDIO DENY`,
         description: p.description,
         image: p.image,
         url,
@@ -372,7 +372,7 @@ function PDP() {
           <div className="mt-10 border-t border-border">
             {[
               { id: "desc", label: "DESCRIPTION", content: product.description },
-              { id: "mat", label: "MATERIAL & CARE", content: product.material + " Wash cold inside out. Hang dry. Don't iron the print. Built to fade naturally over time." },
+              { id: "mat", label: "MATERIAL & CARE", content: product.materialCare ? `${product.material}\n\n${product.materialCare}` : `${product.material} Wash cold inside out. Hang dry. Don't iron the print. Built to fade naturally over time.` },
               { id: "ship", label: "SHIPPING & RETURNS", content: "Dispatched within 48 hours. Free shipping on orders ₹999+. International shipping available. 7-day hassle-free returns." },
             ].map((t) => (
               <div key={t.id} className="border-b border-border group">

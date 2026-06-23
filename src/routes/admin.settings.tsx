@@ -157,7 +157,7 @@ function BrandTab() {
   const save = async () => {
     setSaving(true);
     const payload = {
-      site_name: data.site_name ?? "STUDIO/DENY",
+      site_name: data.site_name ?? "STUDIO DENY",
       tagline: data.tagline || null,
       logo_url: data.logo_url || null,
       favicon_url: data.favicon_url || null,

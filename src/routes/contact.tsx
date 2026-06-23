@@ -11,7 +11,7 @@ export const Route = createFileRoute("/contact")({
   component: Contact,
   head: () => ({
     meta: buildMeta({
-      title: "Contact Us — STUDIO/DENY",
+      title: "Contact Us — STUDIO DENY",
       description: "Get in touch with Studio Deny. For orders, collabs, wholesale, and press — we reply within 24 hours.",
       url: `${SITE_URL}/contact`,
     }),

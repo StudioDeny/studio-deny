@@ -17,7 +17,7 @@ import { Lock, Sparkles, Truck } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
   component: Checkout,
-  head: () => ({ meta: [{ title: "Checkout — STUDIO/DENY" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({ meta: [{ title: "Checkout — STUDIO DENY" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 const schema = z.object({
@@ -117,7 +117,7 @@ function Checkout() {
       try {
         await openRazorpay({
           amountPaise: Math.round(codAdvance * 100),
-          name: "STUDIO/DENY",
+          name: "STUDIO DENY",
           description: `COD Advance — ${items.length} item(s)`,
           prefill: { name: data.name, email: data.email, contact: data.phone },
           notes: { city: data.city, pincode: data.pincode, payment_type: "cod_advance" },
@@ -144,7 +144,7 @@ function Checkout() {
       try {
         await openRazorpay({
           amountPaise: Math.round(total * 100),
-          name: "STUDIO/DENY",
+          name: "STUDIO DENY",
           description: `${items.length} item(s) — Drop 014`,
           prefill: { name: data.name, email: data.email, contact: data.phone },
           notes: { city: data.city, pincode: data.pincode },

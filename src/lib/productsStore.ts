@@ -11,11 +11,13 @@ export type Product = {
   compareAt?: number;
   image: string;
   hoverImage: string;
+  gallery?: string[];
   badge?: "NEW DROP" | "LAST PIECE" | "SALE" | "SOLD OUT";
   sizes: string[];
   colors: Color[];
   description: string;
   material: string;
+  materialCare?: string;
   stock: number;
   is_active?: boolean;
   is_featured?: boolean;
@@ -30,11 +32,13 @@ type DBProduct = {
   compare_at: number | null;
   image: string;
   hover_image: string;
+  gallery: string[] | null;
   badge: string | null;
   sizes: string[];
   colors: Color[];
   description: string;
   material: string;
+  material_care: string | null;
   stock: number;
   is_active: boolean;
   is_featured: boolean;
@@ -52,11 +56,13 @@ function fromDB(r: DBProduct): Product {
     compareAt: r.compare_at ? Number(r.compare_at) : undefined,
     image: r.image,
     hoverImage: r.hover_image,
+    gallery: (r.gallery as string[]) ?? [],
     badge: (r.badge as Product["badge"]) ?? undefined,
     sizes: r.sizes ?? [],
     colors: (r.colors as Color[]) ?? [],
     description: r.description,
     material: r.material,
+    materialCare: r.material_care ?? undefined,
     stock: r.stock,
     is_active: r.is_active,
     is_featured: r.is_featured,
@@ -73,11 +79,13 @@ function toDB(p: Product): Omit<DBProduct, "created_at" | "updated_at"> {
     compare_at: p.compareAt ?? null,
     image: p.image,
     hover_image: p.hoverImage,
+    gallery: p.gallery ?? [],
     badge: p.badge ?? null,
     sizes: p.sizes,
     colors: p.colors,
     description: p.description,
     material: p.material,
+    material_care: p.materialCare ?? null,
     stock: p.stock,
     is_active: p.is_active ?? true,
     is_featured: p.is_featured ?? false,

@@ -5,7 +5,7 @@ export const Route = createFileRoute("/size-guide")({
   component: SizeGuide,
   head: () => ({
     meta: buildMeta({
-      title: "Size Guide — STUDIO/DENY",
+      title: "Size Guide — STUDIO DENY",
       description: "Exact measurements in cm for every Studio Deny piece. Our cuts run oversized — find your perfect fit before you drop.",
       url: `${SITE_URL}/size-guide`,
     }),

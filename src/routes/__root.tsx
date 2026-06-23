@@ -53,22 +53,7 @@ function RootComponent() {
   useEffect(() => {
     seedIfEmpty();
 
-    const titles = [
-      "𝗦𝗧𝗨𝗗𝗜𝗢 𝗗𝗘𝗡𝗬",
-      "🏷️ 𝟮𝟬% 𝗢𝗳𝗳 𝗢𝗿𝗱𝗲𝗿𝘀",
-      "🔥 𝗡𝗲𝘄 𝗗𝗿𝗼𝗽𝘀 𝗟𝗶𝘃𝗲",
-      "🖤 𝗝𝗼𝗶𝗻 𝘁𝗵𝗲 𝗦𝘆𝗻𝗱𝗶𝗰𝗮𝘁𝗲",
-      "⚡️ 𝗦𝘁𝗿𝗲𝗲𝘁𝘄𝗲𝗮𝗿 𝗙𝗼𝗿 𝗧𝗵𝗲 𝗥𝗲𝘀𝘁𝗹𝗲𝘀𝘀"
-    ];
-    let i = 0;
-    document.title = titles[0];
-
-    const interval = setInterval(() => {
-      i = (i + 1) % titles.length;
-      document.title = titles[i];
-    }, 1500);
-
-    return () => clearInterval(interval);
+    document.title = "STUDIO DENY";
   }, []);
 
   const scrollToTop = () => {

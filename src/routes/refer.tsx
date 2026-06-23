@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/refer")({
   component: Refer,
-  head: () => ({ meta: [{ title: "Refer & Earn — STUDIO/DENY" }] }),
+  head: () => ({ meta: [{ title: "Refer & Earn — STUDIO DENY" }] }),
 });
 
 function Refer() {

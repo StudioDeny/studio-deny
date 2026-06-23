@@ -9,7 +9,7 @@ import { checkRateLimit, recordAttempt, clearRateLimit, formatMs } from "@/lib/r
 
 export const Route = createFileRoute("/login")({
   component: Login,
-  head: () => ({ meta: [{ title: "Login — STUDIO/DENY" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({ meta: [{ title: "Login — STUDIO DENY" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 const schema = z.object({

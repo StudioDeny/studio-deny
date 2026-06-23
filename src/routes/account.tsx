@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/account")({
   component: Account,
-  head: () => ({ meta: [{ title: "Account — STUDIO/DENY" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({ meta: [{ title: "Account — STUDIO DENY" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 function Account() {

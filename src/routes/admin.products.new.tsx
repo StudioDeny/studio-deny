@@ -4,7 +4,7 @@ import { upsertProduct, type Product } from "@/lib/productsStore";
 import { listCategories, listBrands } from "@/lib/catalog";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/admin/products/new")({
   component: NewProduct,
@@ -41,18 +41,22 @@ export function ProductForm({
       price: 0,
       image: "",
       hoverImage: "",
+      gallery: [],
       sizes: ["S", "M", "L", "XL"],
       colors: [{ name: "Black", hex: "#0a0a0a" }],
       description: "",
       material: "",
+      materialCare: "",
       stock: 10,
     }
   );
   const [saving, setSaving] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
   const [uploadingHover, setUploadingHover] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
   const imgRef = useRef<HTMLInputElement>(null);
   const hoverRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
 
   const set = <K extends keyof Product>(k: K, v: Product[K]) =>
     setP({ ...p, [k]: v });
@@ -74,6 +78,24 @@ export function ProductForm({
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleGalleryUpload = async (files: FileList) => {
+    setUploadingGallery(true);
+    try {
+      const uploads = await Promise.all(Array.from(files).map((f) => uploadToCloudinary(f)));
+      const urls = uploads.map((r) => r.secure_url);
+      set("gallery", [...(p.gallery ?? []), ...urls]);
+      toast.success(`${urls.length} image(s) added to gallery`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploadingGallery(false);
+    }
+  };
+
+  const removeGalleryImage = (idx: number) => {
+    set("gallery", (p.gallery ?? []).filter((_, i) => i !== idx));
   };
 
   return (
@@ -304,6 +326,48 @@ export function ProductForm({
           </div>
         </Field>
 
+        {/* GALLERY IMAGES */}
+        <Field label="GALLERY IMAGES (additional photos — up to 8)">
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {(p.gallery ?? []).map((url, idx) => (
+                <div key={idx} className="relative w-20 h-20 border border-border shrink-0">
+                  <img src={url} alt={`gallery-${idx}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeGalleryImage(idx)}
+                    className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                ref={galleryRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => { if (e.target.files?.length) handleGalleryUpload(e.target.files); }}
+              />
+              <button
+                type="button"
+                onClick={() => galleryRef.current?.click()}
+                disabled={uploadingGallery || (p.gallery ?? []).length >= 8}
+                className="border border-border h-10 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50"
+              >
+                {uploadingGallery ? <Loader2 className="size-3 animate-spin" /> : <Plus className="size-3" />}
+                ADD IMAGES
+              </button>
+              {(p.gallery ?? []).length > 0 && (
+                <span className="text-mono text-[10px] text-muted-foreground">{(p.gallery ?? []).length}/8 photos</span>
+              )}
+            </div>
+          </div>
+        </Field>
+
         <Field label="SIZES (comma separated)">
           <input
             value={p.sizes.join(", ")}
@@ -330,11 +394,22 @@ export function ProductForm({
           />
         </Field>
 
-        <Field label="MATERIAL">
+        <Field label="MATERIAL COMPOSITION">
           <input
             value={p.material}
             onChange={(e) => set("material", e.target.value)}
             className="inp"
+            placeholder="100% heavyweight cotton, 300 GSM"
+          />
+        </Field>
+
+        <Field label="MATERIAL CARE INSTRUCTIONS">
+          <textarea
+            value={p.materialCare ?? ""}
+            onChange={(e) => set("materialCare", e.target.value)}
+            rows={2}
+            className="inp"
+            placeholder="Machine wash cold inside out. Hang dry. Do not bleach. Do not tumble dry."
           />
         </Field>
 

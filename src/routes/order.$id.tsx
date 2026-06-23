@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/order/$id")({
   component: OrderPage,
-  head: () => ({ meta: [{ title: "Order — STUDIO/DENY" }] }),
+  head: () => ({ meta: [{ title: "Order — STUDIO DENY" }] }),
 });
 
 function OrderPage() {

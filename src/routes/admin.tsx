@@ -13,7 +13,7 @@ import { formatINR } from "@/context/CartContext";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
-  head: () => ({ meta: [{ title: "Admin — STUDIO/DENY" }] }),
+  head: () => ({ meta: [{ title: "Admin — STUDIO DENY" }] }),
 });
 
 function AdminLayout() {
