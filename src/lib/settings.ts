@@ -3,7 +3,11 @@ const KEY = "sd_settings_v1";
 
 export type LoyaltySettings = {
   discount: { ROOKIE: number; RUNNER: number; RIOT: number; LEGEND: number };
-  pointsPer100: number;
+  /** Minimum single-order value (₹) to enter the loyalty pool. Default 5000. */
+  entryThreshold: number;
+  /** How many ₹ a customer must spend to earn 1 point. Default 50. */
+  rupeesPerEarnedPoint: number;
+  /** How much each point is worth in ₹ at redemption. Default 1. */
   rupeesPerPoint: number;
   freeShipping: number;
   invoice: InvoiceTemplate;
@@ -35,7 +39,8 @@ export type ArrivalsConfig = {
 
 const DEFAULTS: LoyaltySettings = {
   discount: { ROOKIE: 0, RUNNER: 5, RIOT: 10, LEGEND: 15 },
-  pointsPer100: 10,
+  entryThreshold: 5000,
+  rupeesPerEarnedPoint: 50,
   rupeesPerPoint: 1,
   freeShipping: 2499,
   invoice: {
@@ -72,6 +77,11 @@ export function getSettings(): LoyaltySettings {
       discount: { ...DEFAULTS.discount, ...(raw.discount || {}) },
       invoice: { ...DEFAULTS.invoice, ...(raw.invoice || {}) },
       arrivals: { ...DEFAULTS.arrivals, ...(raw.arrivals || {}) },
+      // Migrate legacy key: pointsPer100=10 meant 10pts/₹100 = 1pt/₹10.
+      // New field: rupeesPerEarnedPoint defaults to 50. Ignore old value
+      // unless admin has already saved the new field.
+      rupeesPerEarnedPoint: raw.rupeesPerEarnedPoint ?? DEFAULTS.rupeesPerEarnedPoint,
+      entryThreshold: raw.entryThreshold ?? DEFAULTS.entryThreshold,
     };
   } catch {
     return DEFAULTS;

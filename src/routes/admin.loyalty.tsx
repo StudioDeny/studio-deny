@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { listOrders, type Order } from "@/lib/orders";
-import { pointsFromOrders, tierFor, TIERS } from "@/lib/loyalty";
+import { pointsFromOrders, isLoyaltyMember, tierFor, TIERS } from "@/lib/loyalty";
+import { getSettings } from "@/lib/settings";
 import { formatINR } from "@/context/CartContext";
 import { supabase } from "@/lib/supabase";
 
@@ -55,12 +56,15 @@ function LoyaltyDash() {
 
   // localStorage-derived data (fallback)
   const localData = useMemo(() => {
+    const { rupeesPerEarnedPoint, entryThreshold } = getSettings();
     const byUser: Record<string, Order[]> = {};
     orders.forEach((o) => { (byUser[o.userEmail] ??= []).push(o); });
-    const members = Object.entries(byUser).map(([email, os]) => {
-      const pts = pointsFromOrders(os);
-      return { email, points: pts, tier: tierFor(pts).name, spent: os.reduce((s, o) => s + o.total, 0) };
-    });
+    const members = Object.entries(byUser)
+      .filter(([, os]) => isLoyaltyMember(os, entryThreshold))
+      .map(([email, os]) => {
+        const pts = pointsFromOrders(os, rupeesPerEarnedPoint, entryThreshold);
+        return { email, points: pts, tier: tierFor(pts).name, spent: os.reduce((s, o) => s + o.total, 0) };
+      });
     const dist: Record<string, number> = {};
     TIERS.forEach((t) => (dist[t.name] = 0));
     members.forEach((m) => (dist[m.tier]++));
@@ -84,12 +88,23 @@ function LoyaltyDash() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
         <h1 className="text-display text-4xl md:text-5xl">LOYALTY.</h1>
         {useSupabase && (
           <span className="text-mono text-[10px] tracking-widest text-primary border border-primary/30 px-3 py-1">LIVE DATA</span>
         )}
       </div>
+      {(() => {
+        const s = getSettings();
+        return (
+          <p className="text-muted-foreground text-xs text-mono mb-6">
+            Entry: single order ≥ ₹{s.entryThreshold.toLocaleString()} ·
+            Earn: 1 pt / ₹{s.rupeesPerEarnedPoint} ·
+            Redeem: ₹{s.rupeesPerPoint}/pt ·
+            <a href="/admin/settings" className="text-primary hover:underline ml-1">Edit in Settings →</a>
+          </p>
+        );
+      })()}
 
       <div className="grid sm:grid-cols-3 gap-4 mb-8">
         <Card label="MEMBERS" v={members.length} />

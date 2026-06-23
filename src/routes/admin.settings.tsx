@@ -72,20 +72,59 @@ function LoyaltyTab() {
       </section>
 
       <section className="border border-border bg-surface p-6">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-4">POINTS ECONOMY</div>
+        <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-1">LOYALTY POOL ENTRY</div>
+        <p className="text-muted-foreground text-xs mb-4 text-mono">
+          A customer only joins the loyalty pool after placing a <strong>single order</strong> worth at least this amount.
+          Multiple smaller orders do not count.
+        </p>
+        <label className="block max-w-xs">
+          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">MINIMUM SINGLE ORDER (₹)</div>
+          <input
+            type="number" min={0}
+            value={s.entryThreshold}
+            onChange={(e) => setS({ ...s, entryThreshold: Math.max(0, Number(e.target.value) || 0) })}
+            className="inp"
+          />
+        </label>
+      </section>
+
+      <section className="border border-border bg-surface p-6">
+        <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-1">POINTS ECONOMY</div>
+        <p className="text-muted-foreground text-xs mb-4 text-mono">
+          After a customer qualifies, they earn 1 point for every <strong>₹{s.rupeesPerEarnedPoint}</strong> spent.
+          Each point is worth <strong>₹{s.rupeesPerPoint}</strong> at redemption.
+        </p>
         <div className="grid sm:grid-cols-3 gap-4">
           <label>
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">POINTS / ₹100</div>
-            <input type="number" value={s.pointsPer100} onChange={(e) => setS({ ...s, pointsPer100: Number(e.target.value) || 0 })} className="inp" />
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">₹ PER POINT EARNED</div>
+            <input
+              type="number" min={1}
+              value={s.rupeesPerEarnedPoint}
+              onChange={(e) => setS({ ...s, rupeesPerEarnedPoint: Math.max(1, Number(e.target.value) || 1) })}
+              className="inp"
+            />
           </label>
           <label>
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">₹ / POINT</div>
-            <input type="number" value={s.rupeesPerPoint} onChange={(e) => setS({ ...s, rupeesPerPoint: Number(e.target.value) || 0 })} className="inp" />
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">₹ VALUE PER POINT</div>
+            <input
+              type="number" min={1}
+              value={s.rupeesPerPoint}
+              onChange={(e) => setS({ ...s, rupeesPerPoint: Math.max(1, Number(e.target.value) || 1) })}
+              className="inp"
+            />
           </label>
           <label>
             <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">FREE SHIPPING ABOVE ₹</div>
             <input type="number" value={s.freeShipping} onChange={(e) => setS({ ...s, freeShipping: Number(e.target.value) || 0 })} className="inp" />
           </label>
+        </div>
+
+        {/* Live preview */}
+        <div className="mt-4 border border-border bg-muted/20 p-4 text-mono text-[11px] space-y-1">
+          <div className="text-muted-foreground tracking-widest text-[10px] mb-2">PREVIEW</div>
+          <div>₹{s.rupeesPerEarnedPoint} spent = <span className="text-primary">1 point</span></div>
+          <div>₹{(s.rupeesPerEarnedPoint * 100).toLocaleString()} spent = <span className="text-primary">100 points</span> = <span className="text-primary">₹{s.rupeesPerPoint * 100} off</span></div>
+          <div>Entry: single order ≥ <span className="text-primary">₹{s.entryThreshold.toLocaleString()}</span></div>
         </div>
       </section>
 
