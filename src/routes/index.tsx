@@ -115,7 +115,7 @@ function Index() {
           preload="metadata"
           className="absolute inset-0 w-full h-full object-cover"
           style={{
-            filter: "brightness(0.35)",
+            filter: isLight ? "brightness(0.55)" : "brightness(0.35)",
             transform: `translateY(${heroParallax}px)`,
           }}
         >
@@ -129,32 +129,45 @@ function Index() {
           }}
         />
 
-        <div className="relative z-10 max-w-[1320px] mx-auto w-full text-white">
+        {/* Light-mode cream overlay so dark text is legible over the brightened video */}
+        {isLight && (
+          <div className="absolute inset-0 z-[1] bg-[#F4F0EA]/40 pointer-events-none" />
+        )}
+
+        <div className={`relative z-10 max-w-[1320px] mx-auto w-full ${isLight ? "text-foreground" : "text-white"}`}>
           <motion.div
             initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.5 }}
             className="space-y-6 sm:space-y-8"
           >
-            <h1 className="text-[clamp(3.5rem,15vw,10rem)] leading-[0.88] tracking-[-0.04em] uppercase max-w-5xl text-display text-white">
+            <h1 className={`text-[clamp(3.5rem,15vw,10rem)] leading-[0.88] tracking-[-0.04em] uppercase max-w-5xl text-display ${isLight ? "text-foreground" : "text-white"}`}>
               IN THE CUT
               <br />
               NOT IN THE CROWD
             </h1>
-            <p className="text-base sm:text-lg leading-relaxed max-w-xl text-white/80 text-mono">
+            <p className={`text-base sm:text-lg leading-relaxed max-w-xl text-mono ${isLight ? "text-foreground/75" : "text-white/80"}`}>
               Elevated streetwear engineered for creators. Limited drops, premium cuts, and a fit made to stand apart.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Link
                 to="/shop"
-                className="group relative overflow-hidden px-8 py-3 min-h-11 border border-white bg-white text-black hover:bg-transparent hover:text-white transition-colors duration-300 inline-flex items-center justify-center gap-2 text-mono text-sm tracking-[0.14em]"
+                className={`group relative overflow-hidden px-8 py-3 min-h-11 border transition-colors duration-300 inline-flex items-center justify-center gap-2 text-mono text-sm tracking-[0.14em] ${
+                  isLight
+                    ? "border-foreground bg-foreground text-background hover:bg-transparent hover:text-foreground"
+                    : "border-white bg-white text-black hover:bg-transparent hover:text-white"
+                }`}
               >
                 SHOP THE DROP
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 to="/lookbook"
-                className="px-8 py-3 min-h-11 border border-white/40 text-white text-sm tracking-[0.14em] hover:border-white hover:bg-white/10 transition-colors duration-300 inline-flex items-center justify-center text-mono"
+                className={`px-8 py-3 min-h-11 border text-sm tracking-[0.14em] transition-colors duration-300 inline-flex items-center justify-center text-mono ${
+                  isLight
+                    ? "border-foreground/40 text-foreground hover:border-foreground hover:bg-foreground/10"
+                    : "border-white/40 text-white hover:border-white hover:bg-white/10"
+                }`}
               >
                 VIEW LOOKBOOK
               </Link>
@@ -166,7 +179,7 @@ function Index() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.5 }}
-          className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 text-center text-white"
+          className={`absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 text-center ${isLight ? "text-foreground" : "text-white"}`}
         >
           <div className="flex flex-col items-center gap-2 opacity-70">
             <span className="text-[11px] tracking-[0.2em] text-mono">SCROLL</span>

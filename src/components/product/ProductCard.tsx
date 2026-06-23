@@ -169,45 +169,12 @@ export function ProductCard({
 
         {/* Product info */}
         <div className="mt-3 px-0.5">
-          <div className="text-mono text-muted-foreground" style={{ fontSize: "10px", letterSpacing: "0.3em" }}>
-            {product.category.toUpperCase()}
-          </div>
-          <div className="mt-1 flex items-start justify-between gap-2">
-            <h3
-              className="font-semibold leading-snug group-hover:text-primary transition-colors duration-200 uppercase tracking-[0.15em]"
-              style={{ fontSize: "14px" }}
-            >
-              {product.name}
-            </h3>
-          </div>
-          <div className="mt-1.5 flex items-baseline gap-2 text-mono">
-            <span style={{ fontSize: "13px" }}>{formatINR(product.price)}</span>
-            {product.compareAt && product.compareAt > product.price && (
-              <>
-                <span className="text-muted-foreground line-through" style={{ fontSize: "11px" }}>
-                  {formatINR(product.compareAt)}
-                </span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-semibold" style={{ fontSize: "10px", letterSpacing: "0.1em" }}>
-                  -{Math.round(((product.compareAt - product.price) / product.compareAt) * 100)}%
-                </span>
-              </>
-            )}
-          </div>
-          {/* Size dots */}
-          <div className="mt-2 flex gap-1">
-            {product.sizes.slice(0, 5).map((s) => (
-              <span
-                key={s}
-                className="text-mono text-muted-foreground/50"
-                style={{ fontSize: "9px", letterSpacing: "0.1em" }}
-              >
-                {s}
-              </span>
-            ))}
-            {product.sizes.length > 5 && (
-              <span className="text-mono text-muted-foreground/40" style={{ fontSize: "9px" }}>+{product.sizes.length - 5}</span>
-            )}
-          </div>
+          <h3
+            className="font-semibold leading-snug group-hover:text-primary transition-colors duration-200 uppercase tracking-[0.15em]"
+            style={{ fontSize: "14px" }}
+          >
+            {product.name}
+          </h3>
         </div>
       </Link>
 
