@@ -44,7 +44,7 @@ export function Navbar() {
             onClick={() => setMobileNavOpen(false)}
             className="tracking-[-0.02em] hover:opacity-80 transition-opacity text-display"
           >
-            <span className="text-[1.65rem] sm:text-[2.5rem] leading-none">STUDIO DENY</span>
+            <span className="text-[1.65rem] sm:text-[2.5rem] leading-none">STUDIO<span className="text-primary">/</span>DENY</span>
           </Link>
           <div className="hidden sm:flex gap-5 lg:gap-7 items-center font-body">
             <Link to="/shop" className="text-sm tracking-wide hover:opacity-60 transition-opacity">SHOP</Link>

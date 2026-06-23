@@ -182,15 +182,15 @@ export function ProductCard({
           </div>
           <div className="mt-1.5 flex items-baseline gap-2 text-mono">
             <span style={{ fontSize: "13px" }}>{formatINR(product.price)}</span>
-            {product.compareAt && (
-              <span className="text-muted-foreground line-through" style={{ fontSize: "11px" }}>
-                {formatINR(product.compareAt)}
-              </span>
-            )}
-            {product.compareAt && (
-              <span className="text-secondary" style={{ fontSize: "10px", letterSpacing: "0.1em" }}>
-                -{Math.round(((product.compareAt - product.price) / product.compareAt) * 100)}%
-              </span>
+            {product.compareAt && product.compareAt > product.price && (
+              <>
+                <span className="text-muted-foreground line-through" style={{ fontSize: "11px" }}>
+                  {formatINR(product.compareAt)}
+                </span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold" style={{ fontSize: "10px", letterSpacing: "0.1em" }}>
+                  -{Math.round(((product.compareAt - product.price) / product.compareAt) * 100)}%
+                </span>
+              </>
             )}
           </div>
           {/* Size dots */}
