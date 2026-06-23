@@ -106,7 +106,24 @@ function RootComponent() {
             >
               <ChevronUp className="size-5" />
             </button>
-            <Toaster theme="system" position="top-right" />
+            <Toaster
+              theme="system"
+              position="top-right"
+              toastOptions={{
+                classNames: {
+                  toast: "!rounded-none !border !border-border !bg-background !text-foreground !shadow-xl !font-body",
+                  title: "!text-foreground !text-xs !tracking-[0.15em] !uppercase !font-bold",
+                  description: "!text-muted-foreground !text-xs !tracking-wide",
+                  actionButton: "!rounded-none !bg-foreground !text-background !text-[10px] !tracking-widest !uppercase",
+                  cancelButton: "!rounded-none !bg-surface !text-muted-foreground !text-[10px] !tracking-widest !uppercase",
+                  closeButton: "!rounded-none !border-border !text-muted-foreground hover:!text-foreground",
+                  success: "!border-l-4 !border-l-emerald-500",
+                  error: "!border-l-4 !border-l-red-500",
+                  warning: "!border-l-4 !border-l-amber-500",
+                  info: "!border-l-4 !border-l-blue-500",
+                },
+              }}
+            />
           </CartProvider>
         </WishlistProvider>
       </AuthProvider>

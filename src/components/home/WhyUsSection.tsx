@@ -15,7 +15,7 @@ type WhyUsConfig = {
 const ICONS = [Package, Zap, Shield, CheckCircle];
 
 const DEFAULTS: WhyUsConfig = {
-  eyebrow: "WHY STUDIO DENY",
+  eyebrow: "WHY STUDIO/DENY",
   title: "BUILT DIFFERENT.",
   subtitle: "STAYS DIFFERENT.",
   features: [

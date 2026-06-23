@@ -72,9 +72,10 @@ export function Navbar() {
               type="button"
               onClick={toggleTheme}
               aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
-              className="size-8 flex items-center justify-center hover:opacity-60 transition-opacity"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-current/25 hover:border-current/60 transition-colors text-mono text-[9px] tracking-[0.18em] font-bold"
             >
-              {isLight ? <Moon className="size-4" strokeWidth={1.5} /> : <Sun className="size-4" strokeWidth={1.5} />}
+              {isLight ? <Moon className="size-3" strokeWidth={1.5} /> : <Sun className="size-3" strokeWidth={1.5} />}
+              {isLight ? "DARK" : "LIGHT"}
             </button>
           </div>
           <div className="flex items-center gap-1 sm:hidden">
@@ -82,7 +83,7 @@ export function Navbar() {
               type="button"
               onClick={toggleTheme}
               aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
-              className="flex h-11 w-11 items-center justify-center rounded-sm hover:opacity-60 transition-opacity"
+              className="flex h-11 w-11 items-center justify-center hover:opacity-60 transition-opacity"
             >
               {isLight ? <Moon className="size-4" strokeWidth={1.5} /> : <Sun className="size-4" strokeWidth={1.5} />}
             </button>
@@ -114,9 +115,9 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => { toggleTheme(); setMobileNavOpen(false); }}
-                className="py-3 text-sm tracking-wide text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-left"
+                className="mt-1 inline-flex items-center gap-2 px-3 py-2 border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors text-mono text-[10px] tracking-[0.2em] font-bold"
               >
-                {isLight ? <Moon className="size-4" strokeWidth={1.5} /> : <Sun className="size-4" strokeWidth={1.5} />}
+                {isLight ? <Moon className="size-3.5" strokeWidth={1.5} /> : <Sun className="size-3.5" strokeWidth={1.5} />}
                 {isLight ? "DARK MODE" : "LIGHT MODE"}
               </button>
             </motion.div>

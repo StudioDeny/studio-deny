@@ -129,19 +129,19 @@ function Index() {
           }}
         />
 
-        <div className="relative z-10 max-w-[1320px] mx-auto w-full">
+        <div className="relative z-10 max-w-[1320px] mx-auto w-full text-white">
           <motion.div
             initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.5 }}
             className="space-y-6 sm:space-y-8"
           >
-            <h1 className="text-[clamp(3.5rem,15vw,10rem)] leading-[0.88] tracking-[-0.04em] uppercase max-w-5xl text-display">
+            <h1 className="text-[clamp(3.5rem,15vw,10rem)] leading-[0.88] tracking-[-0.04em] uppercase max-w-5xl text-display text-white">
               IN THE CUT
               <br />
               NOT IN THE CROWD
             </h1>
-            <p className="text-base sm:text-lg leading-relaxed max-w-xl opacity-90 text-mono">
+            <p className="text-base sm:text-lg leading-relaxed max-w-xl text-white/80 text-mono">
               Elevated streetwear engineered for creators. Limited drops, premium cuts, and a fit made to stand apart.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -153,8 +153,8 @@ function Index() {
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
-                to="/shop"
-                className="px-8 py-3 min-h-11 border border-border text-sm tracking-[0.14em] hover:border-white transition-colors duration-300 inline-flex items-center justify-center text-mono"
+                to="/lookbook"
+                className="px-8 py-3 min-h-11 border border-white/40 text-white text-sm tracking-[0.14em] hover:border-white hover:bg-white/10 transition-colors duration-300 inline-flex items-center justify-center text-mono"
               >
                 VIEW LOOKBOOK
               </Link>
@@ -166,7 +166,7 @@ function Index() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.5 }}
-          className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 text-center"
+          className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 text-center text-white"
         >
           <div className="flex flex-col items-center gap-2 opacity-70">
             <span className="text-[11px] tracking-[0.2em] text-mono">SCROLL</span>
@@ -176,7 +176,7 @@ function Index() {
       </section>
 
       {/* Marquee */}
-      <section className="relative border-y border-border bg-surface/30 overflow-hidden">
+      <section className="relative border-y border-border bg-[#0A0A0A] overflow-hidden">
         <div className="flex">
           {[0, 1].map((dup) => (
             <div
@@ -185,18 +185,16 @@ function Index() {
               className="flex shrink-0 items-center ticker-scroll"
             >
               {[
-                { label: "NEW DROP", text: "SS26 Studio Bomber & Cargo Set — Available Now", bright: true },
-                { label: "RESTOCK", text: "Essential Hoodie in Black & Slate — Limited Units", bright: false },
-                { label: "ALERT", text: "Members get 48-hr early access to next drop", bright: true },
+                { label: "NEW DROP", text: "SS26 Studio Bomber & Cargo Set — Available Now", labelCls: "text-lime-400 border-lime-400/40" },
+                { label: "RESTOCK", text: "Essential Hoodie in Black & Slate — Limited Units", labelCls: "text-blue-400 border-blue-400/40" },
+                { label: "ALERT", text: "Members get 48-hr early access to next drop", labelCls: "text-amber-400 border-amber-400/40" },
               ].map((item, i) => (
-                <span key={i} className="inline-flex items-center gap-3 px-8 py-3 whitespace-nowrap text-[11px] sm:text-xs tracking-[0.18em] uppercase text-mono">
-                  <span
-                    className="inline-block w-1.5 h-1.5 rounded-full shrink-0 bg-foreground"
-                    style={{ opacity: item.bright ? 1 : 0.4 }}
-                  />
-                  <span className="opacity-40">{item.label}</span>
-                  <span className="opacity-80">{item.text}</span>
-                  <span className="opacity-20 mx-2">•</span>
+                <span key={i} className="inline-flex items-center gap-4 px-8 py-3.5 whitespace-nowrap text-[11px] sm:text-xs tracking-[0.18em] uppercase text-mono">
+                  <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] tracking-[0.2em] font-bold ${item.labelCls}`}>
+                    {item.label}
+                  </span>
+                  <span className="text-white/80">{item.text}</span>
+                  <span className="text-white/20 mx-1">◆</span>
                 </span>
               ))}
             </div>
@@ -913,15 +911,15 @@ function Index() {
                   transition={{ duration: 0.8 }}
                   viewport={{ once: true }}
                 >
-                  <span className="inline-flex items-center gap-2 px-4 py-1.5 border border-white/20 bg-white/5 text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-8">
-                    ◆ THE DENY SYNDICATE
+                  <span className="inline-flex items-center gap-2 px-4 py-1.5 border border-white/20 bg-white/5 text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-8 text-white/70">
+                    ◆ DENY WORLD
                   </span>
-                  <h2 className="text-[clamp(3rem,7vw,6rem)] leading-[0.88] tracking-[-0.03em] uppercase text-display mb-8">
+                  <h2 className="text-[clamp(3rem,7vw,6rem)] leading-[0.88] tracking-[-0.03em] uppercase text-display mb-8 text-white">
                     LOYALTY
                     <br />
                     HAS ITS
                     <br />
-                    <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(255,255,255,0.5)" }}>
+                    <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(255,255,255,0.6)" }}>
                       REWARDS.
                     </span>
                   </h2>
@@ -934,7 +932,7 @@ function Index() {
                       to="/rewards"
                       className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-black text-xs tracking-[0.14em] uppercase text-mono font-bold hover:bg-white/90 transition-colors"
                     >
-                      JOIN THE SYNDICATE <ArrowRight className="w-4 h-4" />
+                      JOIN DENY WORLD <ArrowRight className="w-4 h-4" />
                     </Link>
                     <Link
                       to="/shop"

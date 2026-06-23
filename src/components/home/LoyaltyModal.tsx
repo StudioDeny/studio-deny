@@ -77,7 +77,7 @@ export function LoyaltyModal() {
                 {/* Badge */}
                 <div className="inline-flex items-center gap-2 border border-white/20 bg-white/5 px-3 py-1.5 mb-6">
                   <Trophy className="w-3 h-3 text-primary" />
-                  <span className="text-mono text-[10px] tracking-[0.25em] text-white/70">THE DENY SYNDICATE</span>
+                  <span className="text-mono text-[10px] tracking-[0.25em] text-white/70">DENY WORLD</span>
                 </div>
 
                 <h2 className="text-display text-[clamp(2.2rem,6vw,3.5rem)] leading-[0.9] tracking-[-0.02em] uppercase mb-4">
@@ -89,7 +89,7 @@ export function LoyaltyModal() {
                 </h2>
 
                 <p className="text-white/60 text-sm text-mono leading-relaxed mb-8 max-w-md">
-                  Join the Deny Syndicate — our private loyalty pool. One qualifying order unlocks you. After that, every rupee earns.
+                  Join Deny World — our private loyalty pool. One qualifying order unlocks you. After that, every rupee earns.
                 </p>
 
                 {/* Rules row */}

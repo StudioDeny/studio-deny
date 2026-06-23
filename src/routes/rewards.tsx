@@ -51,7 +51,7 @@ function Rewards() {
     <section className="px-4 md:px-8 max-w-6xl mx-auto pb-24">
       {/* Hero */}
       <div className="text-center py-20 md:py-32 border-b border-border mb-16">
-        <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-6">◢ THE DENY SYNDICATE</div>
+        <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-6">◢ DENY WORLD</div>
         <h1 className="text-display text-[clamp(3rem,8vw,7rem)] leading-[0.9] tracking-[-0.03em] uppercase max-w-4xl mx-auto mb-8">
           LOYALTY PAYS.
           <br />
@@ -60,13 +60,13 @@ function Rewards() {
           </span>
         </h1>
         <p className="text-muted-foreground text-sm md:text-base max-w-2xl mx-auto text-mono leading-relaxed mb-10 opacity-80">
-          The Deny Syndicate is our private membership program. One qualifying drop unlocks you.
+          Deny World is our private membership program. One qualifying drop unlocks you.
           Earn points on every order after that, and climb the ranks.
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap">
           {!user ? (
             <>
-              <Link to="/login" className="px-8 py-4 bg-foreground text-background text-xs tracking-widest uppercase hover:opacity-80 transition-opacity font-bold text-mono">Join the Syndicate</Link>
+              <Link to="/login" className="px-8 py-4 bg-foreground text-background text-xs tracking-widest uppercase hover:opacity-80 transition-opacity font-bold text-mono">Join Deny World</Link>
               <Link to="/login" className="px-8 py-4 border border-border text-xs tracking-widest uppercase hover:border-foreground transition-colors text-mono">Log In</Link>
             </>
           ) : (
@@ -98,7 +98,7 @@ function Rewards() {
               </div>
 
               <h2 className="text-display text-4xl md:text-5xl uppercase mb-4">
-                UNLOCK THE SYNDICATE
+                UNLOCK DENY WORLD
               </h2>
               <p className="text-muted-foreground text-mono text-sm leading-relaxed mb-8">
                 Place a single order of{" "}
