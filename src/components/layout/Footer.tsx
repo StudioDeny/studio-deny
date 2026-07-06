@@ -110,7 +110,6 @@ export function Footer() {
         <div className="flex flex-wrap justify-center items-center gap-5 sm:gap-6 text-mono text-muted-foreground" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
           <Link to="/privacy" className="hover:text-foreground transition-colors">PRIVACY</Link>
           <Link to="/terms" className="hover:text-foreground transition-colors">TERMS</Link>
-          <Link to="/admin" className="hover:text-primary transition-colors">BUILT IN THE DARK</Link>
         </div>
       </div>
     </footer>
