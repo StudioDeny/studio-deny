@@ -333,44 +333,52 @@ function Index() {
       </section>
 
       {/* ── 6. INFLUENCER PICKS ─────────────────────────────────────────── */}
-      {hs.influencerPicks.enabled && hs.influencerPicks.items.length > 0 && (
-        <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 max-w-[1560px] mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10">
-            <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{hs.influencerPicks.eyebrow}</span>
-            <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display">{hs.influencerPicks.title}</h2>
-          </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {hs.influencerPicks.items.map((item, idx) => (
-              <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: idx * 0.1 }} viewport={{ once: true }}
-                className="border border-border bg-surface/30 overflow-hidden group">
-                <div className="relative aspect-[4/5] overflow-hidden">
-                  {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                  ) : (
-                    <div className="w-full h-full bg-surface flex items-center justify-center">
-                      <span className="text-muted-foreground text-mono text-xs">NO PHOTO</span>
+      {hs.influencerPicks.enabled && (() => {
+        const PLACEHOLDER_INFLUENCERS = [
+          { id: "p1", name: "RAHUL SHARMA", handle: "@rahulstyle", image: "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=80&w=800", productSlug: "", quote: "Studio Deny hits different. The heavyweight feel is unlike anything else." },
+          { id: "p2", name: "ARYAN KAPOOR", handle: "@aryanwears", image: "https://images.unsplash.com/photo-1506629082955-511b1aa562c8?auto=format&fit=crop&q=80&w=800", productSlug: "", quote: "Every piece I've copped from them gets more compliments than anything else in my rotation." },
+          { id: "p3", name: "ZARA KHAN", handle: "@zarainkicks", image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&q=80&w=800", productSlug: "", quote: "The fit, the fabric, the drop energy — Studio Deny always delivers." },
+        ];
+        const items = hs.influencerPicks.items.length > 0 ? hs.influencerPicks.items : PLACEHOLDER_INFLUENCERS;
+        return (
+          <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 max-w-[1560px] mx-auto">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10">
+              <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{hs.influencerPicks.eyebrow}</span>
+              <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display">{hs.influencerPicks.title}</h2>
+            </motion.div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {items.map((item, idx) => (
+                <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: idx * 0.1 }} viewport={{ once: true }}
+                  className="border border-border bg-surface/30 overflow-hidden group">
+                  <div className="relative aspect-[4/5] overflow-hidden">
+                    {item.image ? (
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    ) : (
+                      <div className="w-full h-full bg-surface flex items-center justify-center">
+                        <span className="text-muted-foreground text-mono text-xs">NO PHOTO</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <p className="text-white font-display text-lg uppercase">{item.name}</p>
+                      <p className="text-white/60 text-mono text-xs">{item.handle}</p>
                     </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <p className="text-white font-display text-lg uppercase">{item.name}</p>
-                    <p className="text-white/60 text-mono text-xs">{item.handle}</p>
                   </div>
-                </div>
-                <div className="p-5">
-                  {item.quote && <p className="text-sm opacity-75 italic mb-4 leading-relaxed">"{item.quote}"</p>}
-                  {item.productSlug && (
-                    <Link to="/product/$slug" params={{ slug: item.productSlug }}
-                      className="inline-flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-mono hover:text-primary transition-colors">
-                      SHOP THIS LOOK <ArrowRight className="size-3" />
-                    </Link>
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-      )}
+                  <div className="p-5">
+                    {item.quote && <p className="text-sm opacity-75 italic mb-4 leading-relaxed">"{item.quote}"</p>}
+                    {item.productSlug && (
+                      <Link to="/product/$slug" params={{ slug: item.productSlug }}
+                        className="inline-flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-mono hover:text-primary transition-colors">
+                        SHOP THIS LOOK <ArrowRight className="size-3" />
+                      </Link>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* ── 7. LOOK BOOK ────────────────────────────────────────────────── */}
       {hs.lookBook.enabled && hs.lookBook.items.length > 0 && (
