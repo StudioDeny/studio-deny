@@ -32,7 +32,7 @@ export const Route = createFileRoute("/product/$slug")({
       }),
       links: buildLinks(url),
       scripts: [
-        { type: "application/ld+json", children: productJsonLd({ ...p, stock: p.stock, compare_at: p.compare_at }) },
+        { type: "application/ld+json", children: productJsonLd({ ...p, stock: p.stock, compare_at: p.compareAt }) },
         {
           type: "application/ld+json",
           children: breadcrumbJsonLd([
