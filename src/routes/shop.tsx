@@ -301,7 +301,7 @@ function Shop() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+              <div className={`grid grid-cols-2 gap-3 md:gap-4 ${filterOpen ? "md:grid-cols-3" : "md:grid-cols-4"}`}>
                 {items.map((p, i) => <ProductCard key={p.slug} product={p} index={i} />)}
               </div>
               
