@@ -92,9 +92,20 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-border px-4 md:px-8 py-6 flex flex-col md:flex-row gap-4 items-center justify-between" style={{ background: "var(--color-muted)" }}>
+      <div className="border-t border-border px-4 md:px-8 py-6 flex flex-col md:flex-row gap-3 items-center justify-between" style={{ background: "var(--color-muted)" }}>
         <div className="text-mono text-muted-foreground text-center md:text-left" style={{ fontSize: "10px", letterSpacing: "0.25em" }}>
           © {new Date().getFullYear()} STUDIO DENY · ALL RIGHTS RESERVED
+        </div>
+        <div className="text-mono text-muted-foreground text-center" style={{ fontSize: "10px", letterSpacing: "0.18em" }}>
+          DEVELOPED & MAINTAINED BY{" "}
+          <a
+            href="https://www.artechstudio.co.in/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-foreground hover:text-primary transition-colors"
+          >
+            ARTECHSTUDIO
+          </a>
         </div>
         <div className="flex flex-wrap justify-center items-center gap-5 sm:gap-6 text-mono text-muted-foreground" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
           <Link to="/privacy" className="hover:text-foreground transition-colors">PRIVACY</Link>

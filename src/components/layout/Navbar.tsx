@@ -1,21 +1,26 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sun, Moon, Trophy, Search } from "lucide-react";
+import { Menu, X, Sun, Moon, Trophy, Search, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { listProducts, type Product } from "@/lib/productsStore";
+import { formatINR } from "@/context/CartContext";
 
 export function Navbar() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQ, setSearchQ] = useState("");
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const isLight = theme === "light";
   const location = useLocation();
   const navigate = useNavigate();
   const isHomeRoute = location.pathname === "/";
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -23,14 +28,41 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Load products once when search first opens
+  useEffect(() => {
+    if (searchOpen && allProducts.length === 0) {
+      listProducts().then(setAllProducts);
+    }
+    if (searchOpen) setTimeout(() => inputRef.current?.focus(), 50);
+  }, [searchOpen]);
+
+  // Debounced real-time filtering
+  useEffect(() => {
+    if (!searchQ.trim()) { setSearchResults([]); return; }
+    const t = setTimeout(() => {
+      const q = searchQ.toLowerCase();
+      setSearchResults(
+        allProducts
+          .filter((p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q)
+          )
+          .slice(0, 6)
+      );
+    }, 200);
+    return () => clearTimeout(t);
+  }, [searchQ, allProducts]);
+
+  const closeSearch = () => { setSearchOpen(false); setSearchQ(""); setSearchResults([]); };
+
   const navUseSolidBar = !isHomeRoute || scrollY > 12 || mobileNavOpen;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQ.trim()) return;
     navigate({ to: "/shop", search: { q: searchQ.trim() } });
-    setSearchOpen(false);
-    setSearchQ("");
+    closeSearch();
   };
 
   return (
@@ -75,12 +107,21 @@ export function Navbar() {
               REWARDS
             </Link>
             <Link to="/cart" className="text-sm tracking-wide hover:opacity-60 transition-opacity">CART</Link>
-            <div className="w-[1px] h-4 bg-white/20 mx-1 hidden lg:block"></div>
+            <div className="w-[1px] h-4 bg-white/20 mx-1 hidden lg:block" />
             {user ? (
               <Link to="/account" className="text-sm tracking-wide hover:opacity-60 transition-opacity uppercase">ACCOUNT</Link>
             ) : (
               <Link to="/login" className="text-sm tracking-wide hover:opacity-60 transition-opacity uppercase">LOGIN</Link>
             )}
+            {/* Desktop search icon */}
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Search"
+              className="flex items-center justify-center size-8 hover:opacity-60 transition-opacity"
+            >
+              <Search className="size-4" strokeWidth={1.5} />
+            </button>
             <button
               type="button"
               onClick={toggleTheme}
@@ -140,37 +181,83 @@ export function Navbar() {
         </AnimatePresence>
       </motion.nav>
 
-      {/* Mobile search overlay */}
+      {/* Search overlay — all screen sizes */}
       <AnimatePresence>
         {searchOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -16 }}
+            initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[200] sm:hidden bg-background flex flex-col"
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-[200] bg-background flex flex-col"
           >
-            <div className="flex items-center justify-between px-4 h-16 border-b border-border shrink-0">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 sm:px-8 h-16 border-b border-border shrink-0">
               <span className="text-mono text-[10px] tracking-[0.3em] text-muted-foreground">SEARCH PRODUCTS</span>
-              <button
-                onClick={() => { setSearchOpen(false); setSearchQ(""); }}
-                className="flex items-center justify-center size-9 hover:opacity-60"
-              >
+              <button onClick={closeSearch} className="flex items-center justify-center size-9 hover:opacity-60">
                 <X className="size-5" strokeWidth={1.5} />
               </button>
             </div>
-            <form onSubmit={handleSearch} className="px-5 pt-8 flex-1">
-              <input
-                autoFocus
-                value={searchQ}
-                onChange={(e) => setSearchQ(e.target.value)}
-                placeholder="What are you looking for?"
-                className="w-full bg-transparent border-b-2 border-border text-[1.6rem] tracking-tight focus:outline-none focus:border-primary pb-3 transition-colors placeholder:text-muted-foreground/40"
-              />
-              <p className="text-mono text-[10px] tracking-widest text-muted-foreground mt-4">
-                PRESS ENTER TO SEARCH
-              </p>
+
+            {/* Input */}
+            <form onSubmit={handleSearch} className="px-4 sm:px-8 pt-6 pb-4 border-b border-border shrink-0">
+              <div className="flex items-center gap-3 max-w-2xl">
+                <Search className="size-5 text-muted-foreground shrink-0" strokeWidth={1.5} />
+                <input
+                  ref={inputRef}
+                  value={searchQ}
+                  onChange={(e) => setSearchQ(e.target.value)}
+                  placeholder="What are you looking for?"
+                  className="flex-1 bg-transparent text-[1.4rem] sm:text-[1.6rem] tracking-tight focus:outline-none placeholder:text-muted-foreground/40"
+                />
+                {searchQ && (
+                  <button type="button" onClick={() => { setSearchQ(""); setSearchResults([]); }} className="text-muted-foreground hover:text-foreground">
+                    <X className="size-4" />
+                  </button>
+                )}
+              </div>
             </form>
+
+            {/* Results */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-4 max-w-2xl w-full">
+              {!searchQ.trim() ? (
+                <p className="text-mono text-[11px] tracking-widest text-muted-foreground pt-4">START TYPING TO SEARCH</p>
+              ) : searchResults.length === 0 ? (
+                <p className="text-mono text-[11px] tracking-widest text-muted-foreground pt-4">NO RESULTS FOR "{searchQ.toUpperCase()}"</p>
+              ) : (
+                <ul className="space-y-1">
+                  {searchResults.map((p) => (
+                    <li key={p.slug}>
+                      <Link
+                        to="/product/$slug"
+                        params={{ slug: p.slug }}
+                        onClick={closeSearch}
+                        className="flex items-center gap-4 py-3 px-2 hover:bg-surface rounded transition-colors group"
+                      >
+                        <div className="w-12 h-14 shrink-0 overflow-hidden bg-surface">
+                          <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold uppercase tracking-[0.12em] truncate">{p.name}</p>
+                          <p className="text-mono text-[10px] tracking-widest text-muted-foreground mt-0.5">{p.category.toUpperCase()}</p>
+                        </div>
+                        <div className="text-mono text-sm shrink-0">{formatINR(p.price)}</div>
+                        <ArrowRight className="size-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                      </Link>
+                    </li>
+                  ))}
+                  {/* View all */}
+                  <li className="pt-2">
+                    <button
+                      onClick={handleSearch}
+                      className="w-full text-left py-3 px-2 text-mono text-[11px] tracking-widest text-primary hover:underline"
+                    >
+                      VIEW ALL RESULTS FOR "{searchQ.toUpperCase()}" →
+                    </button>
+                  </li>
+                </ul>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
