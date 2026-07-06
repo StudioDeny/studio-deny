@@ -458,7 +458,7 @@ function Index() {
             <div className="max-w-[1280px] mx-auto relative z-10">
               <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
                 <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
-                  <img src="https://res.cloudinary.com/dsqeawg67/image/upload/v1783356220/WhatsApp_Image_2026-07-03_at_15.50.55_vlanfh.jpg" alt="Deny Space" className="h-16 sm:h-20 w-auto mb-8 invert opacity-90" />
+                  <img src="https://res.cloudinary.com/dsqeawg67/image/upload/v1783356678/WhatsApp_Image_2026-07-03_at_15.50.55-removebg-preview_i8wcnb.png" alt="Deny Space" className="h-20 sm:h-28 w-auto mb-6 invert brightness-90" />
                   <h2 className="text-[clamp(3rem,7vw,6rem)] leading-[0.88] tracking-[-0.03em] uppercase text-display mb-8 text-white">
                     LOYALTY<br />HAS ITS<br />
                     <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(255,255,255,0.6)" }}>REWARDS.</span>
