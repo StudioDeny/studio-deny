@@ -10,7 +10,7 @@ export const Route = createFileRoute("/admin/website-sections")({
   component: AdminWebsiteSections,
 });
 
-type HeroConfig = { title: string; subtitle: string; cta_label: string; cta_href: string; bg_image: string };
+type HeroConfig = { title: string; subtitle: string; cta_label: string; cta_href: string; bg_image: string; bg_video: string; media_type: "video" | "image" };
 type MarqueeConfig = { items: string[]; speed: number };
 type ArrivalsConfig = { eyebrow: string; title: string; subtitle: string; cta_label: string; product_slugs: string[] };
 type LookbookConfig = { images: string[]; title: string };
@@ -299,7 +299,17 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
             <F label="CTA LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="SHOP THE DROP" /></F>
             <F label="CTA URL"><input value={c.cta_href ?? ""} onChange={(e) => set("cta_href", e.target.value)} className="inp" placeholder="/shop" /></F>
           </div>
-          <F label="BACKGROUND IMAGE URL"><input value={c.bg_image ?? ""} onChange={(e) => set("bg_image", e.target.value)} className="inp" placeholder="https://…" /></F>
+          <F label="MEDIA TYPE">
+            <select value={c.media_type ?? "video"} onChange={(e) => set("media_type", e.target.value)} className="inp" style={{ cursor: "pointer" }}>
+              <option value="video">Video</option>
+              <option value="image">Image / Photo</option>
+            </select>
+          </F>
+          {(c.media_type ?? "video") === "video" ? (
+            <F label="BACKGROUND VIDEO URL"><input value={c.bg_video ?? ""} onChange={(e) => set("bg_video", e.target.value)} className="inp" placeholder="https://…/hero-video.mp4" /></F>
+          ) : (
+            <F label="BACKGROUND IMAGE URL"><input value={c.bg_image ?? ""} onChange={(e) => set("bg_image", e.target.value)} className="inp" placeholder="https://…/hero-photo.jpg" /></F>
+          )}
         </div>
       );
     }

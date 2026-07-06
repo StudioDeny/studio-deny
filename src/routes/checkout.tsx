@@ -58,11 +58,11 @@ function FieldImpl(props: {
 
 function Checkout() {
   const { items, subtotal, clear } = useCart();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [paying, setPaying] = useState(false);
   const [payMethod, setPayMethod] = useState<"razorpay" | "cod">("razorpay");
-  const [codSettings, setCodSettings] = useState<CodSettings>({ cod_enabled: false, cod_advance_percent: 20, cod_min_order: 500 });
+  const [codSettings, setCodSettings] = useState<CodSettings>({ cod_enabled: true, cod_advance_percent: 20, cod_min_order: 0 });
 
   const settings = getSettings();
   const userOrders = user ? listOrders().filter((o) => o.userEmail === user.email) : [];
@@ -83,9 +83,9 @@ function Checkout() {
       .single()
       .then(({ data }) => {
         if (data) setCodSettings({
-          cod_enabled: data.cod_enabled ?? false,
+          cod_enabled: data.cod_enabled ?? true,
           cod_advance_percent: data.cod_advance_percent ?? 20,
-          cod_min_order: Number(data.cod_min_order ?? 500),
+          cod_min_order: Number(data.cod_min_order ?? 0),
         });
       });
   }, []);
@@ -173,6 +173,26 @@ function Checkout() {
       <section className="px-4 md:px-8 py-24 text-center">
         <h1 className="text-display text-5xl">NOTHING TO CHECKOUT</h1>
         <Link to="/shop" className="mt-6 inline-block text-mono text-xs tracking-widest text-primary hover:underline">→ SHOP</Link>
+      </section>
+    );
+  }
+
+  if (!authLoading && !user) {
+    return (
+      <section className="px-4 md:px-8 py-24 min-h-[70vh] flex flex-col items-center justify-center text-center">
+        <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-4">◢ REQUIRED</div>
+        <h1 className="text-display text-5xl md:text-6xl mb-4">LOGIN TO ORDER</h1>
+        <p className="text-muted-foreground max-w-sm mb-8 leading-relaxed">
+          Create an account or sign in to complete your purchase and track your orders.
+        </p>
+        <div className="flex gap-3 flex-wrap justify-center">
+          <Link to="/login" className="bg-primary text-primary-foreground px-8 py-3.5 text-mono text-xs tracking-widest hover:opacity-90 transition-opacity">
+            LOGIN
+          </Link>
+          <Link to="/signup" className="border border-border px-8 py-3.5 text-mono text-xs tracking-widest hover:border-primary hover:text-primary transition-colors">
+            CREATE ACCOUNT
+          </Link>
+        </div>
       </section>
     );
   }

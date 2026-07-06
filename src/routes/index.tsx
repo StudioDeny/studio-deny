@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { supabase } from "@/lib/supabase";
 import { ProductCard } from "@/components/product/ProductCard";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { buildMeta, buildLinks, SITE_URL, orgJsonLd, websiteJsonLd } from "@/lib/seo";
@@ -89,11 +90,24 @@ function Index() {
   const [activeFabric, setActiveFabric] = useState(FABRIC_TABS[0]);
   const carouselRef = useRef<HTMLDivElement>(null);
   const ls = getSettings();
+  type HeroConfig = { media_type?: "video" | "image"; bg_image?: string; bg_video?: string };
+  const [heroConfig, setHeroConfig] = useState<HeroConfig | null>(null);
+  const [heroMouseOffset, setHeroMouseOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    supabase
+      .from("website_sections")
+      .select("config")
+      .eq("page_slug", "home")
+      .eq("section_type", "hero")
+      .single()
+      .then(({ data }) => { if (data?.config) setHeroConfig(data.config as HeroConfig); });
   }, []);
 
   useEffect(() => {
@@ -127,12 +141,36 @@ function Index() {
       <LoyaltyModal />
 
       {/* ── 1. HERO ─────────────────────────────────────────────────────── */}
-      <section className="relative min-h-[82vh] sm:min-h-[86vh] w-full flex items-center justify-center overflow-hidden px-4 sm:px-8 lg:px-16 pt-28 sm:pt-32 pb-16">
-        <video autoPlay loop muted playsInline preload="metadata"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ filter: isLight ? "brightness(0.55)" : "brightness(0.35)", transform: `translateY(${heroParallax}px)` }}>
-          <source src="https://studio-deny-demo.vercel.app/assets/hero-video.mp4" type="video/mp4" />
-        </video>
+      <section
+        className="relative min-h-[82vh] sm:min-h-[86vh] w-full flex items-center justify-center overflow-hidden px-4 sm:px-8 lg:px-16 pt-28 sm:pt-32 pb-16"
+        onMouseMove={(e) => {
+          if (heroConfig?.media_type !== "image") return;
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = ((e.clientX - rect.left) / rect.width - 0.5) * 18;
+          const y = ((e.clientY - rect.top) / rect.height - 0.5) * 12;
+          setHeroMouseOffset({ x, y });
+        }}
+        onMouseLeave={() => setHeroMouseOffset({ x: 0, y: 0 })}
+      >
+        {heroConfig?.media_type === "image" && heroConfig.bg_image ? (
+          <img
+            src={heroConfig.bg_image}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              filter: isLight ? "brightness(0.55)" : "brightness(0.35)",
+              transform: `translateY(${heroParallax}px) translate(${heroMouseOffset.x}px, ${heroMouseOffset.y}px) scale(1.08)`,
+              transition: "transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94)",
+            }}
+          />
+        ) : (
+          <video autoPlay loop muted playsInline preload="metadata"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ filter: isLight ? "brightness(0.55)" : "brightness(0.35)", transform: `translateY(${heroParallax}px)` }}>
+            <source src={heroConfig?.bg_video || "https://studio-deny-demo.vercel.app/assets/hero-video.mp4"} type="video/mp4" />
+          </video>
+        )}
         <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay"
           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
         {isLight && <div className="absolute inset-0 z-[1] bg-[#F4F0EA]/40 pointer-events-none" />}

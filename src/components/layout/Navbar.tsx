@@ -1,17 +1,20 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sun, Moon, Trophy } from "lucide-react";
+import { Menu, X, Sun, Moon, Trophy, Search } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
 export function Navbar() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQ, setSearchQ] = useState("");
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const isLight = theme === "light";
   const location = useLocation();
+  const navigate = useNavigate();
   const isHomeRoute = location.pathname === "/";
 
   useEffect(() => {
@@ -21,6 +24,14 @@ export function Navbar() {
   }, []);
 
   const navUseSolidBar = !isHomeRoute || scrollY > 12 || mobileNavOpen;
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQ.trim()) return;
+    navigate({ to: "/shop", search: { q: searchQ.trim() } });
+    setSearchOpen(false);
+    setSearchQ("");
+  };
 
   return (
     <>
@@ -46,6 +57,8 @@ export function Navbar() {
           >
             <span className="text-[1.65rem] sm:text-[2.5rem] leading-none">STUDIO DENY</span>
           </Link>
+
+          {/* Desktop nav */}
           <div className="hidden sm:flex gap-5 lg:gap-7 items-center font-body">
             <Link to="/shop" className="text-sm tracking-wide hover:opacity-60 transition-opacity">SHOP</Link>
             <Link to="/collections/$slug" params={{ slug: "men" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity">MEN</Link>
@@ -78,14 +91,16 @@ export function Navbar() {
               {isLight ? "DARK" : "LIGHT"}
             </button>
           </div>
+
+          {/* Mobile: Search + Hamburger */}
           <div className="flex items-center gap-1 sm:hidden">
             <button
               type="button"
-              onClick={toggleTheme}
-              aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
+              onClick={() => { setSearchOpen(true); setMobileNavOpen(false); }}
+              aria-label="Search"
               className="flex h-11 w-11 items-center justify-center hover:opacity-60 transition-opacity"
             >
-              {isLight ? <Moon className="size-4" strokeWidth={1.5} /> : <Sun className="size-4" strokeWidth={1.5} />}
+              <Search className="size-[19px]" strokeWidth={1.5} />
             </button>
             <button
               type="button"
@@ -97,7 +112,7 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Nav */}
+        {/* Mobile nav dropdown */}
         <AnimatePresence>
           {mobileNavOpen && (
             <motion.div
@@ -124,6 +139,41 @@ export function Navbar() {
           )}
         </AnimatePresence>
       </motion.nav>
+
+      {/* Mobile search overlay */}
+      <AnimatePresence>
+        {searchOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[200] sm:hidden bg-background flex flex-col"
+          >
+            <div className="flex items-center justify-between px-4 h-16 border-b border-border shrink-0">
+              <span className="text-mono text-[10px] tracking-[0.3em] text-muted-foreground">SEARCH PRODUCTS</span>
+              <button
+                onClick={() => { setSearchOpen(false); setSearchQ(""); }}
+                className="flex items-center justify-center size-9 hover:opacity-60"
+              >
+                <X className="size-5" strokeWidth={1.5} />
+              </button>
+            </div>
+            <form onSubmit={handleSearch} className="px-5 pt-8 flex-1">
+              <input
+                autoFocus
+                value={searchQ}
+                onChange={(e) => setSearchQ(e.target.value)}
+                placeholder="What are you looking for?"
+                className="w-full bg-transparent border-b-2 border-border text-[1.6rem] tracking-tight focus:outline-none focus:border-primary pb-3 transition-colors placeholder:text-muted-foreground/40"
+              />
+              <p className="text-mono text-[10px] tracking-widest text-muted-foreground mt-4">
+                PRESS ENTER TO SEARCH
+              </p>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
