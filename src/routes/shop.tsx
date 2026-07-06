@@ -59,6 +59,7 @@ function Shop() {
   const navigate = Route.useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [mobileFilters, setMobileFilters] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => { listProducts().then(setProducts); }, []);
 
@@ -256,9 +257,17 @@ function Shop() {
         </div>
         <div className="flex items-center gap-3 text-mono text-[11px] tracking-widest text-muted-foreground">
           <span>{filteredItems.length} PIECES</span>
+          {/* Mobile filter button */}
           <button
             onClick={() => setMobileFilters(true)}
             className="md:hidden inline-flex items-center gap-2 border border-border px-3 h-9 hover:border-primary"
+          >
+            <SlidersHorizontal className="size-3" /> FILTERS {activeCount > 0 && `(${activeCount})`}
+          </button>
+          {/* Desktop filter toggle */}
+          <button
+            onClick={() => setFilterOpen((v) => !v)}
+            className={`hidden md:inline-flex items-center gap-2 border px-3 h-9 transition-colors ${filterOpen ? "border-primary text-primary" : "border-border hover:border-primary"}`}
           >
             <SlidersHorizontal className="size-3" /> FILTERS {activeCount > 0 && `(${activeCount})`}
           </button>
@@ -266,10 +275,12 @@ function Shop() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-[230px_1fr] gap-8">
-        <aside className="hidden md:block sticky top-32 h-fit max-h-[calc(100vh-160px)] overflow-y-auto pr-2 custom-scrollbar">
-          {Filters}
-        </aside>
+      <div className={`grid gap-8 ${filterOpen ? "md:grid-cols-[260px_1fr]" : ""}`}>
+        {filterOpen && (
+          <aside className="hidden md:block sticky top-32 h-fit max-h-[calc(100vh-160px)] overflow-y-auto pr-2 custom-scrollbar animate-in slide-in-from-left-4 duration-300">
+            {Filters}
+          </aside>
+        )}
 
         <div>
           {items.length === 0 ? (
@@ -290,7 +301,7 @@ function Shop() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 {items.map((p, i) => <ProductCard key={p.slug} product={p} index={i} />)}
               </div>
               

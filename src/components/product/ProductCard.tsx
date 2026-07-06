@@ -1,16 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Heart, ShoppingBag, Eye } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
 import type { Product } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { QuickViewModal } from "./QuickViewModal";
 
-export function ProductCard({ 
-  product, 
+export function ProductCard({
+  product,
   index = 0
-}: { 
-  product: Product; 
+}: {
+  product: Product;
   index?: number;
 }) {
   const { add } = useCart();
@@ -18,7 +17,6 @@ export function ProductCard({
   const [hover, setHover] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
   const [added, setAdded] = useState(false);
-  const [quickView, setQuickView] = useState(false);
   const wished = has(product.slug);
 
   const handleQuickAdd = (size: string) => {
@@ -43,8 +41,8 @@ export function ProductCard({
       >
         {/* Image container */}
         <div
-          className="relative overflow-hidden border border-border"
-          style={{ aspectRatio: "4/5", background: "var(--color-surface)" }}
+          className="relative overflow-hidden"
+          style={{ aspectRatio: "3/4", background: "var(--color-surface)" }}
         >
           {/* Main image */}
           <img
@@ -81,23 +79,6 @@ export function ProductCard({
             }}
           />
 
-          {/* Quick view trigger */}
-          <button
-            aria-label="Quick view"
-            onClick={(e) => { e.preventDefault(); setQuickView(true); }}
-            className={`absolute inset-x-0 flex items-center justify-center transition-all duration-300 ${
-              hover && !showSizes ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
-            style={{ top: "50%", transform: "translateY(-50%)" }}
-          >
-            <span
-              className="text-mono text-white/90 bg-black/40 backdrop-blur-sm px-4 py-2 border border-white/20 flex items-center gap-2 hover:bg-black/60 transition-colors"
-              style={{ fontSize: "10px", letterSpacing: "0.3em" }}
-            >
-              <Eye className="size-3.5" /> QUICK VIEW
-            </span>
-          </button>
-
           {/* Badge */}
           {product.badge && (
             <span
@@ -116,17 +97,15 @@ export function ProductCard({
             </span>
           )}
 
-          {/* Wishlist button */}
+          {/* Wishlist — plain heart, no box */}
           <button
             aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
             onClick={(e) => { e.preventDefault(); toggle(product.slug); }}
-            className={`absolute top-2.5 right-2.5 size-8 border backdrop-blur-sm flex items-center justify-center transition-all duration-200 ${
-              wished
-                ? "border-primary bg-primary/20 text-primary"
-                : "border-border bg-background/50 text-muted-foreground hover:border-primary hover:text-primary"
+            className={`absolute top-2.5 right-2.5 p-1.5 transition-all duration-200 ${
+              wished ? "text-primary" : "text-white/70 hover:text-primary"
             }`}
           >
-            <Heart className={`size-3.5 ${wished ? "fill-primary" : ""}`} />
+            <Heart className={`size-4 drop-shadow ${wished ? "fill-primary" : ""}`} />
           </button>
 
           {/* Quick add — desktop hover, always visible (compact) on mobile */}
@@ -177,8 +156,6 @@ export function ProductCard({
           </h3>
         </div>
       </Link>
-
-      <QuickViewModal product={product} open={quickView} onClose={() => setQuickView(false)} />
     </div>
   );
 }
