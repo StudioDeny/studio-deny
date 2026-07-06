@@ -453,12 +453,22 @@ function Index() {
       {/* ── 9. LOYALTY PROGRAM ──────────────────────────────────────────── */}
       {(() => {
         return (
-          <section className="py-24 sm:py-36 px-4 sm:px-8 lg:px-16 border-y border-border bg-[#050505] relative overflow-hidden">
+          <section className="py-20 sm:py-28 px-4 sm:px-8 lg:px-16 border-y border-border bg-[#050505] relative overflow-hidden">
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20 pointer-events-none" />
             <div className="max-w-[1280px] mx-auto relative z-10">
+
+              {/* Logo stamp — full-width header */}
+              <motion.div initial={{ opacity: 0, y: -16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.9 }} viewport={{ once: true }} className="flex justify-center pb-14 sm:pb-18 mb-14 sm:mb-18 border-b border-white/10">
+                <img
+                  src="https://res.cloudinary.com/dsqeawg67/image/upload/v1783356678/WhatsApp_Image_2026-07-03_at_15.50.55-removebg-preview_i8wcnb.png"
+                  alt="Deny Space"
+                  className="w-full max-w-[220px] sm:max-w-[320px] lg:max-w-[400px] h-auto invert"
+                />
+              </motion.div>
+
+              {/* Content grid */}
               <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
                 <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
-                  <img src="https://res.cloudinary.com/dsqeawg67/image/upload/v1783356678/WhatsApp_Image_2026-07-03_at_15.50.55-removebg-preview_i8wcnb.png" alt="Deny Space" className="h-20 sm:h-28 w-auto mb-6 invert brightness-90" />
                   <h2 className="text-[clamp(3rem,7vw,6rem)] leading-[0.88] tracking-[-0.03em] uppercase text-display mb-8 text-white">
                     LOYALTY<br />HAS ITS<br />
                     <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(255,255,255,0.6)" }}>REWARDS.</span>
@@ -468,7 +478,7 @@ function Index() {
                   </p>
                   <div className="flex flex-wrap gap-3">
                     <Link to="/rewards" className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-black text-xs tracking-[0.14em] uppercase text-mono font-bold hover:bg-white/90 transition-colors">
-                      JOIN DENY WORLD <ArrowRight className="w-4 h-4" />
+                      JOIN DENY SPACE <ArrowRight className="w-4 h-4" />
                     </Link>
                     <Link to="/shop" className="inline-flex items-center gap-2 px-8 py-3.5 border border-white/20 text-white text-xs tracking-[0.14em] uppercase text-mono hover:border-white/60 transition-colors">
                       SHOP TO QUALIFY
