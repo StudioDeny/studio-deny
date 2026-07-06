@@ -50,6 +50,7 @@ export function ProductForm({
       name: "",
       category: listCategories()[0]?.name ?? "Tops",
       brand: listBrands()[0]?.name,
+      fit: "",
       price: 0,
       image: "",
       hoverImage: "",
@@ -200,6 +201,20 @@ export function ProductForm({
             </select>
           </Field>
         </div>
+
+        <Field label="FIT">
+          <select
+            value={p.fit ?? ""}
+            onChange={(e) => set("fit", e.target.value || undefined)}
+            className="inp"
+          >
+            <option value="">— NONE —</option>
+            <option value="slim-fit">Slim Fit</option>
+            <option value="regular-fit">Regular Fit</option>
+            <option value="relaxed-fit">Relaxed Fit</option>
+            <option value="oversized">Oversized</option>
+          </select>
+        </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Field label="PRICE (₹)">

@@ -25,7 +25,7 @@ const read = <T,>(k: string, fb: T): T => {
     const raw = localStorage.getItem(k);
     if (raw === null) return fb;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : fb;
+    return (Array.isArray(parsed) && parsed.length > 0 ? parsed : fb) as T;
   } catch { return fb; }
 };
 

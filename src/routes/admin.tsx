@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, ShoppingBag, Home, Users, FileText,
   Undo2, BarChart3, Trophy, Bell, Settings, Tags, Sparkles, Download, FileEdit,
   Megaphone, Layout, Menu, HelpCircle, Star, Image, Globe, MessageSquare,
-  UserCheck,
+  UserCheck, TrendingUp, AtSign, BookOpen, Users2,
 } from "lucide-react";
 import { listOrders, type Order } from "@/lib/orders";
 import { getLastSeen, markSeen } from "@/lib/notifications";
@@ -58,6 +58,7 @@ function AdminLayout() {
     { to: "/admin/products" as const, label: "PRODUCTS", icon: Package },
     { to: "/admin/catalog" as const, label: "CATALOG", icon: Tags },
     { to: "/admin/arrivals" as const, label: "NEW ARRIVALS", icon: Sparkles },
+    { to: "/admin/best-sellers" as const, label: "BEST SELLERS", icon: TrendingUp },
     { to: "/admin/orders" as const, label: "ORDERS", icon: ShoppingBag, badge: unseenOrders.length },
     { to: "/admin/invoices" as const, label: "INVOICES", icon: FileText },
     { to: "/admin/invoice-template" as const, label: "INVOICE TEMPLATE", icon: FileEdit },
@@ -75,6 +76,9 @@ function AdminLayout() {
     { to: "/admin/navigation", label: "NAVIGATION", icon: Menu },
     { to: "/admin/faq", label: "FAQ", icon: HelpCircle },
     { to: "/admin/testimonials", label: "TESTIMONIALS", icon: Star },
+    { to: "/admin/influencer-picks", label: "INFLUENCERS", icon: AtSign },
+    { to: "/admin/lookbook-cms", label: "LOOK BOOK", icon: BookOpen },
+    { to: "/admin/community-cms", label: "COMMUNITY", icon: Users2 },
     { to: "/admin/media", label: "MEDIA", icon: Image },
     { to: "/admin/seo", label: "SEO", icon: Globe },
     { to: "/admin/notifications", label: "WHATSAPP", icon: MessageSquare },

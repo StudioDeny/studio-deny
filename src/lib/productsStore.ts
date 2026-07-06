@@ -18,6 +18,7 @@ export type Product = {
   description: string;
   material: string;
   materialCare?: string;
+  fit?: string;
   stock: number;
   is_active?: boolean;
   is_featured?: boolean;
@@ -39,6 +40,7 @@ type DBProduct = {
   description: string;
   material: string;
   material_care: string | null;
+  fit: string | null;
   stock: number;
   is_active: boolean;
   is_featured: boolean;
@@ -63,6 +65,7 @@ function fromDB(r: DBProduct): Product {
     description: r.description,
     material: r.material,
     materialCare: r.material_care ?? undefined,
+    fit: r.fit ?? undefined,
     stock: r.stock,
     is_active: r.is_active,
     is_featured: r.is_featured,
@@ -86,6 +89,7 @@ function toDB(p: Product): Omit<DBProduct, "created_at" | "updated_at"> {
     description: p.description,
     material: p.material,
     material_care: p.materialCare ?? null,
+    fit: p.fit ?? null,
     stock: p.stock,
     is_active: p.is_active ?? true,
     is_featured: p.is_featured ?? false,
@@ -118,7 +122,8 @@ export async function getStoredProduct(slug: string): Promise<Product | null> {
 export async function upsertProduct(p: Product): Promise<void> {
   const { error } = await supabase
     .from("products")
-    .upsert(toDB(p), { onConflict: "slug" });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .upsert(toDB(p) as any, { onConflict: "slug" });
   if (error) throw new Error(error.message);
 }
 
