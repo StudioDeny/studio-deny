@@ -21,15 +21,15 @@ type NewsletterConfig = { eyebrow: string; title: string; subtitle: string; cta_
 type FaqConfig = { eyebrow: string; title: string };
 
 const TYPE_COLORS: Record<string, string> = {
-  hero:          "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-  marquee:       "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
-  new_arrivals:  "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
-  lookbook:      "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-  testimonials:  "bg-pink-100 text-pink-800 dark:bg-pink-900/40 dark:text-pink-300",
-  faq:           "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300",
-  why_us:        "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300",
-  instagram_feed:"bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
-  newsletter:    "bg-lime-100 text-lime-800 dark:bg-lime-900/40 dark:text-lime-300",
+  hero:          "bg-blue-100 text-blue-800",
+  marquee:       "bg-purple-100 text-purple-800",
+  new_arrivals:  "bg-emerald-100 text-emerald-800",
+  lookbook:      "bg-amber-100 text-amber-800",
+  testimonials:  "bg-pink-100 text-pink-800",
+  faq:           "bg-orange-100 text-orange-800",
+  why_us:        "bg-cyan-100 text-cyan-800",
+  instagram_feed:"bg-rose-100 text-rose-800",
+  newsletter:    "bg-lime-100 text-lime-800",
 };
 
 function AdminWebsiteSections() {
@@ -163,8 +163,8 @@ function AdminWebsiteSections() {
                     onClick={() => toggleVisible(s.id, s.is_locked, !s.is_visible)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold tracking-wide transition-colors ${
                       s.is_visible
-                        ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80 dark:hover:bg-muted/60"
+                        ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
                     }`}
                     title={s.is_locked ? "Locked — cannot hide" : undefined}
                   >

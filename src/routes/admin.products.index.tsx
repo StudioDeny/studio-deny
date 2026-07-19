@@ -98,10 +98,10 @@ function AdminProducts() {
                 <td className="p-3 hidden sm:table-cell">
                   <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${
                     p.stock > 5
-                      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
+                      ? "bg-emerald-100 text-emerald-800"
                       : p.stock > 0
-                      ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
-                      : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-red-100 text-red-700"
                   }`}>
                     {p.stock > 5 ? "ACTIVE" : p.stock > 0 ? "LOW" : "SOLD OUT"}
                   </span>

@@ -137,7 +137,7 @@ function Rewards() {
             <div className="border border-border bg-surface/30 p-8 md:p-12 h-full">
               <div className="flex items-center gap-3 mb-8">
                 <CheckCircle className="size-5 text-emerald-500 shrink-0" />
-                <div className="text-mono text-[11px] tracking-[0.25em] text-emerald-600 dark:text-emerald-400 uppercase">Active Member</div>
+                <div className="text-mono text-[11px] tracking-[0.25em] text-emerald-600 uppercase">Active Member</div>
               </div>
 
               <div className="flex items-end justify-between flex-wrap gap-4 mb-8">

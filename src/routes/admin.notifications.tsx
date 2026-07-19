@@ -19,15 +19,15 @@ export const Route = createFileRoute("/admin/notifications")({
 type Tab = "templates" | "queue" | "logs" | "campaigns";
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  sent: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-  failed: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  delivered: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-  read: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  pending: "bg-yellow-100 text-yellow-800",
+  sent: "bg-emerald-100 text-emerald-800",
+  failed: "bg-red-100 text-red-800",
+  delivered: "bg-emerald-100 text-emerald-800",
+  read: "bg-blue-100 text-blue-800",
   draft: "bg-muted text-muted-foreground",
-  scheduled: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  running: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  completed: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  scheduled: "bg-yellow-100 text-yellow-800",
+  running: "bg-blue-100 text-blue-800",
+  completed: "bg-emerald-100 text-emerald-800",
 };
 
 function AdminNotifications() {
@@ -117,7 +117,7 @@ function TemplatesTab() {
                 <td className="p-3">
                   <button
                     onClick={() => toggle(r.id, !r.is_active)}
-                    className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}
+                    className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
                   >
                     {r.is_active ? "ACTIVE" : "INACTIVE"}
                   </button>
@@ -377,7 +377,7 @@ function CampaignsTab() {
                   {r.scheduled_at ? new Date(r.scheduled_at).toLocaleString() : "—"}
                 </td>
                 <td className="p-3 text-mono text-[10px]">
-                  <span className="text-emerald-600 dark:text-emerald-400">{r.sent_count} sent</span>
+                  <span className="text-emerald-600">{r.sent_count} sent</span>
                   {" · "}
                   <span className="text-primary">{r.delivered_count} del</span>
                   {" · "}
