@@ -18,20 +18,21 @@ function AdminCatalog() {
   const [newCat, setNewCat] = useState("");
   const [newBrand, setNewBrand] = useState("");
   const [editing, setEditing] = useState<{ kind: "cat" | "brand"; slug: string; name: string } | null>(null);
+  const [newCatParent, setNewCatParent] = useState<string>("");
 
-  // Load from localStorage on mount (client-only)
+  // Load from Supabase (categories) / localStorage (brands) on mount (client-only)
   useEffect(() => {
-    setCats(listCategories());
+    listCategories().then(setCats);
     setBrands(listBrands());
   }, []);
 
-  const addCat = () => {
+  const addCat = async () => {
     const name = newCat.trim();
     if (!name) return;
-    const item: Category = { slug: slugify(name), name };
-    const next = upsertCategory(item); // returns updated list, also persists to localStorage
-    setCats(next);
+    await upsertCategory({ name, parentId: newCatParent || null });
+    setCats(await listCategories());
     setNewCat("");
+    setNewCatParent("");
     toast.success(`"${name}" added`);
   };
 
@@ -45,9 +46,10 @@ function AdminCatalog() {
     toast.success(`"${name}" added`);
   };
 
-  const removeCat = (slug: string) => {
+  const removeCat = async (slug: string) => {
     if (!confirm("Delete this category?")) return;
-    setCats(deleteCategory(slug));
+    await deleteCategory(slug);
+    setCats(await listCategories());
   };
 
   const removeBrand = (slug: string) => {
@@ -55,10 +57,16 @@ function AdminCatalog() {
     setBrands(deleteBrand(slug));
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editing) return;
-    if (editing.kind === "cat") setCats(upsertCategory({ slug: editing.slug, name: editing.name }));
-    else setBrands(upsertBrand({ slug: editing.slug, name: editing.name }));
+    if (editing.kind === "cat") {
+      // Preserve the existing parentId so editing a child's name doesn't silently un-parent it.
+      const existing = cats.find((c) => c.slug === editing.slug);
+      await upsertCategory({ slug: editing.slug, name: editing.name, parentId: existing?.parentId ?? null });
+      setCats(await listCategories());
+    } else {
+      setBrands(upsertBrand({ slug: editing.slug, name: editing.name }));
+    }
     setEditing(null);
     toast.success("Updated");
   };
@@ -71,8 +79,19 @@ function AdminCatalog() {
       <div className="grid md:grid-cols-2 gap-6">
         <Panel title="CATEGORIES">
           <AddRow value={newCat} onChange={setNewCat} onAdd={addCat} placeholder="New category name" />
+          <select value={newCatParent} onChange={(e) => setNewCatParent(e.target.value)}
+            className="bg-background border border-border h-9 px-2 text-xs mb-2 w-full">
+            <option value="">— Top level —</option>
+            {cats.filter((c) => c.parentId === null).map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
           <List
-            items={cats.map((c) => ({ slug: c.slug, name: c.name }))}
+            items={cats.map((c) => ({
+              slug: c.slug,
+              name: c.name,
+              meta: c.parentId ? `under ${cats.find((p) => p.id === c.parentId)?.name ?? "?"}` : undefined,
+            }))}
             onEdit={(it) => setEditing({ kind: "cat", slug: it.slug, name: it.name })}
             onDelete={(slug) => removeCat(slug)}
             editing={editing?.kind === "cat" ? editing : null}
@@ -131,7 +150,7 @@ function AddRow({ value, onChange, onAdd, placeholder }: {
   );
 }
 
-type Item = { slug: string; name: string };
+type Item = { slug: string; name: string; meta?: string };
 function List({ items, onEdit, onDelete, editing, setEditing, onSaveEdit }: {
   items: Item[];
   onEdit: (it: Item) => void;
@@ -160,7 +179,10 @@ function List({ items, onEdit, onDelete, editing, setEditing, onSaveEdit }: {
             ) : (
               <>
                 <div className="flex-1">
-                  <div className="text-sm font-semibold">{it.name}</div>
+                  <div className="text-sm font-semibold">
+                    {it.name}
+                    {it.meta && <span className="font-normal text-muted-foreground"> ({it.meta})</span>}
+                  </div>
                   <div className="text-mono text-[10px] text-muted-foreground">{it.slug}</div>
                 </div>
                 <button type="button" onClick={() => onEdit(it)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Pencil className="size-3" /></button>

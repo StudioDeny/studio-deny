@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
 import { upsertProduct, type Product } from "@/lib/productsStore";
-import { listCategories, listBrands } from "@/lib/catalog";
+import { listCategories, listBrands, type Category } from "@/lib/catalog";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
 import { Upload, X, Loader2, Plus } from "lucide-react";
@@ -30,12 +30,12 @@ export function ProductForm({
   initial?: Product;
   onSave: (p: Product) => Promise<void>;
 }) {
-  const [cats, setCats] = useState(() => listCategories());
+  const [cats, setCats] = useState<Category[]>([]);
   const [brands, setBrands] = useState(() => listBrands());
 
   useEffect(() => {
     const refresh = () => {
-      setCats(listCategories());
+      listCategories().then(setCats);
       setBrands(listBrands());
     };
     refresh();
@@ -48,7 +48,7 @@ export function ProductForm({
     initial ?? {
       slug: "",
       name: "",
-      category: listCategories()[0]?.name ?? "Tops",
+      category: "",
       brand: listBrands()[0]?.name,
       fit: "",
       price: 0,
@@ -160,13 +160,17 @@ export function ProductForm({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Field label="CATEGORY">
             <select
-              value={p.category}
-              onChange={(e) => set("category", e.target.value)}
+              value={p.categoryId ?? ""}
+              onChange={(e) => {
+                const chosen = cats.find((c) => c.id === e.target.value);
+                setP({ ...p, categoryId: chosen?.id, category: chosen?.name ?? p.category });
+              }}
               className="inp"
             >
+              <option value="">— Select category —</option>
               {cats.map((c) => (
-                <option key={c.slug} value={c.name}>
-                  {c.name}
+                <option key={c.id} value={c.id}>
+                  {c.parentId ? `${cats.find((p2) => p2.id === c.parentId)?.name} / ${c.name}` : c.name}
                 </option>
               ))}
             </select>

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { listAllAdminProducts, deleteProduct, type Product } from "@/lib/productsStore";
-import { listCategories } from "@/lib/catalog";
+import { listCategories, type Category } from "@/lib/catalog";
 import { formatINR } from "@/context/CartContext";
 import { Plus, Pencil, Trash2, Settings2, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -17,7 +17,9 @@ function AdminProducts() {
   const refresh = async () => { const data = await listAllAdminProducts(); setProducts(data); };
   useEffect(() => { refresh(); }, []);
 
-  const cats = listCategories();
+  const [cats, setCats] = useState<Category[]>([]);
+  useEffect(() => { listCategories().then(setCats); }, []);
+
   const counts = useMemo(() => {
     const m: Record<string, number> = { ALL: products.length };
     cats.forEach((c) => { m[c.name] = products.filter((p) => p.category === c.name).length; });
