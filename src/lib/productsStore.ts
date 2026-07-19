@@ -7,6 +7,7 @@ export type Product = {
   name: string;
   category: string;
   categoryId?: string;
+  createdAt?: string;
   brand?: string;
   price: number;
   compareAt?: number;
@@ -56,6 +57,7 @@ function fromDB(r: DBProduct): Product {
     name: r.name,
     category: r.category,
     categoryId: r.category_id ?? undefined,
+    createdAt: r.created_at,
     brand: r.brand ?? undefined,
     price: Number(r.price),
     compareAt: r.compare_at ? Number(r.compare_at) : undefined,
