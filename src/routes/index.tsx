@@ -331,7 +331,7 @@ function Index() {
             <motion.div key={fit.slug} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: idx * 0.1 }} viewport={{ once: true }}>
               <Link to="/shop" search={{ fit: fit.slug } as never}
                 className="group relative block overflow-hidden border border-border aspect-[3/4]">
-                <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.03]"
                   style={{ backgroundImage: `url('${fit.img}')` }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
@@ -387,7 +387,7 @@ function Index() {
                   className="border border-border bg-surface/30 overflow-hidden group">
                   <div className="relative aspect-[4/5] overflow-hidden">
                     {item.image ? (
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
                     ) : (
                       <div className="w-full h-full bg-surface flex items-center justify-center">
                         <span className="text-muted-foreground text-mono text-xs">NO PHOTO</span>
@@ -428,7 +428,7 @@ function Index() {
             <div className="flex shrink-0 items-stretch ticker-scroll group-hover:[animation-play-state:paused]" style={{ animationDuration: "40s" }}>
               {[...hs.lookBook.items, ...hs.lookBook.items].map((item, idx) => (
                 <div key={idx} className="group/item relative shrink-0 w-[85vw] sm:w-[60vw] lg:w-[45vw] h-[60vh] sm:h-[75vh] mr-5 overflow-hidden">
-                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover/item:scale-105"
+                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover/item:scale-[1.03]"
                     style={{ backgroundImage: `url('${item.image}')` }} />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   <div className="absolute bottom-8 left-6 sm:bottom-12 sm:left-10 z-10">
@@ -454,7 +454,7 @@ function Index() {
               {hs.community.items.map((item, idx) => (
                 <motion.div key={item.id} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: idx * 0.05 }} viewport={{ once: true }}
                   className="relative aspect-square overflow-hidden border border-border group">
-                  <img src={item.image} alt={item.handle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                  <img src={item.image} alt={item.handle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" loading="lazy" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <p className="text-xs tracking-[0.15em] text-white text-mono">{item.handle}</p>
@@ -477,7 +477,7 @@ function Index() {
               ].map((img, idx) => (
                 <motion.div key={idx} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: idx * 0.04 }} viewport={{ once: true }}
                   className="relative aspect-square overflow-hidden border border-border group">
-                  <img src={img} alt="community" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                  <img src={img} alt="community" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" loading="lazy" />
                 </motion.div>
               ))}
             </div>

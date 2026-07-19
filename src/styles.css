@@ -115,6 +115,14 @@
     box-shadow: 0 0 20px rgba(132, 204, 22, 0.55), 0 0 40px rgba(132, 204, 22, 0.25);
   }
 
+  /* Hover Scale Utility */
+  .hover-scale {
+    transition: transform 200ms ease;
+  }
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+
   /* Ticker Animation */
   .ticker-scroll {
     animation: ticker-scroll 35s linear infinite;
