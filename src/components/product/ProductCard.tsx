@@ -82,7 +82,7 @@ export function ProductCard({
           {/* Badge */}
           {product.badge && (
             <span
-              className={`absolute top-2.5 left-2.5 text-mono font-semibold px-2 py-1 ${
+              className={`absolute top-2.5 left-2.5 text-street font-semibold px-2 py-1 ${
                 product.badge === "SALE"
                   ? "bg-secondary text-secondary-foreground"
                   : product.badge === "SOLD OUT"

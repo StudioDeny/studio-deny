@@ -123,7 +123,7 @@ function CollectionPage() {
       <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
         <div>
           <div className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2">COLLECTION</div>
-          <h1 className="text-display text-5xl md:text-7xl">{cat?.name?.toUpperCase() ?? slug.toUpperCase()}.</h1>
+          <h1 className="text-display text-street text-5xl md:text-7xl">{cat?.name?.toUpperCase() ?? slug.toUpperCase()}.</h1>
         </div>
         <div className="flex flex-wrap gap-2">
           {all.map((c) => (

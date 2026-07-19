@@ -174,7 +174,7 @@ function Index() {
 
         <div className="relative z-10 max-w-[1320px] mx-auto w-full text-foreground">
           <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5 }} className="space-y-6 sm:space-y-8">
-            <h1 className="text-[clamp(3.5rem,15vw,10rem)] leading-[0.88] tracking-[-0.04em] uppercase max-w-5xl text-display text-foreground">
+            <h1 className="text-[clamp(3.5rem,15vw,10rem)] leading-[0.88] tracking-[-0.04em] uppercase max-w-5xl text-display text-street text-foreground">
               IN THE CUT<br />NOT IN THE CROWD
             </h1>
             <p className="text-base sm:text-lg leading-relaxed max-w-xl text-mono text-foreground/75">
@@ -229,7 +229,7 @@ function Index() {
             className="flex items-end justify-between mb-8 sm:mb-10">
             <div>
               <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{hs.bestSellers.eyebrow}</span>
-              <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display">{hs.bestSellers.title}</h2>
+              <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display text-street">{hs.bestSellers.title}</h2>
             </div>
             <div className="hidden sm:flex items-center gap-2">
               <button type="button" onClick={() => scrollCarousel("left")}
@@ -324,7 +324,7 @@ function Index() {
       <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 max-w-[1560px] mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10">
           <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">FIND YOUR FIT</span>
-          <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display">SHOP BY FIT</h2>
+          <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display text-street">SHOP BY FIT</h2>
         </motion.div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
           {FIT_TILES.map((fit, idx) => (
@@ -356,7 +356,7 @@ function Index() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/70" />
         <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} viewport={{ once: true }}>
-            <h2 className="text-[clamp(4rem,12vw,10rem)] leading-[0.8] font-display uppercase tracking-[-0.04em] text-white">
+            <h2 className="text-[clamp(4rem,12vw,10rem)] leading-[0.8] font-display text-street uppercase tracking-[-0.04em] text-white">
               MOTION<br />
               <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(255,255,255,0.65)" }}>PICTURE</span>
             </h2>
@@ -379,7 +379,7 @@ function Index() {
           <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 max-w-[1560px] mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10">
               <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{hs.influencerPicks.eyebrow}</span>
-              <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display">{hs.influencerPicks.title}</h2>
+              <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display text-street">{hs.influencerPicks.title}</h2>
             </motion.div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {items.map((item, idx) => (
@@ -420,7 +420,7 @@ function Index() {
         <section className="py-14 sm:py-20 bg-surface/10 overflow-hidden border-t border-border">
           <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-8 sm:mb-10">
-              <h2 className="text-[clamp(3rem,10vw,6rem)] leading-none tracking-[-0.03em] uppercase text-display">LOOKBOOK</h2>
+              <h2 className="text-[clamp(3rem,10vw,6rem)] leading-none tracking-[-0.03em] uppercase text-display text-street">LOOKBOOK</h2>
               <p className="text-base sm:text-lg mt-3 opacity-80 max-w-xl text-mono">Swipe through curated fits built for daily movement.</p>
             </motion.div>
           </div>
@@ -446,7 +446,7 @@ function Index() {
         <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 border-t border-border max-w-[1560px] mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10">
             <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">THE STREETS SPEAK</span>
-            <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display">{hs.community.title}</h2>
+            <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display text-street">{hs.community.title}</h2>
             <p className="mt-3 text-muted-foreground text-sm sm:text-base text-mono">{hs.community.subtitle}</p>
           </motion.div>
           {hs.community.items.length > 0 ? (
@@ -559,7 +559,7 @@ function Index() {
       <section className="py-16 sm:py-24 overflow-hidden">
         <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10 sm:mb-14 text-center">
-            <h2 className="text-[clamp(3rem,10vw,7rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display">WORN IN<br />EVERY CITY</h2>
+            <h2 className="text-[clamp(3rem,10vw,7rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display text-street">WORN IN<br />EVERY CITY</h2>
           </motion.div>
         </div>
         <div className="flex overflow-hidden group py-4">
@@ -599,7 +599,7 @@ function Index() {
           <div className="max-w-[1280px] mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-12 text-center">
               <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">WE'RE HERE</span>
-              <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display">CONTACT SUPPORT</h2>
+              <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display text-street">CONTACT SUPPORT</h2>
             </motion.div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
               {[
