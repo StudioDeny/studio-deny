@@ -5,6 +5,7 @@ import { Menu, X, Search, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { formatINR } from "@/context/CartContext";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 export function Navbar() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -226,14 +227,44 @@ export function Navbar() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="flex flex-col gap-1 border-t border-border px-4 pb-5 pt-2 sm:hidden overflow-hidden text-foreground bg-background"
+              className="border-t border-border px-4 pb-5 pt-2 sm:hidden overflow-hidden text-foreground bg-background"
             >
-              <Link to="/collections/$slug" params={{ slug: "men" }} onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">MEN</Link>
-              <Link to="/collections/$slug" params={{ slug: "women" }} onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">WOMEN</Link>
-              <Link to="/collections/$slug" params={{ slug: "accessories" }} onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">ACCESSORIES</Link>
-              <Link to="/lookbook" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">LOOKBOOK</Link>
-              <Link to="/about" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">ABOUT</Link>
-              <Link to="/contact" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide border-b border-border">CONTACT</Link>
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="men">
+                  <AccordionTrigger className="text-sm tracking-wide uppercase">MEN</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="flex flex-col gap-1 pl-3">
+                      <Link to="/shop" search={{ sort: "new" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">NEW ARRIVALS</Link>
+                      <Link to="/shop" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">BEST SELLERS</Link>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="women">
+                  <AccordionTrigger className="text-sm tracking-wide uppercase">WOMEN</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="flex flex-col gap-1 pl-3">
+                      <Link to="/shop" search={{ sort: "new" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">NEW ARRIVALS</Link>
+                      <Link to="/shop" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">BEST SELLERS</Link>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="accessories">
+                  <AccordionTrigger className="text-sm tracking-wide uppercase">ACCESSORIES</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="flex flex-col gap-1 pl-3">
+                      <Link to="/collections/$slug" params={{ slug: "rings" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">RINGS</Link>
+                      <Link to="/collections/$slug" params={{ slug: "chains" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">CHAINS</Link>
+                      <Link to="/collections/$slug" params={{ slug: "socks" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">SOCKS</Link>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+              <Link to="/collections/$slug" params={{ slug: "sneakers" }} onClick={() => setMobileNavOpen(false)} className="block py-4 text-sm tracking-wide uppercase border-b border-border">SNEAKERS</Link>
+              {user ? (
+                <Link to="/account" onClick={() => setMobileNavOpen(false)} className="block py-3 text-sm tracking-wide uppercase">ACCOUNT</Link>
+              ) : (
+                <Link to="/login" onClick={() => setMobileNavOpen(false)} className="block py-3 text-sm tracking-wide uppercase">LOGIN</Link>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
