@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Trophy, Search, ArrowRight } from "lucide-react";
+import { Menu, X, Search, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { formatINR } from "@/context/CartContext";
@@ -101,27 +101,6 @@ export function Navbar() {
 
           {/* Desktop nav */}
           <div className="hidden sm:flex gap-5 lg:gap-7 items-center font-body">
-            <Link to="/shop" className="text-sm tracking-wide hover:opacity-60 transition-opacity">SHOP</Link>
-            <Link to="/collections/$slug" params={{ slug: "men" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity">MEN</Link>
-            <Link to="/collections/$slug" params={{ slug: "women" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity">WOMEN</Link>
-            <Link to="/collections/$slug" params={{ slug: "accessories" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">ACCESSORIES</Link>
-            <Link to="/lookbook" className="text-sm tracking-wide hover:opacity-60 transition-opacity">LOOKBOOK</Link>
-            <Link to="/about" className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">ABOUT</Link>
-            <Link to="/contact" className="text-sm tracking-wide hover:opacity-60 transition-opacity hidden lg:inline">CONTACT</Link>
-            <Link
-              to="/rewards"
-              className="inline-flex items-center gap-1.5 text-xs tracking-[0.15em] font-semibold px-3 py-1.5 border border-current/25 hover:border-current/60 transition-colors text-mono"
-            >
-              <Trophy className="w-3 h-3 opacity-80" />
-              REWARDS
-            </Link>
-            <Link to="/cart" className="text-sm tracking-wide hover:opacity-60 transition-opacity">CART</Link>
-            <div className="w-[1px] h-4 bg-white/20 mx-1 hidden lg:block" />
-            {user ? (
-              <Link to="/account" className="text-sm tracking-wide hover:opacity-60 transition-opacity uppercase">ACCOUNT</Link>
-            ) : (
-              <Link to="/login" className="text-sm tracking-wide hover:opacity-60 transition-opacity uppercase">LOGIN</Link>
-            )}
             <button
               type="button"
               onClick={() => { setSearchOpen((v) => !v); setMobileNavOpen(false); }}
@@ -130,6 +109,19 @@ export function Navbar() {
             >
               {searchOpen ? <X className="size-4" strokeWidth={1.5} /> : <Search className="size-4" strokeWidth={1.5} />}
             </button>
+            <Link to="/collections/$slug" params={{ slug: "men" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale">MEN</Link>
+            <Link to="/collections/$slug" params={{ slug: "women" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale">WOMEN</Link>
+            <Link to="/collections/$slug" params={{ slug: "accessories" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale hidden lg:inline">ACCESSORIES</Link>
+            <Link to="/collections/$slug" params={{ slug: "sneakers" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale hidden lg:inline">SNEAKERS</Link>
+            <Link to="/shop" search={{ sort: "new" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale">NEW</Link>
+            <Link to="/shop" search={{ q: undefined }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale">BEST SELLERS</Link>
+            <div className="w-[1px] h-4 bg-black/20 mx-1 hidden lg:block" />
+            {user ? (
+              <Link to="/account" className="text-sm tracking-wide hover:opacity-60 transition-opacity uppercase hover-scale">ACCOUNT</Link>
+            ) : (
+              <Link to="/login" className="text-sm tracking-wide hover:opacity-60 transition-opacity uppercase hover-scale">LOGIN</Link>
+            )}
+            <Link to="/cart" className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale">CART</Link>
           </div>
 
           {/* Mobile: Search + Hamburger */}
