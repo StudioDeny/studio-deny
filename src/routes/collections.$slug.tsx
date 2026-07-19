@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { productsInCategory, findCategoryBySlug, listCategories } from "@/lib/catalog";
+import type { Category } from "@/lib/catalog";
 import type { Product } from "@/lib/productsStore";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -50,8 +51,10 @@ function CollectionPage() {
     setSelSizes([]); setMaxPrice(""); setOnSale(false); setInStock(false); setSort("new");
   }, [slug]);
 
-  const cat = useMemo(() => findCategoryBySlug(slug), [slug]);
-  const all = listCategories();
+  const [cat, setCat] = useState<Category | undefined>(undefined);
+  const [all, setAll] = useState<Category[]>([]);
+  useEffect(() => { findCategoryBySlug(slug).then(setCat); }, [slug]);
+  useEffect(() => { listCategories().then(setAll); }, []);
 
   const allSizes = useMemo(() => [...new Set(items.flatMap((p) => p.sizes))], [items]);
 

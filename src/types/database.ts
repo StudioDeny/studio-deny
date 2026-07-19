@@ -21,6 +21,15 @@ export type DBProduct = {
   updated_at: string;
 };
 
+export type CategoryRow = {
+  id: string;
+  name: string;
+  slug: string;
+  parent_id: string | null;
+  is_active: boolean;
+  created_at: string;
+};
+
 export type AppRole = "admin" | "staff" | "customer";
 export type PaymentMethod = "RAZORPAY" | "COD";
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
@@ -47,6 +56,12 @@ export interface Database {
         Row: ProductVariant;
         Insert: Omit<ProductVariant, "id" | "created_at">;
         Update: Partial<Omit<ProductVariant, "id" | "created_at">>;
+        Relationships: [];
+      };
+      categories: {
+        Row: CategoryRow;
+        Insert: Omit<CategoryRow, "id" | "created_at" | "is_active"> & Partial<Pick<CategoryRow, "id" | "created_at" | "is_active">>;
+        Update: Partial<Omit<CategoryRow, "id" | "created_at">>;
         Relationships: [];
       };
       announcement_bars: {

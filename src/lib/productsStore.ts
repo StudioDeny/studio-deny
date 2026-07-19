@@ -6,6 +6,7 @@ export type Product = {
   slug: string;
   name: string;
   category: string;
+  categoryId?: string;
   brand?: string;
   price: number;
   compareAt?: number;
@@ -28,6 +29,7 @@ type DBProduct = {
   slug: string;
   name: string;
   category: string;
+  category_id: string | null;
   brand: string | null;
   price: number;
   compare_at: number | null;
@@ -53,6 +55,7 @@ function fromDB(r: DBProduct): Product {
     slug: r.slug,
     name: r.name,
     category: r.category,
+    categoryId: r.category_id ?? undefined,
     brand: r.brand ?? undefined,
     price: Number(r.price),
     compareAt: r.compare_at ? Number(r.compare_at) : undefined,
@@ -77,6 +80,7 @@ function toDB(p: Product): Omit<DBProduct, "created_at" | "updated_at"> {
     slug: p.slug,
     name: p.name,
     category: p.category,
+    category_id: p.categoryId ?? null,
     brand: p.brand ?? null,
     price: p.price,
     compare_at: p.compareAt ?? null,

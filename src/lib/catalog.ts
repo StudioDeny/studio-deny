@@ -1,24 +1,73 @@
-// Catalog: brands & categories store (localStorage-backed) with sane defaults.
+// Catalog: categories (Supabase-backed, hierarchical) & brands (localStorage-backed).
 import { listProducts } from "./productsStore";
+import { supabase } from "./supabase";
 
-const CAT_KEY = "sd_categories_v1";
 const BRAND_KEY = "sd_brands_v1";
 
-export type Category = { slug: string; name: string };
+export type Category = { id: string; slug: string; name: string; parentId: string | null };
 export type Brand = { slug: string; name: string };
 
-export const DEFAULT_CATEGORIES: Category[] = [
-  { slug: "tops", name: "Tops" },
-  { slug: "bottoms", name: "Bottoms" },
-  { slug: "outerwear", name: "Outerwear" },
-  { slug: "accessories", name: "Accessories" },
-  { slug: "men", name: "Men" },
-  { slug: "women", name: "Women" },
-];
 export const DEFAULT_BRANDS: Brand[] = [
   { slug: "studio-deny", name: "Studio Deny" },
 ];
 
+export const slugify = (s: string) =>
+  s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+type DBCategory = { id: string; slug: string; name: string; parent_id: string | null };
+const fromDBCategory = (r: DBCategory): Category => ({ id: r.id, slug: r.slug, name: r.name, parentId: r.parent_id });
+
+export async function listCategories(): Promise<Category[]> {
+  const { data, error } = await supabase
+    .from("categories")
+    .select("id,slug,name,parent_id")
+    .eq("is_active", true)
+    .order("name");
+  if (error) {
+    console.error("listCategories:", error.message);
+    return [];
+  }
+  return (data as DBCategory[]).map(fromDBCategory);
+}
+
+export async function listTopLevelCategories(): Promise<Category[]> {
+  return (await listCategories()).filter((c) => c.parentId === null);
+}
+
+export async function listChildCategories(parentSlug: string): Promise<Category[]> {
+  const all = await listCategories();
+  const parent = all.find((c) => c.slug === parentSlug);
+  if (!parent) return [];
+  return all.filter((c) => c.parentId === parent.id);
+}
+
+export async function findCategoryBySlug(slug: string): Promise<Category | undefined> {
+  return (await listCategories()).find((c) => c.slug.toLowerCase() === slug.toLowerCase());
+}
+
+export async function upsertCategory(input: { name: string; slug?: string; parentId?: string | null }): Promise<void> {
+  const slug = input.slug ?? slugify(input.name);
+  const { error } = await supabase
+    .from("categories")
+    .upsert({ name: input.name, slug, parent_id: input.parentId ?? null }, { onConflict: "slug" });
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteCategory(slug: string): Promise<void> {
+  const { error } = await supabase.from("categories").update({ is_active: false }).eq("slug", slug);
+  if (error) throw new Error(error.message);
+}
+
+export async function productsInCategory(catSlug: string) {
+  const cat = await findCategoryBySlug(catSlug);
+  if (!cat) return [];
+  const children = await listChildCategories(catSlug);
+  const ids = new Set([cat.id, ...children.map((c) => c.id)]);
+  const all = await listProducts();
+  return all.filter((p) => p.categoryId && ids.has(p.categoryId));
+}
+
+// ── Brands (unchanged — still localStorage-backed) ─────────────────────
 const read = <T,>(k: string, fb: T): T => {
   if (typeof window === "undefined") return fb;
   try {
@@ -28,38 +77,17 @@ const read = <T,>(k: string, fb: T): T => {
     return (Array.isArray(parsed) && parsed.length > 0 ? parsed : fb) as T;
   } catch { return fb; }
 };
-
 const write = (k: string, v: unknown): boolean => {
   if (typeof window === "undefined") return false;
   try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; }
 };
-
-export const slugify = (s: string) =>
-  s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
-export function listCategories(): Category[] {
-  return read<Category[]>(CAT_KEY, DEFAULT_CATEGORIES);
-}
-export function saveCategories(list: Category[]): boolean { return write(CAT_KEY, list); }
-export function upsertCategory(c: Category): Category[] {
-  const list = [...listCategories()]; // spread to avoid mutating the fallback constant
-  const i = list.findIndex((x) => x.slug === c.slug);
-  if (i >= 0) list[i] = c; else list.push(c);
-  saveCategories(list);
-  return list;
-}
-export function deleteCategory(slug: string): Category[] {
-  const list = listCategories().filter((c) => c.slug !== slug);
-  saveCategories(list);
-  return list;
-}
 
 export function listBrands(): Brand[] {
   return read<Brand[]>(BRAND_KEY, DEFAULT_BRANDS);
 }
 export function saveBrands(list: Brand[]): boolean { return write(BRAND_KEY, list); }
 export function upsertBrand(b: Brand): Brand[] {
-  const list = [...listBrands()]; // spread to avoid mutating the fallback constant
+  const list = [...listBrands()];
   const i = list.findIndex((x) => x.slug === b.slug);
   if (i >= 0) list[i] = b; else list.push(b);
   saveBrands(list);
@@ -69,15 +97,4 @@ export function deleteBrand(slug: string): Brand[] {
   const list = listBrands().filter((b) => b.slug !== slug);
   saveBrands(list);
   return list;
-}
-
-export function findCategoryBySlug(slug: string): Category | undefined {
-  return listCategories().find((c) => c.slug.toLowerCase() === slug.toLowerCase() || slugify(c.name) === slug.toLowerCase());
-}
-
-export async function productsInCategory(catSlug: string) {
-  const cat = findCategoryBySlug(catSlug);
-  const target = (cat?.name ?? catSlug).toLowerCase();
-  const all = await listProducts();
-  return all.filter((p) => p.category.toLowerCase() === target);
 }
