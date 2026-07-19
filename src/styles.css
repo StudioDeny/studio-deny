@@ -4,9 +4,6 @@
 @source "../src";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-@custom-variant light (&:is(.light *));
-
 @theme inline {
   --font-display: 'Bebas Neue', system-ui, sans-serif;
   --font-body: 'Barlow', system-ui, sans-serif;
@@ -23,39 +20,29 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 }
 
-:root, .dark {
-  --background: #0A0A0A;
-  --foreground: #FFFFFF;
-  --surface: #171717;
-
-  --primary: #FFFFFF;
-  --primary-foreground: #0A0A0A;
-  --secondary: #262626;
-  --secondary-foreground: #FFFFFF;
-
-  --muted: #262626;
-  --muted-foreground: #A3A3A3;
-  --border: rgba(255, 255, 255, 0.1);
-}
-
-.light {
+:root {
   color-scheme: light;
 
-  /* Warm editorial cream — premium, high-contrast, magazine-feel */
-  --background: #F4F0EA;
-  --foreground: #0D0B09;
-  --surface: #D9D3C8;
+  --background: #F2F2F0;
+  --foreground: #111111;
+  --surface: #E6E6E3;
 
-  --primary: #0D0B09;
-  --primary-foreground: #F4F0EA;
-  --secondary: #C4BDB1;
-  --secondary-foreground: #0D0B09;
+  --primary: #111111;
+  --primary-foreground: #F2F2F0;
+  --secondary: #D8D8D4;
+  --secondary-foreground: #111111;
 
-  --muted: #CCC6BA;
-  --muted-foreground: #48433D;
-  --border: rgba(0, 0, 0, 0.22);
+  --muted: #DCDCD8;
+  --muted-foreground: #55534E;
+  --border: rgba(0, 0, 0, 0.14);
+
+  --accent: #E0202A;
+  --accent-foreground: #FFFFFF;
 }
 
 @layer base {
@@ -64,30 +51,25 @@
     box-sizing: border-box;
   }
   html {
-    color-scheme: dark;
+    color-scheme: light;
     scroll-behavior: smooth;
     font-size: 16px;
   }
   body {
-    background-color: var(--background);
+    background: linear-gradient(
+      150deg,
+      #F7F7F5 0%,
+      #F2F2F0 20%,
+      #E9E9E6 50%,
+      #EDEDEA 75%,
+      #F5F5F3 100%
+    );
+    background-attachment: fixed;
+    background-color: #F2F2F0;
     color: var(--foreground);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-
-  /* Light mode: rich gradient instead of flat colour */
-  .light body {
-    background: linear-gradient(
-      150deg,
-      #FAF8F4 0%,
-      #F4F0EA 20%,
-      #EDE6DA 50%,
-      #F0EAE1 75%,
-      #F7F3EE 100%
-    );
-    background-attachment: fixed;
-    background-color: #F4F0EA; /* fallback */
   }
 
   h1, h2, h3, h4 {

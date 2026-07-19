@@ -36,7 +36,7 @@ export function Preloader() {
           initial={{ y: 0 }}
           exit={{ y: "-100%" }}
           transition={{ duration: 0.8, ease: [0.85, 0, 0.15, 1] }}
-          className="fixed inset-0 z-[1000] bg-[#0a0a0a] flex flex-col items-center justify-center pointer-events-none"
+          className="fixed inset-0 z-[1000] bg-background flex flex-col items-center justify-center pointer-events-none"
         >
           <div className="relative overflow-hidden px-4">
             <motion.div
@@ -45,7 +45,7 @@ export function Preloader() {
               transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
               className="flex flex-col items-center"
             >
-              <h1 className="text-display text-5xl md:text-[10rem] leading-none text-white tracking-tighter uppercase text-center">
+              <h1 className="text-display text-5xl md:text-[10rem] leading-none text-foreground tracking-tighter uppercase text-center">
                 STUDIO <br className="md:hidden" /> DENY
               </h1>
               
