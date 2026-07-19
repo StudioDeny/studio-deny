@@ -6,7 +6,6 @@ import { buildMeta, buildLinks, SITE_URL, orgJsonLd, websiteJsonLd } from "@/lib
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Star, Mail, MessageCircle, Clock } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { useTheme } from "@/context/ThemeContext";
 import { LoyaltyModal } from "@/components/home/LoyaltyModal";
 import { getSettings } from "@/lib/settings";
 import { getHomeSections, type HomeSections } from "@/lib/homeSections";
@@ -79,8 +78,6 @@ const FABRIC_TABS = [
 ];
 
 function Index() {
-  const { theme } = useTheme();
-  const isLight = theme === "light";
   const [scrollY, setScrollY] = useState(0);
   const heroParallax = Math.min(scrollY * 0.4, 120);
 
@@ -159,7 +156,7 @@ function Index() {
             aria-hidden
             className="absolute inset-0 w-full h-full object-cover"
             style={{
-              filter: isLight ? "brightness(0.55)" : "brightness(0.35)",
+              filter: "brightness(0.55)",
               transform: `translateY(${heroParallax}px) translate(${heroMouseOffset.x}px, ${heroMouseOffset.y}px) scale(1.08)`,
               transition: "transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94)",
             }}
@@ -167,36 +164,36 @@ function Index() {
         ) : (
           <video autoPlay loop muted playsInline preload="metadata"
             className="absolute inset-0 w-full h-full object-cover"
-            style={{ filter: isLight ? "brightness(0.55)" : "brightness(0.35)", transform: `translateY(${heroParallax}px)` }}>
+            style={{ filter: "brightness(0.55)", transform: `translateY(${heroParallax}px)` }}>
             <source src={heroConfig?.bg_video || "https://studio-deny-demo.vercel.app/assets/hero-video.mp4"} type="video/mp4" />
           </video>
         )}
         <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay"
           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
-        {isLight && <div className="absolute inset-0 z-[1] bg-[#F4F0EA]/40 pointer-events-none" />}
+        <div className="absolute inset-0 z-[1] bg-[#F2F2F0]/40 pointer-events-none" />
 
-        <div className={`relative z-10 max-w-[1320px] mx-auto w-full ${isLight ? "text-foreground" : "text-white"}`}>
+        <div className="relative z-10 max-w-[1320px] mx-auto w-full text-foreground">
           <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5 }} className="space-y-6 sm:space-y-8">
-            <h1 className={`text-[clamp(3.5rem,15vw,10rem)] leading-[0.88] tracking-[-0.04em] uppercase max-w-5xl text-display ${isLight ? "text-foreground" : "text-white"}`}>
+            <h1 className="text-[clamp(3.5rem,15vw,10rem)] leading-[0.88] tracking-[-0.04em] uppercase max-w-5xl text-display text-foreground">
               IN THE CUT<br />NOT IN THE CROWD
             </h1>
-            <p className={`text-base sm:text-lg leading-relaxed max-w-xl text-mono ${isLight ? "text-foreground/75" : "text-white/80"}`}>
+            <p className="text-base sm:text-lg leading-relaxed max-w-xl text-mono text-foreground/75">
               Elevated streetwear engineered for creators. Limited drops, premium cuts, and a fit made to stand apart.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Link to="/shop"
-                className={`group relative overflow-hidden px-8 py-3 min-h-11 border transition-colors duration-300 inline-flex items-center justify-center gap-2 text-mono text-sm tracking-[0.14em] ${isLight ? "border-foreground bg-foreground text-background hover:bg-transparent hover:text-foreground" : "border-white bg-white text-black hover:bg-transparent hover:text-white"}`}>
+                className="group relative overflow-hidden px-8 py-3 min-h-11 border transition-colors duration-300 inline-flex items-center justify-center gap-2 text-mono text-sm tracking-[0.14em] border-foreground bg-foreground text-background hover:bg-transparent hover:text-foreground">
                 SHOP THE DROP <ArrowRight className="w-4 h-4" />
               </Link>
               <Link to="/lookbook"
-                className={`px-8 py-3 min-h-11 border text-sm tracking-[0.14em] transition-colors duration-300 inline-flex items-center justify-center text-mono ${isLight ? "border-foreground/40 text-foreground hover:border-foreground hover:bg-foreground/10" : "border-white/40 text-white hover:border-white hover:bg-white/10"}`}>
+                className="px-8 py-3 min-h-11 border text-sm tracking-[0.14em] transition-colors duration-300 inline-flex items-center justify-center text-mono border-foreground/40 text-foreground hover:border-foreground hover:bg-foreground/10">
                 VIEW LOOKBOOK
               </Link>
             </div>
           </motion.div>
         </div>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 1.5 }}
-          className={`absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 text-center ${isLight ? "text-foreground" : "text-white"}`}>
+          className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 text-center text-foreground">
           <div className="flex flex-col items-center gap-2 opacity-70">
             <span className="text-[11px] tracking-[0.2em] text-mono">SCROLL</span>
             <ChevronDown className="w-4 h-4 animate-bounce" />
@@ -286,7 +283,7 @@ function Index() {
             <h2 className="text-[clamp(3rem,8vw,6rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-4">
               PREMIUM FABRIC.
               <br />
-              <span className="text-transparent" style={{ WebkitTextStroke: isLight ? "2px rgba(0,0,0,0.55)" : "1px rgba(255,255,255,0.35)" }}>
+              <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(0,0,0,0.55)" }}>
                 UNCOMPROMISED QUALITY.
               </span>
             </h2>

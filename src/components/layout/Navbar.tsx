@@ -1,9 +1,8 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sun, Moon, Trophy, Search, ArrowRight } from "lucide-react";
+import { Menu, X, Trophy, Search, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/context/ThemeContext";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { formatINR } from "@/context/CartContext";
 
@@ -15,8 +14,6 @@ export function Navbar() {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const isLight = theme === "light";
   const location = useLocation();
   const navigate = useNavigate();
   const isHomeRoute = location.pathname === "/";
@@ -88,16 +85,12 @@ export function Navbar() {
         transition={{ duration: 0.8, delay: 0.2 }}
         className={`fixed top-0 left-0 right-0 z-[100] flex flex-col transition-[background,backdrop-filter] duration-300 ${
           navUseSolidBar
-            ? isLight
-              ? "bg-white/95 backdrop-blur-md border-b border-black/[0.08]"
-              : "bg-[rgba(10,10,10,0.95)] backdrop-blur-md border-b border-white/[0.06]"
-            : isLight
-            ? "bg-transparent"
-            : "mix-blend-difference"
+            ? "bg-white/95 backdrop-blur-md border-b border-black/[0.08]"
+            : "bg-transparent"
         }`}
       >
         {/* Main bar */}
-        <div className={`flex w-full items-center justify-between px-4 sm:px-8 lg:px-16 py-4 sm:py-6 ${isLight && navUseSolidBar ? "text-foreground" : "text-white"}`}>
+        <div className="flex w-full items-center justify-between px-4 sm:px-8 lg:px-16 py-4 sm:py-6 text-foreground">
           <Link
             to="/"
             onClick={() => { setMobileNavOpen(false); closeSearch(); }}
@@ -137,15 +130,6 @@ export function Navbar() {
             >
               {searchOpen ? <X className="size-4" strokeWidth={1.5} /> : <Search className="size-4" strokeWidth={1.5} />}
             </button>
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-current/25 hover:border-current/60 transition-colors text-mono text-[9px] tracking-[0.18em] font-bold"
-            >
-              {isLight ? <Moon className="size-3" strokeWidth={1.5} /> : <Sun className="size-3" strokeWidth={1.5} />}
-              {isLight ? "DARK" : "LIGHT"}
-            </button>
           </div>
 
           {/* Mobile: Search + Hamburger */}
@@ -177,7 +161,7 @@ export function Navbar() {
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
               className="overflow-hidden border-t border-border"
-              style={{ background: isLight ? "rgba(255,255,255,0.98)" : "rgba(10,10,10,0.98)" }}
+              style={{ background: "rgba(255,255,255,0.98)" }}
             >
               {/* Search input row */}
               <form onSubmit={handleSearch} className="flex items-center gap-3 px-4 sm:px-8 lg:px-16 py-3 border-b border-border/50">
@@ -258,14 +242,6 @@ export function Navbar() {
               <Link to="/lookbook" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">LOOKBOOK</Link>
               <Link to="/about" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide">ABOUT</Link>
               <Link to="/contact" onClick={() => setMobileNavOpen(false)} className="py-3 text-sm tracking-wide border-b border-border">CONTACT</Link>
-              <button
-                type="button"
-                onClick={() => { toggleTheme(); setMobileNavOpen(false); }}
-                className="mt-1 inline-flex items-center gap-2 px-3 py-2 border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors text-mono text-[10px] tracking-[0.2em] font-bold"
-              >
-                {isLight ? <Moon className="size-3.5" strokeWidth={1.5} /> : <Sun className="size-3.5" strokeWidth={1.5} />}
-                {isLight ? "DARK MODE" : "LIGHT MODE"}
-              </button>
             </motion.div>
           )}
         </AnimatePresence>

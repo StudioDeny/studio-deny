@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/context/ThemeContext";
 import { ordersFor, type Order } from "@/lib/orders";
 import { getSettings } from "@/lib/settings";
 import {
@@ -27,8 +26,6 @@ const TIER_COLORS: Record<string, string> = {
 
 function Rewards() {
   const { user } = useAuth();
-  const { theme } = useTheme();
-  const isLight = theme === "light";
   const [orders, setOrders] = useState<Order[]>([]);
   const settings = getSettings();
 
@@ -55,7 +52,7 @@ function Rewards() {
         <h1 className="text-display text-[clamp(3rem,8vw,7rem)] leading-[0.9] tracking-[-0.03em] uppercase max-w-4xl mx-auto mb-8">
           LOYALTY PAYS.
           <br />
-          <span className="text-transparent" style={{ WebkitTextStroke: isLight ? "2px rgba(0,0,0,0.55)" : "1px rgba(255,255,255,0.4)" }}>
+          <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(0,0,0,0.55)" }}>
             EXCLUSIVITY REWARDS.
           </span>
         </h1>
