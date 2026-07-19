@@ -25,24 +25,40 @@ Current relevant state (from codebase investigation):
   (Home/Shop/Cart/Wishlist/Account) — untouched by this spec.
 - Categories: today the live site reads a flat, non-hierarchical store —
   `src/lib/catalog.ts` (`localStorage["sd_categories_v1"]`), independent of
-  Supabase. A Supabase `categories` table already exists in the schema
-  (`supabase/migrations/20250516000001_alter_existing_tables.sql`) with an
-  unused `parent_id uuid REFERENCES categories(id)` column, and `products` has
-  an unused `category_id` FK — hierarchy support exists at the DB level but
-  nothing queries it today. A separate `navigation_menus` Supabase table
-  (`admin.navigation.tsx`) also exists and is also unused by the live navbar —
-  out of scope for this spec (not being wired in), left as-is.
+  Supabase. `supabase/migrations/20250516000001_alter_existing_tables.sql`
+  contains an `ALTER TABLE categories ADD COLUMN ... parent_id` intended to
+  add hierarchy support, but **verified against the live database directly**:
+  the `categories` table does not actually exist in production (the ALTER is
+  wrapped in `DO $$ ... EXCEPTION WHEN undefined_table THEN NULL END $$`,
+  which silently no-ops when the table is missing — confirmed via a live
+  query returning `Could not find the table 'public.categories'`). `products`
+  likewise has no `category_id` column live (`column products.category_id
+  does not exist`). So there is no existing hierarchy to "wire up" — it needs
+  to be created from scratch. Live data check: only 10 products exist total,
+  with `category` values `Bottoms`/`Outerwear`/`Accessories`/`Tops` — **none
+  tagged `Men` or `Women`**, so `/collections/men` and `/collections/women`
+  currently render zero products in production; there is no existing
+  Men/Women product data to preserve or re-map. A separate `navigation_menus`
+  Supabase table (`admin.navigation.tsx`) also exists and is unused by the
+  live navbar — out of scope for this spec (not being wired in), left as-is.
 - Best Sellers: already a real, working feature — an admin-curated list of
   product slugs (`src/lib/homeSections.ts` `bestSellers.productSlugs`, managed
   via `src/routes/admin.best-sellers.tsx`), not computed from sales data.
 - Account page (`src/routes/account.tsx`): already has Wishlist, Saved
   Addresses, Track Order, and Returns as quick-action tiles. **No changes
   needed here** — out of scope for this spec.
-- Loading: no shared loading component; ~25+ call sites render literal
-  `LOADING…` text. `src/components/ui/skeleton.tsx` exists but is unused by
-  any route and has low contrast (`bg-primary/10`). `Preloader.tsx` and the
-  homepage Loyalty section (`src/routes/index.tsx` lines ~491-559) are both
-  hardcoded to dark colors regardless of theme.
+- Loading: no shared loading component. Grepping confirms the literal
+  `LOADING…` text pattern appears ~28 times, but **all but two are in admin
+  routes** (`admin.*.tsx`), which are out of scope per Non-goals below. The
+  only two storefront (customer-facing) occurrences are `src/routes/account.tsx:74`
+  and `src/routes/order.$id.tsx:23`. Separately, `src/routes/shop.tsx:64` and
+  `src/routes/collections.$slug.tsx:46` fetch products via `listProducts()`/
+  `productsInCategory()` into `useState` with **no loading indicator at
+  all** — the grid is simply empty until data resolves; this is the real
+  "unclear loading" gap on the customer-facing site. `src/components/ui/skeleton.tsx`
+  exists but is unused by any route and has low contrast (`bg-primary/10`).
+  `Preloader.tsx` and the homepage Loyalty section (`src/routes/index.tsx`
+  lines ~491-559) are both hardcoded to dark colors regardless of theme.
 - Hover: no shared convention — every component (product cards, buttons, nav
   links, image tiles) implements its own bespoke hover treatment (opacity
   fades, border brightening, `scale-105/110` image zooms).
@@ -71,9 +87,11 @@ Current relevant state (from codebase investigation):
   curated mechanism, just gender-filter it.
 - No change to `navigation_menus` Supabase table or `admin.navigation.tsx` —
   remains unused/dead, not part of this effort.
-- Admin panel and DB changes beyond the category hierarchy itself (product
-  CRUD forms may need a category picker update — see Open Items) are out of
-  scope unless required to make the storefront nav function.
+- Admin panel changes are limited to what's required for the storefront nav
+  to function: the product-edit category picker (currently sourced from
+  `catalog.ts`) must be updated to assign the new Supabase category rows to
+  products (see section 6), since without it admins have no way to populate
+  the new hierarchy. No other admin panel changes are in scope.
 
 ## 1. Theme — light-mode only
 
@@ -122,17 +140,21 @@ Current relevant state (from codebase investigation):
 
 ## 3. Loading states
 
+Scope is the storefront only, per Non-goals (admin panel UI is out of scope):
+
 - Add one shared `<Loading>` component (real spinner, not plain text),
-  styled for clear visibility against the new light background (visible ring
-  color, not a low-opacity trick).
-- Replace the ~25+ literal `LOADING…` text instances across storefront routes
-  (`account.tsx`, `order.$id.tsx`, and others) with `<Loading>`.
+  styled for clear visibility against the new light background.
+- Replace the two storefront literal `LOADING…` text instances —
+  `src/routes/account.tsx:74` and `src/routes/order.$id.tsx:23` — with
+  `<Loading>`.
 - Fix `src/components/ui/skeleton.tsx` contrast (currently `bg-primary/10`,
-  too faint on a light background) and wire it into at least the product-grid
-  loading state, where a skeleton reads better than a spinner.
-- Admin routes' existing `Loader2`/`RefreshCw` spinner usage is untouched
-  (already animated, just needs to inherit the new light palette
-  automatically via the shared color tokens — no dedicated admin work here).
+  too faint on a light background) and add a loading state to
+  `src/routes/shop.tsx` and `src/routes/collections.$slug.tsx`, which
+  currently show a blank grid with no indicator at all while
+  `listProducts()`/`productsInCategory()` resolve — render a skeleton grid
+  during that window instead.
+- Admin routes (all ~26 other `LOADING…` instances, plus existing
+  `Loader2`/`RefreshCw` spinners) are untouched — out of scope.
 
 ## 4. Hover animations
 
@@ -156,8 +178,9 @@ Current relevant state (from codebase investigation):
 
 ## 6. Navigation — category data model
 
-- New category hierarchy, stored in the existing Supabase `categories` table
-  using its existing `parent_id` column (currently unused):
+- New category hierarchy, stored in a freshly-created Supabase `categories`
+  table (the table does not exist live today — see Context above) with a
+  `parent_id` self-reference column:
   - Top-level: **Men**, **Women**, **Accessories**, **Sneakers**.
   - Children of Accessories only: **Rings**, **Chains**, **Socks**.
   - Men and Women have no category children — their "New Arrivals" and "Best
@@ -179,22 +202,27 @@ Current relevant state (from codebase investigation):
   functions are re-implemented against Supabase rather than localStorage;
   callers (`collections.$slug.tsx` and others) should not need to change
   their call signatures.
-- Migration/seeding: a new Supabase migration inserts the Men/Women/
-  Accessories/Sneakers/Rings/Chains/Socks category rows with correct
-  `parent_id` links.
-- **Open item, verify during implementation**: existing products' current
-  category assignment (today a flat string matched case-insensitively against
-  `catalog.ts`'s flat list, which itself includes `Men`/`Women` as
-  categories) must be re-mapped onto `category_id` pointing at the new
-  hierarchy. Query the live `products`/`categories` data first to see what
-  values actually exist before writing the mapping — do not assume the exact
-  current values sight-unseen. Any product category value that doesn't map
-  cleanly onto the new hierarchy gets flagged for manual admin re-categorization
-  rather than silently dropped or guessed.
-- The admin product-edit category picker (wherever it currently sources
-  categories from `catalog.ts`) needs updating to reflect the new
-  Supabase-backed hierarchy so admins can assign the new categories to
-  products — scope this into the implementation plan.
+- Migration: a new Supabase migration creates the `categories` table
+  (`id uuid pk`, `name text`, `slug text unique`, `parent_id uuid
+  references categories(id)`, `is_active boolean default true`, `created_at
+  timestamptz default now()`), adds `category_id uuid references
+  categories(id)` to `products`, and inserts the Men/Women/Accessories/
+  Sneakers/Rings/Chains/Socks rows with correct `parent_id` links.
+- Existing product data (verified live: only 10 products, categories
+  `Bottoms`/`Outerwear`/`Accessories`/`Tops`, none tagged Men/Women) needs no
+  complex re-mapping — the migration also creates matching flat category rows
+  for `Bottoms`/`Outerwear`/`Tops` (top-level, no parent) so the existing
+  `Accessories`-tagged products can be re-pointed at the new `Accessories`
+  category row by name match; `Bottoms`/`Outerwear`/`Tops` products are left
+  with `category_id` null (admin re-assigns manually — there's no gender
+  signal in the current data to infer from).
+- The admin category picker in `src/routes/admin.products.new.tsx` and
+  `src/routes/admin.products.index.tsx` (both currently call
+  `listCategories()` from `catalog.ts`) needs updating to read from the new
+  Supabase-backed hierarchy instead, so admins can assign `category_id` to
+  products. `src/routes/admin.catalog.tsx` (the category management screen
+  itself) also needs updating to manage Supabase categories instead of the
+  localStorage store.
 
 ## 7. Navbar (desktop)
 
@@ -240,7 +268,8 @@ New left-to-right order in `Navbar.tsx`:
   nav) on a real mobile viewport.
 - Confirm no dark-mode remnants: grep for `dark:`/`.dark` classes and the
   removed `ThemeContext` import to ensure nothing still references them.
-- Confirm `/collections/$slug` still renders correctly for all existing
-  category slugs after the Supabase migration, and that unmapped legacy
-  product categories were surfaced (not silently dropped) per the Open Item
-  above.
+- Confirm `/collections/$slug` still renders correctly for `bottoms`,
+  `outerwear`, `tops`, and `accessories` after the migration (existing live
+  product data), and that the new `men`/`women`/`sneakers`/`rings`/`chains`/
+  `socks` slugs render (empty-state is expected/correct for these until
+  products are assigned).
