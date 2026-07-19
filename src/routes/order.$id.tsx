@@ -4,6 +4,7 @@ import { listOrders, cancelOrder, type Order } from "@/lib/orders";
 import { formatINR } from "@/context/CartContext";
 import { Check, FileText, X } from "lucide-react";
 import { toast } from "sonner";
+import { Loading } from "@/components/ui/loading";
 
 export const Route = createFileRoute("/order/$id")({
   component: OrderPage,
@@ -20,7 +21,7 @@ function OrderPage() {
     setLoading(false);
   }, [id]);
 
-  if (loading) return <div className="px-8 py-24 text-mono text-xs">LOADING…</div>;
+  if (loading) return <Loading className="py-24" />;
   if (!order) {
     return (
       <section className="px-4 md:px-8 py-24 text-center">

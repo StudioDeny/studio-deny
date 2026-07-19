@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { productsInCategory, findCategoryBySlug, listCategories } from "@/lib/catalog";
 import type { Product } from "@/lib/productsStore";
 import { ProductCard } from "@/components/product/ProductCard";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SlidersHorizontal, X } from "lucide-react";
 import { buildMeta, buildLinks, SITE_URL, collectionJsonLd } from "@/lib/seo";
 
@@ -35,6 +36,7 @@ type Sort = "new" | "low" | "high" | "name";
 function CollectionPage() {
   const { slug } = Route.useParams();
   const [items, setItems] = useState<Product[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [mobileFilters, setMobileFilters] = useState(false);
   const [sort, setSort] = useState<Sort>("new");
   const [maxPrice, setMaxPrice] = useState<number | "">("");
@@ -43,7 +45,8 @@ function CollectionPage() {
   const [selSizes, setSelSizes] = useState<string[]>([]);
 
   useEffect(() => {
-    productsInCategory(slug).then(setItems);
+    setLoaded(false);
+    productsInCategory(slug).then((r) => { setItems(r); setLoaded(true); });
     setSelSizes([]); setMaxPrice(""); setOnSale(false); setInStock(false); setSort("new");
   }, [slug]);
 
@@ -146,7 +149,13 @@ function CollectionPage() {
       <div className="grid md:grid-cols-[220px_1fr] gap-8">
         <aside className="hidden md:block sticky top-32 h-fit">{Filters}</aside>
         <div>
-          {filtered.length === 0 ? (
+          {!loaded ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[3/4] w-full" />
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="text-center py-24 border border-border bg-surface">
               <p className="text-muted-foreground text-sm">No products match.</p>
               <Link to="/shop" className="inline-block mt-4 text-mono text-xs tracking-widest text-primary">VIEW ALL →</Link>

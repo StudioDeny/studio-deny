@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { categories, type Category } from "@/lib/products";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { ProductCard } from "@/components/product/ProductCard";
+import { Skeleton } from "@/components/ui/skeleton";
 import { X, SlidersHorizontal, Search as SearchIcon, ChevronDown } from "lucide-react";
 
 type Search = {
@@ -58,10 +59,11 @@ function Shop() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [mobileFilters, setMobileFilters] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
-  useEffect(() => { listProducts().then(setProducts); }, []);
+  useEffect(() => { listProducts().then((p) => { setProducts(p); setLoaded(true); }); }, []);
 
   const cat = ((categories as readonly string[]).includes(search.cat ?? "") ? search.cat : "All") as Category;
   const q = search.q ?? "";
@@ -283,7 +285,13 @@ function Shop() {
         )}
 
         <div>
-          {items.length === 0 ? (
+          {!loaded ? (
+            <div className={`grid grid-cols-2 gap-3 md:gap-4 ${filterOpen ? "md:grid-cols-3" : "md:grid-cols-4"}`}>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[3/4] w-full" />
+              ))}
+            </div>
+          ) : items.length === 0 ? (
             <div className="py-32 text-center">
               <div className="text-display text-muted-foreground/30" style={{ fontSize: "clamp(48px, 8vw, 96px)" }}>
                 NOTHING
@@ -304,7 +312,7 @@ function Shop() {
               <div className={`grid grid-cols-2 gap-3 md:gap-4 ${filterOpen ? "md:grid-cols-3" : "md:grid-cols-4"}`}>
                 {items.map((p, i) => <ProductCard key={p.slug} product={p} index={i} />)}
               </div>
-              
+
               {/* Pagination Controls */}
               {totalPages > 1 && (
                 <div className="mt-20 border-t border-border pt-10 flex items-center justify-between">

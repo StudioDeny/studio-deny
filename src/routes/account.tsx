@@ -7,6 +7,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { LogOut, ShieldCheck, FileText, X, Heart, MapPin, Truck, RefreshCw, Plus, Trash2, Star } from "lucide-react";
 import { toast } from "sonner";
+import { Loading } from "@/components/ui/loading";
 
 export const Route = createFileRoute("/account")({
   component: Account,
@@ -71,7 +72,7 @@ function Account() {
     saveAddresses(next);
   };
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center text-mono text-xs tracking-widest text-muted-foreground">LOADING…</div>;
+  if (loading) return <Loading className="min-h-[60vh]" />;
   if (!user) return null;
 
   return (
