@@ -65,5 +65,5 @@ ON CONFLICT (slug) DO NOTHING;
 UPDATE products p
 SET category_id = c.id
 FROM categories c
-WHERE lower(p.category) = lower(c.name)
+WHERE lower(p.category) = c.slug
   AND p.category_id IS NULL;
