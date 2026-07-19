@@ -9,8 +9,11 @@ export function Footer() {
       l: [
         { label: "Shop", to: "/shop" },
         { label: "Best Sellers", to: "/shop", search: { featured: "1" } },
+        { label: "About", to: "/about" },
+        { label: "Lookbook", to: "/lookbook" },
         { label: "Couriers", to: "/couriers" },
         { label: "Contact", to: "/contact" },
+        { label: "Rewards", to: "/rewards" },
       ],
     },
     {
