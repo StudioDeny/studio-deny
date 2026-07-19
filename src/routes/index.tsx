@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Star, Mail, MessageCircle, Clock } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { LoyaltyModal } from "@/components/home/LoyaltyModal";
+import { StarDoodle, FlameDoodle, DripDoodle, TagDoodle } from "@/components/home/LoyaltyDoodles";
 import { getSettings } from "@/lib/settings";
 import { getHomeSections, type HomeSections } from "@/lib/homeSections";
 
@@ -488,8 +489,8 @@ function Index() {
       {/* ── 9. LOYALTY PROGRAM ──────────────────────────────────────────── */}
       {(() => {
         return (
-          <section className="py-20 sm:py-28 px-4 sm:px-8 lg:px-16 border-y border-border bg-[#050505] relative overflow-hidden">
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20 pointer-events-none" />
+          <section className="py-20 sm:py-28 px-4 sm:px-8 lg:px-16 border-y border-border bg-foreground relative overflow-hidden">
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30 pointer-events-none" />
             <div className="max-w-[1280px] mx-auto relative z-10">
 
               {/* Logo stamp — full-width header */}
@@ -504,7 +505,7 @@ function Index() {
               {/* Content grid */}
               <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
                 <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
-                  <h2 className="text-[clamp(3rem,7vw,6rem)] leading-[0.88] tracking-[-0.03em] uppercase text-display mb-8 text-white">
+                  <h2 className="text-[clamp(3rem,7vw,6rem)] leading-[0.88] tracking-[-0.03em] uppercase text-display text-street mb-8 text-white">
                     LOYALTY<br />HAS ITS<br />
                     <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(255,255,255,0.6)" }}>REWARDS.</span>
                   </h2>
@@ -521,7 +522,7 @@ function Index() {
                   </div>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.15 }} viewport={{ once: true }} className="space-y-4">
+                <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.15 }} viewport={{ once: true }} className="space-y-4 relative">
                   {[
                     { step: "01", label: "QUALIFY", desc: `Place a single order of ₹${ls.entryThreshold.toLocaleString()} or more. One order, one shot.` },
                     { step: "02", label: "EARN POINTS", desc: `After qualifying, earn 1 point for every ₹${ls.rupeesPerEarnedPoint} you spend.` },
@@ -548,6 +549,10 @@ function Index() {
                       </div>
                     ))}
                   </div>
+                  <StarDoodle className="hidden lg:block absolute -right-6 -top-2 w-16 text-white opacity-70 pointer-events-none" />
+                  <FlameDoodle className="hidden lg:block absolute right-40 -bottom-8 w-12 text-white opacity-60 pointer-events-none" />
+                  <DripDoodle className="hidden lg:block absolute right-2 -bottom-6 w-9 text-white opacity-50 pointer-events-none" />
+                  <TagDoodle className="hidden lg:block absolute right-24 -bottom-8 w-14 text-white opacity-40 pointer-events-none" />
                 </motion.div>
               </div>
             </div>
