@@ -1,102 +1,190 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Play, X, Volume2, VolumeX, ChevronUp, ChevronDown } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { InfluencerPick } from "@/types/database";
 import type { Product } from "@/lib/productsStore";
 
 type PickWithTags = InfluencerPick & { products: Pick<Product, "slug" | "name" | "image">[] };
 
-function Tile({ pick }: { pick: PickWithTags }) {
-  const [hovering, setHovering] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) {
+  const isPlayable = pick.video_source === "upload" && !!pick.video_url;
 
-  const handleEnter = () => {
-    setHovering(true);
-    if (pick.video_source === "upload") videoRef.current?.play().catch(() => {});
-  };
-  const handleLeave = () => {
-    setHovering(false);
-    if (pick.video_source === "upload" && videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
+  const handleClick = () => {
+    if (isPlayable) onOpen();
+    else if (pick.link_url) window.open(pick.link_url, "_blank", "noopener,noreferrer");
   };
 
-  const content = (
-    <div
-      className={`relative shrink-0 w-[70vw] sm:w-[38vw] lg:w-[26vw] aspect-[4/5] mr-4 overflow-hidden bg-surface border border-border group/tile ${pick.video_source === "link" ? "cursor-pointer" : ""}`}
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
-    >
-      {pick.video_source === "upload" && pick.video_url ? (
-        <>
-          {pick.thumbnail_url && (
-            <img
-              src={pick.thumbnail_url}
-              alt={pick.name}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${hovering ? "opacity-0" : "opacity-100"}`}
-            />
-          )}
-          <video ref={videoRef} muted loop playsInline preload="metadata"
-            className="absolute inset-0 w-full h-full object-cover">
-            <source src={pick.video_url} type="video/mp4" />
-          </video>
-        </>
-      ) : (
-        pick.thumbnail_url && <img src={pick.thumbnail_url} alt={pick.name} className="absolute inset-0 w-full h-full object-cover" />
-      )}
+  return (
+    <button type="button" onClick={handleClick} className="shrink-0 w-[62vw] sm:w-[30vw] lg:w-[21vw] mr-4 text-left group/tile">
+      <div className="relative aspect-[3/4] overflow-hidden bg-surface border border-border">
+        {pick.thumbnail_url && (
+          <img
+            src={pick.thumbnail_url}
+            alt={pick.name}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/tile:scale-[1.03]"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-black/25" />
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+        {/* Play affordance — makes it unmistakable this is a video, not a photo */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="size-12 sm:size-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/40 flex items-center justify-center group-hover/tile:scale-110 group-hover/tile:bg-black/55 transition-all">
+            <Play className="size-5 sm:size-6 text-white fill-white ml-0.5" />
+          </span>
+        </div>
 
-      <div className="absolute top-3 left-3 z-[1]">
-        <p className="text-white font-display text-base uppercase">{pick.name}</p>
-        {pick.handle && <p className="text-white/60 text-mono text-[11px]">{pick.handle}</p>}
+        <div className="absolute top-3 left-3">
+          <p className="text-white font-display text-sm uppercase drop-shadow">{pick.name}</p>
+          {pick.handle && <p className="text-white/70 text-mono text-[10px] drop-shadow">{pick.handle}</p>}
+        </div>
       </div>
 
       {pick.products.length > 0 && (
-        <div className={`absolute bottom-3 left-3 right-3 z-[1] flex flex-col gap-1.5 transition-opacity duration-300 ${hovering ? "opacity-100" : "opacity-0 sm:opacity-0"}`}>
-          {pick.products.slice(0, 3).map((p) => (
-            <Link
-              key={p.slug}
-              to="/product/$slug"
-              params={{ slug: p.slug }}
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-2 bg-white/95 hover:bg-white pl-1 pr-3 py-1 rounded-full transition-colors w-fit"
-            >
-              <img src={p.image} alt="" className="size-6 rounded-full object-cover" />
-              <span className="text-[11px] font-semibold text-black truncate max-w-[140px]">{p.name}</span>
-            </Link>
-          ))}
+        <div className="mt-2 flex items-center gap-2">
+          <img src={pick.products[0].image} alt="" className="size-8 object-cover rounded-sm border border-border shrink-0" />
+          <div className="min-w-0">
+            <p className="text-xs font-semibold truncate">{pick.products[0].name}</p>
+            {pick.products.length > 1 && <p className="text-[10px] text-muted-foreground">+{pick.products.length - 1} more</p>}
+          </div>
         </div>
       )}
-    </div>
+    </button>
   );
+}
 
-  // Link-source picks open the reel on click — but the tagged-product links
-  // above must stay real <a> tags for accessibility, and HTML forbids an <a>
-  // nested inside another <a>. So the outer "open the reel" affordance is a
-  // clickable div, not an anchor, with stopPropagation on the inner tag links.
-  if (pick.video_source === "link" && pick.link_url) {
-    const openReel = () => window.open(pick.link_url!, "_blank", "noopener,noreferrer");
-    return (
-      <div
-        role="link"
-        tabIndex={0}
-        onClick={openReel}
-        onKeyDown={(e) => { if (e.key === "Enter") openReel(); }}
-        className="contents"
+function Lightbox({
+  picks,
+  index,
+  onClose,
+  onNavigate,
+}: {
+  picks: PickWithTags[];
+  index: number;
+  onClose: () => void;
+  onNavigate: (i: number) => void;
+}) {
+  const pick = picks[index];
+  const [muted, setMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const wheelLock = useRef(false);
+
+  useEffect(() => {
+    videoRef.current?.play().catch(() => {});
+  }, [index]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowUp" && index > 0) onNavigate(index - 1);
+      else if (e.key === "ArrowDown" && index < picks.length - 1) onNavigate(index + 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [index, picks.length, onClose, onNavigate]);
+
+  const onWheel = (e: React.WheelEvent) => {
+    if (wheelLock.current) return;
+    if (e.deltaY > 30 && index < picks.length - 1) {
+      wheelLock.current = true;
+      onNavigate(index + 1);
+      setTimeout(() => { wheelLock.current = false; }, 500);
+    } else if (e.deltaY < -30 && index > 0) {
+      wheelLock.current = true;
+      onNavigate(index - 1);
+      setTimeout(() => { wheelLock.current = false; }, 500);
+    }
+  };
+
+  return createPortal(
+    <div className="fixed inset-0 z-[300] bg-black/95 flex items-center justify-center" onWheel={onWheel}>
+      <button
+        onClick={onClose}
+        aria-label="Close"
+        className="absolute top-5 left-5 z-10 size-10 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:border-white/50 transition-colors"
       >
-        {content}
+        <X className="size-5" />
+      </button>
+
+      <div className="relative w-full max-w-[420px] h-[85vh] sm:h-[88vh] bg-black overflow-hidden">
+        <video
+          key={pick.id}
+          ref={videoRef}
+          muted={muted}
+          loop
+          playsInline
+          autoPlay
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src={pick.video_url ?? undefined} type="video/mp4" />
+        </video>
+
+        <button
+          onClick={() => setMuted((m) => !m)}
+          aria-label="Toggle sound"
+          className="absolute top-4 right-4 size-9 rounded-full bg-black/40 border border-white/30 flex items-center justify-center text-white"
+        >
+          {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
+        </button>
+
+        <div className="absolute top-4 left-16 right-16 text-white">
+          <p className="font-display text-lg uppercase">{pick.name}</p>
+          {pick.handle && <p className="text-white/60 text-mono text-xs">{pick.handle}</p>}
+        </div>
+
+        {pick.quote && (
+          <div className="absolute inset-x-4 z-[1]" style={{ bottom: pick.products.length > 0 ? "35%" : "4rem" }}>
+            <p className="text-white/85 text-sm italic leading-relaxed">"{pick.quote}"</p>
+          </div>
+        )}
+
+        {pick.products.length > 0 && (
+          <div className="absolute bottom-6 left-4 right-4 flex flex-col gap-2">
+            {pick.products.map((p) => (
+              <Link
+                key={p.slug}
+                to="/product/$slug"
+                params={{ slug: p.slug }}
+                className="flex items-center gap-3 bg-white/95 hover:bg-white pl-1.5 pr-4 py-1.5 rounded-full w-fit transition-colors"
+              >
+                <img src={p.image} alt="" className="size-8 rounded-full object-cover" />
+                <span className="text-xs font-semibold text-black">{p.name}</span>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
-    );
-  }
-  return content;
+
+      {picks.length > 1 && (
+        <div className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+          <button
+            onClick={() => index > 0 && onNavigate(index - 1)}
+            disabled={index === 0}
+            aria-label="Previous video"
+            className="size-10 rounded-full bg-white/10 border border-white/30 flex items-center justify-center text-white disabled:opacity-30 hover:bg-white/20 transition-colors"
+          >
+            <ChevronUp className="size-5" />
+          </button>
+          <button
+            onClick={() => index < picks.length - 1 && onNavigate(index + 1)}
+            disabled={index === picks.length - 1}
+            aria-label="Next video"
+            className="size-10 rounded-full bg-white/10 border border-white/30 flex items-center justify-center text-white disabled:opacity-30 hover:bg-white/20 transition-colors"
+          >
+            <ChevronDown className="size-5" />
+          </button>
+        </div>
+      )}
+    </div>,
+    document.body
+  );
 }
 
 export function InfluencerPicksGrid() {
   const [picks, setPicks] = useState<PickWithTags[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -124,6 +212,13 @@ export function InfluencerPicksGrid() {
 
   if (picks.length === 0) return null;
 
+  const playable = picks.filter((p) => p.video_source === "upload" && p.video_url);
+
+  const openLightboxFor = (pick: PickWithTags) => {
+    const idx = playable.findIndex((p) => p.id === pick.id);
+    if (idx >= 0) setLightboxIndex(idx);
+  };
+
   return (
     <section className="py-14 sm:py-20 overflow-hidden border-t border-border">
       <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-10 flex items-end justify-between">
@@ -138,9 +233,15 @@ export function InfluencerPicksGrid() {
 
       <div className="flex overflow-hidden group py-2">
         <div className="flex shrink-0 items-stretch ticker-scroll group-hover:[animation-play-state:paused] pl-4 sm:pl-8 lg:pl-16" style={{ animationDuration: "45s" }}>
-          {[...picks, ...picks].map((pick, idx) => <Tile key={`${pick.id}-${idx}`} pick={pick} />)}
+          {[...picks, ...picks].map((pick, idx) => (
+            <GridTile key={`${pick.id}-${idx}`} pick={pick} onOpen={() => openLightboxFor(pick)} />
+          ))}
         </div>
       </div>
+
+      {lightboxIndex !== null && playable.length > 0 && (
+        <Lightbox picks={playable} index={lightboxIndex} onClose={() => setLightboxIndex(null)} onNavigate={setLightboxIndex} />
+      )}
     </section>
   );
 }

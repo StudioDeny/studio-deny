@@ -325,8 +325,8 @@ function InfluencerPicksAdmin() {
                       </div>
                     )}
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-                      <input value={productQuery} onChange={(e) => setProductQuery(e.target.value)} placeholder="Search products to tag…" className="inp pl-9" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+                      <input value={productQuery} onChange={(e) => setProductQuery(e.target.value)} placeholder="Search products to tag…" className="inp" style={{ paddingLeft: "2.25rem" }} />
                     </div>
                     {matches.length > 0 && (
                       <div className="border border-border rounded mt-2 divide-y divide-border max-h-40 overflow-y-auto">

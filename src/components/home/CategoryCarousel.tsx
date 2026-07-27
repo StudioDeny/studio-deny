@@ -94,6 +94,20 @@ export function CategoryCarousel() {
           >
             <ChevronRight className="size-5" />
           </button>
+
+          <div className="absolute z-[3] bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
+            {cfg.slides.map((s, i) => (
+              <button
+                key={`${s.href}-${i}`}
+                type="button"
+                aria-label={`Go to slide ${i + 1}`}
+                onClick={() => setActive(i)}
+                className={`h-1.5 rounded-full transition-all duration-400 ${
+                  i === active ? "w-8 bg-white" : "w-1.5 bg-white/40 hover:bg-white/70"
+                }`}
+              />
+            ))}
+          </div>
         </>
       )}
     </section>

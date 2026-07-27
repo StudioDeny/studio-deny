@@ -34,7 +34,7 @@ export function CommunityBento() {
       </motion.div>
 
       {/* Admin-curated, no click-through by design — purely visual/social-proof. */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 auto-rows-[140px] sm:auto-rows-[180px] gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 grid-flow-row-dense auto-rows-[170px] sm:auto-rows-[210px] gap-2 sm:gap-3">
         {photos.map((photo, idx) => (
           <motion.div
             key={photo.id}
@@ -44,12 +44,12 @@ export function CommunityBento() {
             viewport={{ once: true }}
             className={`relative overflow-hidden border border-border group ${SIZE_CLASS[photo.bento_size]}`}
           >
-            <img src={photo.image_url} alt={photo.handle ?? "community"} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" loading="lazy" />
+            <img src={photo.image_url} alt={photo.handle ?? "community"} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
             {photo.handle && (
               <>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <p className="text-xs tracking-[0.15em] text-white text-mono">{photo.handle}</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/0 to-transparent opacity-70 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-2.5 left-3 sm:bottom-3">
+                  <p className="text-[11px] sm:text-xs tracking-[0.15em] text-white text-mono drop-shadow">{photo.handle}</p>
                 </div>
               </>
             )}
