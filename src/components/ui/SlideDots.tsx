@@ -18,7 +18,7 @@ export function SlideDots({ count, active, onSelect, durationMs, className = "" 
           <button
             key={i}
             type="button"
-            onClick={() => onSelect(i)}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSelect(i); }}
             aria-label={`Go to slide ${i + 1}`}
             className="relative flex items-center justify-center size-3.5"
           >

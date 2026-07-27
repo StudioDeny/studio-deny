@@ -261,9 +261,18 @@ export function InfluencerPicksGrid() {
 
       <div className="flex overflow-hidden group py-2">
         <div className="flex shrink-0 items-stretch ticker-scroll group-hover:[animation-play-state:paused] pl-4 sm:pl-8 lg:pl-16" style={{ animationDuration: "45s" }}>
-          {[...picks, ...picks].map((pick, idx) => (
-            <GridTile key={`${pick.id}-${idx}`} pick={pick} onOpen={() => openLightboxFor(pick)} />
-          ))}
+          {/* ticker-scroll shifts by exactly -50%, so it needs 2 equal halves — with
+              only a couple of real picks, one "half" ends up narrower than the
+              viewport, leaving blank space after it. Repeat each half until it's
+              comfortably wide regardless of how few picks actually exist. */}
+          {(() => {
+            const MIN_TILES_PER_HALF = 6;
+            const repeat = Math.max(1, Math.ceil(MIN_TILES_PER_HALF / picks.length));
+            const half = Array.from({ length: repeat }, () => picks).flat();
+            return [...half, ...half].map((pick, idx) => (
+              <GridTile key={`${pick.id}-${idx}`} pick={pick} onOpen={() => openLightboxFor(pick)} />
+            ));
+          })()}
         </div>
       </div>
 

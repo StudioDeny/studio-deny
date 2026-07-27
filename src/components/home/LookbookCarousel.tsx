@@ -4,8 +4,10 @@ import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
+import { SlideDots } from "@/components/ui/SlideDots";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+const AUTOPLAY_MS = 6000;
 
 export function LookbookCarousel() {
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
@@ -19,6 +21,12 @@ export function LookbookCarousel() {
       .order("position")
       .then(({ data }) => { if (data) setSlides(data); });
   }, []);
+
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const t = setInterval(() => setActive((a) => (a + 1) % slides.length), AUTOPLAY_MS);
+    return () => clearInterval(t);
+  }, [slides.length]);
 
   if (slides.length === 0) return null;
 
@@ -61,6 +69,14 @@ export function LookbookCarousel() {
             className="absolute z-[2] right-3 sm:right-6 top-1/2 -translate-y-1/2 size-10 sm:size-12 flex items-center justify-center bg-white/10 hover:bg-white/25 backdrop-blur-sm border border-white/30 text-white transition-colors">
             <ChevronRight className="size-5" />
           </button>
+
+          <SlideDots
+            count={slides.length}
+            active={active}
+            onSelect={setActive}
+            durationMs={AUTOPLAY_MS}
+            className="absolute z-[2] bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2"
+          />
         </>
       )}
     </div>
