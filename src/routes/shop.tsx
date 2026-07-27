@@ -10,6 +10,7 @@ import { X, SlidersHorizontal, Search as SearchIcon, ChevronDown } from "lucide-
 type Search = {
   cat?: string;
   sale?: string;
+  best?: string;
   q?: string;
   sort?: string;
   min?: number;
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/shop")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     cat: typeof s.cat === "string" ? s.cat : undefined,
     sale: typeof s.sale === "string" ? s.sale : undefined,
+    best: typeof s.best === "string" ? s.best : undefined,
     q: typeof s.q === "string" ? s.q : undefined,
     sort: typeof s.sort === "string" ? s.sort : undefined,
     min: typeof s.min === "string" ? Number(s.min) || undefined : (s.min as number | undefined),
@@ -70,6 +72,9 @@ function Shop() {
   const sort = (search.sort as Sort) || "new";
   const sale = search.sale === "1";
   const inStock = search.stock === "1";
+  // "sort=best" is also honored as a filter, since the homepage category carousel's
+  // default "Best Sellers" slide links to /shop?sort=best.
+  const bestSeller = search.best === "1" || search.sort === "best";
   const selectedSizes = (search.sizes?.split(",").filter(Boolean)) ?? [];
   const selectedColors = (search.colors?.split(",").filter(Boolean)) ?? [];
   const page = Number(search.page) || 1;
@@ -117,13 +122,14 @@ function Shop() {
     if (selectedSizes.length) r = r.filter((p) => p.sizes.some((s) => selectedSizes.includes(s)));
     if (selectedColors.length) r = r.filter((p) => p.colors.some((c) => selectedColors.includes(c.name)));
     if (sale) r = r.filter((p) => p.compareAt);
+    if (bestSeller) r = r.filter((p) => p.isBestSeller);
     if (inStock) r = r.filter((p) => p.stock > 0);
     r = r.filter((p) => p.price >= min && p.price <= max);
     if (sort === "low") r.sort((a, b) => a.price - b.price);
     else if (sort === "high") r.sort((a, b) => b.price - a.price);
     else if (sort === "name") r.sort((a, b) => a.name.localeCompare(b.name));
     return r;
-  }, [products, cat, q, selectedSizes, selectedColors, sale, inStock, min, max, sort]);
+  }, [products, cat, q, selectedSizes, selectedColors, sale, bestSeller, inStock, min, max, sort]);
 
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
   const items = useMemo(() => {
@@ -133,7 +139,7 @@ function Shop() {
 
   const activeCount =
     (cat !== "All" ? 1 : 0) + selectedSizes.length + selectedColors.length +
-    (sale ? 1 : 0) + (inStock ? 1 : 0) + (q ? 1 : 0) +
+    (sale ? 1 : 0) + (bestSeller ? 1 : 0) + (inStock ? 1 : 0) + (q ? 1 : 0) +
     (search.min !== undefined || search.max !== undefined ? 1 : 0);
 
   const clearAll = () => navigate({ search: {} });
@@ -232,6 +238,10 @@ function Shop() {
         <label className="flex items-center gap-2 cursor-pointer mb-2">
           <input type="checkbox" checked={sale} onChange={(e) => setS({ sale: e.target.checked ? "1" : undefined, page: undefined })} className="accent-primary" />
           <span className="text-mono text-xs tracking-widest">ON SALE ONLY</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer mb-2">
+          <input type="checkbox" checked={bestSeller} onChange={(e) => setS({ best: e.target.checked ? "1" : undefined, sort: search.sort === "best" ? undefined : search.sort, page: undefined })} className="accent-primary" />
+          <span className="text-mono text-xs tracking-widest">BEST SELLERS ONLY</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={inStock} onChange={(e) => setS({ stock: e.target.checked ? "1" : undefined, page: undefined })} className="accent-primary" />

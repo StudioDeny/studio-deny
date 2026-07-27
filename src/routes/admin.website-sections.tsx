@@ -10,7 +10,18 @@ export const Route = createFileRoute("/admin/website-sections")({
   component: AdminWebsiteSections,
 });
 
-type HeroConfig = { title: string; subtitle: string; cta_label: string; cta_href: string; bg_image: string; bg_video: string; media_type: "video" | "image" };
+type HeroSlide = {
+  id: string;
+  media_type: "video" | "image";
+  src: string;
+  title: string;
+  subtitle: string;
+  cta_label: string;
+  cta_href: string;
+  cta2_label?: string;
+  cta2_href?: string;
+};
+type HeroConfig = { slides: HeroSlide[] };
 type MarqueeConfig = { items: string[]; speed: number };
 type ArrivalsConfig = { eyebrow: string; title: string; subtitle: string; cta_label: string; product_slugs: string[] };
 type LookbookConfig = { images: string[]; title: string };
@@ -19,9 +30,20 @@ type WhyUsConfig = { eyebrow: string; title: string; subtitle: string; features:
 type InstagramConfig = { eyebrow: string; title: string; handle: string; image_urls: string[] };
 type NewsletterConfig = { eyebrow: string; title: string; subtitle: string; cta_label: string };
 type FaqConfig = { eyebrow: string; title: string };
+type SplitCard = { media_type: "image" | "video"; src: string; label: string; cta_href: string };
+type GenderSplitConfig = { cards: SplitCard[] };
+type CarouselSlide = { media_type: "image" | "video"; src: string; label: string; href: string };
+type CategoryCarouselConfig = { slides: CarouselSlide[] };
+type DenySpaceBenefit = { icon: string; label: string; desc: string };
+type DenySpaceConfig = { logo_url: string; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string };
+
+const DENYSPACE_ICONS = ["Truck", "RotateCcw", "ShieldCheck", "Gift", "Star", "Sparkles", "Heart", "Award", "Package", "Zap", "Clock", "CheckCircle"];
 
 const TYPE_COLORS: Record<string, string> = {
   hero:          "bg-blue-100 text-blue-800",
+  gender_split:  "bg-indigo-100 text-indigo-800",
+  category_carousel: "bg-teal-100 text-teal-800",
+  denyspace:     "bg-fuchsia-100 text-fuchsia-800",
   marquee:       "bg-purple-100 text-purple-800",
   new_arrivals:  "bg-emerald-100 text-emerald-800",
   lookbook:      "bg-amber-100 text-amber-800",
@@ -291,25 +313,99 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
   switch (section.section_type as SectionType) {
     case "hero": {
       const c = cfg as Partial<HeroConfig>;
+      const slides: HeroSlide[] = c.slides ?? [];
+
+      const setSlides = (next: HeroSlide[]) => set("slides", next);
+      const updateSlide = (i: number, patch: Partial<HeroSlide>) => {
+        const next = [...slides];
+        next[i] = { ...next[i], ...patch };
+        setSlides(next);
+      };
+      const addSlide = () => {
+        setSlides([
+          ...slides,
+          {
+            id: `slide-${Date.now()}`,
+            media_type: "image",
+            src: "",
+            title: "NEW SLIDE\nHEADLINE",
+            subtitle: "",
+            cta_label: "SHOP NOW",
+            cta_href: "/shop",
+          },
+        ]);
+      };
+      const removeSlide = (i: number) => setSlides(slides.filter((_, idx) => idx !== i));
+      const moveSlide = (i: number, dir: -1 | 1) => {
+        const j = i + dir;
+        if (j < 0 || j >= slides.length) return;
+        const next = [...slides];
+        [next[i], next[j]] = [next[j], next[i]];
+        setSlides(next);
+      };
+
       return (
         <div className="space-y-4">
-          <F label="HEADLINE"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="IN THE CUT NOT IN THE CROWD" /></F>
-          <F label="SUBTEXT"><input value={c.subtitle ?? ""} onChange={(e) => set("subtitle", e.target.value)} className="inp" placeholder="Elevated streetwear…" /></F>
-          <div className="grid grid-cols-2 gap-3">
-            <F label="CTA LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="SHOP THE DROP" /></F>
-            <F label="CTA URL"><input value={c.cta_href ?? ""} onChange={(e) => set("cta_href", e.target.value)} className="inp" placeholder="/shop" /></F>
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            The hero is a slider — add as many slides as you like, each with its own image or video, headline, and buttons.
           </div>
-          <F label="MEDIA TYPE">
-            <select value={c.media_type ?? "video"} onChange={(e) => set("media_type", e.target.value)} className="inp" style={{ cursor: "pointer" }}>
-              <option value="video">Video</option>
-              <option value="image">Image / Photo</option>
-            </select>
-          </F>
-          {(c.media_type ?? "video") === "video" ? (
-            <F label="BACKGROUND VIDEO URL"><input value={c.bg_video ?? ""} onChange={(e) => set("bg_video", e.target.value)} className="inp" placeholder="https://…/hero-video.mp4" /></F>
-          ) : (
-            <F label="BACKGROUND IMAGE URL"><input value={c.bg_image ?? ""} onChange={(e) => set("bg_image", e.target.value)} className="inp" placeholder="https://…/hero-photo.jpg" /></F>
-          )}
+
+          {slides.map((slide, i) => (
+            <div key={slide.id} className="border border-border rounded p-4 space-y-3 bg-muted/20">
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] font-semibold tracking-widest text-foreground">SLIDE {i + 1}</div>
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => moveSlide(i, -1)} disabled={i === 0}
+                    className="h-7 w-7 inline-flex items-center justify-center rounded border border-border bg-background hover:border-primary hover:text-primary disabled:opacity-25 transition-colors">
+                    <ChevronUp className="size-3.5" />
+                  </button>
+                  <button type="button" onClick={() => moveSlide(i, 1)} disabled={i === slides.length - 1}
+                    className="h-7 w-7 inline-flex items-center justify-center rounded border border-border bg-background hover:border-primary hover:text-primary disabled:opacity-25 transition-colors">
+                    <ChevronDown className="size-3.5" />
+                  </button>
+                  <button type="button" onClick={() => removeSlide(i)}
+                    className="h-7 w-7 inline-flex items-center justify-center rounded border border-border bg-background hover:border-red-500 hover:text-red-500 transition-colors">
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              <F label="HEADLINE (use a new line for a line break)">
+                <textarea
+                  rows={2}
+                  value={slide.title}
+                  onChange={(e) => updateSlide(i, { title: e.target.value })}
+                  className="inp"
+                  placeholder={"IN THE CUT\nNOT IN THE CROWD"}
+                />
+              </F>
+              <F label="SUBTEXT"><input value={slide.subtitle} onChange={(e) => updateSlide(i, { subtitle: e.target.value })} className="inp" placeholder="Elevated streetwear…" /></F>
+
+              <F label="MEDIA TYPE">
+                <select value={slide.media_type} onChange={(e) => updateSlide(i, { media_type: e.target.value as "video" | "image" })} className="inp" style={{ cursor: "pointer" }}>
+                  <option value="image">Image / Photo</option>
+                  <option value="video">Video</option>
+                </select>
+              </F>
+              <F label={slide.media_type === "video" ? "VIDEO URL (.mp4)" : "IMAGE URL"}>
+                <input value={slide.src} onChange={(e) => updateSlide(i, { src: e.target.value })} className="inp" placeholder={slide.media_type === "video" ? "https://…/hero-video.mp4" : "https://…/hero-photo.jpg"} />
+              </F>
+
+              <div className="grid grid-cols-2 gap-3">
+                <F label="BUTTON 1 LABEL"><input value={slide.cta_label} onChange={(e) => updateSlide(i, { cta_label: e.target.value })} className="inp" placeholder="SHOP THE DROP" /></F>
+                <F label="BUTTON 1 URL"><input value={slide.cta_href} onChange={(e) => updateSlide(i, { cta_href: e.target.value })} className="inp" placeholder="/shop" /></F>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <F label="BUTTON 2 LABEL (optional)"><input value={slide.cta2_label ?? ""} onChange={(e) => updateSlide(i, { cta2_label: e.target.value })} className="inp" placeholder="VIEW LOOKBOOK" /></F>
+                <F label="BUTTON 2 URL (optional)"><input value={slide.cta2_href ?? ""} onChange={(e) => updateSlide(i, { cta2_href: e.target.value })} className="inp" placeholder="/lookbook" /></F>
+              </div>
+            </div>
+          ))}
+
+          <button type="button" onClick={addSlide}
+            className="w-full h-10 rounded border border-dashed border-border text-xs font-semibold tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+            + ADD SLIDE
+          </button>
         </div>
       );
     }
@@ -443,6 +539,143 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           </div>
           <F label="HEADING"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="READY FOR THE NEXT DROP?" /></F>
           <F label="SUBTEXT"><textarea rows={2} value={c.subtitle ?? ""} onChange={(e) => set("subtitle", e.target.value)} className="inp" /></F>
+        </div>
+      );
+    }
+    case "gender_split": {
+      const c = cfg as Partial<GenderSplitConfig>;
+      const cards: SplitCard[] = c.cards ?? [];
+      const setCards = (next: SplitCard[]) => set("cards", next);
+      const updateCard = (i: number, patch: Partial<SplitCard>) => {
+        const next = [...cards];
+        next[i] = { ...next[i], ...patch };
+        setCards(next);
+      };
+      return (
+        <div className="space-y-4">
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            Two full-bleed cards side by side (Men / Women, or however you want to split it).
+          </div>
+          {cards.map((card, i) => (
+            <div key={i} className="border border-border rounded p-4 space-y-3 bg-muted/20">
+              <div className="text-[11px] font-semibold tracking-widest text-foreground">CARD {i + 1}</div>
+              <F label="LABEL"><input value={card.label} onChange={(e) => updateCard(i, { label: e.target.value })} className="inp" placeholder="SHOP MEN" /></F>
+              <F label="MEDIA TYPE">
+                <select value={card.media_type} onChange={(e) => updateCard(i, { media_type: e.target.value as "video" | "image" })} className="inp" style={{ cursor: "pointer" }}>
+                  <option value="image">Image / Photo</option>
+                  <option value="video">Video</option>
+                </select>
+              </F>
+              <F label={card.media_type === "video" ? "VIDEO URL (.mp4)" : "IMAGE URL"}>
+                <input value={card.src} onChange={(e) => updateCard(i, { src: e.target.value })} className="inp" placeholder={card.media_type === "video" ? "https://…/men.mp4" : "https://…/men.jpg"} />
+              </F>
+              <F label="CTA LINK"><input value={card.cta_href} onChange={(e) => updateCard(i, { cta_href: e.target.value })} className="inp" placeholder="/collections/men" /></F>
+            </div>
+          ))}
+          {cards.length < 2 && (
+            <button type="button" onClick={() => setCards([...cards, { media_type: "image", src: "", label: "NEW CARD", cta_href: "/shop" }])}
+              className="w-full h-10 rounded border border-dashed border-border text-xs font-semibold tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+              + ADD CARD
+            </button>
+          )}
+        </div>
+      );
+    }
+    case "category_carousel": {
+      const c = cfg as Partial<CategoryCarouselConfig>;
+      const slides: CarouselSlide[] = c.slides ?? [];
+      const setSlides = (next: CarouselSlide[]) => set("slides", next);
+      const updateSlide = (i: number, patch: Partial<CarouselSlide>) => {
+        const next = [...slides];
+        next[i] = { ...next[i], ...patch };
+        setSlides(next);
+      };
+      const removeSlide = (i: number) => setSlides(slides.filter((_, idx) => idx !== i));
+      const moveSlide = (i: number, dir: -1 | 1) => {
+        const j = i + dir;
+        if (j < 0 || j >= slides.length) return;
+        const next = [...slides];
+        [next[i], next[j]] = [next[j], next[i]];
+        setSlides(next);
+      };
+      return (
+        <div className="space-y-4">
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            Full-screen carousel — each slide represents a themed collection (Best Sellers, New Drops, etc.) and links to that collection.
+          </div>
+          {slides.map((slide, i) => (
+            <div key={i} className="border border-border rounded p-4 space-y-3 bg-muted/20">
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] font-semibold tracking-widest text-foreground">SLIDE {i + 1}</div>
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => moveSlide(i, -1)} disabled={i === 0}
+                    className="h-7 w-7 inline-flex items-center justify-center rounded border border-border bg-background hover:border-primary hover:text-primary disabled:opacity-25 transition-colors">
+                    <ChevronUp className="size-3.5" />
+                  </button>
+                  <button type="button" onClick={() => moveSlide(i, 1)} disabled={i === slides.length - 1}
+                    className="h-7 w-7 inline-flex items-center justify-center rounded border border-border bg-background hover:border-primary hover:text-primary disabled:opacity-25 transition-colors">
+                    <ChevronDown className="size-3.5" />
+                  </button>
+                  <button type="button" onClick={() => removeSlide(i)}
+                    className="h-7 w-7 inline-flex items-center justify-center rounded border border-border bg-background hover:border-red-500 hover:text-red-500 transition-colors">
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </div>
+              </div>
+              <F label="LABEL"><input value={slide.label} onChange={(e) => updateSlide(i, { label: e.target.value })} className="inp" placeholder="BEST SELLERS" /></F>
+              <F label="MEDIA TYPE">
+                <select value={slide.media_type} onChange={(e) => updateSlide(i, { media_type: e.target.value as "video" | "image" })} className="inp" style={{ cursor: "pointer" }}>
+                  <option value="image">Image / Photo</option>
+                  <option value="video">Video</option>
+                </select>
+              </F>
+              <F label={slide.media_type === "video" ? "VIDEO URL (.mp4)" : "IMAGE URL"}>
+                <input value={slide.src} onChange={(e) => updateSlide(i, { src: e.target.value })} className="inp" />
+              </F>
+              <F label="LINK (collection / shop URL)"><input value={slide.href} onChange={(e) => updateSlide(i, { href: e.target.value })} className="inp" placeholder="/shop?sort=best" /></F>
+            </div>
+          ))}
+          <button type="button" onClick={() => setSlides([...slides, { media_type: "image", src: "", label: "NEW SLIDE", href: "/shop" }])}
+            className="w-full h-10 rounded border border-dashed border-border text-xs font-semibold tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+            + ADD SLIDE
+          </button>
+        </div>
+      );
+    }
+    case "denyspace": {
+      const c = cfg as Partial<DenySpaceConfig>;
+      const benefits: DenySpaceBenefit[] = c.benefits ?? [];
+      return (
+        <div className="space-y-4">
+          <F label="LOGO URL"><input value={c.logo_url ?? ""} onChange={(e) => set("logo_url", e.target.value)} className="inp" /></F>
+          <F label="DESCRIPTION"><textarea rows={3} value={c.description ?? ""} onChange={(e) => set("description", e.target.value)} className="inp" /></F>
+          <div className="grid grid-cols-2 gap-3">
+            <F label="CTA LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="JOIN DENYSPACE" /></F>
+            <F label="CTA LINK"><input value={c.cta_href ?? ""} onChange={(e) => set("cta_href", e.target.value)} className="inp" placeholder="/rewards" /></F>
+          </div>
+          <div className="text-[11px] font-semibold tracking-widest text-foreground mt-2 mb-1">BENEFIT ICONS (4 items)</div>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="border border-border rounded p-3 space-y-2 bg-muted/20">
+              <div className="text-[10px] font-semibold tracking-widest text-muted-foreground">ICON {i + 1}</div>
+              <div className="grid grid-cols-2 gap-3">
+                <F label="ICON">
+                  <select
+                    value={benefits[i]?.icon ?? "Star"}
+                    onChange={(e) => { const next = [...benefits]; next[i] = { ...next[i], icon: e.target.value }; set("benefits", next); }}
+                    className="inp" style={{ cursor: "pointer" }}
+                  >
+                    {DENYSPACE_ICONS.map((name) => <option key={name} value={name}>{name}</option>)}
+                  </select>
+                </F>
+                <F label="LABEL">
+                  <input value={benefits[i]?.label ?? ""} onChange={(e) => { const next = [...benefits]; next[i] = { ...next[i], label: e.target.value }; set("benefits", next); }} className="inp" placeholder="FREE SHIPPING" />
+                </F>
+              </div>
+              <F label="DESCRIPTION">
+                <input value={benefits[i]?.desc ?? ""} onChange={(e) => { const next = [...benefits]; next[i] = { ...next[i], desc: e.target.value }; set("benefits", next); }} className="inp" placeholder="On every qualifying order" />
+              </F>
+            </div>
+          ))}
         </div>
       );
     }

@@ -79,22 +79,34 @@ export function ProductCard({
             }}
           />
 
-          {/* Badge */}
-          {product.badge && (
-            <span
-              className={`absolute top-2.5 left-2.5 text-mono font-semibold px-2 py-1 ${
-                product.badge === "SALE"
-                  ? "bg-secondary text-secondary-foreground"
-                  : product.badge === "SOLD OUT"
-                  ? "bg-muted text-muted-foreground"
-                  : product.badge === "LAST PIECE"
-                  ? "bg-primary text-primary-foreground glow-primary-sm"
-                  : "bg-primary text-primary-foreground"
-              }`}
-              style={{ fontSize: "9px", letterSpacing: "0.25em" }}
-            >
-              {product.badge}
-            </span>
+          {/* Badges */}
+          {(product.badge || product.isBestSeller) && (
+            <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1">
+              {product.isBestSeller && (
+                <span
+                  className="text-mono font-semibold px-2 py-1 bg-accent text-accent-foreground"
+                  style={{ fontSize: "9px", letterSpacing: "0.25em" }}
+                >
+                  BEST SELLER
+                </span>
+              )}
+              {product.badge && (
+                <span
+                  className={`text-mono font-semibold px-2 py-1 ${
+                    product.badge === "SALE"
+                      ? "bg-secondary text-secondary-foreground"
+                      : product.badge === "SOLD OUT"
+                      ? "bg-muted text-muted-foreground"
+                      : product.badge === "LAST PIECE"
+                      ? "bg-primary text-primary-foreground glow-primary-sm"
+                      : "bg-primary text-primary-foreground"
+                  }`}
+                  style={{ fontSize: "9px", letterSpacing: "0.25em" }}
+                >
+                  {product.badge}
+                </span>
+              )}
+            </div>
           )}
 
           {/* Wishlist — plain heart, no box */}

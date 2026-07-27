@@ -24,6 +24,7 @@ export type Product = {
   stock: number;
   is_active?: boolean;
   is_featured?: boolean;
+  isBestSeller?: boolean;
 };
 
 type DBProduct = {
@@ -47,6 +48,7 @@ type DBProduct = {
   stock: number;
   is_active: boolean;
   is_featured: boolean;
+  is_best_seller: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -74,6 +76,7 @@ function fromDB(r: DBProduct): Product {
     stock: r.stock,
     is_active: r.is_active,
     is_featured: r.is_featured,
+    isBestSeller: r.is_best_seller,
   };
 }
 
@@ -99,6 +102,7 @@ function toDB(p: Product): Omit<DBProduct, "created_at" | "updated_at"> {
     stock: p.stock,
     is_active: p.is_active ?? true,
     is_featured: p.is_featured ?? false,
+    is_best_seller: p.isBestSeller ?? false,
   };
 }
 

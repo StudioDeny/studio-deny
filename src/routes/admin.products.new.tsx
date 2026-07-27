@@ -220,6 +220,17 @@ export function ProductForm({
           </select>
         </Field>
 
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={p.isBestSeller ?? false}
+            onChange={(e) => set("isBestSeller", e.target.checked)}
+            className="w-4 h-4"
+          />
+          <span className="text-sm text-foreground">Best Seller</span>
+          <span className="text-mono text-[10px] text-muted-foreground">— shows a "Best Seller" badge on this product's card everywhere</span>
+        </label>
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Field label="PRICE (₹)">
             <input

@@ -81,10 +81,12 @@ function PDP() {
   const [size, setSize] = useState<string | null>(null);
   const [variantId, setVariantId] = useState<string | undefined>();
   const [tab, setTab] = useState<"desc" | "mat" | "ship">("desc");
-  const [mainImg, setMainImg] = useState(product.image);
   const [added, setAdded] = useState(false);
   const [sizeOptions, setSizeOptions] = useState<SizeOption[]>([]);
-  const [zoomOpen, setZoomOpen] = useState(false);
+  const [zoomSrc, setZoomSrc] = useState<string | null>(null);
+
+  // Full gallery, in order: base image, hover image, then any extra gallery photos — deduped.
+  const galleryImages = Array.from(new Set([product.image, product.hoverImage, ...(product.gallery ?? [])].filter(Boolean)));
   const [ctaVisible, setCtaVisible] = useState(true);
   const [related, setRelated] = useState<Product[]>([]);
   const ctaRef = useRef<HTMLButtonElement>(null);
@@ -120,7 +122,6 @@ function PDP() {
   useEffect(() => {
     setSize(null);
     setVariantId(undefined);
-    setMainImg(product.image);
     setTab("desc");
     setAdded(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -166,64 +167,44 @@ function PDP() {
         </nav>
       </div>
 
-      <section className="px-4 md:px-8 mt-4 grid md:grid-cols-[100px_minmax(0,1.2fr)_1fr] lg:grid-cols-[120px_minmax(0,1.5fr)_1fr] gap-6 lg:gap-12">
-        {/* Thumbnails (Desktop) */}
-        <div className="hidden md:flex flex-col gap-3">
-          {[product.image, product.hoverImage].map((src, i) => (
-            <button
+      <section className="px-4 md:px-8 mt-4 grid md:grid-cols-[1.3fr_1fr] lg:grid-cols-[1.5fr_1fr] gap-6 lg:gap-12">
+        {/* Image gallery — a tall stack of every photo, scrolled past naturally (H&M-style)
+            while the info panel stays pinned via position:sticky below. */}
+        <div className="flex flex-col gap-3">
+          {galleryImages.map((src, i) => (
+            <div
               key={src}
-              onClick={() => setMainImg(src)}
-              className={`relative overflow-hidden transition-all duration-300 ${
-                mainImg === src ? "ring-1 ring-primary ring-offset-2 ring-offset-background" : "border border-border hover:border-foreground/50 opacity-60 hover:opacity-100"
-              }`}
-              style={{ aspectRatio: "4/5", background: "var(--color-surface)" }}
+              className="relative group bg-surface border border-border overflow-hidden cursor-zoom-in"
+              style={{ aspectRatio: "4/5" }}
+              onClick={() => setZoomSrc(src)}
+              title="Click to zoom"
             >
-              <img src={src} alt={`${product.name} view ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
-            </button>
-          ))}
-        </div>
-
-        {/* Main Image */}
-        <div
-          className="relative group bg-surface border border-border overflow-hidden cursor-zoom-in"
-          style={{ aspectRatio: "4/5" }}
-          onClick={() => setZoomOpen(true)}
-          title="Click to zoom"
-        >
-          <img
-            src={mainImg}
-            alt={product.name}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-          />
-          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <span className="size-8 bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80">
-              <ZoomIn className="size-4" />
-            </span>
-          </div>
-          {product.badge && (
-            <span
-              className={`absolute top-4 left-4 text-mono font-semibold px-3 py-1.5 shadow-lg ${
-                product.badge === "SALE" ? "bg-secondary text-secondary-foreground" :
-                product.badge === "LAST PIECE" ? "bg-primary text-primary-foreground glow-primary-sm" :
-                product.badge === "SOLD OUT" ? "bg-muted text-muted-foreground" :
-                "bg-primary text-primary-foreground"
-              }`}
-              style={{ fontSize: "10px", letterSpacing: "0.25em" }}
-            >
-              {product.badge}
-            </span>
-          )}
-          {/* Mobile Thumbnails Overlay */}
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 md:hidden z-10 px-4">
-            {[product.image, product.hoverImage].map((src) => (
-              <button
-                key={src}
-                onClick={() => setMainImg(src)}
-                className={`h-1 transition-all duration-300 ${mainImg === src ? "w-8 bg-primary glow-primary-sm" : "w-4 bg-foreground/40"}`}
-                aria-label="Change image"
+              <img
+                src={src}
+                alt={`${product.name} view ${i + 1}`}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                loading={i === 0 ? undefined : "lazy"}
               />
-            ))}
-          </div>
+              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <span className="size-8 bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80">
+                  <ZoomIn className="size-4" />
+                </span>
+              </div>
+              {i === 0 && product.badge && (
+                <span
+                  className={`absolute top-4 left-4 text-mono font-semibold px-3 py-1.5 shadow-lg ${
+                    product.badge === "SALE" ? "bg-secondary text-secondary-foreground" :
+                    product.badge === "LAST PIECE" ? "bg-primary text-primary-foreground glow-primary-sm" :
+                    product.badge === "SOLD OUT" ? "bg-muted text-muted-foreground" :
+                    "bg-primary text-primary-foreground"
+                  }`}
+                  style={{ fontSize: "10px", letterSpacing: "0.25em" }}
+                >
+                  {product.badge}
+                </span>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* Product Info */}
@@ -465,20 +446,20 @@ function PDP() {
       </div>
 
       {/* Image zoom lightbox */}
-      {zoomOpen && createPortal(
+      {zoomSrc && createPortal(
         <div
           className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 animate-in fade-in duration-200"
-          onClick={() => setZoomOpen(false)}
+          onClick={() => setZoomSrc(null)}
         >
           <button
             className="absolute top-5 right-5 size-10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:border-white/50 transition-colors"
-            onClick={() => setZoomOpen(false)}
+            onClick={() => setZoomSrc(null)}
             aria-label="Close zoom"
           >
             <X className="size-5" />
           </button>
           <img
-            src={mainImg}
+            src={zoomSrc}
             alt={product.name}
             className="max-w-[90vw] max-h-[90vh] object-contain animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()}

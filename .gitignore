@@ -25,6 +25,12 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Subagent-driven-development scratch state
+.superpowers/
+
+# Claude Code local settings
+.claude/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

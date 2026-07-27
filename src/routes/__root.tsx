@@ -4,10 +4,10 @@ import { AuthProvider } from "@/context/AuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/layout/Navbar";
+import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Footer } from "@/components/layout/Footer";
 import { CartDrawer } from "@/components/layout/CartDrawer";
 import { BottomNav } from "@/components/layout/BottomNav";
-import { useRouterState } from "@tanstack/react-router";
 import { ChevronUp } from "lucide-react";
 
 function NotFoundComponent() {
@@ -36,12 +36,12 @@ export const Route = createRootRoute({
 });
 
 import { Preloader } from "@/components/layout/Preloader";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { seedIfEmpty } from "@/lib/seed";
 
 function RootComponent() {
-  const isHome = useRouterState({ select: (s) => s.location.pathname === "/" });
   const [scrolled, setScrolled] = useState(false);
+  const topBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 400);
@@ -55,6 +55,22 @@ function RootComponent() {
     document.title = "STUDIO DENY";
   }, []);
 
+  // Keep --topbar-h in sync with the *actual* rendered height of the fixed
+  // marquee+navbar stack. A one-shot measurement isn't reliable here — web
+  // fonts swapping in after first paint change the navbar's real height, so
+  // we watch it continuously with ResizeObserver instead of measuring once.
+  useEffect(() => {
+    const el = topBarRef.current;
+    if (!el) return;
+    const apply = () => {
+      document.documentElement.style.setProperty("--topbar-h", `${el.offsetHeight}px`);
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -64,8 +80,11 @@ function RootComponent() {
       <Preloader />
       <WishlistProvider>
         <CartProvider>
-          <Navbar />
-          <main className={`min-h-[60vh] pb-16 sm:pb-0 ${!isHome ? "pt-28 sm:pt-36" : ""}`}>
+          <div ref={topBarRef} className="fixed top-0 left-0 right-0 z-[100] flex flex-col">
+            <AnnouncementBar />
+            <Navbar />
+          </div>
+          <main className="min-h-[60vh] pb-16 sm:pb-0 pt-[var(--topbar-h)]">
             <Outlet />
           </main>
           <Footer />

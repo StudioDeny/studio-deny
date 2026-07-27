@@ -1,29 +1,55 @@
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Search, ArrowRight } from "lucide-react";
+import { Menu, X, Search, ArrowRight, User, Heart, ShoppingBag, ChevronDown } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { listProducts, type Product } from "@/lib/productsStore";
-import { formatINR } from "@/context/CartContext";
+import { useCart, formatINR } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
+import { listChildCategories, type Category } from "@/lib/catalog";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+
+type CategoryNavItem = {
+  label: string;
+  slug: string;
+  dropdown: { label: string; to: string; params?: { slug: string }; search?: Record<string, unknown> }[];
+};
+
+const CATEGORY_NAV: CategoryNavItem[] = [
+  {
+    label: "WOMEN",
+    slug: "women",
+    dropdown: [
+      { label: "NEW ARRIVALS", to: "/collections/$slug", params: { slug: "women" }, search: { sort: "new" } },
+      { label: "SHOP ALL WOMEN", to: "/collections/$slug", params: { slug: "women" } },
+    ],
+  },
+  {
+    label: "MEN",
+    slug: "men",
+    dropdown: [
+      { label: "NEW ARRIVALS", to: "/collections/$slug", params: { slug: "men" }, search: { sort: "new" } },
+      { label: "SHOP ALL MEN", to: "/collections/$slug", params: { slug: "men" } },
+    ],
+  },
+];
 
 export function Navbar() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQ, setSearchQ] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [accessorySubcats, setAccessorySubcats] = useState<Category[]>([]);
   const { user } = useAuth();
-  const location = useLocation();
+  const { count: cartCount } = useCart();
+  const { slugs: wishSlugs } = useWishlist();
   const navigate = useNavigate();
-  const isHomeRoute = location.pathname === "/";
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    listChildCategories("accessories").then(setAccessorySubcats);
   }, []);
 
   // Load products once when search first opens
@@ -54,9 +80,6 @@ export function Navbar() {
 
   const closeSearch = () => { setSearchOpen(false); setSearchQ(""); setSearchResults([]); };
 
-  // Force solid nav bar when search is open
-  const navUseSolidBar = !isHomeRoute || scrollY > 12 || mobileNavOpen || searchOpen;
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQ.trim()) return;
@@ -84,24 +107,105 @@ export function Navbar() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className={`fixed top-0 left-0 right-0 z-[100] flex flex-col transition-[background,backdrop-filter] duration-300 ${
-          navUseSolidBar
-            ? "bg-white/95 backdrop-blur-md border-b border-black/[0.08]"
-            : "bg-transparent"
-        }`}
+        className="relative z-[100] flex flex-col bg-background border-b border-border"
       >
-        {/* Main bar */}
-        <div className="flex w-full items-center justify-between px-4 sm:px-8 lg:px-16 py-4 sm:py-6 text-foreground">
+        {/* Main bar — left: category dropdowns, center: logo, right: icons */}
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-8 lg:px-16 py-2.5 sm:py-3 text-foreground">
+          {/* Left — category nav with dropdowns (desktop only) */}
+          <div className="hidden sm:flex items-center gap-6 lg:gap-8 font-body">
+            {CATEGORY_NAV.map((cat) => (
+              <div
+                key={cat.slug}
+                className="relative"
+                onMouseEnter={() => setOpenDropdown(cat.slug)}
+                onMouseLeave={() => setOpenDropdown((d) => (d === cat.slug ? null : d))}
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenDropdown((d) => (d === cat.slug ? null : cat.slug))}
+                  className="flex items-center gap-1 text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale"
+                >
+                  {cat.label} <ChevronDown className="size-3" strokeWidth={1.5} />
+                </button>
+                <AnimatePresence>
+                  {openDropdown === cat.slug && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 pt-3 z-10"
+                    >
+                      <div className="min-w-[180px] bg-background border border-border shadow-lg py-2">
+                        {cat.dropdown.map((item) => (
+                          <Link
+                            key={item.label}
+                            to={item.to}
+                            params={item.params}
+                            search={item.search as never}
+                            onClick={() => setOpenDropdown(null)}
+                            className="block px-4 py-2 text-sm tracking-wide hover:bg-surface hover:text-primary transition-colors"
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+
+            <div
+              className="relative"
+              onMouseEnter={() => setOpenDropdown("accessories")}
+              onMouseLeave={() => setOpenDropdown((d) => (d === "accessories" ? null : d))}
+            >
+              <button
+                type="button"
+                onClick={() => setOpenDropdown((d) => (d === "accessories" ? null : "accessories"))}
+                className="flex items-center gap-1 text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale"
+              >
+                ACCESSORIES <ChevronDown className="size-3" strokeWidth={1.5} />
+              </button>
+              <AnimatePresence>
+                {openDropdown === "accessories" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full left-0 pt-3 z-10"
+                  >
+                    <div className="min-w-[180px] bg-background border border-border shadow-lg py-2">
+                      <Link to="/collections/$slug" params={{ slug: "accessories" }} onClick={() => setOpenDropdown(null)}
+                        className="block px-4 py-2 text-sm tracking-wide hover:bg-surface hover:text-primary transition-colors">
+                        SHOP ALL ACCESSORIES
+                      </Link>
+                      {accessorySubcats.map((sc) => (
+                        <Link key={sc.slug} to="/collections/$slug" params={{ slug: sc.slug }} onClick={() => setOpenDropdown(null)}
+                          className="block px-4 py-2 text-sm tracking-wide hover:bg-surface hover:text-primary transition-colors">
+                          {sc.name.toUpperCase()}
+                        </Link>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Center — logo */}
           <Link
             to="/"
             onClick={() => { setMobileNavOpen(false); closeSearch(); }}
-            className="tracking-[-0.02em] hover:opacity-80 transition-opacity text-display"
+            className="tracking-[-0.02em] hover:opacity-80 transition-opacity text-display justify-self-start sm:justify-self-center"
           >
-            <span className="text-[1.65rem] sm:text-[2.5rem] leading-none">STUDIO DENY</span>
+            <span className="text-lg sm:text-xl leading-none">STUDIO DENY</span>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden sm:flex gap-5 lg:gap-7 items-center font-body">
+          {/* Right — icons (desktop) */}
+          <div className="hidden sm:flex items-center justify-end gap-4 lg:gap-5">
             <button
               type="button"
               onClick={() => { setSearchOpen((v) => !v); setMobileNavOpen(false); }}
@@ -110,23 +214,29 @@ export function Navbar() {
             >
               {searchOpen ? <X className="size-4" strokeWidth={1.5} /> : <Search className="size-4" strokeWidth={1.5} />}
             </button>
-            <Link to="/collections/$slug" params={{ slug: "men" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale">MEN</Link>
-            <Link to="/collections/$slug" params={{ slug: "women" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale">WOMEN</Link>
-            <Link to="/collections/$slug" params={{ slug: "accessories" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale hidden lg:inline">ACCESSORIES</Link>
-            <Link to="/collections/$slug" params={{ slug: "sneakers" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale hidden lg:inline">SNEAKERS</Link>
-            <Link to="/shop" search={{ sort: "new" }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale">NEW</Link>
-            <Link to="/shop" search={{ q: undefined }} className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale">BEST SELLERS</Link>
-            <div className="w-[1px] h-4 bg-black/20 mx-1 hidden lg:block" />
-            {user ? (
-              <Link to="/account" className="text-sm tracking-wide hover:opacity-60 transition-opacity uppercase hover-scale">ACCOUNT</Link>
-            ) : (
-              <Link to="/login" className="text-sm tracking-wide hover:opacity-60 transition-opacity uppercase hover-scale">LOGIN</Link>
-            )}
-            <Link to="/cart" className="text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale">CART</Link>
+            <Link to={user ? "/account" : "/login"} aria-label="Account" className="flex items-center justify-center size-8 hover:opacity-60 transition-opacity">
+              <User className="size-4" strokeWidth={1.5} />
+            </Link>
+            <Link to="/wishlist" aria-label="Wishlist" className="relative flex items-center justify-center size-8 hover:opacity-60 transition-opacity">
+              <Heart className="size-4" strokeWidth={1.5} />
+              {wishSlugs.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-primary text-primary-foreground text-[9px] leading-[15px] text-center font-semibold">
+                  {wishSlugs.length}
+                </span>
+              )}
+            </Link>
+            <Link to="/cart" aria-label="Cart" className="relative flex items-center justify-center size-8 hover:opacity-60 transition-opacity">
+              <ShoppingBag className="size-4" strokeWidth={1.5} />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-primary text-primary-foreground text-[9px] leading-[15px] text-center font-semibold">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
           </div>
 
           {/* Mobile: Search + Hamburger */}
-          <div className="flex items-center gap-1 sm:hidden">
+          <div className="flex items-center justify-end gap-1 sm:hidden">
             <button
               type="button"
               onClick={() => { setSearchOpen((v) => !v); setMobileNavOpen(false); }}
@@ -234,8 +344,8 @@ export function Navbar() {
                   <AccordionTrigger className="text-sm tracking-wide uppercase">MEN</AccordionTrigger>
                   <AccordionContent>
                     <div className="flex flex-col gap-1 pl-3">
-                      <Link to="/shop" search={{ sort: "new" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">NEW ARRIVALS</Link>
-                      <Link to="/shop" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">BEST SELLERS</Link>
+                      <Link to="/collections/$slug" params={{ slug: "men" }} search={{ sort: "new" } as never} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">NEW ARRIVALS</Link>
+                      <Link to="/collections/$slug" params={{ slug: "men" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">SHOP ALL MEN</Link>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -243,8 +353,8 @@ export function Navbar() {
                   <AccordionTrigger className="text-sm tracking-wide uppercase">WOMEN</AccordionTrigger>
                   <AccordionContent>
                     <div className="flex flex-col gap-1 pl-3">
-                      <Link to="/shop" search={{ sort: "new" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">NEW ARRIVALS</Link>
-                      <Link to="/shop" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">BEST SELLERS</Link>
+                      <Link to="/collections/$slug" params={{ slug: "women" }} search={{ sort: "new" } as never} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">NEW ARRIVALS</Link>
+                      <Link to="/collections/$slug" params={{ slug: "women" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">SHOP ALL WOMEN</Link>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -265,6 +375,9 @@ export function Navbar() {
               ) : (
                 <Link to="/login" onClick={() => setMobileNavOpen(false)} className="block py-3 text-sm tracking-wide uppercase">LOGIN</Link>
               )}
+              <Link to="/wishlist" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-between py-3 text-sm tracking-wide uppercase">
+                WISHLIST {wishSlugs.length > 0 && <span className="text-mono text-xs text-muted-foreground">({wishSlugs.length})</span>}
+              </Link>
             </motion.div>
           )}
         </AnimatePresence>

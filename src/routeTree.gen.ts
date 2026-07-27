@@ -10,16 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as TrackOrderRouteImport } from './routes/track-order'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SizeGuideRouteImport } from './routes/size-guide'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as RewardsRouteImport } from './routes/rewards'
+import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as ReferRouteImport } from './routes/refer'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PoliciesRouteImport } from './routes/policies'
 import { Route as LookbookRouteImport } from './routes/lookbook'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as CouriersRouteImport } from './routes/couriers'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CollaboratorsRouteImport } from './routes/collaborators'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -31,6 +37,10 @@ import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as OrderIdRouteImport } from './routes/order.$id'
 import { Route as InvoiceIdRouteImport } from './routes/invoice.$id'
 import { Route as CollectionsSlugRouteImport } from './routes/collections.$slug'
+import { Route as CollaboratorsModelsRouteImport } from './routes/collaborators.models'
+import { Route as CollaboratorsInfluencersRouteImport } from './routes/collaborators.influencers'
+import { Route as CollaboratorsDanceRouteImport } from './routes/collaborators.dance'
+import { Route as CollaboratorsArtRouteImport } from './routes/collaborators.art'
 import { Route as AdminWebsiteSectionsRouteImport } from './routes/admin.website-sections'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTestimonialsRouteImport } from './routes/admin.testimonials'
@@ -43,11 +53,14 @@ import { Route as AdminNotificationsRouteImport } from './routes/admin.notificat
 import { Route as AdminNavigationRouteImport } from './routes/admin.navigation'
 import { Route as AdminMediaRouteImport } from './routes/admin.media'
 import { Route as AdminLoyaltyRouteImport } from './routes/admin.loyalty'
+import { Route as AdminLookbookCmsRouteImport } from './routes/admin.lookbook-cms'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
 import { Route as AdminInvoiceTemplateRouteImport } from './routes/admin.invoice-template'
+import { Route as AdminInfluencerPicksRouteImport } from './routes/admin.influencer-picks'
 import { Route as AdminFaqRouteImport } from './routes/admin.faq'
 import { Route as AdminExportRouteImport } from './routes/admin.export'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
+import { Route as AdminCommunityCmsRouteImport } from './routes/admin.community-cms'
 import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
 import { Route as AdminArrivalsRouteImport } from './routes/admin.arrivals'
 import { Route as AdminAnnouncementsRouteImport } from './routes/admin.announcements'
@@ -60,6 +73,16 @@ import { Route as AdminInvoiceIdRouteImport } from './routes/admin.invoice.$id'
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackOrderRoute = TrackOrderRouteImport.update({
+  id: '/track-order',
+  path: '/track-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SizeGuideRoute = SizeGuideRouteImport.update({
@@ -82,9 +105,19 @@ const RewardsRoute = RewardsRouteImport.update({
   path: '/rewards',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReturnsRoute = ReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReferRoute = ReferRouteImport.update({
   id: '/refer',
   path: '/refer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoliciesRoute = PoliciesRouteImport.update({
@@ -107,9 +140,19 @@ const FaqRoute = FaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CouriersRoute = CouriersRouteImport.update({
+  id: '/couriers',
+  path: '/couriers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CollaboratorsRoute = CollaboratorsRouteImport.update({
+  id: '/collaborators',
+  path: '/collaborators',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutRoute = CheckoutRouteImport.update({
@@ -166,6 +209,27 @@ const CollectionsSlugRoute = CollectionsSlugRouteImport.update({
   id: '/collections/$slug',
   path: '/collections/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CollaboratorsModelsRoute = CollaboratorsModelsRouteImport.update({
+  id: '/models',
+  path: '/models',
+  getParentRoute: () => CollaboratorsRoute,
+} as any)
+const CollaboratorsInfluencersRoute =
+  CollaboratorsInfluencersRouteImport.update({
+    id: '/influencers',
+    path: '/influencers',
+    getParentRoute: () => CollaboratorsRoute,
+  } as any)
+const CollaboratorsDanceRoute = CollaboratorsDanceRouteImport.update({
+  id: '/dance',
+  path: '/dance',
+  getParentRoute: () => CollaboratorsRoute,
+} as any)
+const CollaboratorsArtRoute = CollaboratorsArtRouteImport.update({
+  id: '/art',
+  path: '/art',
+  getParentRoute: () => CollaboratorsRoute,
 } as any)
 const AdminWebsiteSectionsRoute = AdminWebsiteSectionsRouteImport.update({
   id: '/website-sections',
@@ -227,6 +291,11 @@ const AdminLoyaltyRoute = AdminLoyaltyRouteImport.update({
   path: '/loyalty',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLookbookCmsRoute = AdminLookbookCmsRouteImport.update({
+  id: '/lookbook-cms',
+  path: '/lookbook-cms',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInvoicesRoute = AdminInvoicesRouteImport.update({
   id: '/invoices',
   path: '/invoices',
@@ -235,6 +304,11 @@ const AdminInvoicesRoute = AdminInvoicesRouteImport.update({
 const AdminInvoiceTemplateRoute = AdminInvoiceTemplateRouteImport.update({
   id: '/invoice-template',
   path: '/invoice-template',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInfluencerPicksRoute = AdminInfluencerPicksRouteImport.update({
+  id: '/influencer-picks',
+  path: '/influencer-picks',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminFaqRoute = AdminFaqRouteImport.update({
@@ -250,6 +324,11 @@ const AdminExportRoute = AdminExportRouteImport.update({
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCommunityCmsRoute = AdminCommunityCmsRouteImport.update({
+  id: '/community-cms',
+  path: '/community-cms',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCatalogRoute = AdminCatalogRouteImport.update({
@@ -300,26 +379,35 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/collaborators': typeof CollaboratorsRouteWithChildren
   '/contact': typeof ContactRoute
+  '/couriers': typeof CouriersRoute
   '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
   '/lookbook': typeof LookbookRoute
   '/policies': typeof PoliciesRoute
+  '/privacy': typeof PrivacyRoute
   '/refer': typeof ReferRoute
+  '/returns': typeof ReturnsRoute
   '/rewards': typeof RewardsRoute
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
   '/size-guide': typeof SizeGuideRoute
+  '/terms': typeof TermsRoute
+  '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/arrivals': typeof AdminArrivalsRoute
   '/admin/catalog': typeof AdminCatalogRoute
+  '/admin/community-cms': typeof AdminCommunityCmsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/export': typeof AdminExportRoute
   '/admin/faq': typeof AdminFaqRoute
+  '/admin/influencer-picks': typeof AdminInfluencerPicksRoute
   '/admin/invoice-template': typeof AdminInvoiceTemplateRoute
   '/admin/invoices': typeof AdminInvoicesRoute
+  '/admin/lookbook-cms': typeof AdminLookbookCmsRoute
   '/admin/loyalty': typeof AdminLoyaltyRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/navigation': typeof AdminNavigationRoute
@@ -332,6 +420,10 @@ export interface FileRoutesByFullPath {
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/website-sections': typeof AdminWebsiteSectionsRoute
+  '/collaborators/art': typeof CollaboratorsArtRoute
+  '/collaborators/dance': typeof CollaboratorsDanceRoute
+  '/collaborators/influencers': typeof CollaboratorsInfluencersRoute
+  '/collaborators/models': typeof CollaboratorsModelsRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/invoice/$id': typeof InvoiceIdRoute
   '/order/$id': typeof OrderIdRoute
@@ -348,26 +440,35 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/collaborators': typeof CollaboratorsRouteWithChildren
   '/contact': typeof ContactRoute
+  '/couriers': typeof CouriersRoute
   '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
   '/lookbook': typeof LookbookRoute
   '/policies': typeof PoliciesRoute
+  '/privacy': typeof PrivacyRoute
   '/refer': typeof ReferRoute
+  '/returns': typeof ReturnsRoute
   '/rewards': typeof RewardsRoute
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
   '/size-guide': typeof SizeGuideRoute
+  '/terms': typeof TermsRoute
+  '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/arrivals': typeof AdminArrivalsRoute
   '/admin/catalog': typeof AdminCatalogRoute
+  '/admin/community-cms': typeof AdminCommunityCmsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/export': typeof AdminExportRoute
   '/admin/faq': typeof AdminFaqRoute
+  '/admin/influencer-picks': typeof AdminInfluencerPicksRoute
   '/admin/invoice-template': typeof AdminInvoiceTemplateRoute
   '/admin/invoices': typeof AdminInvoicesRoute
+  '/admin/lookbook-cms': typeof AdminLookbookCmsRoute
   '/admin/loyalty': typeof AdminLoyaltyRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/navigation': typeof AdminNavigationRoute
@@ -379,6 +480,10 @@ export interface FileRoutesByTo {
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/website-sections': typeof AdminWebsiteSectionsRoute
+  '/collaborators/art': typeof CollaboratorsArtRoute
+  '/collaborators/dance': typeof CollaboratorsDanceRoute
+  '/collaborators/influencers': typeof CollaboratorsInfluencersRoute
+  '/collaborators/models': typeof CollaboratorsModelsRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/invoice/$id': typeof InvoiceIdRoute
   '/order/$id': typeof OrderIdRoute
@@ -397,26 +502,35 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/collaborators': typeof CollaboratorsRouteWithChildren
   '/contact': typeof ContactRoute
+  '/couriers': typeof CouriersRoute
   '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
   '/lookbook': typeof LookbookRoute
   '/policies': typeof PoliciesRoute
+  '/privacy': typeof PrivacyRoute
   '/refer': typeof ReferRoute
+  '/returns': typeof ReturnsRoute
   '/rewards': typeof RewardsRoute
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
   '/size-guide': typeof SizeGuideRoute
+  '/terms': typeof TermsRoute
+  '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/arrivals': typeof AdminArrivalsRoute
   '/admin/catalog': typeof AdminCatalogRoute
+  '/admin/community-cms': typeof AdminCommunityCmsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/export': typeof AdminExportRoute
   '/admin/faq': typeof AdminFaqRoute
+  '/admin/influencer-picks': typeof AdminInfluencerPicksRoute
   '/admin/invoice-template': typeof AdminInvoiceTemplateRoute
   '/admin/invoices': typeof AdminInvoicesRoute
+  '/admin/lookbook-cms': typeof AdminLookbookCmsRoute
   '/admin/loyalty': typeof AdminLoyaltyRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/navigation': typeof AdminNavigationRoute
@@ -429,6 +543,10 @@ export interface FileRoutesById {
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/website-sections': typeof AdminWebsiteSectionsRoute
+  '/collaborators/art': typeof CollaboratorsArtRoute
+  '/collaborators/dance': typeof CollaboratorsDanceRoute
+  '/collaborators/influencers': typeof CollaboratorsInfluencersRoute
+  '/collaborators/models': typeof CollaboratorsModelsRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/invoice/$id': typeof InvoiceIdRoute
   '/order/$id': typeof OrderIdRoute
@@ -448,26 +566,35 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cart'
     | '/checkout'
+    | '/collaborators'
     | '/contact'
+    | '/couriers'
     | '/faq'
     | '/login'
     | '/lookbook'
     | '/policies'
+    | '/privacy'
     | '/refer'
+    | '/returns'
     | '/rewards'
     | '/shop'
     | '/signup'
     | '/size-guide'
+    | '/terms'
+    | '/track-order'
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/announcements'
     | '/admin/arrivals'
     | '/admin/catalog'
+    | '/admin/community-cms'
     | '/admin/customers'
     | '/admin/export'
     | '/admin/faq'
+    | '/admin/influencer-picks'
     | '/admin/invoice-template'
     | '/admin/invoices'
+    | '/admin/lookbook-cms'
     | '/admin/loyalty'
     | '/admin/media'
     | '/admin/navigation'
@@ -480,6 +607,10 @@ export interface FileRouteTypes {
     | '/admin/testimonials'
     | '/admin/users'
     | '/admin/website-sections'
+    | '/collaborators/art'
+    | '/collaborators/dance'
+    | '/collaborators/influencers'
+    | '/collaborators/models'
     | '/collections/$slug'
     | '/invoice/$id'
     | '/order/$id'
@@ -496,26 +627,35 @@ export interface FileRouteTypes {
     | '/account'
     | '/cart'
     | '/checkout'
+    | '/collaborators'
     | '/contact'
+    | '/couriers'
     | '/faq'
     | '/login'
     | '/lookbook'
     | '/policies'
+    | '/privacy'
     | '/refer'
+    | '/returns'
     | '/rewards'
     | '/shop'
     | '/signup'
     | '/size-guide'
+    | '/terms'
+    | '/track-order'
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/announcements'
     | '/admin/arrivals'
     | '/admin/catalog'
+    | '/admin/community-cms'
     | '/admin/customers'
     | '/admin/export'
     | '/admin/faq'
+    | '/admin/influencer-picks'
     | '/admin/invoice-template'
     | '/admin/invoices'
+    | '/admin/lookbook-cms'
     | '/admin/loyalty'
     | '/admin/media'
     | '/admin/navigation'
@@ -527,6 +667,10 @@ export interface FileRouteTypes {
     | '/admin/testimonials'
     | '/admin/users'
     | '/admin/website-sections'
+    | '/collaborators/art'
+    | '/collaborators/dance'
+    | '/collaborators/influencers'
+    | '/collaborators/models'
     | '/collections/$slug'
     | '/invoice/$id'
     | '/order/$id'
@@ -544,26 +688,35 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cart'
     | '/checkout'
+    | '/collaborators'
     | '/contact'
+    | '/couriers'
     | '/faq'
     | '/login'
     | '/lookbook'
     | '/policies'
+    | '/privacy'
     | '/refer'
+    | '/returns'
     | '/rewards'
     | '/shop'
     | '/signup'
     | '/size-guide'
+    | '/terms'
+    | '/track-order'
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/announcements'
     | '/admin/arrivals'
     | '/admin/catalog'
+    | '/admin/community-cms'
     | '/admin/customers'
     | '/admin/export'
     | '/admin/faq'
+    | '/admin/influencer-picks'
     | '/admin/invoice-template'
     | '/admin/invoices'
+    | '/admin/lookbook-cms'
     | '/admin/loyalty'
     | '/admin/media'
     | '/admin/navigation'
@@ -576,6 +729,10 @@ export interface FileRouteTypes {
     | '/admin/testimonials'
     | '/admin/users'
     | '/admin/website-sections'
+    | '/collaborators/art'
+    | '/collaborators/dance'
+    | '/collaborators/influencers'
+    | '/collaborators/models'
     | '/collections/$slug'
     | '/invoice/$id'
     | '/order/$id'
@@ -594,16 +751,22 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
+  CollaboratorsRoute: typeof CollaboratorsRouteWithChildren
   ContactRoute: typeof ContactRoute
+  CouriersRoute: typeof CouriersRoute
   FaqRoute: typeof FaqRoute
   LoginRoute: typeof LoginRoute
   LookbookRoute: typeof LookbookRoute
   PoliciesRoute: typeof PoliciesRoute
+  PrivacyRoute: typeof PrivacyRoute
   ReferRoute: typeof ReferRoute
+  ReturnsRoute: typeof ReturnsRoute
   RewardsRoute: typeof RewardsRoute
   ShopRoute: typeof ShopRoute
   SignupRoute: typeof SignupRoute
   SizeGuideRoute: typeof SizeGuideRoute
+  TermsRoute: typeof TermsRoute
+  TrackOrderRoute: typeof TrackOrderRoute
   WishlistRoute: typeof WishlistRoute
   CollectionsSlugRoute: typeof CollectionsSlugRoute
   InvoiceIdRoute: typeof InvoiceIdRoute
@@ -618,6 +781,20 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/wishlist'
       preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track-order': {
+      id: '/track-order'
+      path: '/track-order'
+      fullPath: '/track-order'
+      preLoaderRoute: typeof TrackOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/size-guide': {
@@ -648,11 +825,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RewardsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/returns': {
+      id: '/returns'
+      path: '/returns'
+      fullPath: '/returns'
+      preLoaderRoute: typeof ReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/refer': {
       id: '/refer'
       path: '/refer'
       fullPath: '/refer'
       preLoaderRoute: typeof ReferRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/policies': {
@@ -683,11 +874,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/couriers': {
+      id: '/couriers'
+      path: '/couriers'
+      fullPath: '/couriers'
+      preLoaderRoute: typeof CouriersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/collaborators': {
+      id: '/collaborators'
+      path: '/collaborators'
+      fullPath: '/collaborators'
+      preLoaderRoute: typeof CollaboratorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout': {
@@ -766,6 +971,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/collections/$slug'
       preLoaderRoute: typeof CollectionsSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/collaborators/models': {
+      id: '/collaborators/models'
+      path: '/models'
+      fullPath: '/collaborators/models'
+      preLoaderRoute: typeof CollaboratorsModelsRouteImport
+      parentRoute: typeof CollaboratorsRoute
+    }
+    '/collaborators/influencers': {
+      id: '/collaborators/influencers'
+      path: '/influencers'
+      fullPath: '/collaborators/influencers'
+      preLoaderRoute: typeof CollaboratorsInfluencersRouteImport
+      parentRoute: typeof CollaboratorsRoute
+    }
+    '/collaborators/dance': {
+      id: '/collaborators/dance'
+      path: '/dance'
+      fullPath: '/collaborators/dance'
+      preLoaderRoute: typeof CollaboratorsDanceRouteImport
+      parentRoute: typeof CollaboratorsRoute
+    }
+    '/collaborators/art': {
+      id: '/collaborators/art'
+      path: '/art'
+      fullPath: '/collaborators/art'
+      preLoaderRoute: typeof CollaboratorsArtRouteImport
+      parentRoute: typeof CollaboratorsRoute
     }
     '/admin/website-sections': {
       id: '/admin/website-sections'
@@ -851,6 +1084,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoyaltyRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/lookbook-cms': {
+      id: '/admin/lookbook-cms'
+      path: '/lookbook-cms'
+      fullPath: '/admin/lookbook-cms'
+      preLoaderRoute: typeof AdminLookbookCmsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/invoices': {
       id: '/admin/invoices'
       path: '/invoices'
@@ -863,6 +1103,13 @@ declare module '@tanstack/react-router' {
       path: '/invoice-template'
       fullPath: '/admin/invoice-template'
       preLoaderRoute: typeof AdminInvoiceTemplateRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/influencer-picks': {
+      id: '/admin/influencer-picks'
+      path: '/influencer-picks'
+      fullPath: '/admin/influencer-picks'
+      preLoaderRoute: typeof AdminInfluencerPicksRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/faq': {
@@ -884,6 +1131,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/admin/customers'
       preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/community-cms': {
+      id: '/admin/community-cms'
+      path: '/community-cms'
+      fullPath: '/admin/community-cms'
+      preLoaderRoute: typeof AdminCommunityCmsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/catalog': {
@@ -966,11 +1220,14 @@ interface AdminRouteChildren {
   AdminAnnouncementsRoute: typeof AdminAnnouncementsRoute
   AdminArrivalsRoute: typeof AdminArrivalsRoute
   AdminCatalogRoute: typeof AdminCatalogRoute
+  AdminCommunityCmsRoute: typeof AdminCommunityCmsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminExportRoute: typeof AdminExportRoute
   AdminFaqRoute: typeof AdminFaqRoute
+  AdminInfluencerPicksRoute: typeof AdminInfluencerPicksRoute
   AdminInvoiceTemplateRoute: typeof AdminInvoiceTemplateRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
+  AdminLookbookCmsRoute: typeof AdminLookbookCmsRoute
   AdminLoyaltyRoute: typeof AdminLoyaltyRoute
   AdminMediaRoute: typeof AdminMediaRoute
   AdminNavigationRoute: typeof AdminNavigationRoute
@@ -992,11 +1249,14 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAnnouncementsRoute: AdminAnnouncementsRoute,
   AdminArrivalsRoute: AdminArrivalsRoute,
   AdminCatalogRoute: AdminCatalogRoute,
+  AdminCommunityCmsRoute: AdminCommunityCmsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminExportRoute: AdminExportRoute,
   AdminFaqRoute: AdminFaqRoute,
+  AdminInfluencerPicksRoute: AdminInfluencerPicksRoute,
   AdminInvoiceTemplateRoute: AdminInvoiceTemplateRoute,
   AdminInvoicesRoute: AdminInvoicesRoute,
+  AdminLookbookCmsRoute: AdminLookbookCmsRoute,
   AdminLoyaltyRoute: AdminLoyaltyRoute,
   AdminMediaRoute: AdminMediaRoute,
   AdminNavigationRoute: AdminNavigationRoute,
@@ -1015,6 +1275,24 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface CollaboratorsRouteChildren {
+  CollaboratorsArtRoute: typeof CollaboratorsArtRoute
+  CollaboratorsDanceRoute: typeof CollaboratorsDanceRoute
+  CollaboratorsInfluencersRoute: typeof CollaboratorsInfluencersRoute
+  CollaboratorsModelsRoute: typeof CollaboratorsModelsRoute
+}
+
+const CollaboratorsRouteChildren: CollaboratorsRouteChildren = {
+  CollaboratorsArtRoute: CollaboratorsArtRoute,
+  CollaboratorsDanceRoute: CollaboratorsDanceRoute,
+  CollaboratorsInfluencersRoute: CollaboratorsInfluencersRoute,
+  CollaboratorsModelsRoute: CollaboratorsModelsRoute,
+}
+
+const CollaboratorsRouteWithChildren = CollaboratorsRoute._addFileChildren(
+  CollaboratorsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -1022,16 +1300,22 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
+  CollaboratorsRoute: CollaboratorsRouteWithChildren,
   ContactRoute: ContactRoute,
+  CouriersRoute: CouriersRoute,
   FaqRoute: FaqRoute,
   LoginRoute: LoginRoute,
   LookbookRoute: LookbookRoute,
   PoliciesRoute: PoliciesRoute,
+  PrivacyRoute: PrivacyRoute,
   ReferRoute: ReferRoute,
+  ReturnsRoute: ReturnsRoute,
   RewardsRoute: RewardsRoute,
   ShopRoute: ShopRoute,
   SignupRoute: SignupRoute,
   SizeGuideRoute: SizeGuideRoute,
+  TermsRoute: TermsRoute,
+  TrackOrderRoute: TrackOrderRoute,
   WishlistRoute: WishlistRoute,
   CollectionsSlugRoute: CollectionsSlugRoute,
   InvoiceIdRoute: InvoiceIdRoute,

@@ -43,6 +43,12 @@
 
   --accent: #E0202A;
   --accent-foreground: #FFFFFF;
+
+  --topbar-h: 132px;
+}
+
+@media (min-width: 640px) {
+  :root { --topbar-h: 160px; }
 }
 
 @layer base {
@@ -156,5 +162,60 @@
   /* Reduce motion for perf */
   @media (prefers-reduced-motion: reduce) {
     .ticker-scroll { animation: none; }
+  }
+
+  /* Fill-sweep button: border/ghost button that fills solid on hover,
+     with the label clip-swapping so text stays legible through the sweep. */
+  .btn-fill {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .btn-fill-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .btn-fill:hover .btn-fill-bg,
+  .btn-fill:focus-visible .btn-fill-bg {
+    transform: scaleX(1);
+  }
+  .btn-fill-front,
+  .btn-fill-back {
+    position: relative;
+    z-index: 1;
+    transition: clip-path 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .btn-fill-back {
+    position: absolute;
+    inset: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    clip-path: inset(0 100% 0 0);
+  }
+  .btn-fill-front {
+    clip-path: inset(0 0 0 0);
+  }
+  .btn-fill:hover .btn-fill-front,
+  .btn-fill:focus-visible .btn-fill-front {
+    clip-path: inset(0 0 0 100%);
+  }
+  .btn-fill:hover .btn-fill-back,
+  .btn-fill:focus-visible .btn-fill-back {
+    clip-path: inset(0 0 0 0);
+  }
+
+  .btn-fill--light .btn-fill-bg { background: #ffffff; }
+  .btn-fill--light .btn-fill-back { color: #0a0a0a; }
+
+  .btn-fill--dark .btn-fill-bg { background: var(--foreground); }
+  .btn-fill--dark .btn-fill-back { color: var(--background); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-fill-bg, .btn-fill-front, .btn-fill-back { transition: none; }
   }
 }

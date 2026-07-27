@@ -4,12 +4,15 @@ export type DBProduct = {
   slug: string;
   name: string;
   category: string;
+  category_id: string | null;
   brand: string | null;
   price: number;
   compare_at: number | null;
   image: string;
   hover_image: string;
+  gallery: string[];
   badge: string | null;
+  fit: string | null;
   sizes: string[];
   colors: { name: string; hex: string }[];
   description: string;
@@ -17,6 +20,7 @@ export type DBProduct = {
   stock: number;
   is_active: boolean;
   is_featured: boolean;
+  is_best_seller: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -38,7 +42,7 @@ export type NotifStatus = "pending" | "sent" | "failed";
 export type WaLogStatus = "sent" | "delivered" | "read" | "failed";
 export type CampaignStatus = "draft" | "scheduled" | "running" | "completed" | "failed";
 export type FaqCategory = "general" | "orders" | "shipping" | "returns" | "sizing";
-export type SectionType = "hero" | "marquee" | "new_arrivals" | "lookbook" | "testimonials" | "faq" | "why_us" | "instagram_feed" | "newsletter";
+export type SectionType = "hero" | "marquee" | "new_arrivals" | "lookbook" | "testimonials" | "faq" | "why_us" | "instagram_feed" | "newsletter" | "gender_split" | "category_carousel" | "denyspace";
 export type NavLocation = "header" | "footer" | "mobile";
 export type LoyaltyTxType = "earn" | "redeem" | "adjust";
 export type LoyaltyTier = "ROOKIE" | "RUNNER" | "RIOT" | "LEGEND";
@@ -212,6 +216,30 @@ export interface Database {
         Row: AdminNotification;
         Insert: Omit<AdminNotification, "id" | "created_at">;
         Update: Partial<Omit<AdminNotification, "id" | "created_at">>;
+        Relationships: [];
+      };
+      lookbook_slides: {
+        Row: LookbookSlide;
+        Insert: Omit<LookbookSlide, "id" | "created_at">;
+        Update: Partial<Omit<LookbookSlide, "id" | "created_at">>;
+        Relationships: [];
+      };
+      community_photos: {
+        Row: CommunityPhoto;
+        Insert: Omit<CommunityPhoto, "id" | "created_at">;
+        Update: Partial<Omit<CommunityPhoto, "id" | "created_at">>;
+        Relationships: [];
+      };
+      influencer_picks: {
+        Row: InfluencerPick;
+        Insert: Omit<InfluencerPick, "id" | "created_at">;
+        Update: Partial<Omit<InfluencerPick, "id" | "created_at">>;
+        Relationships: [];
+      };
+      influencer_pick_products: {
+        Row: InfluencerPickProduct;
+        Insert: Omit<InfluencerPickProduct, "id" | "created_at">;
+        Update: Partial<Omit<InfluencerPickProduct, "id" | "created_at">>;
         Relationships: [];
       };
     };
@@ -501,6 +529,51 @@ export type Coupon = {
   used_count: number;
   is_active: boolean;
   expires_at: string | null;
+  created_at: string;
+};
+
+export type BentoSize = "sm" | "md" | "lg" | "wide" | "tall";
+export type InfluencerVideoSource = "upload" | "link";
+
+export type LookbookSlide = {
+  id: string;
+  image_url: string;
+  caption: string | null;
+  link_href: string | null;
+  is_active: boolean;
+  position: number;
+  created_at: string;
+};
+
+export type CommunityPhoto = {
+  id: string;
+  image_url: string;
+  handle: string | null;
+  bento_size: BentoSize;
+  is_active: boolean;
+  position: number;
+  created_at: string;
+};
+
+export type InfluencerPick = {
+  id: string;
+  name: string;
+  handle: string | null;
+  video_source: InfluencerVideoSource;
+  video_url: string | null;
+  link_url: string | null;
+  thumbnail_url: string | null;
+  quote: string | null;
+  is_active: boolean;
+  position: number;
+  created_at: string;
+};
+
+export type InfluencerPickProduct = {
+  id: string;
+  influencer_pick_id: string;
+  product_slug: string;
+  position: number;
   created_at: string;
 };
 

@@ -1,6 +1,5 @@
 import { listProducts, type Product } from "./productsStore";
 import { findCategoryBySlug } from "./catalog";
-import { getHomeSections } from "./homeSections";
 
 const NEW_ARRIVALS_WINDOW_DAYS = 30;
 
@@ -21,6 +20,5 @@ export async function newArrivalsForGender(genderSlug: "men" | "women"): Promise
 
 export async function bestSellersForGender(genderSlug: "men" | "women"): Promise<Product[]> {
   const gendered = await productsForGender(genderSlug);
-  const curatedSlugs = new Set(getHomeSections().bestSellers.productSlugs);
-  return gendered.filter((p) => curatedSlugs.has(p.slug));
+  return gendered.filter((p) => p.isBestSeller);
 }

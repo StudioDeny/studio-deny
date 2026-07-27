@@ -1,115 +1,112 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { getHomeSections, saveHomeSections, type HomeSections, type CommunityItem } from "@/lib/homeSections";
+import { supabase } from "@/lib/supabase";
+import type { CommunityPhoto, BentoSize } from "@/types/database";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, Loader2, X } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/community-cms")({
   component: CommunityCmsAdmin,
   head: () => ({ meta: [{ title: "Community — STUDIO DENY" }] }),
 });
 
+const BENTO_SIZES: BentoSize[] = ["sm", "md", "lg", "wide", "tall"];
+
 function CommunityCmsAdmin() {
-  const [hs, setHs] = useState<HomeSections | null>(null);
-  const [uploading, setUploading] = useState<string | null>(null);
+  const [rows, setRows] = useState<CommunityPhoto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
-  useEffect(() => { setHs(getHomeSections()); }, []);
-
-  if (!hs) return <div className="text-mono text-xs">LOADING…</div>;
-
-  const cm = hs.community;
-  const setCm = <K extends keyof typeof cm>(k: K, v: (typeof cm)[K]) =>
-    setHs({ ...hs, community: { ...cm, [k]: v } });
-
-  const updateItem = (id: string, patch: Partial<CommunityItem>) =>
-    setCm("items", cm.items.map((x) => (x.id === id ? { ...x, ...patch } : x)));
-
-  const addItem = () => {
-    const id = Date.now().toString();
-    setCm("items", [...cm.items, { id, image: "", handle: "" }]);
+  const load = async () => {
+    const { data, error } = await supabase.from("community_photos").select("*").order("position");
+    if (error) toast.error(error.message);
+    else setRows(data ?? []);
+    setLoading(false);
   };
 
-  const removeItem = (id: string) => setCm("items", cm.items.filter((x) => x.id !== id));
+  useEffect(() => { load(); }, []);
 
-  const uploadImage = async (id: string, file: File) => {
-    setUploading(id);
+  const update = async (id: string, patch: Partial<Omit<CommunityPhoto, "id" | "created_at">>) => {
+    setRows((r) => r.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+    const { error } = await supabase.from("community_photos").update(patch).eq("id", id);
+    if (error) toast.error(error.message);
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm("Delete this photo?")) return;
+    const { error } = await supabase.from("community_photos").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    setRows((r) => r.filter((x) => x.id !== id));
+  };
+
+  const addFromFile = async (file: File) => {
+    setUploading(true);
     try {
-      const res = await uploadToCloudinary(file);
-      updateItem(id, { image: res.secure_url });
-      toast.success("Image uploaded");
-    } catch {
-      toast.error("Upload failed");
+      const result = await uploadToCloudinary(file);
+      const { data, error } = await supabase
+        .from("community_photos")
+        .insert({ image_url: result.secure_url, handle: null, bento_size: "md", is_active: true, position: rows.length })
+        .select()
+        .single();
+      if (error) { toast.error(error.message); return; }
+      setRows((r) => [...r, data]);
+      toast.success("Photo added");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
-      setUploading(null);
+      setUploading(false);
     }
   };
+
+  if (loading) return <div className="text-mono text-xs">LOADING…</div>;
 
   return (
     <div>
       <h1 className="text-display text-4xl md:text-5xl mb-2">COMMUNITY.</h1>
-      <p className="text-muted-foreground text-sm mb-8">Manage the "Worn by Our Community" photo grid on the homepage.</p>
-
-      <div className="border border-border bg-surface p-6 mb-6 grid sm:grid-cols-2 gap-4">
-        <label className="flex items-center gap-2 text-sm sm:col-span-2">
-          <input type="checkbox" checked={cm.enabled} onChange={(e) => setCm("enabled", e.target.checked)} className="accent-primary" />
-          <span className="text-mono text-xs tracking-widest">SHOW SECTION ON HOME</span>
-        </label>
-        <Field label="TITLE"><input value={cm.title} onChange={(e) => setCm("title", e.target.value)} className="inp" /></Field>
-        <Field label="SUBTITLE"><input value={cm.subtitle} onChange={(e) => setCm("subtitle", e.target.value)} className="inp" /></Field>
-      </div>
+      <p className="text-muted-foreground text-sm mb-8">
+        Manage the "Worn By Our Community" bento grid. Admin-curated images only — these tiles are purely visual, no click-through.
+      </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
-        {cm.items.map((item) => (
-          <div key={item.id} className="relative border border-border overflow-hidden bg-surface">
+        {rows.map((photo) => (
+          <div key={photo.id} className="relative border border-border overflow-hidden bg-surface">
             <div className="relative aspect-square">
-              {item.image ? (
-                <>
-                  <img src={item.image} alt={item.handle} className="w-full h-full object-cover" />
-                  <button type="button" onClick={() => updateItem(item.id, { image: "" })}
-                    className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-0.5">
-                    <X className="size-3" />
-                  </button>
-                </>
-              ) : (
-                <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer bg-background hover:bg-surface/50 gap-2">
-                  {uploading === item.id ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4 text-muted-foreground" />}
-                  <span className="text-mono text-[9px] tracking-widest text-muted-foreground">UPLOAD</span>
-                  <input type="file" accept="image/*" className="hidden"
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(item.id, f); }} />
-                </label>
-              )}
-            </div>
-            <div className="p-2 flex items-center gap-2">
-              <input value={item.handle} onChange={(e) => updateItem(item.id, { handle: e.target.value })}
-                className="flex-1 bg-background border border-border h-7 px-2 text-xs font-mono" placeholder="@handle" />
-              <button type="button" onClick={() => removeItem(item.id)}
-                className="border border-border h-7 w-7 inline-flex items-center justify-center hover:border-destructive hover:text-destructive shrink-0">
+              <img src={photo.image_url} alt={photo.handle ?? ""} className="w-full h-full object-cover" />
+              <button type="button" onClick={() => remove(photo.id)}
+                className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1 hover:bg-red-600 transition-colors">
                 <Trash2 className="size-3" />
               </button>
+            </div>
+            <div className="p-2 space-y-2">
+              <input
+                value={photo.handle ?? ""}
+                onChange={(e) => setRows((r) => r.map((x) => (x.id === photo.id ? { ...x, handle: e.target.value } : x)))}
+                onBlur={(e) => update(photo.id, { handle: e.target.value || null })}
+                className="w-full bg-background border border-border h-7 px-2 text-xs font-mono"
+                placeholder="@handle (optional)"
+              />
+              <select
+                value={photo.bento_size}
+                onChange={(e) => update(photo.id, { bento_size: e.target.value as BentoSize })}
+                className="w-full bg-background border border-border h-7 px-2 text-xs font-mono"
+                style={{ cursor: "pointer" }}
+              >
+                {BENTO_SIZES.map((s) => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+              </select>
             </div>
           </div>
         ))}
 
-        {/* Add new */}
-        <button type="button" onClick={addItem}
-          className="aspect-square border border-dashed border-border hover:border-primary hover:text-primary flex flex-col items-center justify-center gap-2 transition-colors">
-          <Plus className="size-5 text-muted-foreground" />
-          <span className="text-mono text-[10px] tracking-widest text-muted-foreground">ADD PHOTO</span>
-        </button>
+        <label className="aspect-square border border-dashed border-border hover:border-primary hover:text-primary flex flex-col items-center justify-center gap-2 transition-colors cursor-pointer">
+          {uploading ? <Loader2 className="size-5 animate-spin" /> : <Plus className="size-5 text-muted-foreground" />}
+          <span className="text-mono text-[10px] tracking-widest text-muted-foreground">
+            <Upload className="inline size-3 mr-1" /> ADD PHOTO
+          </span>
+          <input type="file" accept="image/*" className="hidden" disabled={uploading}
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) addFromFile(f); e.target.value = ""; }} />
+        </label>
       </div>
-
-      <div className="border-t border-border pt-6">
-        <button type="button" onClick={() => { saveHomeSections(hs); toast.success("Community saved"); }}
-          className="bg-primary text-primary-foreground h-12 px-6 text-mono text-xs tracking-widest hover:glow-primary">
-          SAVE
-        </button>
-      </div>
-      <style>{`.inp{background:var(--background);border:1px solid var(--border);height:40px;padding:0 12px;width:100%;font-family:var(--font-mono,monospace);font-size:13px}`}</style>
     </div>
   );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="block"><div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">{label}</div>{children}</label>;
 }

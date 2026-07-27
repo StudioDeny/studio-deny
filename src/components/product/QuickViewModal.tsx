@@ -65,13 +65,25 @@ export function QuickViewModal({ product, open, onClose }: Props) {
           {/* Image */}
           <div className="relative hidden sm:block" style={{ aspectRatio: "4/5", background: "var(--color-surface)" }}>
             <img src={product.image} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
-            {product.badge && (
-              <span
-                className="absolute top-3 left-3 text-mono font-semibold px-2 py-1 bg-primary text-primary-foreground"
-                style={{ fontSize: "9px", letterSpacing: "0.25em" }}
-              >
-                {product.badge}
-              </span>
+            {(product.badge || product.isBestSeller) && (
+              <div className="absolute top-3 left-3 flex flex-col items-start gap-1">
+                {product.isBestSeller && (
+                  <span
+                    className="text-mono font-semibold px-2 py-1 bg-accent text-accent-foreground"
+                    style={{ fontSize: "9px", letterSpacing: "0.25em" }}
+                  >
+                    BEST SELLER
+                  </span>
+                )}
+                {product.badge && (
+                  <span
+                    className="text-mono font-semibold px-2 py-1 bg-primary text-primary-foreground"
+                    style={{ fontSize: "9px", letterSpacing: "0.25em" }}
+                  >
+                    {product.badge}
+                  </span>
+                )}
+              </div>
             )}
           </div>
 

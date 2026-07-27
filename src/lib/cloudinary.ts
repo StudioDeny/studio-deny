@@ -29,6 +29,24 @@ export async function uploadToCloudinary(file: File): Promise<CloudinaryResult> 
   return res.json() as Promise<CloudinaryResult>;
 }
 
+export async function uploadVideoToCloudinary(file: File): Promise<CloudinaryResult> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("upload_preset", UPLOAD_PRESET);
+
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`,
+    { method: "POST", body: form }
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: { message?: string } }).error?.message ?? "Video upload failed");
+  }
+
+  return res.json() as Promise<CloudinaryResult>;
+}
+
 export function cloudinaryUrl(publicId: string, opts: { w?: number; h?: number; q?: number } = {}) {
   const transforms = [
     opts.w && `w_${opts.w}`,
