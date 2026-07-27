@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Play, X, Volume2, VolumeX, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowRight, Play, X, Volume2, VolumeX, ChevronUp, ChevronDown, ExternalLink } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { InfluencerPick } from "@/types/database";
 import type { Product } from "@/lib/productsStore";
@@ -10,15 +10,8 @@ import type { Product } from "@/lib/productsStore";
 type PickWithTags = InfluencerPick & { products: Pick<Product, "slug" | "name" | "image">[] };
 
 function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) {
-  const isPlayable = pick.video_source === "upload" && !!pick.video_url;
-
-  const handleClick = () => {
-    if (isPlayable) onOpen();
-    else if (pick.link_url) window.open(pick.link_url, "_blank", "noopener,noreferrer");
-  };
-
   return (
-    <button type="button" onClick={handleClick} className="shrink-0 w-[62vw] sm:w-[30vw] lg:w-[21vw] mr-4 text-left group/tile">
+    <button type="button" onClick={onOpen} className="shrink-0 w-[62vw] sm:w-[30vw] lg:w-[21vw] mr-4 text-left group/tile">
       <div className="relative aspect-[3/4] overflow-hidden bg-surface border border-border">
         {pick.thumbnail_url && (
           <img
@@ -109,25 +102,52 @@ function Lightbox({
       </button>
 
       <div className="relative w-full max-w-[420px] h-[85vh] sm:h-[88vh] bg-black overflow-hidden">
-        <video
-          key={pick.id}
-          ref={videoRef}
-          muted={muted}
-          loop
-          playsInline
-          autoPlay
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src={pick.video_url ?? undefined} type="video/mp4" />
-        </video>
+        {pick.video_source === "upload" && pick.video_url ? (
+          <video
+            key={pick.id}
+            ref={videoRef}
+            muted={muted}
+            loop
+            playsInline
+            autoPlay
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src={pick.video_url} type="video/mp4" />
+          </video>
+        ) : (
+          // Link-source picks (Instagram/YouTube reels) can't be played inline without
+          // that platform's embed SDK — stays consistent with the same modal "box"
+          // instead of bouncing the user off-site, but opens the real post on demand.
+          <>
+            {pick.thumbnail_url && (
+              <img src={pick.thumbnail_url} alt={pick.name} className="absolute inset-0 w-full h-full object-cover" />
+            )}
+            <div className="absolute inset-0 bg-black/30" />
+            <a
+              href={pick.link_url ?? "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white group/watch"
+            >
+              <span className="size-16 rounded-full bg-white/15 backdrop-blur-sm border border-white/40 flex items-center justify-center group-hover/watch:scale-110 transition-transform">
+                <Play className="size-7 fill-white ml-0.5" />
+              </span>
+              <span className="text-xs tracking-[0.15em] uppercase text-mono inline-flex items-center gap-1.5">
+                Watch on Instagram <ExternalLink className="size-3" />
+              </span>
+            </a>
+          </>
+        )}
 
-        <button
-          onClick={() => setMuted((m) => !m)}
-          aria-label="Toggle sound"
-          className="absolute top-4 right-4 size-9 rounded-full bg-black/40 border border-white/30 flex items-center justify-center text-white"
-        >
-          {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
-        </button>
+        {pick.video_source === "upload" && pick.video_url && (
+          <button
+            onClick={() => setMuted((m) => !m)}
+            aria-label="Toggle sound"
+            className="absolute top-4 right-4 size-9 rounded-full bg-black/40 border border-white/30 flex items-center justify-center text-white"
+          >
+            {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
+          </button>
+        )}
 
         <div className="absolute top-4 left-16 right-16 text-white">
           <p className="font-display text-lg uppercase">{pick.name}</p>
@@ -212,10 +232,8 @@ export function InfluencerPicksGrid() {
 
   if (picks.length === 0) return null;
 
-  const playable = picks.filter((p) => p.video_source === "upload" && p.video_url);
-
   const openLightboxFor = (pick: PickWithTags) => {
-    const idx = playable.findIndex((p) => p.id === pick.id);
+    const idx = picks.findIndex((p) => p.id === pick.id);
     if (idx >= 0) setLightboxIndex(idx);
   };
 
@@ -239,8 +257,8 @@ export function InfluencerPicksGrid() {
         </div>
       </div>
 
-      {lightboxIndex !== null && playable.length > 0 && (
-        <Lightbox picks={playable} index={lightboxIndex} onClose={() => setLightboxIndex(null)} onNavigate={setLightboxIndex} />
+      {lightboxIndex !== null && (
+        <Lightbox picks={picks} index={lightboxIndex} onClose={() => setLightboxIndex(null)} onNavigate={setLightboxIndex} />
       )}
     </section>
   );

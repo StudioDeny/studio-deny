@@ -3,12 +3,17 @@ import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import type { CommunityPhoto, BentoSize } from "@/types/database";
 
-const SIZE_CLASS: Record<BentoSize, string> = {
-  sm: "col-span-1 row-span-1",
-  md: "col-span-1 row-span-1",
-  lg: "col-span-2 row-span-2",
-  wide: "col-span-2 row-span-1",
-  tall: "col-span-1 row-span-2",
+// Masonry (CSS columns) rather than CSS Grid row/col spans — spans need enough
+// small tiles around them to avoid gaps, which broke down with only a few
+// admin-curated photos. Columns auto-flow into whichever column is shortest,
+// so it never leaves a gap no matter how many photos or which sizes are picked.
+// Size variety comes from aspect ratio (height) instead of column span (width).
+const ASPECT_CLASS: Record<BentoSize, string> = {
+  sm: "aspect-[4/5]",
+  md: "aspect-[5/6]",
+  wide: "aspect-[16/11]",
+  tall: "aspect-[3/5]",
+  lg: "aspect-[3/4]",
 };
 
 export function CommunityBento() {
@@ -34,7 +39,7 @@ export function CommunityBento() {
       </motion.div>
 
       {/* Admin-curated, no click-through by design — purely visual/social-proof. */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 grid-flow-row-dense auto-rows-[170px] sm:auto-rows-[210px] gap-2 sm:gap-3">
+      <div className="columns-2 sm:columns-3 lg:columns-4 gap-2 sm:gap-3">
         {photos.map((photo, idx) => (
           <motion.div
             key={photo.id}
@@ -42,7 +47,7 @@ export function CommunityBento() {
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: idx * 0.05 }}
             viewport={{ once: true }}
-            className={`relative overflow-hidden border border-border group ${SIZE_CLASS[photo.bento_size]}`}
+            className={`relative overflow-hidden border border-border group mb-2 sm:mb-3 break-inside-avoid ${ASPECT_CLASS[photo.bento_size]}`}
           >
             <img src={photo.image_url} alt={photo.handle ?? "community"} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
             {photo.handle && (
