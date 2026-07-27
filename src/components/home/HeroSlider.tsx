@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { FillLink } from "@/components/ui/FillLink";
+import { SlideDots } from "@/components/ui/SlideDots";
 
 export type HeroSlide = {
   id: string;
@@ -169,22 +170,13 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
         </div>
       </div>
 
-      {/* Slide dots */}
-      {data.length > 1 && (
-        <div className="absolute z-10 bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
-          {data.map((s, i) => (
-            <button
-              key={s.id}
-              type="button"
-              aria-label={`Go to slide ${i + 1}`}
-              onClick={() => setActive(i)}
-              className={`h-1.5 rounded-full transition-all duration-400 ${
-                i === active ? "w-8 bg-white" : "w-1.5 bg-white/40 hover:bg-white/70"
-              }`}
-            />
-          ))}
-        </div>
-      )}
+      <SlideDots
+        count={data.length}
+        active={active}
+        onSelect={setActive}
+        durationMs={AUTOPLAY_MS}
+        className="absolute z-10 bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2"
+      />
     </section>
   );
 }

@@ -61,10 +61,17 @@ function Lightbox({
 }) {
   const pick = picks[index];
   const [muted, setMuted] = useState(true);
+  const [videoFailed, setVideoFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const wheelLock = useRef(false);
 
+  // Always try to actually play something first — a pasted link is sometimes a
+  // direct video file, sometimes a webpage URL that can't play inline. Only
+  // fall back to "view the original post" if the browser reports it can't load.
+  const playbackSrc = pick.video_url ?? pick.link_url ?? undefined;
+
   useEffect(() => {
+    setVideoFailed(false);
     videoRef.current?.play().catch(() => {});
   }, [index]);
 
@@ -102,44 +109,47 @@ function Lightbox({
       </button>
 
       <div className="relative w-full max-w-[420px] h-[85vh] sm:h-[88vh] bg-black overflow-hidden">
-        {pick.video_source === "upload" && pick.video_url ? (
+        {playbackSrc && !videoFailed ? (
           <video
-            key={pick.id}
+            key={`${pick.id}-${playbackSrc}`}
             ref={videoRef}
             muted={muted}
             loop
             playsInline
             autoPlay
+            preload="auto"
+            onError={() => setVideoFailed(true)}
             className="absolute inset-0 w-full h-full object-cover"
           >
-            <source src={pick.video_url} type="video/mp4" />
+            <source src={playbackSrc} type="video/mp4" />
           </video>
         ) : (
-          // Link-source picks (Instagram/YouTube reels) can't be played inline without
-          // that platform's embed SDK — stays consistent with the same modal "box"
-          // instead of bouncing the user off-site, but opens the real post on demand.
+          // Only reached if there's truly nothing to play, or the browser
+          // couldn't load it (e.g. a pasted link that isn't a direct video file).
           <>
             {pick.thumbnail_url && (
               <img src={pick.thumbnail_url} alt={pick.name} className="absolute inset-0 w-full h-full object-cover" />
             )}
             <div className="absolute inset-0 bg-black/30" />
-            <a
-              href={pick.link_url ?? "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white group/watch"
-            >
-              <span className="size-16 rounded-full bg-white/15 backdrop-blur-sm border border-white/40 flex items-center justify-center group-hover/watch:scale-110 transition-transform">
-                <Play className="size-7 fill-white ml-0.5" />
-              </span>
-              <span className="text-xs tracking-[0.15em] uppercase text-mono inline-flex items-center gap-1.5">
-                Watch on Instagram <ExternalLink className="size-3" />
-              </span>
-            </a>
+            {pick.link_url && (
+              <a
+                href={pick.link_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white group/watch"
+              >
+                <span className="size-16 rounded-full bg-white/15 backdrop-blur-sm border border-white/40 flex items-center justify-center group-hover/watch:scale-110 transition-transform">
+                  <Play className="size-7 fill-white ml-0.5" />
+                </span>
+                <span className="text-xs tracking-[0.15em] uppercase text-mono inline-flex items-center gap-1.5">
+                  View original post <ExternalLink className="size-3" />
+                </span>
+              </a>
+            )}
           </>
         )}
 
-        {pick.video_source === "upload" && pick.video_url && (
+        {playbackSrc && !videoFailed && (
           <button
             onClick={() => setMuted((m) => !m)}
             aria-label="Toggle sound"

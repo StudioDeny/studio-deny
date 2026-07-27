@@ -164,6 +164,13 @@
     .ticker-scroll { animation: none; }
   }
 
+  /* Slide-dot progress ring — fills clockwise over the autoplay interval,
+     like an Instagram Stories timer. r=6 circle, circumference ≈ 37.7. */
+  @keyframes dot-ring-progress {
+    from { stroke-dashoffset: 37.7; }
+    to { stroke-dashoffset: 0; }
+  }
+
   /* Fill-sweep button: border/ghost button that fills solid on hover,
      with the label clip-swapping so text stays legible through the sweep. */
   .btn-fill {

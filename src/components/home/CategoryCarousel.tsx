@@ -3,6 +3,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { SlideDots } from "@/components/ui/SlideDots";
+
+const AUTOPLAY_MS = 6000;
 
 type CarouselSlide = {
   media_type: "image" | "video";
@@ -42,6 +45,12 @@ export function CategoryCarousel() {
         if (cfgData?.slides && cfgData.slides.length > 0) setCfg({ slides: cfgData.slides });
       });
   }, []);
+
+  useEffect(() => {
+    if (cfg.slides.length <= 1) return;
+    const t = setInterval(() => setActive((a) => (a + 1) % cfg.slides.length), AUTOPLAY_MS);
+    return () => clearInterval(t);
+  }, [cfg.slides.length]);
 
   if (!visible || cfg.slides.length === 0) return null;
 
@@ -95,19 +104,13 @@ export function CategoryCarousel() {
             <ChevronRight className="size-5" />
           </button>
 
-          <div className="absolute z-[3] bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
-            {cfg.slides.map((s, i) => (
-              <button
-                key={`${s.href}-${i}`}
-                type="button"
-                aria-label={`Go to slide ${i + 1}`}
-                onClick={() => setActive(i)}
-                className={`h-1.5 rounded-full transition-all duration-400 ${
-                  i === active ? "w-8 bg-white" : "w-1.5 bg-white/40 hover:bg-white/70"
-                }`}
-              />
-            ))}
-          </div>
+          <SlideDots
+            count={cfg.slides.length}
+            active={active}
+            onSelect={setActive}
+            durationMs={AUTOPLAY_MS}
+            className="absolute z-[3] bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2"
+          />
         </>
       )}
     </section>
