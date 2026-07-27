@@ -1,41 +1,80 @@
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Newsletter } from "./Newsletter";
 import { Instagram, Twitter, Youtube } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import type { NavMenuItem, BrandSettings } from "@/types/database";
+
+type FooterColumn = { h: string; l: NavMenuItem[] };
+
+const DEFAULT_COLS: FooterColumn[] = [
+  {
+    h: "BRAND",
+    l: [
+      { label: "Shop", href: "/shop" },
+      { label: "Best Sellers", href: "/shop" },
+      { label: "About", href: "/about" },
+      { label: "Lookbook", href: "/lookbook" },
+      { label: "Couriers", href: "/couriers" },
+      { label: "Contact", href: "/contact" },
+      { label: "Rewards", href: "/rewards" },
+    ],
+  },
+  {
+    h: "SUPPORT",
+    l: [
+      { label: "FAQs", href: "/faq" },
+      { label: "Returns & Exchange", href: "/returns" },
+      { label: "T&C's", href: "/terms" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Track Your Order", href: "/track-order" },
+    ],
+  },
+  {
+    h: "COLLABORATORS",
+    l: [
+      { label: "Art", href: "/collaborators/art" },
+      { label: "Dance", href: "/collaborators/dance" },
+      { label: "Models", href: "/collaborators/models" },
+      { label: "Influencers", href: "/collaborators/influencers" },
+    ],
+  },
+];
+
+const DEFAULT_TAGLINE = "Streetwear for the ones who refuse to blend in.\nMade in India. Worn worldwide.";
 
 export function Footer() {
-  const cols = [
-    {
-      h: "BRAND",
-      l: [
-        { label: "Shop", to: "/shop" },
-        { label: "Best Sellers", to: "/shop", search: { featured: "1" } },
-        { label: "About", to: "/about" },
-        { label: "Lookbook", to: "/lookbook" },
-        { label: "Couriers", to: "/couriers" },
-        { label: "Contact", to: "/contact" },
-        { label: "Rewards", to: "/rewards" },
-      ],
-    },
-    {
-      h: "SUPPORT",
-      l: [
-        { label: "FAQs", to: "/faq" },
-        { label: "Returns & Exchange", to: "/returns" },
-        { label: "T&C's", to: "/terms" },
-        { label: "Privacy Policy", to: "/privacy" },
-        { label: "Track Your Order", to: "/track-order" },
-      ],
-    },
-    {
-      h: "COLLABORATORS",
-      l: [
-        { label: "Art", to: "/collaborators/art" },
-        { label: "Dance", to: "/collaborators/dance" },
-        { label: "Models", to: "/collaborators/models" },
-        { label: "Influencers", to: "/collaborators/influencers" },
-      ],
-    },
-  ];
+  const [cols, setCols] = useState<FooterColumn[]>(DEFAULT_COLS);
+  const [brand, setBrand] = useState<Partial<BrandSettings>>({});
+
+  useEffect(() => {
+    supabase
+      .from("navigation_menus")
+      .select("items")
+      .eq("location", "footer")
+      .single()
+      .then(({ data }) => {
+        const items = (data?.items as NavMenuItem[] | undefined) ?? [];
+        if (items.length === 0) return; // keep defaults until an admin actually curates this
+        const grouped = new Map<string, NavMenuItem[]>();
+        for (const item of items) {
+          const key = item.group?.trim() || "MORE";
+          if (!grouped.has(key)) grouped.set(key, []);
+          grouped.get(key)!.push(item);
+        }
+        setCols(Array.from(grouped.entries()).map(([h, l]) => ({ h, l })));
+      });
+
+    supabase
+      .from("brand_settings")
+      .select("*")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => { if (data) setBrand(data); });
+  }, []);
+
+  const tagline = brand.tagline?.trim() || DEFAULT_TAGLINE;
 
   return (
     <footer className="border-t border-border mt-24" style={{ background: "var(--color-surface)" }}>
@@ -45,9 +84,8 @@ export function Footer() {
           <Link to="/" className="text-display tracking-wider inline-block" style={{ fontSize: "28px" }}>
             STUDIO DENY
           </Link>
-          <p className="mt-4 text-muted-foreground leading-relaxed" style={{ fontSize: "13px", maxWidth: "240px" }}>
-            Streetwear for the ones who refuse to blend in.
-            Made in India. Worn worldwide.
+          <p className="mt-4 text-muted-foreground leading-relaxed whitespace-pre-line" style={{ fontSize: "13px", maxWidth: "240px" }}>
+            {tagline}
           </p>
 
           <div className="mt-7">
@@ -56,32 +94,32 @@ export function Footer() {
           </div>
 
           <div className="mt-6 flex items-center gap-3">
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"
+            <a href={brand.social_instagram || "https://instagram.com"} target="_blank" rel="noopener noreferrer"
               className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors" aria-label="Instagram">
               <Instagram className="size-4" />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer"
+            <a href={brand.social_twitter || "https://twitter.com"} target="_blank" rel="noopener noreferrer"
               className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors" aria-label="Twitter / X">
               <Twitter className="size-4" />
             </a>
-            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer"
+            <a href={brand.social_facebook || "https://youtube.com"} target="_blank" rel="noopener noreferrer"
               className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors" aria-label="YouTube">
               <Youtube className="size-4" />
             </a>
           </div>
         </div>
 
-        {/* Link columns */}
+        {/* Link columns — admin-managed via /admin/navigation (footer tab), grouped by
+            each item's "group" field. Adding a new group there creates a whole new column. */}
         <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-8 md:gap-12">
           {cols.map((c) => (
             <div key={c.h}>
               <div className="text-mono text-primary mb-5" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>{c.h}</div>
               <ul className="space-y-3">
                 {c.l.map((i) => (
-                  <li key={i.label}>
+                  <li key={`${i.label}-${i.href}`}>
                     <Link
-                      to={i.to}
-                      search={(i as { search?: Record<string, string> }).search as never}
+                      to={i.href}
                       className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-0.5 inline-block"
                       style={{ fontSize: "13px" }}
                     >
@@ -95,7 +133,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-border px-4 md:px-8 py-6 flex flex-col md:flex-row gap-3 items-center justify-between" style={{ background: "var(--color-muted)" }}>
+      <div className="border-t border-border px-4 md:px-8 py-6 flex flex-col md:flex-row flex-wrap gap-3 md:gap-x-6 items-center justify-center md:justify-between" style={{ background: "var(--color-muted)" }}>
         <div className="text-mono text-muted-foreground text-center md:text-left" style={{ fontSize: "10px", letterSpacing: "0.25em" }}>
           © {new Date().getFullYear()} STUDIO DENY · ALL RIGHTS RESERVED
         </div>

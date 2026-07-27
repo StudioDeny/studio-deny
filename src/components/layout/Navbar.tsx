@@ -110,7 +110,10 @@ export function Navbar() {
         className="relative z-[100] flex flex-col bg-background border-b border-border"
       >
         {/* Main bar — left: category dropdowns, center: logo, right: icons */}
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-8 lg:px-16 py-2.5 sm:py-3 text-foreground">
+        {/* flex on mobile (only 2 children are actually visible there, so justify-between
+            puts them flush at opposite edges), grid on desktop (needs the 3-track layout
+            so the logo can sit truly centered between the left nav and right icons). */}
+        <div className="flex sm:grid sm:grid-cols-[1fr_auto_1fr] items-center justify-between px-4 sm:px-8 lg:px-16 py-2.5 sm:py-3 text-foreground">
           {/* Left — category nav with dropdowns (desktop only) */}
           <div className="hidden sm:flex items-center gap-6 lg:gap-8 font-body">
             {CATEGORY_NAV.map((cat) => (
@@ -236,18 +239,21 @@ export function Navbar() {
           </div>
 
           {/* Mobile: Search + Hamburger */}
-          <div className="flex items-center justify-end gap-1 sm:hidden">
+          <div className="flex items-center gap-2 sm:hidden">
             <button
               type="button"
               onClick={() => { setSearchOpen((v) => !v); setMobileNavOpen(false); }}
-              aria-label="Search"
-              className="flex h-11 w-11 items-center justify-center hover:opacity-60 transition-opacity"
+              aria-label={searchOpen ? "Close search" : "Search"}
+              className={`flex items-center gap-2 h-10 px-3.5 rounded-full border transition-colors ${
+                searchOpen ? "border-primary text-primary" : "border-border text-muted-foreground hover:border-foreground hover:text-foreground"
+              }`}
             >
-              {searchOpen ? <X className="size-[19px]" strokeWidth={1.5} /> : <Search className="size-[19px]" strokeWidth={1.5} />}
+              {searchOpen ? <X className="size-4" strokeWidth={1.5} /> : <Search className="size-4" strokeWidth={1.5} />}
+              <span className="text-xs tracking-wide text-mono">{searchOpen ? "Close" : "Search"}</span>
             </button>
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-sm -mr-1 hover:opacity-60 transition-opacity"
+              className="flex h-11 w-11 items-center justify-center rounded-sm -mr-1.5 hover:opacity-60 transition-opacity shrink-0"
               onClick={() => { setMobileNavOpen((o) => !o); closeSearch(); }}
             >
               {mobileNavOpen ? <X className="h-6 w-6" strokeWidth={1.5} /> : <Menu className="h-6 w-6" strokeWidth={1.5} />}

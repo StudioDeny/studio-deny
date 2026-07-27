@@ -277,7 +277,7 @@ export type WebsiteSection = {
   created_at: string;
 };
 
-export type NavMenuItem = { label: string; href: string };
+export type NavMenuItem = { label: string; href: string; group?: string };
 
 export type NavigationMenu = {
   id: string;

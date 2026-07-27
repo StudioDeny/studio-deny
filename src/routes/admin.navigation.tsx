@@ -60,7 +60,7 @@ function AdminNavigation() {
   };
 
   const addItem = () => {
-    updateItems([...items, { label: "New Link", href: "/" }]);
+    updateItems([...items, { label: "New Link", href: "/", group: activeTab === "footer" ? (items[items.length - 1]?.group ?? "BRAND") : undefined }]);
   };
 
   const removeItem = (idx: number) => {
@@ -73,7 +73,10 @@ function AdminNavigation() {
     <div className="max-w-3xl">
       <div className="mb-6">
         <h1 className="text-display text-4xl md:text-5xl">NAVIGATION.</h1>
-        <p className="text-muted-foreground text-sm mt-2">Manage header, footer, and mobile navigation menus.</p>
+        <p className="text-muted-foreground text-sm mt-2">
+          Manage header, footer, and mobile navigation menus.
+          {activeTab === "footer" && " Footer links are grouped into columns by the \"group\" field — set a new group name to create a whole new column."}
+        </p>
       </div>
 
       <div className="flex gap-1 mb-6">
@@ -104,6 +107,7 @@ function AdminNavigation() {
                   item={item}
                   idx={idx}
                   total={items.length}
+                  showGroup={activeTab === "footer"}
                   onMove={move}
                   onRemove={removeItem}
                   onUpdate={(updated) => {
@@ -139,11 +143,12 @@ function AdminNavigation() {
 }
 
 function MenuItemRow({
-  item, idx, total, onMove, onRemove, onUpdate,
+  item, idx, total, showGroup, onMove, onRemove, onUpdate,
 }: {
   item: NavMenuItem;
   idx: number;
   total: number;
+  showGroup: boolean;
   onMove: (i: number, d: -1 | 1) => void;
   onRemove: (i: number) => void;
   onUpdate: (u: NavMenuItem) => void;
@@ -181,6 +186,14 @@ function MenuItemRow({
             placeholder="/path"
             className="inp flex-1"
           />
+          {showGroup && (
+            <input
+              value={draft.group ?? ""}
+              onChange={(e) => setDraft({ ...draft, group: e.target.value })}
+              placeholder="Column (e.g. BRAND)"
+              className="inp w-40"
+            />
+          )}
           <button onClick={commit} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Check className="size-3" /></button>
           <button onClick={cancel} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><X className="size-3" /></button>
         </>
@@ -188,7 +201,9 @@ function MenuItemRow({
         <>
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-sm">{item.label}</div>
-            <div className="text-mono text-[10px] text-muted-foreground">{item.href}</div>
+            <div className="text-mono text-[10px] text-muted-foreground">
+              {item.href}{showGroup && item.group ? ` · ${item.group}` : ""}
+            </div>
           </div>
           <button onClick={() => setEditing(true)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Pencil className="size-3" /></button>
           <button onClick={() => onRemove(idx)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Trash2 className="size-3" /></button>
