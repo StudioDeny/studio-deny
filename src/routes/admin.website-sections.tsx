@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { WebsiteSection, SectionType } from "@/types/database";
-import { ChevronUp, ChevronDown, Pencil, Eye, EyeOff, Trash2, X, Check } from "lucide-react";
+import { ChevronUp, ChevronDown, Pencil, Eye, EyeOff, Trash2, X, Check, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { listProducts, type Product } from "@/lib/productsStore";
+import { uploadToCloudinary, uploadVideoToCloudinary } from "@/lib/cloudinary";
 
 export const Route = createFileRoute("/admin/website-sections")({
   component: AdminWebsiteSections,
@@ -389,9 +390,12 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
                   <option value="video">Video</option>
                 </select>
               </F>
-              <F label={slide.media_type === "video" ? "VIDEO URL (.mp4)" : "IMAGE URL"}>
-                <input value={slide.src} onChange={(e) => updateSlide(i, { src: e.target.value })} className="inp" placeholder={slide.media_type === "video" ? "https://…/hero-video.mp4" : "https://…/hero-photo.jpg"} />
-              </F>
+              <MediaUrlField
+                label={slide.media_type === "video" ? "VIDEO" : "IMAGE"}
+                mediaType={slide.media_type}
+                value={slide.src}
+                onChange={(url) => updateSlide(i, { src: url })}
+              />
 
               <div className="grid grid-cols-2 gap-3">
                 <F label="BUTTON 1 LABEL"><input value={slide.cta_label} onChange={(e) => updateSlide(i, { cta_label: e.target.value })} className="inp" placeholder="SHOP THE DROP" /></F>
@@ -620,9 +624,12 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
                   <option value="video">Video</option>
                 </select>
               </F>
-              <F label={card.media_type === "video" ? "VIDEO URL (.mp4)" : "IMAGE URL"}>
-                <input value={card.src} onChange={(e) => updateCard(i, { src: e.target.value })} className="inp" placeholder={card.media_type === "video" ? "https://…/men.mp4" : "https://…/men.jpg"} />
-              </F>
+              <MediaUrlField
+                label={card.media_type === "video" ? "VIDEO" : "IMAGE"}
+                mediaType={card.media_type}
+                value={card.src}
+                onChange={(url) => updateCard(i, { src: url })}
+              />
               <F label="CTA LINK"><input value={card.cta_href} onChange={(e) => updateCard(i, { cta_href: e.target.value })} className="inp" placeholder="/collections/men" /></F>
             </div>
           ))}
@@ -683,9 +690,12 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
                   <option value="video">Video</option>
                 </select>
               </F>
-              <F label={slide.media_type === "video" ? "VIDEO URL (.mp4)" : "IMAGE URL"}>
-                <input value={slide.src} onChange={(e) => updateSlide(i, { src: e.target.value })} className="inp" />
-              </F>
+              <MediaUrlField
+                label={slide.media_type === "video" ? "VIDEO" : "IMAGE"}
+                mediaType={slide.media_type}
+                value={slide.src}
+                onChange={(url) => updateSlide(i, { src: url })}
+              />
               <F label="LINK (collection / shop URL)"><input value={slide.href} onChange={(e) => updateSlide(i, { href: e.target.value })} className="inp" placeholder="/shop?sort=best" /></F>
             </div>
           ))}
@@ -748,5 +758,65 @@ function F({ label, children }: { label: string; children: React.ReactNode }) {
       <div className="text-[10px] font-semibold tracking-widest text-foreground/70 mb-1.5 uppercase">{label}</div>
       {children}
     </label>
+  );
+}
+
+/** Paste-a-URL input plus an "upload a file" button (image or video,
+ * matching `mediaType`) for any carousel/card slide's media field. */
+function MediaUrlField({
+  label,
+  mediaType,
+  value,
+  onChange,
+}: {
+  label: string;
+  mediaType: "image" | "video";
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (file: File) => {
+    setUploading(true);
+    try {
+      const result = mediaType === "video" ? await uploadVideoToCloudinary(file) : await uploadToCloudinary(file);
+      onChange(result.secure_url);
+      toast.success("Uploaded");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <F label={label}>
+      <div className="flex gap-2">
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="inp flex-1"
+          placeholder={mediaType === "video" ? "Paste a video URL, or upload →" : "Paste an image URL, or upload →"}
+        />
+        <input
+          ref={fileRef}
+          type="file"
+          accept={mediaType === "video" ? "video/*" : "image/*"}
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+        />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="border border-border h-10 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50 shrink-0"
+        >
+          {uploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
+          UPLOAD
+        </button>
+      </div>
+    </F>
   );
 }
