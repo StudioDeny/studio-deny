@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { buildMeta, buildLinks, SITE_URL, productJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { listProducts, getStoredProduct as getProduct, type Product, type GalleryItem } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -9,6 +10,7 @@ import { Reviews } from "@/components/product/Reviews";
 import { useWishlist } from "@/context/WishlistContext";
 import { Heart, Truck, RotateCcw, ShieldCheck, ArrowRight, Zap, X, ZoomIn } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { SlideDots } from "@/components/ui/SlideDots";
 
 type SizeOption = { size: string; inStock: boolean; variantId?: string; price?: number };
 
@@ -127,6 +129,39 @@ function PDP() {
   const [related, setRelated] = useState<Product[]>([]);
   const ctaRef = useRef<HTMLButtonElement>(null);
 
+  // Desktop-only H&M-style scroll-synced gallery: the track below is
+  // `galleryRows.length` viewport-heights tall; a sticky viewer inside it
+  // shows whichever row the user has scrolled to.
+  const [activeRowIndex, setActiveRowIndex] = useState(0);
+  const galleryTrackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const el = galleryTrackRef.current;
+      if (!el || window.innerWidth < 768) return;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const progress = -rect.top;
+      const idx = Math.min(galleryRows.length - 1, Math.max(0, Math.floor(progress / vh)));
+      setActiveRowIndex((prev) => (prev === idx ? prev : idx));
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [galleryRows.length]);
+
+  const scrollToRow = (i: number) => {
+    const el = galleryTrackRef.current;
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY + i * window.innerHeight;
+    window.scrollTo({ top, behavior: "smooth" });
+  };
+
   useEffect(() => {
     listProducts().then((all) =>
       setRelated(all.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 4))
@@ -160,6 +195,7 @@ function PDP() {
     setVariantId(undefined);
     setTab("desc");
     setAdded(false);
+    setActiveRowIndex(0);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [product.slug]);
 
@@ -255,6 +291,80 @@ function PDP() {
     );
   };
 
+  // Full-screen carousel slide for the desktop scroll-synced viewer — one
+  // per gallery row, cross-faded in as `activeRowIndex` changes.
+  const renderCarouselSlide = (row: GalleryRow) => {
+    const isFirstSlide = activeRowIndex === 0;
+    const singleSrc = row.type === "standalone" ? row.src : undefined;
+    return (
+      <motion.div
+        key={activeRowIndex}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+        className="absolute inset-0"
+      >
+        {row.type === "standalone" ? (
+          <div
+            className="relative w-full h-full cursor-none"
+            onClick={() => setZoomSrc(row.src)}
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setMagnifierPos({
+                x: ((e.clientX - rect.left) / rect.width) * 100,
+                y: ((e.clientY - rect.top) / rect.height) * 100,
+              });
+            }}
+            onMouseLeave={() => setMagnifierPos(null)}
+          >
+            <img src={row.src} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
+            {magnifierPos && singleSrc && (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage: `url(${singleSrc})`,
+                  backgroundSize: "220%",
+                  backgroundPosition: `${magnifierPos.x}% ${magnifierPos.y}%`,
+                  backgroundRepeat: "no-repeat",
+                }}
+              />
+            )}
+            {magnifierPos && (
+              <div
+                className="absolute pointer-events-none size-10 rounded-full bg-black/60 backdrop-blur-sm border border-white/40 flex items-center justify-center text-white"
+                style={{ left: `${magnifierPos.x}%`, top: `${magnifierPos.y}%`, transform: "translate(-50%, -50%)" }}
+              >
+                <span aria-hidden style={{ fontSize: "16px", lineHeight: 1 }}>🔍</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex w-full h-full gap-[2px]">
+            {row.srcs.map((src) => (
+              <div key={src} className="relative flex-1 cursor-zoom-in" onClick={() => setZoomSrc(src)}>
+                <img src={src} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        )}
+        {isFirstSlide && product.badge && (
+          <span
+            className={`absolute top-6 left-6 text-mono font-semibold px-3 py-1.5 shadow-lg z-[1] ${
+              product.badge === "SALE" ? "bg-secondary text-secondary-foreground" :
+              product.badge === "LAST PIECE" ? "bg-primary text-primary-foreground glow-primary-sm" :
+              product.badge === "SOLD OUT" ? "bg-muted text-muted-foreground" :
+              "bg-primary text-primary-foreground"
+            }`}
+            style={{ fontSize: "10px", letterSpacing: "0.25em" }}
+          >
+            {product.badge}
+          </span>
+        )}
+      </motion.div>
+    );
+  };
+
   return (
     <div className="pb-24">
       {/* Breadcrumbs */}
@@ -268,10 +378,9 @@ function PDP() {
         </nav>
       </div>
 
-      <section className="px-4 md:px-8 mt-4 grid md:grid-cols-[1.3fr_1fr] lg:grid-cols-[1.5fr_1fr] gap-6 lg:gap-12">
-        {/* Image gallery — a tall stack of every photo, scrolled past naturally (H&M-style)
-            while the info panel stays pinned via position:sticky below. */}
-        <div className="flex flex-col gap-3">
+      <section className="px-4 md:px-0 mt-4 grid md:grid-cols-[1.3fr_1fr] lg:grid-cols-[1.5fr_1fr] gap-6 md:gap-0">
+        {/* Mobile — a tall stack of every photo, scrolled past naturally. */}
+        <div className="flex flex-col gap-3 md:hidden">
           {(() => {
             let imgIndex = -1;
             return galleryRows.map((row, rowIdx) => {
@@ -291,8 +400,26 @@ function PDP() {
           })()}
         </div>
 
+        {/* Desktop — full-screen carousel; a sticky viewer shows whichever
+            gallery row the user has scrolled to (H&M-style scroll-sync). */}
+        <div ref={galleryTrackRef} className="hidden md:block relative" style={{ height: `${galleryRows.length * 100}vh` }}>
+          <div className="sticky top-0 h-screen overflow-hidden bg-surface">
+            <AnimatePresence mode="wait">
+              {renderCarouselSlide(galleryRows[activeRowIndex] ?? galleryRows[0])}
+            </AnimatePresence>
+            {galleryRows.length > 1 && (
+              <SlideDots
+                count={galleryRows.length}
+                active={activeRowIndex}
+                onSelect={scrollToRow}
+                className="absolute z-[2] right-6 top-1/2 -translate-y-1/2 flex-col"
+              />
+            )}
+          </div>
+        </div>
+
         {/* Product Info */}
-        <div className="md:sticky md:top-24 md:self-start flex flex-col">
+        <div className="md:sticky md:top-24 md:self-start flex flex-col md:pl-8 md:pr-8 lg:pr-16">
           <div className="text-mono text-primary flex items-center gap-2" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>
             <span className="size-1 bg-primary rounded-full pulse-dot" />
             {product.category.toUpperCase()}
