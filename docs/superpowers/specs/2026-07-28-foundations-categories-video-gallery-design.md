@@ -71,6 +71,8 @@ description of it — see `project_studio_deny.md` memory for the full correctio
 3. Change `products.gallery` from `text[]` to a `jsonb` array of
    `{ url, layout }` objects (`layout: "standalone" | "half"`), and add a
    Standalone/Half toggle to the admin gallery-upload UI.
+4. Remove the unused `products.fit` field entirely (model, admin form) — see
+   Section 4.
 
 ## Non-goals
 
@@ -200,6 +202,17 @@ Verification: existing 10 products' galleries survive the migration with the
 same image URLs, all defaulted to `"standalone"`; admin can upload a new gallery
 image and set it to "Half"; the value persists on reload; the PDP still renders
 all gallery images (unchanged visual behavior, just no crash from the type change).
+
+## 4. Remove the `fit` product field
+
+Addendum, resolved during scoping Q&A: no "Shop By Fit" section exists anywhere
+in the codebase, but a standalone `fit` dropdown field does exist on the
+product edit form (`slim-fit`/`regular-fit`/`relaxed-fit`/`oversized`),
+unrendered anywhere on the storefront. Per user decision, "remove Shop By Fit
+entirely" is satisfied by removing this field outright: drop
+`products.fit`, and remove it from `DBProduct`/`Product` types and the admin
+product form. Verified via grep that only `database.ts`, `productsStore.ts`,
+and `admin.products.new.tsx` reference it — nothing else breaks.
 
 ## Testing / verification approach
 
