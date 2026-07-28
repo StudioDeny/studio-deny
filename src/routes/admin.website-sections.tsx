@@ -35,7 +35,7 @@ type GenderSplitConfig = { cards: SplitCard[] };
 type CarouselSlide = { media_type: "image" | "video"; src: string; label: string; href: string };
 type CategoryCarouselConfig = { slides: CarouselSlide[] };
 type DenySpaceBenefit = { icon: string; label: string; desc: string };
-type DenySpaceConfig = { logo_url: string; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string };
+type DenySpaceConfig = { logo_url: string; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string; bg_color?: string; text_color?: string };
 type PopularNowConfig = { title: string; product_slugs: string[] };
 
 const DENYSPACE_ICONS = ["Truck", "RotateCcw", "ShieldCheck", "Gift", "Star", "Sparkles", "Heart", "Award", "Package", "Zap", "Clock", "CheckCircle"];
@@ -706,6 +706,10 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           <div className="grid grid-cols-2 gap-3">
             <F label="CTA LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="JOIN DENYSPACE" /></F>
             <F label="CTA LINK"><input value={c.cta_href ?? ""} onChange={(e) => set("cta_href", e.target.value)} className="inp" placeholder="/rewards" /></F>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <F label="BACKGROUND COLOR"><input type="color" value={c.bg_color ?? "#0d0d0d"} onChange={(e) => set("bg_color", e.target.value)} className="inp h-10 p-1" /></F>
+            <F label="TEXT COLOR"><input type="color" value={c.text_color ?? "#ffffff"} onChange={(e) => set("text_color", e.target.value)} className="inp h-10 p-1" /></F>
           </div>
           <div className="text-[11px] font-semibold tracking-widest text-foreground mt-2 mb-1">BENEFIT ICONS (4 items)</div>
           {[0, 1, 2, 3].map((i) => (

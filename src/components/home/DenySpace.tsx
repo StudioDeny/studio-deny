@@ -14,6 +14,8 @@ type DenySpaceConfig = {
   benefits: Benefit[];
   cta_label: string;
   cta_href: string;
+  bg_color?: string;
+  text_color?: string;
 };
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -57,8 +59,14 @@ export function DenySpace() {
 
   if (!visible) return null;
 
+  const bg = cfg.bg_color ?? "#0d0d0d";
+  const text = cfg.text_color ?? "#ffffff";
+
   return (
-    <section className="py-20 sm:py-28 px-4 sm:px-8 lg:px-16 border-y border-border bg-foreground relative overflow-hidden">
+    <section
+      className="py-20 sm:py-28 px-4 sm:px-8 lg:px-16 border-y border-border relative overflow-hidden"
+      style={{ background: bg }}
+    >
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30 pointer-events-none" />
       <div className="max-w-[900px] mx-auto relative z-10 text-center">
         <motion.div initial={{ opacity: 0, y: -16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.9 }} viewport={{ once: true }} className="flex justify-center mb-8">
@@ -70,7 +78,8 @@ export function DenySpace() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
           viewport={{ once: true }}
-          className="text-white/70 text-sm sm:text-base text-mono leading-relaxed max-w-lg mx-auto mb-14"
+          className="text-sm sm:text-base text-mono leading-relaxed max-w-lg mx-auto mb-14"
+          style={{ color: text, opacity: 0.7 }}
         >
           {cfg.description}
         </motion.p>
@@ -87,18 +96,22 @@ export function DenySpace() {
                 viewport={{ once: true }}
                 className="flex flex-col items-center gap-3"
               >
-                <div className="size-16 sm:size-20 rounded-full border border-white/25 bg-white/5 flex items-center justify-center">
-                  <Icon className="size-6 sm:size-7 text-white" strokeWidth={1.5} />
+                <div className="size-16 sm:size-20 rounded-full border flex items-center justify-center" style={{ borderColor: `${text}40`, background: `${text}0d` }}>
+                  <Icon className="size-6 sm:size-7" style={{ color: text }} strokeWidth={1.5} />
                 </div>
-                <div className="text-mono text-[11px] tracking-widest text-white">{b.label}</div>
-                <p className="text-white/50 text-xs text-mono leading-snug">{b.desc}</p>
+                <div className="text-mono text-[11px] tracking-widest" style={{ color: text }}>{b.label}</div>
+                <p className="text-xs text-mono leading-snug" style={{ color: text, opacity: 0.5 }}>{b.desc}</p>
               </motion.div>
             );
           })}
         </div>
 
         <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }} viewport={{ once: true }}>
-          <Link to={cfg.cta_href} className="inline-flex items-center gap-2 px-10 py-3.5 bg-white text-black text-xs tracking-[0.14em] uppercase text-mono font-bold hover:bg-white/90 transition-colors">
+          <Link
+            to={cfg.cta_href}
+            className="inline-flex items-center gap-2 px-10 py-3.5 text-xs tracking-[0.14em] uppercase text-mono font-bold transition-opacity hover:opacity-90"
+            style={{ background: text, color: bg }}
+          >
             {cfg.cta_label}
           </Link>
         </motion.div>
