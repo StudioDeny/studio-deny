@@ -243,6 +243,12 @@ export interface Database {
         Update: Partial<Omit<InfluencerPickProduct, "id" | "created_at">>;
         Relationships: [];
       };
+      section_headings: {
+        Row: SectionHeading;
+        Insert: Omit<SectionHeading, "updated_at">;
+        Update: Partial<Omit<SectionHeading, "key">>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -571,6 +577,14 @@ export type InfluencerPick = {
   is_active: boolean;
   position: number;
   created_at: string;
+};
+
+export type SectionHeading = {
+  key: string;
+  label: string;
+  heading_text: string;
+  text_color: string | null;
+  updated_at: string;
 };
 
 export type InfluencerPickProduct = {

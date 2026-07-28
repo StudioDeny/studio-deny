@@ -6,6 +6,7 @@ import { ArrowRight, Play, X, Volume2, VolumeX, ChevronUp, ChevronDown, External
 import { supabase } from "@/lib/supabase";
 import type { InfluencerPick } from "@/types/database";
 import type { Product } from "@/lib/productsStore";
+import { useSectionHeading } from "@/lib/sectionHeadings";
 
 type PickWithTags = InfluencerPick & { products: Pick<Product, "slug" | "name" | "image">[] };
 
@@ -294,6 +295,8 @@ export function InfluencerPicksGrid() {
     })();
   }, []);
 
+  const heading = useSectionHeading("influencer_picks", "INFLUENCER PICKS");
+
   if (picks.length === 0) return null;
 
   const openLightboxFor = (pick: PickWithTags) => {
@@ -306,7 +309,12 @@ export function InfluencerPicksGrid() {
       <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-10 flex items-end justify-between">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
           <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">AS SEEN ON</span>
-          <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display">INFLUENCER PICKS</h2>
+          <h2
+            className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display"
+            style={heading.color ? { color: heading.color } : undefined}
+          >
+            {heading.text}
+          </h2>
         </motion.div>
         <Link to="/shop" className="hidden sm:inline-flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-mono hover:text-primary transition-colors">
           EXPLORE OUR COLLECTION <ArrowRight className="size-3.5" />

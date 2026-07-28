@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import type { CommunityPhoto, BentoSize } from "@/types/database";
+import { useSectionHeading } from "@/lib/sectionHeadings";
 
 // Masonry (CSS columns) rather than CSS Grid row/col spans — spans need enough
 // small tiles around them to avoid gaps, which broke down with only a few
@@ -18,6 +19,7 @@ const ASPECT_CLASS: Record<BentoSize, string> = {
 
 export function CommunityBento() {
   const [photos, setPhotos] = useState<CommunityPhoto[]>([]);
+  const heading = useSectionHeading("worn_by_community", "WORN BY OUR COMMUNITY");
 
   useEffect(() => {
     supabase
@@ -34,7 +36,12 @@ export function CommunityBento() {
     <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 border-t border-border max-w-[1560px] mx-auto">
       <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10">
         <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">THE STREETS SPEAK</span>
-        <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display">WORN BY OUR COMMUNITY</h2>
+        <h2
+          className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display"
+          style={heading.color ? { color: heading.color } : undefined}
+        >
+          {heading.text}
+        </h2>
         <p className="mt-3 text-muted-foreground text-sm sm:text-base text-mono">Real people, real fits. Tag us @studiodeny</p>
       </motion.div>
 

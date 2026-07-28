@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
 import { SlideDots } from "@/components/ui/SlideDots";
+import { useSectionHeading } from "@/lib/sectionHeadings";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const AUTOPLAY_MS = 6000;
@@ -12,6 +13,7 @@ const AUTOPLAY_MS = 6000;
 export function LookbookCarousel() {
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [active, setActive] = useState(0);
+  const heading = useSectionHeading("lookbook", "LOOKBOOK");
 
   useEffect(() => {
     supabase
@@ -86,7 +88,12 @@ export function LookbookCarousel() {
     <section className="py-14 sm:py-20 bg-surface/10 overflow-hidden border-t border-border">
       <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-10">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
-          <h2 className="text-[clamp(3rem,10vw,6rem)] leading-none tracking-[-0.03em] uppercase text-display">LOOKBOOK</h2>
+          <h2
+            className="text-[clamp(3rem,10vw,6rem)] leading-none tracking-[-0.03em] uppercase text-display"
+            style={heading.color ? { color: heading.color } : undefined}
+          >
+            {heading.text}
+          </h2>
           <p className="text-base sm:text-lg mt-3 opacity-80 max-w-xl text-mono">Swipe through curated fits built for daily movement.</p>
         </motion.div>
       </div>

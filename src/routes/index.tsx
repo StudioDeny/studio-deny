@@ -15,6 +15,7 @@ import { CommunityBento } from "@/components/home/CommunityBento";
 import { InfluencerPicksGrid } from "@/components/home/InfluencerPicksGrid";
 import { PopularNowGrid } from "@/components/home/PopularNowGrid";
 import { InstagramIconLink } from "@/components/home/InstagramIconLink";
+import { useSectionHeading } from "@/lib/sectionHeadings";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -60,6 +61,9 @@ function Index() {
   const [hs, setHs] = useState<HomeSections | null>(null);
   const [activeFabric, setActiveFabric] = useState(FABRIC_TABS[0]);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[] | undefined>(undefined);
+  const productSpecsHeading = useSectionHeading("product_specifications", "PREMIUM FABRIC.");
+  const motionPictureHeading = useSectionHeading("motion_picture", "MOTION\nPICTURE");
+  const testimonialsHeading = useSectionHeading("testimonials", "WORN IN\nEVERY CITY");
 
   useEffect(() => {
     supabase
@@ -104,8 +108,11 @@ function Index() {
         <div className="max-w-[1560px] mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-12 sm:mb-16">
             <span className="inline-flex items-center px-3 py-1 border border-border text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-4">THE DETAILS</span>
-            <h2 className="text-[clamp(3rem,8vw,6rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-4">
-              PREMIUM FABRIC.
+            <h2
+              className="text-[clamp(3rem,8vw,6rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-4"
+              style={productSpecsHeading.color ? { color: productSpecsHeading.color } : undefined}
+            >
+              {productSpecsHeading.text}
               <br />
               <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(0,0,0,0.55)" }}>
                 UNCOMPROMISED QUALITY.
@@ -153,9 +160,11 @@ function Index() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/70" />
         <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} viewport={{ once: true }}>
-            <h2 className="text-[clamp(4rem,12vw,10rem)] leading-[0.8] font-display uppercase tracking-[-0.04em] text-white">
-              MOTION<br />
-              <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(255,255,255,0.65)" }}>PICTURE</span>
+            <h2
+              className="text-[clamp(4rem,12vw,10rem)] leading-[0.8] font-display uppercase tracking-[-0.04em] text-white whitespace-pre-line"
+              style={motionPictureHeading.color ? { color: motionPictureHeading.color } : undefined}
+            >
+              {motionPictureHeading.text}
             </h2>
             <p className="mt-8 text-lg md:text-xl text-white/80 text-mono tracking-[0.2em] max-w-2xl mx-auto leading-relaxed">
               CAPTURING THE ESSENCE OF THE STREETS. RAW, UNFILTERED, AND IN CONSTANT MOTION.
@@ -180,7 +189,12 @@ function Index() {
       <section className="py-16 sm:py-24 overflow-hidden">
         <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10 sm:mb-14 text-center">
-            <h2 className="text-[clamp(3rem,10vw,7rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display">WORN IN<br />EVERY CITY</h2>
+            <h2
+              className="text-[clamp(3rem,10vw,7rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display whitespace-pre-line"
+              style={testimonialsHeading.color ? { color: testimonialsHeading.color } : undefined}
+            >
+              {testimonialsHeading.text}
+            </h2>
           </motion.div>
         </div>
         <div className="flex overflow-hidden group py-4">
