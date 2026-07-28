@@ -14,7 +14,6 @@ export type DBProduct = {
   hover_image: string;
   gallery: GalleryItem[];
   badge: string | null;
-  fit: string | null;
   sizes: string[];
   colors: { name: string; hex: string }[];
   description: string;

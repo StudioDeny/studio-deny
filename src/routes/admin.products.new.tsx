@@ -50,7 +50,6 @@ export function ProductForm({
       name: "",
       category: "",
       brand: listBrands()[0]?.name,
-      fit: "",
       price: 0,
       image: "",
       hoverImage: "",
@@ -110,10 +109,10 @@ export function ProductForm({
   const removeGalleryImage = (idx: number) => {
     set("gallery", (p.gallery ?? []).filter((_, i) => i !== idx));
   };
+
   const setGalleryLayout = (idx: number, layout: GalleryItem["layout"]) => {
     set("gallery", (p.gallery ?? []).map((item, i) => (i === idx ? { ...item, layout } : item)));
   };
-
 
   return (
     <div className="max-w-2xl">
@@ -209,20 +208,6 @@ export function ProductForm({
             </select>
           </Field>
         </div>
-
-        <Field label="FIT">
-          <select
-            value={p.fit ?? ""}
-            onChange={(e) => set("fit", e.target.value || undefined)}
-            className="inp"
-          >
-            <option value="">— NONE —</option>
-            <option value="slim-fit">Slim Fit</option>
-            <option value="regular-fit">Regular Fit</option>
-            <option value="relaxed-fit">Relaxed Fit</option>
-            <option value="oversized">Oversized</option>
-          </select>
-        </Field>
 
         <label className="flex items-center gap-2 cursor-pointer">
           <input
