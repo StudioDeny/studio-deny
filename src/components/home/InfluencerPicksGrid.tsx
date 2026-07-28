@@ -42,7 +42,7 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
       onClick={handleClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="text-left group/tile"
+      className="shrink-0 w-[62vw] sm:w-[30vw] lg:w-[21vw] mr-4 text-left group/tile"
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-surface border border-border">
         {isUpload && hovered ? (
@@ -65,18 +65,21 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-black/25" />
 
-        {/* Reel links are external — show an Instagram affordance instead of
-            attempting inline playback of something we can't host. */}
-        {isLink ? (
+        {/* Default state (not hovering): always a video/play icon, for every
+            tile regardless of source. On hover, uploaded videos autoplay
+            inline (no icon needed); reel links swap to an Instagram
+            affordance instead, since that's an external link, not a hosted
+            file we can play inline. */}
+        {!hovered ? (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="size-12 sm:size-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/40 flex items-center justify-center group-hover/tile:scale-110 group-hover/tile:bg-black/55 transition-all">
-              <Instagram className="size-5 sm:size-6 text-white" />
+            <span className="size-12 sm:size-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/40 flex items-center justify-center">
+              <Play className="size-5 sm:size-6 text-white fill-white ml-0.5" />
             </span>
           </div>
-        ) : !hovered ? (
+        ) : isLink ? (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="size-12 sm:size-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/40 flex items-center justify-center group-hover/tile:scale-110 group-hover/tile:bg-black/55 transition-all">
-              <Play className="size-5 sm:size-6 text-white fill-white ml-0.5" />
+            <span className="size-12 sm:size-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/40 flex items-center justify-center scale-110 bg-black/55">
+              <Instagram className="size-5 sm:size-6 text-white" />
             </span>
           </div>
         ) : null}
@@ -321,10 +324,21 @@ export function InfluencerPicksGrid() {
         </Link>
       </div>
 
-      <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-        {picks.map((pick) => (
-          <GridTile key={pick.id} pick={pick} onOpen={() => openLightboxFor(pick)} />
-        ))}
+      <div className="flex overflow-hidden group py-2">
+        <div className="flex shrink-0 items-stretch ticker-scroll group-hover:[animation-play-state:paused] pl-4 sm:pl-8 lg:pl-16" style={{ animationDuration: "45s" }}>
+          {/* ticker-scroll shifts by exactly -50%, so it needs 2 equal halves — with
+              only a couple of real picks, one "half" ends up narrower than the
+              viewport, leaving blank space after it. Repeat each half until it's
+              comfortably wide regardless of how few picks actually exist. */}
+          {(() => {
+            const MIN_TILES_PER_HALF = 6;
+            const repeat = Math.max(1, Math.ceil(MIN_TILES_PER_HALF / picks.length));
+            const half = Array.from({ length: repeat }, () => picks).flat();
+            return [...half, ...half].map((pick, idx) => (
+              <GridTile key={`${pick.id}-${idx}`} pick={pick} onOpen={() => openLightboxFor(pick)} />
+            ));
+          })()}
+        </div>
       </div>
 
       {lightboxIndex !== null && (
