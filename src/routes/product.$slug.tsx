@@ -86,8 +86,43 @@ function PDP() {
   const [zoomSrc, setZoomSrc] = useState<string | null>(null);
   const [magnifierPos, setMagnifierPos] = useState<{ x: number; y: number } | null>(null);
 
-  // Full gallery, in order: base image, hover image, then any extra gallery photos — deduped.
-  const galleryImages = Array.from(new Set([product.image, product.hoverImage, ...(product.gallery ?? []).map((g: GalleryItem) => g.url)].filter(Boolean)));
+  // Full gallery, in order: base image, hover image, then any extra gallery photos —
+  // deduped, and grouped into rows honoring each gallery item's layout: "standalone"
+  // renders full-width, consecutive "half" items pair up side-by-side (H&M-style).
+  type GalleryRow = { type: "standalone"; src: string } | { type: "half"; srcs: string[] };
+  const galleryRows: GalleryRow[] = (() => {
+    const seen = new Set<string>();
+    const rows: GalleryRow[] = [];
+    const pushStandalone = (src: string) => {
+      if (!src || seen.has(src)) return;
+      seen.add(src);
+      rows.push({ type: "standalone", src });
+    };
+    pushStandalone(product.image);
+    pushStandalone(product.hoverImage);
+
+    const gallery = (product.gallery ?? []).filter((g: GalleryItem) => g.url && !seen.has(g.url));
+    let i = 0;
+    while (i < gallery.length) {
+      const item = gallery[i];
+      seen.add(item.url);
+      if (item.layout === "half") {
+        const next = gallery[i + 1];
+        if (next && next.layout === "half" && !seen.has(next.url)) {
+          seen.add(next.url);
+          rows.push({ type: "half", srcs: [item.url, next.url] });
+          i += 2;
+          continue;
+        }
+        rows.push({ type: "half", srcs: [item.url] });
+        i += 1;
+        continue;
+      }
+      rows.push({ type: "standalone", src: item.url });
+      i += 1;
+    }
+    return rows;
+  })();
   const [ctaVisible, setCtaVisible] = useState(true);
   const [related, setRelated] = useState<Product[]>([]);
   const ctaRef = useRef<HTMLButtonElement>(null);
@@ -155,6 +190,71 @@ function PDP() {
     setVariantId(opt.variantId);
   };
 
+  const renderGalleryTile = (src: string, index: number) => {
+    const isFirst = index === 0;
+    return (
+      <div
+        key={src}
+        className={`relative group bg-surface border border-border overflow-hidden ${isFirst ? "cursor-none" : "cursor-zoom-in"}`}
+        style={{ aspectRatio: "4/5" }}
+        onClick={() => setZoomSrc(src)}
+        onMouseMove={isFirst ? (e: React.MouseEvent<HTMLDivElement>) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          setMagnifierPos({
+            x: ((e.clientX - rect.left) / rect.width) * 100,
+            y: ((e.clientY - rect.top) / rect.height) * 100,
+          });
+        } : undefined}
+        onMouseLeave={isFirst ? () => setMagnifierPos(null) : undefined}
+        title="Click to zoom"
+      >
+        <img
+          src={src}
+          alt={`${product.name} view ${index + 1}`}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+          loading={isFirst ? undefined : "lazy"}
+        />
+        {isFirst && magnifierPos && (
+          <>
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: `url(${src})`,
+                backgroundSize: "220%",
+                backgroundPosition: `${magnifierPos.x}% ${magnifierPos.y}%`,
+                backgroundRepeat: "no-repeat",
+              }}
+            />
+            <div
+              className="absolute pointer-events-none size-10 rounded-full bg-black/60 backdrop-blur-sm border border-white/40 flex items-center justify-center text-white"
+              style={{ left: `${magnifierPos.x}%`, top: `${magnifierPos.y}%`, transform: "translate(-50%, -50%)" }}
+            >
+              <span aria-hidden style={{ fontSize: "16px", lineHeight: 1 }}>🔍</span>
+            </div>
+          </>
+        )}
+        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="size-8 bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80">
+            <ZoomIn className="size-4" />
+          </span>
+        </div>
+        {isFirst && product.badge && (
+          <span
+            className={`absolute top-4 left-4 text-mono font-semibold px-3 py-1.5 shadow-lg ${
+              product.badge === "SALE" ? "bg-secondary text-secondary-foreground" :
+              product.badge === "LAST PIECE" ? "bg-primary text-primary-foreground glow-primary-sm" :
+              product.badge === "SOLD OUT" ? "bg-muted text-muted-foreground" :
+              "bg-primary text-primary-foreground"
+            }`}
+            style={{ fontSize: "10px", letterSpacing: "0.25em" }}
+          >
+            {product.badge}
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="pb-24">
       {/* Breadcrumbs */}
@@ -172,67 +272,23 @@ function PDP() {
         {/* Image gallery — a tall stack of every photo, scrolled past naturally (H&M-style)
             while the info panel stays pinned via position:sticky below. */}
         <div className="flex flex-col gap-3">
-          {galleryImages.map((src, i) => (
-            <div
-              key={src}
-              className={`relative group bg-surface border border-border overflow-hidden ${i === 0 ? "cursor-none" : "cursor-zoom-in"}`}
-              style={{ aspectRatio: "4/5" }}
-              onClick={() => setZoomSrc(src)}
-              onMouseMove={i === 0 ? (e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                setMagnifierPos({
-                  x: ((e.clientX - rect.left) / rect.width) * 100,
-                  y: ((e.clientY - rect.top) / rect.height) * 100,
-                });
-              } : undefined}
-              onMouseLeave={i === 0 ? () => setMagnifierPos(null) : undefined}
-              title="Click to zoom"
-            >
-              <img
-                src={src}
-                alt={`${product.name} view ${i + 1}`}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                loading={i === 0 ? undefined : "lazy"}
-              />
-              {i === 0 && magnifierPos && (
-                <>
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      backgroundImage: `url(${src})`,
-                      backgroundSize: "220%",
-                      backgroundPosition: `${magnifierPos.x}% ${magnifierPos.y}%`,
-                      backgroundRepeat: "no-repeat",
-                    }}
-                  />
-                  <div
-                    className="absolute pointer-events-none size-10 rounded-full bg-black/60 backdrop-blur-sm border border-white/40 flex items-center justify-center text-white"
-                    style={{ left: `${magnifierPos.x}%`, top: `${magnifierPos.y}%`, transform: "translate(-50%, -50%)" }}
-                  >
-                    <span aria-hidden style={{ fontSize: "16px", lineHeight: 1 }}>🔍</span>
-                  </div>
-                </>
-              )}
-              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="size-8 bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80">
-                  <ZoomIn className="size-4" />
-                </span>
-              </div>
-              {i === 0 && product.badge && (
-                <span
-                  className={`absolute top-4 left-4 text-mono font-semibold px-3 py-1.5 shadow-lg ${
-                    product.badge === "SALE" ? "bg-secondary text-secondary-foreground" :
-                    product.badge === "LAST PIECE" ? "bg-primary text-primary-foreground glow-primary-sm" :
-                    product.badge === "SOLD OUT" ? "bg-muted text-muted-foreground" :
-                    "bg-primary text-primary-foreground"
-                  }`}
-                  style={{ fontSize: "10px", letterSpacing: "0.25em" }}
-                >
-                  {product.badge}
-                </span>
-              )}
-            </div>
-          ))}
+          {(() => {
+            let imgIndex = -1;
+            return galleryRows.map((row, rowIdx) => {
+              if (row.type === "standalone") {
+                imgIndex += 1;
+                return renderGalleryTile(row.src, imgIndex);
+              }
+              return (
+                <div key={`half-${rowIdx}`} className="grid grid-cols-2 gap-3">
+                  {row.srcs.map((src) => {
+                    imgIndex += 1;
+                    return renderGalleryTile(src, imgIndex);
+                  })}
+                </div>
+              );
+            });
+          })()}
         </div>
 
         {/* Product Info */}
