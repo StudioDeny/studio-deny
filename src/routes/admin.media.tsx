@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { uploadToCloudinary, uploadVideoToCloudinary } from "@/lib/cloudinary";
 import type { MediaAsset } from "@/types/database";
 import { Upload, Copy, Trash2, Search, X } from "lucide-react";
 import { toast } from "sonner";
@@ -53,7 +53,8 @@ function AdminMedia() {
     setUploading(true);
     try {
       for (const file of files) {
-        const result = await uploadToCloudinary(file);
+        const isVideo = file.type.startsWith("video/");
+        const result = isVideo ? await uploadVideoToCloudinary(file) : await uploadToCloudinary(file);
         await supabase.from("media_assets").insert({
           public_id: result.public_id,
           secure_url: result.secure_url,
@@ -63,6 +64,7 @@ function AdminMedia() {
           height: result.height,
           bytes: result.bytes,
           format: result.format,
+          resource_type: isVideo ? "video" : "image",
         });
       }
       toast.success(`${files.length} file(s) uploaded`);
@@ -104,7 +106,7 @@ function AdminMedia() {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 className="text-display text-4xl md:text-5xl">MEDIA LIBRARY.</h1>
         <div className="flex gap-2">
-          <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} />
+          <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleUpload} />
           <button
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
@@ -154,7 +156,11 @@ function AdminMedia() {
                   onClick={() => { setSelected(a); setEditingAlt(a.alt_text ?? null); }}
                   className={`group relative aspect-square overflow-hidden border-2 ${selected?.id === a.id ? "border-primary" : "border-border hover:border-primary/50"} bg-surface`}
                 >
-                  <img src={a.secure_url} alt={a.alt_text ?? ""} className="w-full h-full object-cover" />
+                  {a.resource_type === "video" ? (
+                    <video src={a.secure_url} muted className="w-full h-full object-cover" />
+                  ) : (
+                    <img src={a.secure_url} alt={a.alt_text ?? ""} className="w-full h-full object-cover" />
+                  )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-end justify-end p-1 opacity-0 group-hover:opacity-100">
                     <span className="text-mono text-[9px] tracking-widest text-white bg-black/70 px-1">{a.format?.toUpperCase()}</span>
                   </div>
@@ -170,7 +176,11 @@ function AdminMedia() {
               <div className="text-mono text-[11px] tracking-[0.25em] text-primary">ASSET DETAILS</div>
               <button onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground"><X className="size-4" /></button>
             </div>
-            <img src={selected.secure_url} alt={selected.alt_text ?? ""} className="w-full aspect-square object-contain bg-muted" />
+            {selected.resource_type === "video" ? (
+              <video src={selected.secure_url} controls className="w-full aspect-square object-contain bg-muted" />
+            ) : (
+              <img src={selected.secure_url} alt={selected.alt_text ?? ""} className="w-full aspect-square object-contain bg-muted" />
+            )}
             <div className="space-y-2 text-xs">
               <div>
                 <div className="text-mono text-[10px] tracking-widest text-muted-foreground">PUBLIC ID</div>

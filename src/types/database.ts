@@ -309,6 +309,8 @@ export type Testimonial = {
   created_at: string;
 };
 
+export type MediaResourceType = "image" | "video";
+
 export type MediaAsset = {
   id: string;
   public_id: string;
@@ -319,6 +321,7 @@ export type MediaAsset = {
   height: number | null;
   bytes: number | null;
   format: string | null;
+  resource_type: MediaResourceType;
   created_at: string;
 };
 
