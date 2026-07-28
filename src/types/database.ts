@@ -1,5 +1,7 @@
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
+export type GalleryItem = { url: string; layout: "standalone" | "half" };
+
 export type DBProduct = {
   slug: string;
   name: string;
@@ -10,7 +12,7 @@ export type DBProduct = {
   compare_at: number | null;
   image: string;
   hover_image: string;
-  gallery: string[];
+  gallery: GalleryItem[];
   badge: string | null;
   fit: string | null;
   sizes: string[];

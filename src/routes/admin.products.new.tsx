@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
-import { upsertProduct, type Product } from "@/lib/productsStore";
+import { upsertProduct, type Product, type GalleryItem } from "@/lib/productsStore";
 import { listCategories, listBrands, type Category } from "@/lib/catalog";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
@@ -97,9 +97,9 @@ export function ProductForm({
     setUploadingGallery(true);
     try {
       const uploads = await Promise.all(Array.from(files).map((f) => uploadToCloudinary(f)));
-      const urls = uploads.map((r) => r.secure_url);
-      set("gallery", [...(p.gallery ?? []), ...urls]);
-      toast.success(`${urls.length} image(s) added to gallery`);
+      const items: GalleryItem[] = uploads.map((r) => ({ url: r.secure_url, layout: "standalone" as const }));
+      set("gallery", [...(p.gallery ?? []), ...items]);
+      toast.success(`${items.length} image(s) added to gallery`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -110,6 +110,10 @@ export function ProductForm({
   const removeGalleryImage = (idx: number) => {
     set("gallery", (p.gallery ?? []).filter((_, i) => i !== idx));
   };
+  const setGalleryLayout = (idx: number, layout: GalleryItem["layout"]) => {
+    set("gallery", (p.gallery ?? []).map((item, i) => (i === idx ? { ...item, layout } : item)));
+  };
+
 
   return (
     <div className="max-w-2xl">
@@ -368,16 +372,26 @@ export function ProductForm({
         <Field label="GALLERY IMAGES (additional photos — up to 8)">
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
-              {(p.gallery ?? []).map((url, idx) => (
-                <div key={idx} className="relative w-20 h-20 border border-border shrink-0">
-                  <img src={url} alt={`gallery-${idx}`} className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => removeGalleryImage(idx)}
-                    className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5"
+              {(p.gallery ?? []).map((item, idx) => (
+                <div key={idx} className="relative w-20 shrink-0">
+                  <div className="relative w-20 h-20 border border-border">
+                    <img src={item.url} alt={`gallery-${idx}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeGalleryImage(idx)}
+                      className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </div>
+                  <select
+                    value={item.layout}
+                    onChange={(e) => setGalleryLayout(idx, e.target.value as GalleryItem["layout"])}
+                    className="w-full mt-1 bg-background border border-border text-mono text-[9px] tracking-widest h-6 px-1"
                   >
-                    <X className="size-3" />
-                  </button>
+                    <option value="standalone">STANDALONE</option>
+                    <option value="half">HALF</option>
+                  </select>
                 </div>
               ))}
             </div>

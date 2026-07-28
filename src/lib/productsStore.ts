@@ -1,6 +1,8 @@
 import { supabase } from "./supabase";
+import type { GalleryItem } from "@/types/database";
 
 export type Color = { name: string; hex: string };
+export type { GalleryItem };
 
 export type Product = {
   slug: string;
@@ -13,7 +15,7 @@ export type Product = {
   compareAt?: number;
   image: string;
   hoverImage: string;
-  gallery?: string[];
+  gallery?: GalleryItem[];
   badge?: "NEW DROP" | "LAST PIECE" | "SALE" | "SOLD OUT";
   sizes: string[];
   colors: Color[];
@@ -37,7 +39,7 @@ type DBProduct = {
   compare_at: number | null;
   image: string;
   hover_image: string;
-  gallery: string[] | null;
+  gallery: GalleryItem[] | null;
   badge: string | null;
   sizes: string[];
   colors: Color[];
@@ -65,7 +67,7 @@ function fromDB(r: DBProduct): Product {
     compareAt: r.compare_at ? Number(r.compare_at) : undefined,
     image: r.image,
     hoverImage: r.hover_image,
-    gallery: (r.gallery as string[]) ?? [],
+    gallery: (r.gallery as GalleryItem[]) ?? [],
     badge: (r.badge as Product["badge"]) ?? undefined,
     sizes: r.sizes ?? [],
     colors: (r.colors as Color[]) ?? [],

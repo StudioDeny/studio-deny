@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { buildMeta, buildLinks, SITE_URL, productJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { listProducts, getStoredProduct as getProduct, type Product } from "@/lib/productsStore";
+import { listProducts, getStoredProduct as getProduct, type Product, type GalleryItem } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reviews } from "@/components/product/Reviews";
@@ -86,7 +86,7 @@ function PDP() {
   const [zoomSrc, setZoomSrc] = useState<string | null>(null);
 
   // Full gallery, in order: base image, hover image, then any extra gallery photos — deduped.
-  const galleryImages = Array.from(new Set([product.image, product.hoverImage, ...(product.gallery ?? [])].filter(Boolean)));
+  const galleryImages = Array.from(new Set([product.image, product.hoverImage, ...(product.gallery ?? []).map((g: GalleryItem) => g.url)].filter(Boolean)));
   const [ctaVisible, setCtaVisible] = useState(true);
   const [related, setRelated] = useState<Product[]>([]);
   const ctaRef = useRef<HTMLButtonElement>(null);
