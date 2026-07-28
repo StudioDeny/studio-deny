@@ -13,7 +13,6 @@ import { LookbookCarousel } from "@/components/home/LookbookCarousel";
 import { CommunityBento } from "@/components/home/CommunityBento";
 import { InfluencerPicksGrid } from "@/components/home/InfluencerPicksGrid";
 import { PopularNowGrid } from "@/components/home/PopularNowGrid";
-import { InstagramIconLink } from "@/components/home/InstagramIconLink";
 import { useSectionHeading } from "@/lib/sectionHeadings";
 
 export const Route = createFileRoute("/")({
@@ -183,9 +182,6 @@ function Index() {
 
       {/* ── 4. POPULAR NOW — uneven/mixed-size product grid ─────────────── */}
       <PopularNowGrid />
-
-      {/* ── 5. INSTAGRAM ICON ───────────────────────────────────────────── */}
-      <InstagramIconLink />
 
       {/* ── PRODUCT SPECIFICATIONS ──────────────────────────────────────── */}
       <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-y border-border bg-surface/30">

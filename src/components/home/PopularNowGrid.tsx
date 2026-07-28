@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { formatINR } from "@/context/CartContext";
 
 type PopularNowItem = { slug: string; tag?: string };
-type PopularNowConfig = { title: string; items: PopularNowItem[] };
+type PopularNowConfig = { title: string; items: PopularNowItem[]; view_all_href?: string };
 
-const DEFAULTS: PopularNowConfig = { title: "POPULAR NOW", items: [] };
+const DEFAULTS: PopularNowConfig = { title: "POPULAR NOW", items: [], view_all_href: "/shop" };
 
 // Uneven card widths/heights, cycling every 3 tiles for the mixed-size look.
 const SIZE_CLASSES = [
@@ -21,6 +22,7 @@ export function PopularNowGrid() {
   const [cfg, setCfg] = useState<PopularNowConfig>(DEFAULTS);
   const [visible, setVisible] = useState(true);
   const [products, setProducts] = useState<(Product & { tag?: string })[]>([]);
+  const scrollerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     supabase
@@ -34,7 +36,11 @@ export function PopularNowGrid() {
         const row = data as unknown as { is_visible: boolean; config: unknown };
         setVisible(row.is_visible);
         const cfgData = row.config as Partial<PopularNowConfig>;
-        if (cfgData) setCfg({ title: cfgData.title ?? DEFAULTS.title, items: cfgData.items ?? [] });
+        if (cfgData) setCfg({
+          title: cfgData.title ?? DEFAULTS.title,
+          items: cfgData.items ?? [],
+          view_all_href: cfgData.view_all_href || DEFAULTS.view_all_href,
+        });
       });
   }, []);
 
@@ -53,8 +59,12 @@ export function PopularNowGrid() {
 
   if (!visible || products.length === 0) return null;
 
+  const slide = (dir: -1 | 1) => {
+    scrollerRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+  };
+
   return (
-    <section className="py-16 sm:py-24">
+    <section className="py-16 sm:py-24 relative">
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -64,31 +74,61 @@ export function PopularNowGrid() {
       >
         {cfg.title}
       </motion.h2>
-      <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 px-4 sm:px-8 lg:px-16 [scrollbar-width:thin]">
-        {products.map((p, i) => (
-          <Link
-            key={p.slug}
-            to="/product/$slug"
-            params={{ slug: p.slug }}
-            className={`group relative shrink-0 overflow-hidden bg-surface ${SIZE_CLASSES[i % SIZE_CLASSES.length]}`}
-          >
-            <img
-              src={p.image}
-              alt={p.name}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-            />
-            {p.tag && (
-              <span className="absolute top-2.5 left-2.5 bg-primary text-primary-foreground text-mono font-semibold px-2 py-1" style={{ fontSize: "9px", letterSpacing: "0.2em" }}>
-                {p.tag.toUpperCase()}
-              </span>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent" />
-            <div className="absolute bottom-2.5 left-2.5 right-2.5">
-              <p className="text-white text-xs font-semibold uppercase tracking-[0.06em] truncate">{p.name}</p>
-              <p className="text-white/80 text-mono text-[11px]">{formatINR(p.price)}</p>
-            </div>
-          </Link>
-        ))}
+
+      <div className="relative">
+        <button
+          type="button"
+          aria-label="Previous"
+          onClick={() => slide(-1)}
+          className="hidden sm:flex absolute z-[2] left-2 lg:left-4 top-1/2 -translate-y-1/2 size-10 items-center justify-center bg-background/90 border border-border hover:border-primary hover:text-primary transition-colors"
+        >
+          <ChevronLeft className="size-5" />
+        </button>
+        <button
+          type="button"
+          aria-label="Next"
+          onClick={() => slide(1)}
+          className="hidden sm:flex absolute z-[2] right-2 lg:right-4 top-1/2 -translate-y-1/2 size-10 items-center justify-center bg-background/90 border border-border hover:border-primary hover:text-primary transition-colors"
+        >
+          <ChevronRight className="size-5" />
+        </button>
+
+        <div ref={scrollerRef} className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth pb-2 px-4 sm:px-8 lg:px-16 [scrollbar-width:thin]">
+          {products.map((p, i) => (
+            <Link
+              key={p.slug}
+              to="/product/$slug"
+              params={{ slug: p.slug }}
+              className={`group relative shrink-0 overflow-hidden bg-surface ${SIZE_CLASSES[i % SIZE_CLASSES.length]}`}
+            >
+              <img
+                src={p.image}
+                alt={p.name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+              />
+              {p.tag && (
+                <span className="absolute top-2.5 left-2.5 bg-primary text-primary-foreground text-mono font-semibold px-2 py-1" style={{ fontSize: "9px", letterSpacing: "0.2em" }}>
+                  {p.tag.toUpperCase()}
+                </span>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent" />
+              <div className="absolute bottom-2.5 left-2.5 right-2.5">
+                <p className="text-white text-xs font-semibold uppercase tracking-[0.06em] truncate">{p.name}</p>
+                <p className="text-white/80 text-mono text-[11px]">{formatINR(p.price)}</p>
+              </div>
+            </Link>
+          ))}
+
+          {cfg.view_all_href && (
+            <Link
+              to={cfg.view_all_href}
+              className="group relative shrink-0 overflow-hidden bg-foreground text-background flex flex-col items-center justify-center gap-3 w-[150px] sm:w-[190px] h-[260px] sm:h-[300px]"
+            >
+              <span className="text-xs font-semibold uppercase tracking-[0.15em] text-mono text-center px-4">View All</span>
+              <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
+            </Link>
+          )}
+        </div>
       </div>
     </section>
   );

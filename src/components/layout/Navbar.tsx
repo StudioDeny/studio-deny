@@ -216,7 +216,7 @@ export function Navbar() {
             onClick={() => { setMobileNavOpen(false); closeSearch(); }}
             className="tracking-[-0.02em] hover:opacity-80 transition-opacity text-display justify-self-start sm:justify-self-center"
           >
-            <span className="text-lg sm:text-xl leading-none">STUDIO DENY</span>
+            <span className="text-xl sm:text-2xl lg:text-3xl leading-none">STUDIO DENY</span>
           </Link>
 
           {/* Right — icons (desktop) */}

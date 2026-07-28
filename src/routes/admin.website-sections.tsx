@@ -38,7 +38,7 @@ type CategoryCarouselConfig = { slides: CarouselSlide[] };
 type DenySpaceBenefit = { icon: string; label: string; desc: string };
 type DenySpaceConfig = { logo_url: string; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string; bg_color?: string; text_color?: string };
 type PopularNowItem = { slug: string; tag?: string };
-type PopularNowConfig = { title: string; items: PopularNowItem[] };
+type PopularNowConfig = { title: string; items: PopularNowItem[]; view_all_href?: string };
 type FabricTab = { id: string; name: string; title: string; desc: string; img: string; href?: string };
 type FabricTabsConfig = { tabs: FabricTab[] };
 type MotionPictureConfig = { video_url: string; subtext: string };
@@ -491,6 +491,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
       return (
         <div className="space-y-4">
           <F label="HEADING"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="POPULAR NOW" /></F>
+          <F label="VIEW ALL LINK (the tile at the end of the row)"><input value={c.view_all_href ?? ""} onChange={(e) => set("view_all_href", e.target.value)} className="inp" placeholder="/shop" /></F>
           {items.length > 0 && (
             <F label="SELECTED — order, and an optional tag (BEST SELLER, NEW ARRIVAL, or any custom text)">
               <div className="border border-border rounded divide-y divide-border">
