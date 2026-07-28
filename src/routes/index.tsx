@@ -74,6 +74,10 @@ function Index() {
   const [fabricTabs, setFabricTabs] = useState<FabricTab[]>(DEFAULT_FABRIC_TABS);
   const [activeFabric, setActiveFabric] = useState(DEFAULT_FABRIC_TABS[0]);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[] | undefined>(undefined);
+  const [motionPicture, setMotionPicture] = useState({
+    video_url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    subtext: "CAPTURING THE ESSENCE OF THE STREETS. RAW, UNFILTERED, AND IN CONSTANT MOTION.",
+  });
   const productSpecsHeading = useSectionHeading("product_specifications", "PREMIUM FABRIC.");
   const motionPictureHeading = useSectionHeading("motion_picture", "MOTION\nPICTURE");
   const testimonialsHeading = useSectionHeading("testimonials", "WORN IN\nEVERY CITY");
@@ -88,6 +92,19 @@ function Index() {
       .then(({ data }) => {
         const cfg = data?.config as { slides?: HeroSlide[] } | undefined;
         if (cfg?.slides && cfg.slides.length > 0) setHeroSlides(cfg.slides);
+      });
+  }, []);
+
+  useEffect(() => {
+    supabase
+      .from("website_sections")
+      .select("config")
+      .eq("page_slug", "home")
+      .eq("section_type", "motion_picture")
+      .single()
+      .then(({ data }) => {
+        const cfg = data?.config as { video_url?: string; subtext?: string } | undefined;
+        if (cfg?.video_url) setMotionPicture((mp) => ({ video_url: cfg.video_url!, subtext: cfg.subtext ?? mp.subtext }));
       });
   }, []);
 
@@ -205,9 +222,9 @@ function Index() {
 
       {/* ── 5. MOTION PICTURE ───────────────────────────────────────────── */}
       <section className="relative h-[80vh] w-full overflow-hidden flex items-center justify-center border-y border-border bg-[#0A0A0A]">
-        <video autoPlay loop muted playsInline preload="none"
+        <video key={motionPicture.video_url} autoPlay loop muted playsInline preload="none"
           className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105">
-          <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4" />
+          <source src={motionPicture.video_url} type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/70" />
         <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
@@ -219,7 +236,7 @@ function Index() {
               {motionPictureHeading.text}
             </h2>
             <p className="mt-8 text-lg md:text-xl text-white/80 text-mono tracking-[0.2em] max-w-2xl mx-auto leading-relaxed">
-              CAPTURING THE ESSENCE OF THE STREETS. RAW, UNFILTERED, AND IN CONSTANT MOTION.
+              {motionPicture.subtext}
             </p>
           </motion.div>
         </div>

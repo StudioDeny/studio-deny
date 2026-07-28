@@ -41,6 +41,7 @@ type PopularNowItem = { slug: string; tag?: string };
 type PopularNowConfig = { title: string; items: PopularNowItem[] };
 type FabricTab = { id: string; name: string; title: string; desc: string; img: string; href?: string };
 type FabricTabsConfig = { tabs: FabricTab[] };
+type MotionPictureConfig = { video_url: string; subtext: string };
 
 const DENYSPACE_ICONS = ["Truck", "RotateCcw", "ShieldCheck", "Gift", "Star", "Sparkles", "Heart", "Award", "Package", "Zap", "Clock", "CheckCircle"];
 
@@ -58,6 +59,8 @@ const TYPE_COLORS: Record<string, string> = {
   instagram_feed:"bg-rose-100 text-rose-800",
   newsletter:    "bg-lime-100 text-lime-800",
   popular_now:   "bg-sky-100 text-sky-800",
+  fabric_tabs:   "bg-violet-100 text-violet-800",
+  motion_picture:"bg-slate-100 text-slate-800",
 };
 
 function AdminWebsiteSections() {
@@ -565,6 +568,18 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
             className="w-full h-10 rounded border border-dashed border-border text-xs font-semibold tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors">
             + ADD TAB
           </button>
+        </div>
+      );
+    }
+    case "motion_picture": {
+      const c = cfg as Partial<MotionPictureConfig>;
+      return (
+        <div className="space-y-4">
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            The heading text/color for this section is managed on the <strong className="text-foreground">Headings</strong> admin page (key: motion_picture). Here you set the background video and the subtext line.
+          </div>
+          <MediaUrlField label="BACKGROUND VIDEO" mediaType="video" value={c.video_url ?? ""} onChange={(url) => set("video_url", url)} />
+          <F label="SUBTEXT"><textarea rows={2} value={c.subtext ?? ""} onChange={(e) => set("subtext", e.target.value)} className="inp" /></F>
         </div>
       );
     }
