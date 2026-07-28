@@ -334,8 +334,8 @@ export type BrandSettings = {
   favicon_url: string | null;
   og_default_image: string | null;
   social_instagram: string | null;
-  social_twitter: string | null;
-  social_facebook: string | null;
+  social_whatsapp: string | null;
+  social_youtube: string | null;
   contact_email: string | null;
   contact_phone: string | null;
   address: string | null;

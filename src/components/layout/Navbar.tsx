@@ -42,6 +42,7 @@ export function Navbar() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [accessorySubcats, setAccessorySubcats] = useState<Category[]>([]);
+  const [scrolled, setScrolled] = useState(false);
   const { user } = useAuth();
   const { count: cartCount } = useCart();
   const { slugs: wishSlugs } = useWishlist();
@@ -50,6 +51,15 @@ export function Navbar() {
 
   useEffect(() => {
     listChildCategories("accessories").then(setAccessorySubcats);
+  }, []);
+
+  // Fade the navbar background to fully transparent as the user scrolls down;
+  // return to solid at the top of the page.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   // Load products once when search first opens
@@ -107,7 +117,9 @@ export function Navbar() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="relative z-[100] flex flex-col bg-background border-b border-border"
+        className={`relative z-[100] flex flex-col transition-colors duration-300 ${
+          scrolled ? "bg-background/0 border-b border-transparent" : "bg-background border-b border-border"
+        }`}
       >
         {/* Main bar — left: category dropdowns, center: logo, right: icons */}
         {/* flex on mobile (only 2 children are actually visible there, so justify-between
@@ -251,6 +263,22 @@ export function Navbar() {
               {searchOpen ? <X className="size-4" strokeWidth={1.5} /> : <Search className="size-4" strokeWidth={1.5} />}
               <span className="text-xs tracking-wide text-mono">{searchOpen ? "Close" : "Search"}</span>
             </button>
+            <Link to="/wishlist" aria-label="Wishlist" className="relative flex items-center justify-center size-9 hover:opacity-60 transition-opacity">
+              <Heart className="size-4" strokeWidth={1.5} />
+              {wishSlugs.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-primary text-primary-foreground text-[9px] leading-[15px] text-center font-semibold">
+                  {wishSlugs.length}
+                </span>
+              )}
+            </Link>
+            <Link to="/cart" aria-label="Cart" className="relative flex items-center justify-center size-9 hover:opacity-60 transition-opacity">
+              <ShoppingBag className="size-4" strokeWidth={1.5} />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-primary text-primary-foreground text-[9px] leading-[15px] text-center font-semibold">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
             <button
               type="button"
               className="flex h-11 w-11 items-center justify-center rounded-sm -mr-1.5 hover:opacity-60 transition-opacity shrink-0"
@@ -347,7 +375,7 @@ export function Navbar() {
             >
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="men">
-                  <AccordionTrigger className="text-sm tracking-wide uppercase">MEN</AccordionTrigger>
+                  <AccordionTrigger className="text-sm font-bold tracking-wide uppercase">MEN</AccordionTrigger>
                   <AccordionContent>
                     <div className="flex flex-col gap-1 pl-3">
                       <Link to="/collections/$slug" params={{ slug: "men" }} search={{ sort: "new" } as never} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">NEW ARRIVALS</Link>
@@ -356,7 +384,7 @@ export function Navbar() {
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="women">
-                  <AccordionTrigger className="text-sm tracking-wide uppercase">WOMEN</AccordionTrigger>
+                  <AccordionTrigger className="text-sm font-bold tracking-wide uppercase">WOMEN</AccordionTrigger>
                   <AccordionContent>
                     <div className="flex flex-col gap-1 pl-3">
                       <Link to="/collections/$slug" params={{ slug: "women" }} search={{ sort: "new" } as never} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">NEW ARRIVALS</Link>
@@ -365,9 +393,10 @@ export function Navbar() {
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="accessories">
-                  <AccordionTrigger className="text-sm tracking-wide uppercase">ACCESSORIES</AccordionTrigger>
+                  <AccordionTrigger className="text-sm font-bold tracking-wide uppercase">ACCESSORIES</AccordionTrigger>
                   <AccordionContent>
                     <div className="flex flex-col gap-1 pl-3">
+                      <Link to="/collections/$slug" params={{ slug: "accessories" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">SHOP ALL ACCESSORIES</Link>
                       <Link to="/collections/$slug" params={{ slug: "rings" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">RINGS</Link>
                       <Link to="/collections/$slug" params={{ slug: "chains" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">CHAINS</Link>
                       <Link to="/collections/$slug" params={{ slug: "socks" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">SOCKS</Link>
@@ -375,13 +404,12 @@ export function Navbar() {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-              <Link to="/collections/$slug" params={{ slug: "sneakers" }} onClick={() => setMobileNavOpen(false)} className="block py-4 text-sm tracking-wide uppercase border-b border-border">SNEAKERS</Link>
               {user ? (
-                <Link to="/account" onClick={() => setMobileNavOpen(false)} className="block py-3 text-sm tracking-wide uppercase">ACCOUNT</Link>
+                <Link to="/account" onClick={() => setMobileNavOpen(false)} className="block py-3 text-sm font-bold tracking-wide uppercase">ACCOUNT</Link>
               ) : (
-                <Link to="/login" onClick={() => setMobileNavOpen(false)} className="block py-3 text-sm tracking-wide uppercase">LOGIN</Link>
+                <Link to="/login" onClick={() => setMobileNavOpen(false)} className="block py-3 text-sm font-bold tracking-wide uppercase">LOGIN</Link>
               )}
-              <Link to="/wishlist" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-between py-3 text-sm tracking-wide uppercase">
+              <Link to="/wishlist" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-between py-3 text-sm font-bold tracking-wide uppercase">
                 WISHLIST {wishSlugs.length > 0 && <span className="text-mono text-xs text-muted-foreground">({wishSlugs.length})</span>}
               </Link>
             </motion.div>

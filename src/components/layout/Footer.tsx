@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Newsletter } from "./Newsletter";
-import { Instagram, Twitter, Youtube } from "lucide-react";
+import { Instagram, Youtube, MessageCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { NavMenuItem, BrandSettings } from "@/types/database";
 
@@ -98,13 +98,13 @@ export function Footer() {
               className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors" aria-label="Instagram">
               <Instagram className="size-4" />
             </a>
-            <a href={brand.social_twitter || "https://twitter.com"} target="_blank" rel="noopener noreferrer"
-              className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors" aria-label="Twitter / X">
-              <Twitter className="size-4" />
-            </a>
-            <a href={brand.social_facebook || "https://youtube.com"} target="_blank" rel="noopener noreferrer"
+            <a href={brand.social_youtube || "https://youtube.com"} target="_blank" rel="noopener noreferrer"
               className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors" aria-label="YouTube">
               <Youtube className="size-4" />
+            </a>
+            <a href={brand.social_whatsapp || "https://wa.me/"} target="_blank" rel="noopener noreferrer"
+              className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors" aria-label="WhatsApp">
+              <MessageCircle className="size-4" />
             </a>
           </div>
         </div>

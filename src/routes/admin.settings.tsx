@@ -163,8 +163,8 @@ function BrandTab() {
       favicon_url: data.favicon_url || null,
       og_default_image: data.og_default_image || null,
       social_instagram: data.social_instagram || null,
-      social_twitter: data.social_twitter || null,
-      social_facebook: data.social_facebook || null,
+      social_whatsapp: data.social_whatsapp || null,
+      social_youtube: data.social_youtube || null,
       contact_email: data.contact_email || null,
       contact_phone: data.contact_phone || null,
       address: data.address || null,
@@ -198,8 +198,8 @@ function BrandTab() {
         <div className="text-mono text-[11px] tracking-[0.25em] text-primary">SOCIAL LINKS</div>
         <div className="grid sm:grid-cols-3 gap-4">
           <F label="INSTAGRAM"><input value={data.social_instagram ?? ""} onChange={(e) => set("social_instagram", e.target.value)} className="inp" placeholder="@handle or URL" /></F>
-          <F label="TWITTER"><input value={data.social_twitter ?? ""} onChange={(e) => set("social_twitter", e.target.value)} className="inp" placeholder="@handle or URL" /></F>
-          <F label="FACEBOOK"><input value={data.social_facebook ?? ""} onChange={(e) => set("social_facebook", e.target.value)} className="inp" placeholder="Page URL" /></F>
+          <F label="YOUTUBE"><input value={data.social_youtube ?? ""} onChange={(e) => set("social_youtube", e.target.value)} className="inp" placeholder="Channel URL" /></F>
+          <F label="WHATSAPP"><input value={data.social_whatsapp ?? ""} onChange={(e) => set("social_whatsapp", e.target.value)} className="inp" placeholder="https://wa.me/91XXXXXXXXXX" /></F>
         </div>
       </section>
 
