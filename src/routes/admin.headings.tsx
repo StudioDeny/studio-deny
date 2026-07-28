@@ -31,7 +31,12 @@ function AdminHeadings() {
     setSavingKey(row.key);
     const { error } = await supabase
       .from("section_headings")
-      .update({ heading_text: row.heading_text, text_color: row.text_color })
+      .update({
+        heading_text: row.heading_text,
+        eyebrow_text: row.eyebrow_text,
+        subtitle_text: row.subtitle_text,
+        text_color: row.text_color,
+      })
       .eq("key", row.key);
     setSavingKey(null);
     if (error) return toast.error(error.message);
@@ -57,11 +62,27 @@ function AdminHeadings() {
           <div key={row.key} className="border border-border bg-surface p-4 space-y-3">
             <div className="text-mono text-[11px] tracking-widest text-primary">{row.label}</div>
             <label className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">EYEBROW (small label above the heading, optional)</div>
+              <input
+                value={row.eyebrow_text ?? ""}
+                onChange={(e) => update(row.key, { eyebrow_text: e.target.value || null })}
+                className="w-full bg-background border border-border px-3 py-2 text-sm font-mono"
+              />
+            </label>
+            <label className="block">
               <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">HEADING TEXT</div>
               <textarea
                 value={row.heading_text}
                 onChange={(e) => update(row.key, { heading_text: e.target.value })}
                 rows={2}
+                className="w-full bg-background border border-border px-3 py-2 text-sm font-mono"
+              />
+            </label>
+            <label className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SUBTITLE (optional)</div>
+              <input
+                value={row.subtitle_text ?? ""}
+                onChange={(e) => update(row.key, { subtitle_text: e.target.value || null })}
                 className="w-full bg-background border border-border px-3 py-2 text-sm font-mono"
               />
             </label>

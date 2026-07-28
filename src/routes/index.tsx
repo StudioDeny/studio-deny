@@ -61,6 +61,17 @@ const DEFAULT_FABRIC_TABS: FabricTab[] = [
   },
 ];
 
+type TestimonialItem = { name: string; city: string; quote: string; rating: number };
+
+const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
+  { quote: "Fit is unreal. It feels premium without trying too hard.", name: "Arjun K.", city: "Mumbai", rating: 5 },
+  { quote: "Finally a brand that understands cut, fabric, and movement.", name: "Priya S.", city: "Delhi", rating: 5 },
+  { quote: "Every drop sells out for a reason. Quality is consistent.", name: "Rahul M.", city: "Bangalore", rating: 5 },
+  { quote: "The heavyweight cotton is unmatched. Nothing else comes close.", name: "Sneha D.", city: "Pune", rating: 5 },
+  { quote: "I get compliments every single time I wear Studio Deny.", name: "Vikram T.", city: "Hyderabad", rating: 5 },
+  { quote: "Studio Deny is the only brand I trust for streetwear.", name: "Kiran R.", city: "Chennai", rating: 5 },
+];
+
 type ContactSupport = { enabled: boolean; email: string; whatsapp: string; hours: string };
 const CONTACT_DEFAULTS: ContactSupport = {
   enabled: true,
@@ -70,6 +81,7 @@ const CONTACT_DEFAULTS: ContactSupport = {
 };
 
 function Index() {
+  const [testimonials, setTestimonials] = useState<TestimonialItem[]>(DEFAULT_TESTIMONIALS);
   const [contact, setContact] = useState<ContactSupport>(CONTACT_DEFAULTS);
   const [fabricTabs, setFabricTabs] = useState<FabricTab[]>(DEFAULT_FABRIC_TABS);
   const [activeFabric, setActiveFabric] = useState(DEFAULT_FABRIC_TABS[0]);
@@ -78,9 +90,10 @@ function Index() {
     video_url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     subtext: "CAPTURING THE ESSENCE OF THE STREETS. RAW, UNFILTERED, AND IN CONSTANT MOTION.",
   });
-  const productSpecsHeading = useSectionHeading("product_specifications", "PREMIUM FABRIC.");
+  const productSpecsHeading = useSectionHeading("product_specifications", "PREMIUM FABRIC.", { eyebrow: "THE DETAILS" });
   const motionPictureHeading = useSectionHeading("motion_picture", "MOTION\nPICTURE");
   const testimonialsHeading = useSectionHeading("testimonials", "WORN IN\nEVERY CITY");
+  const contactSupportHeading = useSectionHeading("contact_support", "CONTACT SUPPORT", { eyebrow: "WE'RE HERE" });
 
   useEffect(() => {
     supabase
@@ -126,6 +139,19 @@ function Index() {
 
   useEffect(() => {
     supabase
+      .from("testimonials")
+      .select("name, role, body, rating")
+      .eq("is_active", true)
+      .order("position")
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setTestimonials(data.map((t) => ({ name: t.name, city: t.role ?? "", quote: t.body, rating: t.rating })));
+        }
+      });
+  }, []);
+
+  useEffect(() => {
+    supabase
       .from("brand_settings")
       .select("contact_email, social_whatsapp, support_hours, support_enabled")
       .order("updated_at", { ascending: false })
@@ -165,7 +191,7 @@ function Index() {
       <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-y border-border bg-surface/30">
         <div className="max-w-[1560px] mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-12 sm:mb-16">
-            <span className="inline-flex items-center px-3 py-1 border border-border text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-4">THE DETAILS</span>
+            <span className="inline-flex items-center px-3 py-1 border border-border text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-4">{productSpecsHeading.eyebrow}</span>
             <h2
               className="text-[clamp(3rem,8vw,6rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-4"
               style={productSpecsHeading.color ? { color: productSpecsHeading.color } : undefined}
@@ -268,31 +294,25 @@ function Index() {
         </div>
         <div className="flex overflow-hidden group py-4">
           <div className="flex shrink-0 items-stretch ticker-scroll group-hover:[animation-play-state:paused]" style={{ animationDuration: "60s" }}>
-            {[
-              { quote: "Fit is unreal. It feels premium without trying too hard.", name: "Arjun K.", city: "Mumbai" },
-              { quote: "Finally a brand that understands cut, fabric, and movement.", name: "Priya S.", city: "Delhi" },
-              { quote: "Every drop sells out for a reason. Quality is consistent.", name: "Rahul M.", city: "Bangalore" },
-              { quote: "The heavyweight cotton is unmatched. Nothing else comes close.", name: "Sneha D.", city: "Pune" },
-              { quote: "I get compliments every single time I wear Studio Deny.", name: "Vikram T.", city: "Hyderabad" },
-              { quote: "Studio Deny is the only brand I trust for streetwear.", name: "Kiran R.", city: "Chennai" },
-              { quote: "Fit is unreal. It feels premium without trying too hard.", name: "Arjun K.", city: "Mumbai" },
-              { quote: "Finally a brand that understands cut, fabric, and movement.", name: "Priya S.", city: "Delhi" },
-              { quote: "Every drop sells out for a reason. Quality is consistent.", name: "Rahul M.", city: "Bangalore" },
-              { quote: "The heavyweight cotton is unmatched. Nothing else comes close.", name: "Sneha D.", city: "Pune" },
-            ].map((t, idx) => (
-              <div key={idx} className="shrink-0 w-[320px] sm:w-[380px] border border-border bg-surface/30 p-6 sm:p-8 flex flex-col justify-between mr-5">
-                <div>
-                  <div className="flex gap-1 mb-4">
-                    {[0, 1, 2, 3, 4].map((n) => <Star key={n} className="w-3.5 h-3.5 fill-foreground text-foreground opacity-80" />)}
+            {(() => {
+              const MIN_PER_HALF = 6;
+              const repeat = Math.max(1, Math.ceil(MIN_PER_HALF / testimonials.length));
+              const half = Array.from({ length: repeat }, () => testimonials).flat();
+              return [...half, ...half].map((t, idx) => (
+                <div key={idx} className="shrink-0 w-[320px] sm:w-[380px] border border-border bg-surface/30 p-6 sm:p-8 flex flex-col justify-between mr-5">
+                  <div>
+                    <div className="flex gap-1 mb-4">
+                      {Array.from({ length: t.rating }, (_, n) => <Star key={n} className="w-3.5 h-3.5 fill-foreground text-foreground opacity-80" />)}
+                    </div>
+                    <p className="text-base sm:text-lg leading-relaxed opacity-90 text-display">"{t.quote}"</p>
                   </div>
-                  <p className="text-base sm:text-lg leading-relaxed opacity-90 text-display">"{t.quote}"</p>
+                  <div className="mt-6 pt-4 border-t border-border">
+                    <p className="text-sm tracking-[0.1em] uppercase text-mono opacity-80">{t.name}</p>
+                    {t.city && <p className="text-xs tracking-[0.15em] uppercase opacity-50 mt-1 text-mono">{t.city} · VERIFIED BUYER</p>}
+                  </div>
                 </div>
-                <div className="mt-6 pt-4 border-t border-border">
-                  <p className="text-sm tracking-[0.1em] uppercase text-mono opacity-80">{t.name}</p>
-                  <p className="text-xs tracking-[0.15em] uppercase opacity-50 mt-1 text-mono">{t.city} · VERIFIED BUYER</p>
-                </div>
-              </div>
-            ))}
+              ));
+            })()}
           </div>
         </div>
       </section>
@@ -302,8 +322,13 @@ function Index() {
         <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border bg-surface/20">
           <div className="max-w-[1280px] mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-12 text-center">
-              <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">WE'RE HERE</span>
-              <h2 className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display">CONTACT SUPPORT</h2>
+              <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{contactSupportHeading.eyebrow}</span>
+              <h2
+                className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display"
+                style={contactSupportHeading.color ? { color: contactSupportHeading.color } : undefined}
+              >
+                {contactSupportHeading.text}
+              </h2>
             </motion.div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
               {[

@@ -13,7 +13,7 @@ const AUTOPLAY_MS = 6000;
 export function LookbookCarousel() {
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [active, setActive] = useState(0);
-  const heading = useSectionHeading("lookbook", "LOOKBOOK");
+  const heading = useSectionHeading("lookbook", "LOOKBOOK", { subtitle: "Swipe through curated fits built for daily movement." });
 
   useEffect(() => {
     supabase
@@ -94,7 +94,7 @@ export function LookbookCarousel() {
           >
             {heading.text}
           </h2>
-          <p className="text-base sm:text-lg mt-3 opacity-80 max-w-xl text-mono">Swipe through curated fits built for daily movement.</p>
+          <p className="text-base sm:text-lg mt-3 opacity-80 max-w-xl text-mono">{heading.subtitle}</p>
         </motion.div>
       </div>
       {slide.link_href ? (

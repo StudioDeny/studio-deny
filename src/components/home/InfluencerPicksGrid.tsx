@@ -298,7 +298,7 @@ export function InfluencerPicksGrid() {
     })();
   }, []);
 
-  const heading = useSectionHeading("influencer_picks", "INFLUENCER PICKS");
+  const heading = useSectionHeading("influencer_picks", "INFLUENCER PICKS", { eyebrow: "AS SEEN ON" });
 
   if (picks.length === 0) return null;
 
@@ -311,7 +311,7 @@ export function InfluencerPicksGrid() {
     <section className="py-14 sm:py-20 overflow-hidden border-t border-border">
       <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-10 flex items-end justify-between">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
-          <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">AS SEEN ON</span>
+          <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{heading.eyebrow}</span>
           <h2
             className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display"
             style={heading.color ? { color: heading.color } : undefined}

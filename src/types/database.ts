@@ -585,6 +585,8 @@ export type SectionHeading = {
   key: string;
   label: string;
   heading_text: string;
+  eyebrow_text: string | null;
+  subtitle_text: string | null;
   text_color: string | null;
   updated_at: string;
 };
