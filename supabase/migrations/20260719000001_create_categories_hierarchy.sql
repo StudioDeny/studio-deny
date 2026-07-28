@@ -29,11 +29,10 @@ DO $$ BEGIN
     FOR ALL USING (get_my_role() = 'admin') WITH CHECK (get_my_role() = 'admin');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- Seed hierarchy: Men, Women, Accessories (-> Rings, Chains, Socks), Sneakers.
+-- Seed hierarchy: Men, Women, Accessories (-> Rings, Chains, Socks).
 INSERT INTO categories (name, slug, parent_id) VALUES
   ('Men', 'men', NULL),
   ('Women', 'women', NULL),
-  ('Sneakers', 'sneakers', NULL),
   ('Accessories', 'accessories', NULL)
 ON CONFLICT (slug) DO NOTHING;
 
