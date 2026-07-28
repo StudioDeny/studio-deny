@@ -36,6 +36,7 @@ type CarouselSlide = { media_type: "image" | "video"; src: string; label: string
 type CategoryCarouselConfig = { slides: CarouselSlide[] };
 type DenySpaceBenefit = { icon: string; label: string; desc: string };
 type DenySpaceConfig = { logo_url: string; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string };
+type PopularNowConfig = { title: string; product_slugs: string[] };
 
 const DENYSPACE_ICONS = ["Truck", "RotateCcw", "ShieldCheck", "Gift", "Star", "Sparkles", "Heart", "Award", "Package", "Zap", "Clock", "CheckCircle"];
 
@@ -52,6 +53,7 @@ const TYPE_COLORS: Record<string, string> = {
   why_us:        "bg-cyan-100 text-cyan-800",
   instagram_feed:"bg-rose-100 text-rose-800",
   newsletter:    "bg-lime-100 text-lime-800",
+  popular_now:   "bg-sky-100 text-sky-800",
 };
 
 function AdminWebsiteSections() {
@@ -460,6 +462,58 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
         </div>
       );
     }
+    case "popular_now": {
+      const c = cfg as Partial<PopularNowConfig>;
+      const selected = c.product_slugs ?? [];
+      const moveSelected = (i: number, dir: -1 | 1) => {
+        const j = i + dir;
+        if (j < 0 || j >= selected.length) return;
+        const next = [...selected];
+        [next[i], next[j]] = [next[j], next[i]];
+        set("product_slugs", next);
+      };
+      return (
+        <div className="space-y-4">
+          <F label="HEADING"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="POPULAR NOW" /></F>
+          {selected.length > 0 && (
+            <F label="ORDER (first item renders as the large bento tile)">
+              <div className="border border-border rounded divide-y divide-border">
+                {selected.map((slug, i) => {
+                  const p = allProducts.find((ap) => ap.slug === slug);
+                  return (
+                    <div key={slug} className="flex items-center gap-3 px-3 py-2">
+                      <span className="text-sm text-foreground flex-1">{p?.name ?? slug}</span>
+                      <button type="button" onClick={() => moveSelected(i, -1)} disabled={i === 0} className="text-muted-foreground hover:text-primary disabled:opacity-30"><ChevronUp className="size-4" /></button>
+                      <button type="button" onClick={() => moveSelected(i, 1)} disabled={i === selected.length - 1} className="text-muted-foreground hover:text-primary disabled:opacity-30"><ChevronDown className="size-4" /></button>
+                    </div>
+                  );
+                })}
+              </div>
+            </F>
+          )}
+          <F label={`PRODUCTS — select up to 8 (${selected.length}/8 selected)`}>
+            <div className="border border-border rounded divide-y divide-border max-h-52 overflow-y-auto mt-1">
+              {allProducts.length === 0 && <div className="p-3 text-sm text-muted-foreground">No products found.</div>}
+              {allProducts.map((p) => (
+                <label key={p.slug} className="flex items-center gap-3 px-3 py-2 hover:bg-muted/40 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(p.slug)}
+                    onChange={(e) => {
+                      const next = e.target.checked ? [...selected, p.slug].slice(0, 8) : selected.filter((s) => s !== p.slug);
+                      set("product_slugs", next);
+                    }}
+                    className="w-4 h-4 accent-primary"
+                  />
+                  <span className="text-sm text-foreground flex-1">{p.name}</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">{p.slug}</span>
+                </label>
+              ))}
+            </div>
+          </F>
+        </div>
+      );
+    }
     case "lookbook": {
       const c = cfg as Partial<LookbookConfig>;
       return (
@@ -554,7 +608,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
       return (
         <div className="space-y-4">
           <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
-            Two full-bleed cards side by side (Men / Women, or however you want to split it).
+            Full-bleed cards side by side (Men / Accessories / Women, or however you want to split it) — up to 3.
           </div>
           {cards.map((card, i) => (
             <div key={i} className="border border-border rounded p-4 space-y-3 bg-muted/20">
@@ -572,7 +626,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               <F label="CTA LINK"><input value={card.cta_href} onChange={(e) => updateCard(i, { cta_href: e.target.value })} className="inp" placeholder="/collections/men" /></F>
             </div>
           ))}
-          {cards.length < 2 && (
+          {cards.length < 3 && (
             <button type="button" onClick={() => setCards([...cards, { media_type: "image", src: "", label: "NEW CARD", cta_href: "/shop" }])}
               className="w-full h-10 rounded border border-dashed border-border text-xs font-semibold tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors">
               + ADD CARD

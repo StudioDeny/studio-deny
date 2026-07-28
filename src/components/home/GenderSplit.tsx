@@ -15,9 +15,17 @@ type GenderSplitConfig = { cards: SplitCard[] };
 
 const DEFAULTS: GenderSplitConfig = {
   cards: [
-    { media_type: "image", src: "https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&q=80&w=1200", label: "SHOP MEN", cta_href: "/collections/men" },
-    { media_type: "image", src: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&q=80&w=1200", label: "SHOP WOMEN", cta_href: "/collections/women" },
+    { media_type: "image", src: "https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&q=80&w=1200", label: "MEN", cta_href: "/collections/men" },
+    { media_type: "image", src: "https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&q=80&w=1200", label: "ACCESSORIES", cta_href: "/collections/accessories" },
+    { media_type: "image", src: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&q=80&w=1200", label: "WOMEN", cta_href: "/collections/women" },
   ],
+};
+
+const GRID_COLS: Record<number, string> = {
+  1: "sm:grid-cols-1",
+  2: "sm:grid-cols-2",
+  3: "sm:grid-cols-3",
+  4: "sm:grid-cols-4",
 };
 
 export function GenderSplit() {
@@ -43,7 +51,7 @@ export function GenderSplit() {
   if (!visible) return null;
 
   return (
-    <section className="grid grid-cols-1 sm:grid-cols-2 h-[70vh] sm:h-[85vh]">
+    <section className={`grid grid-cols-1 ${GRID_COLS[cfg.cards.length] ?? "sm:grid-cols-3"} h-[70vh] sm:h-[85vh]`}>
       {cfg.cards.map((card, idx) => (
         <motion.div
           key={idx}
