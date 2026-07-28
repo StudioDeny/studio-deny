@@ -32,7 +32,7 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-type FabricTab = { id: string; name: string; title: string; desc: string; img: string };
+type FabricTab = { id: string; name: string; title: string; desc: string; img: string; href?: string };
 
 const DEFAULT_FABRIC_TABS: FabricTab[] = [
   {
@@ -41,6 +41,7 @@ const DEFAULT_FABRIC_TABS: FabricTab[] = [
     title: "300+ GSM HEAVYWEIGHT COTTON",
     desc: "Substantial, heavyweight fabric that drapes perfectly and doesn't cling. Pre-shrunk for a consistent fit. Engineered pattern making for the perfect relaxed silhouette with dropped shoulders.",
     img: "https://studio-deny-demo.vercel.app/assets/001_18.JPG",
+    href: "/collections/tops",
   },
   {
     id: "shirts",
@@ -48,6 +49,7 @@ const DEFAULT_FABRIC_TABS: FabricTab[] = [
     title: "PREMIUM OXFORD & FLANNEL",
     desc: "Double-needle stitching on all stress points. High-density weaves for durability while maintaining breathability. Built to soften and get better with every wash.",
     img: "https://studio-deny-demo.vercel.app/assets/001_13.JPG",
+    href: "/shop?q=shirts",
   },
   {
     id: "jeans",
@@ -55,6 +57,7 @@ const DEFAULT_FABRIC_TABS: FabricTab[] = [
     title: "14OZ JAPANESE SELVEDGE",
     desc: "Raw, unwashed denim that molds to your body over time. Custom branded hardware, reinforced belt loops, and hidden rivets. A modern straight-leg cut that stacks perfectly over sneakers.",
     img: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=1200",
+    href: "/collections/bottoms",
   },
 ];
 
@@ -174,7 +177,18 @@ function Index() {
                     <h3 className={`text-4xl sm:text-5xl lg:text-6xl text-display uppercase tracking-wider transition-colors duration-300 ${activeFabric.id === fabric.id ? "text-foreground" : "text-foreground/50 group-hover:text-foreground/80"}`}>
                       {fabric.name}
                     </h3>
-                    <ArrowRight className={`w-6 h-6 transition-all duration-300 ${activeFabric.id === fabric.id ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`} />
+                    {fabric.href ? (
+                      <Link
+                        to={fabric.href}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Shop ${fabric.name}`}
+                        className={`transition-all duration-300 hover:text-primary ${activeFabric.id === fabric.id ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`}
+                      >
+                        <ArrowRight className="w-6 h-6" />
+                      </Link>
+                    ) : (
+                      <ArrowRight className={`w-6 h-6 transition-all duration-300 ${activeFabric.id === fabric.id ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`} />
+                    )}
                   </div>
                   <div className={`overflow-hidden transition-all duration-500 ${activeFabric.id === fabric.id ? "max-h-64 opacity-100" : "max-h-0 opacity-0"}`}>
                     <div className="pt-2">

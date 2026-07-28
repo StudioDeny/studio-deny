@@ -38,7 +38,7 @@ type CategoryCarouselConfig = { slides: CarouselSlide[] };
 type DenySpaceBenefit = { icon: string; label: string; desc: string };
 type DenySpaceConfig = { logo_url: string; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string; bg_color?: string; text_color?: string };
 type PopularNowConfig = { title: string; product_slugs: string[] };
-type FabricTab = { id: string; name: string; title: string; desc: string; img: string };
+type FabricTab = { id: string; name: string; title: string; desc: string; img: string; href?: string };
 type FabricTabsConfig = { tabs: FabricTab[] };
 
 const DENYSPACE_ICONS = ["Truck", "RotateCcw", "ShieldCheck", "Gift", "Star", "Sparkles", "Heart", "Award", "Package", "Zap", "Clock", "CheckCircle"];
@@ -543,6 +543,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               <F label="TAB LABEL"><input value={tab.name} onChange={(e) => updateTab(i, { name: e.target.value })} className="inp" placeholder="T-SHIRTS" /></F>
               <F label="HEADLINE"><input value={tab.title} onChange={(e) => updateTab(i, { title: e.target.value })} className="inp" placeholder="300+ GSM HEAVYWEIGHT COTTON" /></F>
               <F label="DESCRIPTION"><textarea rows={3} value={tab.desc} onChange={(e) => updateTab(i, { desc: e.target.value })} className="inp" /></F>
+              <F label="LINK (where the arrow navigates to)"><input value={tab.href ?? ""} onChange={(e) => updateTab(i, { href: e.target.value })} className="inp" placeholder="/collections/tops" /></F>
               <MediaUrlField label="PHOTO" mediaType="image" value={tab.img} onChange={(url) => updateTab(i, { img: url })} />
             </div>
           ))}
