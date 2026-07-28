@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { listAllAdminProducts, deleteProduct, type Product } from "@/lib/productsStore";
+import { listAllAdminProducts, setProductActive, type Product } from "@/lib/productsStore";
 import { listCategories, type Category } from "@/lib/catalog";
 import { formatINR } from "@/context/CartContext";
-import { Plus, Pencil, Trash2, Settings2, Search } from "lucide-react";
+import { Plus, Pencil, Eye, EyeOff, Settings2, Search } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/products/")({
@@ -30,11 +30,12 @@ function AdminProducts() {
     .filter((p) => active === "ALL" || p.category === active)
     .filter((p) => !q || p.name.toLowerCase().includes(q.toLowerCase()) || p.slug.includes(q.toLowerCase()));
 
-  const remove = async (slug: string) => {
-    if (!confirm("Delete this product?")) return;
-    await deleteProduct(slug);
+  const toggleActive = async (p: Product) => {
+    const next = !(p.is_active ?? true);
+    if (!next && !confirm(`Deactivate "${p.name}"? It will disappear from the storefront (shop, collections, homepage) until reactivated here.`)) return;
+    await setProductActive(p.slug, next);
     await refresh();
-    toast.success("Product deleted");
+    toast.success(next ? "Product reactivated — visible on storefront again" : "Product deactivated");
   };
 
   return (
@@ -96,20 +97,31 @@ function AdminProducts() {
                 <td className="p-3 text-mono">{formatINR(p.price)}</td>
                 <td className="p-3 text-mono">{p.stock}</td>
                 <td className="p-3 hidden sm:table-cell">
-                  <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${
-                    p.stock > 5
-                      ? "bg-emerald-100 text-emerald-800"
-                      : p.stock > 0
-                      ? "bg-amber-100 text-amber-800"
-                      : "bg-red-100 text-red-700"
-                  }`}>
-                    {p.stock > 5 ? "ACTIVE" : p.stock > 0 ? "LOW" : "SOLD OUT"}
-                  </span>
+                  <div className="flex flex-col gap-1 items-start">
+                    <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${(p.is_active ?? true) ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-700"}`}>
+                      {(p.is_active ?? true) ? "LIVE ON SITE" : "HIDDEN"}
+                    </span>
+                    <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${
+                      p.stock > 5
+                        ? "bg-emerald-100 text-emerald-800"
+                        : p.stock > 0
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-red-100 text-red-700"
+                    }`}>
+                      {p.stock > 5 ? "IN STOCK" : p.stock > 0 ? "LOW STOCK" : "SOLD OUT"}
+                    </span>
+                  </div>
                 </td>
                 <td className="p-3 text-right">
                   <div className="inline-flex gap-2">
                     <Link to="/admin/products/$slug" params={{ slug: p.slug }} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Pencil className="size-3" /></Link>
-                    <button onClick={() => remove(p.slug)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Trash2 className="size-3" /></button>
+                    <button
+                      onClick={() => toggleActive(p)}
+                      title={(p.is_active ?? true) ? "Deactivate (hide from storefront)" : "Reactivate (show on storefront)"}
+                      className={`border h-8 w-8 inline-flex items-center justify-center ${(p.is_active ?? true) ? "border-border hover:border-red-500 hover:text-red-500" : "border-emerald-600 text-emerald-700 hover:bg-emerald-50"}`}
+                    >
+                      {(p.is_active ?? true) ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+                    </button>
                   </div>
                 </td>
               </tr>

@@ -143,6 +143,14 @@ export async function deleteProduct(slug: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+export async function setProductActive(slug: string, active: boolean): Promise<void> {
+  const { error } = await supabase
+    .from("products")
+    .update({ is_active: active })
+    .eq("slug", slug);
+  if (error) throw new Error(error.message);
+}
+
 export async function listAllAdminProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")
