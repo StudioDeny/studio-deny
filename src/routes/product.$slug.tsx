@@ -80,10 +80,11 @@ function PDP() {
   const wished = has(product.slug);
   const [size, setSize] = useState<string | null>(null);
   const [variantId, setVariantId] = useState<string | undefined>();
-  const [tab, setTab] = useState<"desc" | "mat" | "ship">("desc");
+  const [tab, setTab] = useState<"desc" | "mat" | "care" | "delivery" | "">("desc");
   const [added, setAdded] = useState(false);
   const [sizeOptions, setSizeOptions] = useState<SizeOption[]>([]);
   const [zoomSrc, setZoomSrc] = useState<string | null>(null);
+  const [magnifierPos, setMagnifierPos] = useState<{ x: number; y: number } | null>(null);
 
   // Full gallery, in order: base image, hover image, then any extra gallery photos — deduped.
   const galleryImages = Array.from(new Set([product.image, product.hoverImage, ...(product.gallery ?? []).map((g: GalleryItem) => g.url)].filter(Boolean)));
@@ -174,9 +175,17 @@ function PDP() {
           {galleryImages.map((src, i) => (
             <div
               key={src}
-              className="relative group bg-surface border border-border overflow-hidden cursor-zoom-in"
+              className={`relative group bg-surface border border-border overflow-hidden ${i === 0 ? "cursor-none" : "cursor-zoom-in"}`}
               style={{ aspectRatio: "4/5" }}
               onClick={() => setZoomSrc(src)}
+              onMouseMove={i === 0 ? (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setMagnifierPos({
+                  x: ((e.clientX - rect.left) / rect.width) * 100,
+                  y: ((e.clientY - rect.top) / rect.height) * 100,
+                });
+              } : undefined}
+              onMouseLeave={i === 0 ? () => setMagnifierPos(null) : undefined}
               title="Click to zoom"
             >
               <img
@@ -185,6 +194,25 @@ function PDP() {
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                 loading={i === 0 ? undefined : "lazy"}
               />
+              {i === 0 && magnifierPos && (
+                <>
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      backgroundImage: `url(${src})`,
+                      backgroundSize: "220%",
+                      backgroundPosition: `${magnifierPos.x}% ${magnifierPos.y}%`,
+                      backgroundRepeat: "no-repeat",
+                    }}
+                  />
+                  <div
+                    className="absolute pointer-events-none size-10 rounded-full bg-black/60 backdrop-blur-sm border border-white/40 flex items-center justify-center text-white"
+                    style={{ left: `${magnifierPos.x}%`, top: `${magnifierPos.y}%`, transform: "translate(-50%, -50%)" }}
+                  >
+                    <span aria-hidden style={{ fontSize: "16px", lineHeight: 1 }}>🔍</span>
+                  </div>
+                </>
+              )}
               <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <span className="size-8 bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80">
                   <ZoomIn className="size-4" />
@@ -352,13 +380,32 @@ function PDP() {
           {/* Accordion Tabs */}
           <div className="mt-10 border-t border-border">
             {[
-              { id: "desc", label: "DESCRIPTION", content: product.description },
-              { id: "mat", label: "MATERIAL & CARE", content: product.materialCare ? `${product.material}\n\n${product.materialCare}` : `${product.material} Wash cold inside out. Hang dry. Don't iron the print. Built to fade naturally over time.` },
-              { id: "ship", label: "SHIPPING & RETURNS", content: "Dispatched within 48 hours. Free shipping on orders ₹999+. International shipping available. 7-day hassle-free returns." },
+              {
+                id: "desc" as const,
+                label: "DESCRIPTION & FIT",
+                content: product.description,
+                link: { to: "/size-guide" as const, label: "See our Size Guide" },
+              },
+              {
+                id: "mat" as const,
+                label: "MATERIALS",
+                content: product.material || "100% heavyweight cotton, 300 GSM.",
+              },
+              {
+                id: "care" as const,
+                label: "CARE GUIDE",
+                content: product.materialCare || "Machine wash cold inside out. Hang dry. Do not bleach. Do not tumble dry. Do not iron directly over prints.",
+              },
+              {
+                id: "delivery" as const,
+                label: "DELIVERY AND PAYMENT",
+                content: "Dispatched within 48 hours. Free shipping on orders ₹999+. Cash on Delivery and Razorpay both accepted at checkout.",
+                link: { to: "/track-order" as const, label: "Track your order" },
+              },
             ].map((t) => (
               <div key={t.id} className="border-b border-border group">
                 <button
-                  onClick={() => setTab(tab === t.id ? ("" as any) : t.id)}
+                  onClick={() => setTab(tab === t.id ? "" : t.id)}
                   className="w-full py-5 flex items-center justify-between text-mono text-foreground hover:text-primary transition-colors"
                   style={{ fontSize: "11px", letterSpacing: "0.2em" }}
                 >
@@ -373,6 +420,15 @@ function PDP() {
                   <p className="text-muted-foreground leading-relaxed" style={{ fontSize: "13.5px" }}>
                     {t.content}
                   </p>
+                  {t.link && (
+                    <Link
+                      to={t.link.to}
+                      className="inline-block mt-2 text-primary underline underline-offset-2 hover:opacity-80 transition-opacity"
+                      style={{ fontSize: "12.5px" }}
+                    >
+                      {t.link.label} →
+                    </Link>
+                  )}
                 </div>
               </div>
             ))}
