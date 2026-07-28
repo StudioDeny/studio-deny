@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Play, X, Volume2, VolumeX, ChevronUp, ChevronDown, ExternalLink } from "lucide-react";
+import { ArrowRight, Play, X, Volume2, VolumeX, ChevronUp, ChevronDown, ExternalLink, Instagram } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { InfluencerPick } from "@/types/database";
 import type { Product } from "@/lib/productsStore";
@@ -10,40 +10,94 @@ import type { Product } from "@/lib/productsStore";
 type PickWithTags = InfluencerPick & { products: Pick<Product, "slug" | "name" | "image">[] };
 
 function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) {
+  const [hovered, setHovered] = useState(false);
+  const [taggedIdx, setTaggedIdx] = useState(0);
+  const isUpload = pick.video_source === "upload" && !!pick.video_url;
+  const isLink = pick.video_source === "link";
+
+  // While hovering an uploaded-video tile with more than one tagged product,
+  // auto-advance which tagged product the overlay shows.
+  useEffect(() => {
+    if (!hovered || !isUpload || pick.products.length <= 1) return;
+    const t = setInterval(() => setTaggedIdx((i) => (i + 1) % pick.products.length), 1800);
+    return () => clearInterval(t);
+  }, [hovered, isUpload, pick.products.length]);
+
+  useEffect(() => { if (!hovered) setTaggedIdx(0); }, [hovered]);
+
+  const handleClick = () => {
+    if (isLink && pick.link_url) {
+      window.open(pick.link_url, "_blank", "noopener,noreferrer");
+    } else {
+      onOpen();
+    }
+  };
+
+  const taggedProduct = pick.products[taggedIdx];
+
   return (
-    <button type="button" onClick={onOpen} className="shrink-0 w-[62vw] sm:w-[30vw] lg:w-[21vw] mr-4 text-left group/tile">
+    <button
+      type="button"
+      onClick={handleClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="text-left group/tile"
+    >
       <div className="relative aspect-[3/4] overflow-hidden bg-surface border border-border">
-        {pick.thumbnail_url && (
-          <img
-            src={pick.thumbnail_url}
-            alt={pick.name}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/tile:scale-[1.03]"
+        {isUpload && hovered ? (
+          <video
+            src={pick.video_url!}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
           />
+        ) : (
+          pick.thumbnail_url && (
+            <img
+              src={pick.thumbnail_url}
+              alt={pick.name}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/tile:scale-[1.03]"
+            />
+          )
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-black/25" />
 
-        {/* Play affordance — makes it unmistakable this is a video, not a photo */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="size-12 sm:size-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/40 flex items-center justify-center group-hover/tile:scale-110 group-hover/tile:bg-black/55 transition-all">
-            <Play className="size-5 sm:size-6 text-white fill-white ml-0.5" />
-          </span>
-        </div>
+        {/* Reel links are external — show an Instagram affordance instead of
+            attempting inline playback of something we can't host. */}
+        {isLink ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="size-12 sm:size-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/40 flex items-center justify-center group-hover/tile:scale-110 group-hover/tile:bg-black/55 transition-all">
+              <Instagram className="size-5 sm:size-6 text-white" />
+            </span>
+          </div>
+        ) : !hovered ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="size-12 sm:size-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/40 flex items-center justify-center group-hover/tile:scale-110 group-hover/tile:bg-black/55 transition-all">
+              <Play className="size-5 sm:size-6 text-white fill-white ml-0.5" />
+            </span>
+          </div>
+        ) : null}
 
         <div className="absolute top-3 left-3">
           <p className="text-white font-display text-sm uppercase drop-shadow">{pick.name}</p>
           {pick.handle && <p className="text-white/70 text-mono text-[10px] drop-shadow">{pick.handle}</p>}
         </div>
-      </div>
 
-      {pick.products.length > 0 && (
-        <div className="mt-2 flex items-center gap-2">
-          <img src={pick.products[0].image} alt="" className="size-8 object-cover rounded-sm border border-border shrink-0" />
-          <div className="min-w-0">
-            <p className="text-xs font-semibold truncate">{pick.products[0].name}</p>
-            {pick.products.length > 1 && <p className="text-[10px] text-muted-foreground">+{pick.products.length - 1} more</p>}
-          </div>
-        </div>
-      )}
+        {/* Tagged product(s) overlay — only while hovering/playing */}
+        {hovered && taggedProduct && (
+          <Link
+            to="/product/$slug"
+            params={{ slug: taggedProduct.slug }}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute bottom-3 left-3 right-3 flex items-center gap-2 bg-white/95 hover:bg-white pl-1.5 pr-3 py-1.5 rounded-full w-fit max-w-full transition-colors"
+          >
+            <img src={taggedProduct.image} alt="" className="size-7 rounded-full object-cover shrink-0" />
+            <span className="text-xs font-semibold text-black truncate">{taggedProduct.name}</span>
+          </Link>
+        )}
+      </div>
     </button>
   );
 }
@@ -259,21 +313,10 @@ export function InfluencerPicksGrid() {
         </Link>
       </div>
 
-      <div className="flex overflow-hidden group py-2">
-        <div className="flex shrink-0 items-stretch ticker-scroll group-hover:[animation-play-state:paused] pl-4 sm:pl-8 lg:pl-16" style={{ animationDuration: "45s" }}>
-          {/* ticker-scroll shifts by exactly -50%, so it needs 2 equal halves — with
-              only a couple of real picks, one "half" ends up narrower than the
-              viewport, leaving blank space after it. Repeat each half until it's
-              comfortably wide regardless of how few picks actually exist. */}
-          {(() => {
-            const MIN_TILES_PER_HALF = 6;
-            const repeat = Math.max(1, Math.ceil(MIN_TILES_PER_HALF / picks.length));
-            const half = Array.from({ length: repeat }, () => picks).flat();
-            return [...half, ...half].map((pick, idx) => (
-              <GridTile key={`${pick.id}-${idx}`} pick={pick} onOpen={() => openLightboxFor(pick)} />
-            ));
-          })()}
-        </div>
+      <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        {picks.map((pick) => (
+          <GridTile key={pick.id} pick={pick} onOpen={() => openLightboxFor(pick)} />
+        ))}
       </div>
 
       {lightboxIndex !== null && (
