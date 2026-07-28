@@ -58,7 +58,7 @@ export function CategoryCarousel() {
   const go = (dir: -1 | 1) => setActive((a) => (a + dir + cfg.slides.length) % cfg.slides.length);
 
   return (
-    <section className="relative w-full h-[90vh] overflow-hidden">
+    <section className="relative w-full h-screen overflow-hidden">
       <AnimatePresence mode="sync">
         <motion.div
           key={active}

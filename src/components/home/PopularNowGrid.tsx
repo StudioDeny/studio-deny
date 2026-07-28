@@ -93,7 +93,7 @@ export function PopularNowGrid() {
           <ChevronRight className="size-5" />
         </button>
 
-        <div ref={scrollerRef} className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth pb-2 px-4 sm:px-8 lg:px-16 [scrollbar-width:thin]">
+        <div ref={scrollerRef} className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth pb-2 px-4 sm:px-8 lg:px-16 no-scrollbar">
           {products.map((p, i) => (
             <Link
               key={p.slug}
@@ -122,10 +122,12 @@ export function PopularNowGrid() {
           {cfg.view_all_href && (
             <Link
               to={cfg.view_all_href}
-              className="group relative shrink-0 overflow-hidden bg-foreground text-background flex flex-col items-center justify-center gap-3 w-[150px] sm:w-[190px] h-[260px] sm:h-[300px]"
+              className={`group relative shrink-0 overflow-hidden bg-foreground text-background border border-foreground flex flex-col items-center justify-center gap-3 ${SIZE_CLASSES[products.length % SIZE_CLASSES.length]}`}
             >
-              <span className="text-xs font-semibold uppercase tracking-[0.15em] text-mono text-center px-4">View All</span>
-              <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
+              <span className="text-sm font-semibold uppercase tracking-[0.15em] text-mono text-center px-4">View All</span>
+              <span className="size-10 rounded-full border border-background/40 flex items-center justify-center transition-transform group-hover:translate-x-1">
+                <ArrowRight className="size-4" />
+              </span>
             </Link>
           )}
         </div>
