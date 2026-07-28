@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Star, Mail, MessageCircle, Clock } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { LoyaltyModal } from "@/components/home/LoyaltyModal";
-import { getHomeSections, type HomeSections } from "@/lib/homeSections";
 import { HeroSlider, type HeroSlide } from "@/components/home/HeroSlider";
 import { GenderSplit } from "@/components/home/GenderSplit";
 import { CategoryCarousel } from "@/components/home/CategoryCarousel";
@@ -33,7 +32,9 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-const FABRIC_TABS = [
+type FabricTab = { id: string; name: string; title: string; desc: string; img: string };
+
+const DEFAULT_FABRIC_TABS: FabricTab[] = [
   {
     id: "tshirts",
     name: "T-SHIRTS",
@@ -57,9 +58,18 @@ const FABRIC_TABS = [
   },
 ];
 
+type ContactSupport = { enabled: boolean; email: string; whatsapp: string; hours: string };
+const CONTACT_DEFAULTS: ContactSupport = {
+  enabled: true,
+  email: "support@studiodeny.in",
+  whatsapp: "",
+  hours: "Mon–Sat, 10am–7pm IST",
+};
+
 function Index() {
-  const [hs, setHs] = useState<HomeSections | null>(null);
-  const [activeFabric, setActiveFabric] = useState(FABRIC_TABS[0]);
+  const [contact, setContact] = useState<ContactSupport>(CONTACT_DEFAULTS);
+  const [fabricTabs, setFabricTabs] = useState<FabricTab[]>(DEFAULT_FABRIC_TABS);
+  const [activeFabric, setActiveFabric] = useState(DEFAULT_FABRIC_TABS[0]);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[] | undefined>(undefined);
   const productSpecsHeading = useSectionHeading("product_specifications", "PREMIUM FABRIC.");
   const motionPictureHeading = useSectionHeading("motion_picture", "MOTION\nPICTURE");
@@ -79,10 +89,38 @@ function Index() {
   }, []);
 
   useEffect(() => {
-    setHs(getHomeSections());
+    supabase
+      .from("website_sections")
+      .select("config")
+      .eq("page_slug", "home")
+      .eq("section_type", "fabric_tabs")
+      .single()
+      .then(({ data }) => {
+        const cfg = data?.config as { tabs?: FabricTab[] } | undefined;
+        if (cfg?.tabs && cfg.tabs.length > 0) {
+          setFabricTabs(cfg.tabs);
+          setActiveFabric(cfg.tabs[0]);
+        }
+      });
   }, []);
 
-  if (!hs) return null;
+  useEffect(() => {
+    supabase
+      .from("brand_settings")
+      .select("contact_email, social_whatsapp, support_hours, support_enabled")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        setContact({
+          enabled: data.support_enabled ?? true,
+          email: data.contact_email || CONTACT_DEFAULTS.email,
+          whatsapp: data.social_whatsapp || CONTACT_DEFAULTS.whatsapp,
+          hours: data.support_hours || CONTACT_DEFAULTS.hours,
+        });
+      });
+  }, []);
 
   return (
     <div className="bg-background text-foreground overflow-x-hidden min-h-screen font-body">
@@ -129,7 +167,7 @@ function Index() {
               <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-60" />
             </div>
             <div className="order-2 flex flex-col justify-center space-y-6 sm:space-y-8">
-              {FABRIC_TABS.map((fabric) => (
+              {fabricTabs.map((fabric) => (
                 <div key={fabric.id} onMouseEnter={() => setActiveFabric(fabric)} onClick={() => setActiveFabric(fabric)}
                   className="group cursor-pointer border-b border-border pb-6 sm:pb-8 last:border-0">
                   <div className="flex items-center justify-between mb-4">
@@ -229,7 +267,7 @@ function Index() {
       </section>
 
       {/* ── 11. CONTACT SUPPORT ─────────────────────────────────────────── */}
-      {hs.contactSupport.enabled && (
+      {contact.enabled && (
         <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border bg-surface/20">
           <div className="max-w-[1280px] mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-12 text-center">
@@ -241,21 +279,21 @@ function Index() {
                 {
                   icon: Mail,
                   label: "EMAIL US",
-                  value: hs.contactSupport.email,
-                  href: `mailto:${hs.contactSupport.email}`,
+                  value: contact.email,
+                  href: `mailto:${contact.email}`,
                   desc: "For order issues, returns & general queries",
                 },
                 {
                   icon: MessageCircle,
                   label: "WHATSAPP",
-                  value: hs.contactSupport.whatsapp,
-                  href: `https://wa.me/${hs.contactSupport.whatsapp.replace(/\D/g, "")}`,
+                  value: contact.whatsapp,
+                  href: contact.whatsapp || "https://wa.me/",
                   desc: "Quick help via WhatsApp chat",
                 },
                 {
                   icon: Clock,
                   label: "HOURS",
-                  value: hs.contactSupport.hours,
+                  value: contact.hours,
                   href: null,
                   desc: "Response within 24 hours",
                 },

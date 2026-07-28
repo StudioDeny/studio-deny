@@ -57,6 +57,7 @@ import { Route as AdminLookbookCmsRouteImport } from './routes/admin.lookbook-cm
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
 import { Route as AdminInvoiceTemplateRouteImport } from './routes/admin.invoice-template'
 import { Route as AdminInfluencerPicksRouteImport } from './routes/admin.influencer-picks'
+import { Route as AdminHeadingsRouteImport } from './routes/admin.headings'
 import { Route as AdminFaqRouteImport } from './routes/admin.faq'
 import { Route as AdminExportRouteImport } from './routes/admin.export'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
@@ -311,6 +312,11 @@ const AdminInfluencerPicksRoute = AdminInfluencerPicksRouteImport.update({
   path: '/influencer-picks',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminHeadingsRoute = AdminHeadingsRouteImport.update({
+  id: '/headings',
+  path: '/headings',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminFaqRoute = AdminFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -404,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/export': typeof AdminExportRoute
   '/admin/faq': typeof AdminFaqRoute
+  '/admin/headings': typeof AdminHeadingsRoute
   '/admin/influencer-picks': typeof AdminInfluencerPicksRoute
   '/admin/invoice-template': typeof AdminInvoiceTemplateRoute
   '/admin/invoices': typeof AdminInvoicesRoute
@@ -465,6 +472,7 @@ export interface FileRoutesByTo {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/export': typeof AdminExportRoute
   '/admin/faq': typeof AdminFaqRoute
+  '/admin/headings': typeof AdminHeadingsRoute
   '/admin/influencer-picks': typeof AdminInfluencerPicksRoute
   '/admin/invoice-template': typeof AdminInvoiceTemplateRoute
   '/admin/invoices': typeof AdminInvoicesRoute
@@ -527,6 +535,7 @@ export interface FileRoutesById {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/export': typeof AdminExportRoute
   '/admin/faq': typeof AdminFaqRoute
+  '/admin/headings': typeof AdminHeadingsRoute
   '/admin/influencer-picks': typeof AdminInfluencerPicksRoute
   '/admin/invoice-template': typeof AdminInvoiceTemplateRoute
   '/admin/invoices': typeof AdminInvoicesRoute
@@ -591,6 +600,7 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/export'
     | '/admin/faq'
+    | '/admin/headings'
     | '/admin/influencer-picks'
     | '/admin/invoice-template'
     | '/admin/invoices'
@@ -652,6 +662,7 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/export'
     | '/admin/faq'
+    | '/admin/headings'
     | '/admin/influencer-picks'
     | '/admin/invoice-template'
     | '/admin/invoices'
@@ -713,6 +724,7 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/export'
     | '/admin/faq'
+    | '/admin/headings'
     | '/admin/influencer-picks'
     | '/admin/invoice-template'
     | '/admin/invoices'
@@ -1112,6 +1124,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInfluencerPicksRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/headings': {
+      id: '/admin/headings'
+      path: '/headings'
+      fullPath: '/admin/headings'
+      preLoaderRoute: typeof AdminHeadingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/faq': {
       id: '/admin/faq'
       path: '/faq'
@@ -1224,6 +1243,7 @@ interface AdminRouteChildren {
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminExportRoute: typeof AdminExportRoute
   AdminFaqRoute: typeof AdminFaqRoute
+  AdminHeadingsRoute: typeof AdminHeadingsRoute
   AdminInfluencerPicksRoute: typeof AdminInfluencerPicksRoute
   AdminInvoiceTemplateRoute: typeof AdminInvoiceTemplateRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
@@ -1253,6 +1273,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCustomersRoute: AdminCustomersRoute,
   AdminExportRoute: AdminExportRoute,
   AdminFaqRoute: AdminFaqRoute,
+  AdminHeadingsRoute: AdminHeadingsRoute,
   AdminInfluencerPicksRoute: AdminInfluencerPicksRoute,
   AdminInvoiceTemplateRoute: AdminInvoiceTemplateRoute,
   AdminInvoicesRoute: AdminInvoicesRoute,

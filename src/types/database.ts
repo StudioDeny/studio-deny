@@ -43,7 +43,7 @@ export type NotifStatus = "pending" | "sent" | "failed";
 export type WaLogStatus = "sent" | "delivered" | "read" | "failed";
 export type CampaignStatus = "draft" | "scheduled" | "running" | "completed" | "failed";
 export type FaqCategory = "general" | "orders" | "shipping" | "returns" | "sizing";
-export type SectionType = "hero" | "marquee" | "new_arrivals" | "lookbook" | "testimonials" | "faq" | "why_us" | "instagram_feed" | "newsletter" | "gender_split" | "category_carousel" | "denyspace" | "popular_now";
+export type SectionType = "hero" | "marquee" | "new_arrivals" | "lookbook" | "testimonials" | "faq" | "why_us" | "instagram_feed" | "newsletter" | "gender_split" | "category_carousel" | "denyspace" | "popular_now" | "fabric_tabs";
 export type NavLocation = "header" | "footer" | "mobile";
 export type LoyaltyTxType = "earn" | "redeem" | "adjust";
 export type LoyaltyTier = "ROOKIE" | "RUNNER" | "RIOT" | "LEGEND";
@@ -345,6 +345,8 @@ export type BrandSettings = {
   contact_email: string | null;
   contact_phone: string | null;
   address: string | null;
+  support_hours: string | null;
+  support_enabled: boolean;
   created_at: string;
   updated_at: string;
 };

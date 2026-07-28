@@ -168,6 +168,8 @@ function BrandTab() {
       contact_email: data.contact_email || null,
       contact_phone: data.contact_phone || null,
       address: data.address || null,
+      support_hours: data.support_hours || null,
+      support_enabled: data.support_enabled ?? true,
     };
     const { error } = rowId
       ? await supabase.from("brand_settings").update(payload).eq("id", rowId)
@@ -210,6 +212,16 @@ function BrandTab() {
           <F label="PHONE"><input value={data.contact_phone ?? ""} onChange={(e) => set("contact_phone", e.target.value)} className="inp" /></F>
         </div>
         <F label="ADDRESS"><textarea rows={3} value={data.address ?? ""} onChange={(e) => set("address", e.target.value)} className="inp" /></F>
+      </section>
+
+      <section className="border border-border bg-surface p-6 space-y-4">
+        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">HOMEPAGE CONTACT SUPPORT SECTION</div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={data.support_enabled ?? true} onChange={(e) => set("support_enabled", e.target.checked)} className="w-4 h-4" />
+          <span className="text-sm text-foreground">Show this section on the homepage</span>
+        </label>
+        <F label="SUPPORT HOURS"><input value={data.support_hours ?? ""} onChange={(e) => set("support_hours", e.target.value)} className="inp" placeholder="Mon–Sat, 10am–7pm IST" /></F>
+        <p className="text-[10px] text-muted-foreground">Uses the EMAIL field above and the WHATSAPP field from Social Links.</p>
       </section>
 
       <button onClick={save} disabled={saving} className="bg-primary text-primary-foreground h-12 px-6 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50">

@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import type { CommunityPhoto, BentoSize } from "@/types/database";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, Loader2 } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/admin/community-cms")({
   component: CommunityCmsAdmin,
@@ -40,6 +40,16 @@ function CommunityCmsAdmin() {
     setRows((r) => r.filter((x) => x.id !== id));
   };
 
+  const reorder = async (id: string, dir: -1 | 1) => {
+    const idx = rows.findIndex((r) => r.id === id);
+    const swapIdx = idx + dir;
+    if (swapIdx < 0 || swapIdx >= rows.length) return;
+    const next = [...rows];
+    [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+    setRows(next.map((r, i) => ({ ...r, position: i })));
+    await Promise.all(next.map((r, i) => supabase.from("community_photos").update({ position: i }).eq("id", r.id)));
+  };
+
   const addFromFile = async (file: File) => {
     setUploading(true);
     try {
@@ -69,7 +79,7 @@ function CommunityCmsAdmin() {
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
-        {rows.map((photo) => (
+        {rows.map((photo, idx) => (
           <div key={photo.id} className="relative border border-border overflow-hidden bg-surface">
             <div className="relative aspect-square">
               <img src={photo.image_url} alt={photo.handle ?? ""} className="w-full h-full object-cover" />
@@ -77,6 +87,16 @@ function CommunityCmsAdmin() {
                 className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1 hover:bg-red-600 transition-colors">
                 <Trash2 className="size-3" />
               </button>
+              <div className="absolute top-1 left-1 flex gap-1">
+                <button type="button" onClick={() => reorder(photo.id, -1)} disabled={idx === 0}
+                  className="bg-black/70 text-white rounded-full p-1 hover:bg-primary disabled:opacity-30 transition-colors">
+                  <ChevronLeft className="size-3" />
+                </button>
+                <button type="button" onClick={() => reorder(photo.id, 1)} disabled={idx === rows.length - 1}
+                  className="bg-black/70 text-white rounded-full p-1 hover:bg-primary disabled:opacity-30 transition-colors">
+                  <ChevronRight className="size-3" />
+                </button>
+              </div>
             </div>
             <div className="p-2 space-y-2">
               <input

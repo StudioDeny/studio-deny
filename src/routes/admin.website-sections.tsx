@@ -38,6 +38,8 @@ type CategoryCarouselConfig = { slides: CarouselSlide[] };
 type DenySpaceBenefit = { icon: string; label: string; desc: string };
 type DenySpaceConfig = { logo_url: string; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string; bg_color?: string; text_color?: string };
 type PopularNowConfig = { title: string; product_slugs: string[] };
+type FabricTab = { id: string; name: string; title: string; desc: string; img: string };
+type FabricTabsConfig = { tabs: FabricTab[] };
 
 const DENYSPACE_ICONS = ["Truck", "RotateCcw", "ShieldCheck", "Gift", "Star", "Sparkles", "Heart", "Award", "Package", "Zap", "Clock", "CheckCircle"];
 
@@ -515,6 +517,39 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               ))}
             </div>
           </F>
+        </div>
+      );
+    }
+    case "fabric_tabs": {
+      const c = cfg as Partial<FabricTabsConfig>;
+      const tabs: FabricTab[] = c.tabs ?? [];
+      const updateTab = (i: number, patch: Partial<FabricTab>) => {
+        const next = [...tabs];
+        next[i] = { ...next[i], ...patch };
+        set("tabs", next);
+      };
+      const removeTab = (i: number) => set("tabs", tabs.filter((_, idx) => idx !== i));
+      return (
+        <div className="space-y-4">
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            The "PRODUCT SPECIFICATIONS" tabs (T-SHIRTS / SHIRTS / JEANS by default) — each tab's label, headline, description, and photo.
+          </div>
+          {tabs.map((tab, i) => (
+            <div key={i} className="border border-border rounded p-4 space-y-3 bg-muted/20">
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] font-semibold tracking-widest text-foreground">TAB {i + 1}</div>
+                <button type="button" onClick={() => removeTab(i)} className="text-mono text-[10px] tracking-widest text-red-500 hover:underline">REMOVE</button>
+              </div>
+              <F label="TAB LABEL"><input value={tab.name} onChange={(e) => updateTab(i, { name: e.target.value })} className="inp" placeholder="T-SHIRTS" /></F>
+              <F label="HEADLINE"><input value={tab.title} onChange={(e) => updateTab(i, { title: e.target.value })} className="inp" placeholder="300+ GSM HEAVYWEIGHT COTTON" /></F>
+              <F label="DESCRIPTION"><textarea rows={3} value={tab.desc} onChange={(e) => updateTab(i, { desc: e.target.value })} className="inp" /></F>
+              <MediaUrlField label="PHOTO" mediaType="image" value={tab.img} onChange={(url) => updateTab(i, { img: url })} />
+            </div>
+          ))}
+          <button type="button" onClick={() => set("tabs", [...tabs, { id: `tab-${Date.now()}`, name: "NEW TAB", title: "", desc: "", img: "" }])}
+            className="w-full h-10 rounded border border-dashed border-border text-xs font-semibold tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+            + ADD TAB
+          </button>
         </div>
       );
     }
