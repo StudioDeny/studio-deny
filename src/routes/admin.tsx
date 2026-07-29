@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, ShoppingBag, Home, Users, FileText,
   Undo2, BarChart3, Trophy, Bell, Settings, Tags, Sparkles, Download, FileEdit,
   Megaphone, Layout, Menu, HelpCircle, Star, Image, Globe, MessageSquare,
-  UserCheck, AtSign, BookOpen, Users2, Heading,
+  UserCheck, AtSign, BookOpen, Users2, Heading, X,
 } from "lucide-react";
 import { listOrders, type Order } from "@/lib/orders";
 import { getLastSeen, markSeen } from "@/lib/notifications";
@@ -21,6 +21,7 @@ function AdminLayout() {
   const navigate = useNavigate();
   const [unseenOrders, setUnseenOrders] = useState<Order[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -87,9 +88,55 @@ function AdminLayout() {
 
   const markAllSeen = () => { markSeen(); setUnseenOrders([]); setNotifOpen(false); };
 
+  const navLink = (l: { to: string; label: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean; badge?: number }) => (
+    <Link
+      key={l.to}
+      to={l.to}
+      activeOptions={l.exact ? { exact: true } : undefined}
+      activeProps={{ className: "bg-primary text-primary-foreground" }}
+      onClick={() => setMobileNavOpen(false)}
+      className="flex items-center gap-2 px-3 py-2 text-mono text-[11px] tracking-widest hover:bg-muted"
+    >
+      <l.icon className="size-4 shrink-0" /> <span className="flex-1 truncate">{l.label}</span>
+      {l.badge ? (
+        <span className="bg-primary text-primary-foreground text-[9px] px-1.5 rounded-full">{l.badge}</span>
+      ) : null}
+    </Link>
+  );
+
   return (
-    <div className="grid md:grid-cols-[220px_1fr] min-h-screen">
-      <aside className="border-r border-border bg-surface p-5 md:sticky md:top-14 md:h-[calc(100vh-3.5rem)] overflow-y-auto">
+    <div className="min-h-screen md:grid md:grid-cols-[220px_1fr]">
+      {/* Mobile top bar — just the logo (back to site) + hamburger. No storefront
+          navbar renders on admin routes (see __root.tsx), so this is the only
+          header on mobile. */}
+      <div className="md:hidden sticky top-0 z-[110] flex items-center justify-between px-4 h-14 border-b border-border bg-background">
+        <Link to="/" className="text-display text-lg tracking-wider">STUDIO DENY</Link>
+        <button onClick={() => setMobileNavOpen(true)} aria-label="Open admin menu" className="text-foreground">
+          <Menu className="size-6" />
+        </button>
+      </div>
+
+      {/* Full-screen mobile nav — opens over the entire viewport so admin can
+          navigate to any screen without scrolling past a stacked sidebar. */}
+      {mobileNavOpen && (
+        <div className="md:hidden fixed inset-0 z-[120] bg-background overflow-y-auto">
+          <div className="flex items-center justify-between px-4 h-14 border-b border-border">
+            <Link to="/" className="text-display text-lg tracking-wider" onClick={() => setMobileNavOpen(false)}>STUDIO DENY</Link>
+            <button onClick={() => setMobileNavOpen(false)} aria-label="Close menu" className="text-foreground">
+              <X className="size-6" />
+            </button>
+          </div>
+          <nav className="p-5 space-y-1">
+            {coreLinks.map(navLink)}
+            <div className="pt-4 pb-1">
+              <div className="text-mono text-[9px] tracking-[0.3em] text-muted-foreground px-3 mb-1">CMS</div>
+            </div>
+            {cmsLinks.map(navLink)}
+          </nav>
+        </div>
+      )}
+
+      <aside className="hidden md:block border-r border-border bg-surface p-5 md:sticky md:top-0 md:h-screen overflow-y-auto">
         <div className="flex items-center justify-between mb-6 relative" ref={notifRef}>
           <div className="text-mono text-[10px] tracking-[0.3em] text-primary">◢ ADMIN</div>
           <button
@@ -142,35 +189,13 @@ function AdminLayout() {
         </div>
 
         <nav className="space-y-1">
-          {coreLinks.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              activeOptions={{ exact: l.exact }}
-              activeProps={{ className: "bg-primary text-primary-foreground" }}
-              className="flex items-center gap-2 px-3 py-2 text-mono text-[11px] tracking-widest hover:bg-muted"
-            >
-              <l.icon className="size-4 shrink-0" /> <span className="flex-1 truncate">{l.label}</span>
-              {l.badge ? (
-                <span className="bg-primary text-primary-foreground text-[9px] px-1.5 rounded-full">{l.badge}</span>
-              ) : null}
-            </Link>
-          ))}
+          {coreLinks.map(navLink)}
 
           <div className="pt-4 pb-1">
             <div className="text-mono text-[9px] tracking-[0.3em] text-muted-foreground px-3 mb-1">CMS</div>
           </div>
 
-          {cmsLinks.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              activeProps={{ className: "bg-primary text-primary-foreground" }}
-              className="flex items-center gap-2 px-3 py-2 text-mono text-[11px] tracking-widest hover:bg-muted"
-            >
-              <l.icon className="size-4 shrink-0" /> <span className="flex-1 truncate">{l.label}</span>
-            </Link>
-          ))}
+          {cmsLinks.map(navLink)}
         </nav>
 
         <Link to="/" className="mt-8 inline-flex items-center gap-2 text-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary">
