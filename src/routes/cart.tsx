@@ -137,8 +137,9 @@ function CartPage() {
                       </button>
                       <span className="text-mono text-center w-8" style={{ fontSize: "13px" }}>{it.qty}</span>
                       <button
-                        className="h-full px-3 sm:px-4 hover:text-primary transition-colors hover:bg-background"
+                        className="h-full px-3 sm:px-4 hover:text-primary transition-colors hover:bg-background disabled:opacity-30 disabled:pointer-events-none"
                         onClick={() => setQty(it.product.slug, it.size, it.qty + 1)}
+                        disabled={it.stock != null && it.qty >= it.stock}
                         aria-label="Increase quantity"
                       >
                         <Plus className="size-3.5" />

@@ -130,8 +130,9 @@ export function CartDrawer() {
                         </button>
                         <span className="text-mono w-7 text-center" style={{ fontSize: "12px" }}>{it.qty}</span>
                         <button
-                          className="size-7 flex items-center justify-center hover:text-primary transition-colors"
+                          className="size-7 flex items-center justify-center hover:text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
                           onClick={() => setQty(it.product.slug, it.size, it.qty + 1)}
+                          disabled={it.stock != null && it.qty >= it.stock}
                           aria-label="Increase quantity"
                         >
                           <Plus className="size-3" />

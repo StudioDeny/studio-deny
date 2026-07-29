@@ -15,13 +15,11 @@ export function NewArrivalsSection() {
     const s = getSettings();
     setCfg(s.arrivals);
     listProducts().then((all) => {
-      let chosen: Product[];
-      if (s.arrivals.productSlugs.length) {
-        const map = new Map(all.map((p) => [p.slug, p] as const));
-        chosen = s.arrivals.productSlugs.map((slug) => map.get(slug)).filter(Boolean) as Product[];
-      } else {
-        chosen = [...all].sort((a, b) => (a.badge === "NEW DROP" ? -1 : 0) - (b.badge === "NEW DROP" ? -1 : 0)).slice(0, 8);
-      }
+      // Only ever show exactly what's picked in /admin/arrivals — no automatic
+      // fallback to "whatever's newest", since that made removing every pick
+      // look like a no-op (the section kept showing products anyway).
+      const map = new Map(all.map((p) => [p.slug, p] as const));
+      const chosen = s.arrivals.productSlugs.map((slug) => map.get(slug)).filter(Boolean) as Product[];
       setItems(chosen.slice(0, 8));
     });
   }, []);

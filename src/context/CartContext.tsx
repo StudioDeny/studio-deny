@@ -6,6 +6,7 @@ export type CartItem = {
   size: string;
   qty: number;
   variantId?: string;
+  stock?: number;
 };
 
 type CartCtx = {
@@ -13,7 +14,7 @@ type CartCtx = {
   isOpen: boolean;
   open: () => void;
   close: () => void;
-  add: (product: Product, size: string, qty?: number, variantId?: string) => void;
+  add: (product: Product, size: string, qty?: number, variantId?: string, stock?: number) => void;
   remove: (slug: string, size: string) => void;
   setQty: (slug: string, size: string, qty: number) => void;
   clear: () => void;
@@ -27,15 +28,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setOpen] = useState(false);
 
-  const add = useCallback((product: Product, size: string, qty = 1, variantId?: string) => {
+  const add = useCallback((product: Product, size: string, qty = 1, variantId?: string, stock?: number) => {
     setItems((prev) => {
       const i = prev.findIndex((x) => x.product.slug === product.slug && x.size === size);
       if (i >= 0) {
         const next = [...prev];
-        next[i] = { ...next[i], qty: next[i].qty + qty };
+        const cap = stock ?? next[i].stock;
+        const wantedQty = next[i].qty + qty;
+        next[i] = { ...next[i], qty: cap != null ? Math.min(wantedQty, cap) : wantedQty, stock: cap };
         return next;
       }
-      return [...prev, { product, size, qty, variantId }];
+      return [...prev, { product, size, qty: stock != null ? Math.min(qty, stock) : qty, variantId, stock }];
     });
     setOpen(true);
   }, []);
@@ -47,7 +50,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const setQty = useCallback((slug: string, size: string, qty: number) => {
     setItems((p) =>
       p.map((x) =>
-        x.product.slug === slug && x.size === size ? { ...x, qty: Math.max(1, qty) } : x
+        x.product.slug === slug && x.size === size
+          ? { ...x, qty: Math.max(1, x.stock != null ? Math.min(qty, x.stock) : qty) }
+          : x
       )
     );
   }, []);

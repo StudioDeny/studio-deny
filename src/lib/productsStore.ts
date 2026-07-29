@@ -151,6 +151,25 @@ export async function setProductActive(slug: string, active: boolean): Promise<v
   if (error) throw new Error(error.message);
 }
 
+export type VariantStock = { size: string; inStock: boolean; variantId?: string; stock: number };
+
+// Stock-aware size list for a product, sourced from its live variants — falls
+// back to the product's static size list (all treated as in stock) for
+// products with no per-variant stock tracking, same fallback the PDP uses.
+export async function getVariantStock(slug: string, fallbackSizes: string[]): Promise<VariantStock[]> {
+  const { data, error } = await supabase
+    .from("product_variants")
+    .select("id, size, stock")
+    .eq("product_id", slug)
+    .order("size");
+  if (error || !data || data.length === 0) {
+    return fallbackSizes.map((size) => ({ size, inStock: true, stock: Infinity }));
+  }
+  return (data as { id: string; size: string | null; stock: number }[])
+    .filter((v) => v.size != null)
+    .map((v) => ({ size: v.size as string, inStock: v.stock > 0, variantId: v.id, stock: v.stock }));
+}
+
 export async function listAllAdminProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")

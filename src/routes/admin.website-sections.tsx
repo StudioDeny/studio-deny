@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { WebsiteSection, SectionType } from "@/types/database";
-import { ChevronUp, ChevronDown, Pencil, Eye, EyeOff, Trash2, X, Check, Upload, Loader2 } from "lucide-react";
+import { ChevronUp, ChevronDown, Pencil, Eye, EyeOff, Trash2, X, Check, Upload, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { uploadToCloudinary, uploadVideoToCloudinary } from "@/lib/cloudinary";
@@ -318,6 +318,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
   const set = (k: string, v: unknown) => onChange({ ...cfg, [k]: v });
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   useEffect(() => { listProducts().then(setAllProducts); }, []);
+  const [popularNowSearch, setPopularNowSearch] = useState("");
 
   switch (section.section_type as SectionType) {
     case "hero": {
@@ -515,24 +516,36 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               </div>
             </F>
           )}
-          <F label={`ADD PRODUCTS — up to 12 (${items.length}/12 selected)`}>
-            <div className="border border-border rounded divide-y divide-border max-h-52 overflow-y-auto mt-1">
-              {allProducts.length === 0 && <div className="p-3 text-sm text-muted-foreground">No products found.</div>}
-              {allProducts.map((p) => (
-                <label key={p.slug} className="flex items-center gap-3 px-3 py-2 hover:bg-muted/40 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedSlugs.includes(p.slug)}
-                    onChange={(e) => {
-                      const next = e.target.checked ? [...items, { slug: p.slug }].slice(0, 12) : items.filter((it) => it.slug !== p.slug);
-                      set("items", next);
-                    }}
-                    className="w-4 h-4 accent-primary"
-                  />
-                  <span className="text-sm text-foreground flex-1">{p.name}</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">{p.slug}</span>
-                </label>
-              ))}
+          <F label={`ADD PRODUCTS — search and add, up to 12 (${items.length}/12 selected)`}>
+            <div className="relative">
+              <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={popularNowSearch}
+                onChange={(e) => setPopularNowSearch(e.target.value)}
+                placeholder="Search products to add…"
+                className="inp pl-9"
+              />
+              {popularNowSearch.trim() && (
+                <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-background border border-border rounded shadow-lg max-h-64 overflow-y-auto">
+                  {(() => {
+                    const q = popularNowSearch.trim().toLowerCase();
+                    const results = allProducts.filter((p) => !selectedSlugs.includes(p.slug) && p.name.toLowerCase().includes(q));
+                    if (results.length === 0) return <p className="p-3 text-sm text-muted-foreground">No matching products.</p>;
+                    return results.map((p) => (
+                      <button
+                        key={p.slug}
+                        type="button"
+                        disabled={items.length >= 12}
+                        onClick={() => { set("items", [...items, { slug: p.slug }].slice(0, 12)); setPopularNowSearch(""); }}
+                        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/40 text-left disabled:opacity-40"
+                      >
+                        <span className="text-sm text-foreground flex-1 truncate">{p.name}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">{p.slug}</span>
+                      </button>
+                    ));
+                  })()}
+                </div>
+              )}
             </div>
           </F>
         </div>

@@ -6,8 +6,9 @@ import { useCart, formatINR } from "@/context/CartContext";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reviews } from "@/components/product/Reviews";
 import { useWishlist } from "@/context/WishlistContext";
-import { Heart, Truck, RotateCcw, ShieldCheck, ArrowRight, Zap } from "lucide-react";
+import { Heart, Truck, RotateCcw, ShieldCheck, ArrowRight, Zap, Share2, Minus, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 type SizeOption = { size: string; inStock: boolean; variantId?: string; price?: number };
 type VariantRow = { id: string; size: string | null; stock: number; price: number | null; color: string | null; color_hex: string | null };
@@ -84,6 +85,8 @@ function PDP() {
   const [added, setAdded] = useState(false);
   const [variants, setVariants] = useState<VariantRow[]>([]);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [qty, setQty] = useState(1);
+  const [shared, setShared] = useState(false);
 
   // Full gallery, in order: base image, hover image, then any extra gallery photos —
   // deduped, and grouped into rows honoring each gallery item's layout: "standalone"
@@ -127,9 +130,14 @@ function PDP() {
   const ctaRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    listProducts().then((all) =>
-      setRelated(all.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 4))
-    );
+    listProducts().then((all) => {
+      const others = all.filter((p) => p.slug !== product.slug);
+      const sameCategory = others.filter((p) => p.category === product.category);
+      // Fall back to other live products when this one has no category
+      // siblings yet, so the section is never blank.
+      const filled = sameCategory.length >= 4 ? sameCategory : [...sameCategory, ...others.filter((p) => !sameCategory.includes(p))];
+      setRelated(filled.slice(0, 4));
+    });
   }, [product.category, product.slug]);
 
   // Fetch Supabase variants; fall back to product.sizes if none
@@ -144,11 +152,19 @@ function PDP() {
 
   // Colors come from variants (if any admin-set colors exist) — falls back to the
   // product's own color list for products with no per-variant color tracking.
-  const colorOptions = (() => {
-    const seen = new Map<string, string>();
-    variants.forEach((v) => { if (v.color) seen.set(v.color, v.color_hex ?? "#0a0a0a"); });
-    const fromVariants = [...seen.entries()].map(([name, hex]) => ({ name, hex }));
-    return fromVariants.length > 0 ? fromVariants : product.colors;
+  // Keyed by color_hex (not name): admins can reuse the same color name across
+  // variant rows while picking a different swatch per row (e.g. quick-adding
+  // colors without renaming each one), so keying by name alone was silently
+  // collapsing distinct colors down to whichever row was seen last.
+  const colorOptions: { key: string; name: string; hex: string }[] = (() => {
+    const seen = new Map<string, { name: string; hex: string }>();
+    variants.forEach((v) => {
+      if (!v.color) return;
+      const hex = v.color_hex ?? "#0a0a0a";
+      if (!seen.has(hex)) seen.set(hex, { name: v.color, hex });
+    });
+    const fromVariants = [...seen.entries()].map(([key, v]) => ({ key, ...v }));
+    return fromVariants.length > 0 ? fromVariants : product.colors.map((c: { name: string; hex: string }) => ({ key: c.hex, ...c }));
   })();
 
   // Sizes are scoped to the selected color when variants carry color data, so
@@ -156,7 +172,9 @@ function PDP() {
   const sizeOptions: SizeOption[] = (() => {
     if (variants.length === 0) return product.sizes.map((s: string) => ({ size: s, inStock: true }));
     const hasColorData = variants.some((v) => v.color);
-    const scoped = hasColorData && selectedColor ? variants.filter((v) => v.color === selectedColor) : variants;
+    const scoped = hasColorData && selectedColor
+      ? variants.filter((v) => (v.color_hex ?? "#0a0a0a") === selectedColor)
+      : variants;
     return scoped.filter((v) => v.size != null).map((v) => ({
       size: v.size as string,
       inStock: v.stock > 0,
@@ -175,11 +193,15 @@ function PDP() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [product.slug]);
 
-  // Default to the first available color once variants (or the product's own
-  // color list) are known.
+  // Default to the first available color — re-syncs whenever the actual set of
+  // colors changes (e.g. once the real variant colors arrive after the
+  // product's own placeholder color list was used for the first paint), not
+  // just once on mount, so the swatch and the "COLOR · X" label never go stale.
+  const colorKey = colorOptions.map((c) => c.key).join("|");
   useEffect(() => {
-    if (selectedColor === null && colorOptions.length > 0) setSelectedColor(colorOptions[0].name);
-  }, [colorOptions.length]);
+    setSelectedColor((colorOptions.find((c) => c.key === selectedColor) ?? colorOptions[0])?.key ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [colorKey]);
 
   // Switching color invalidates the previously selected size (it belonged to a
   // different color's variant row).
@@ -203,12 +225,35 @@ function PDP() {
   const isOOS = sizeOptions.length > 0
     ? sizeOptions.every((o) => !o.inStock)
     : product.stock === 0;
+  const maxQty = Math.max(1, variantId ? (variants.find((v) => v.id === variantId)?.stock ?? 1) : product.stock);
+
+  // Qty can never end up above what's actually available for the currently
+  // selected size/variant — reclamp whenever that selection changes.
+  useEffect(() => {
+    setQty((q) => Math.min(Math.max(1, q), maxQty));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [variantId, size, maxQty]);
 
   const handleAdd = () => {
     if (!size) return;
-    add(product, size, 1, variantId);
+    add(product, size, qty, variantId, maxQty);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try { await navigator.share({ title: product.name, url }); } catch { /* user cancelled */ }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShared(true);
+      setTimeout(() => setShared(false), 1800);
+    } catch {
+      toast.error("Couldn't copy link — copy it from the address bar instead.");
+    }
   };
 
   const handleSizeSelect = (opt: SizeOption) => {
@@ -317,18 +362,18 @@ function PDP() {
             <div className="mt-8 border-t border-border pt-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-mono text-muted-foreground" style={{ fontSize: "11px", letterSpacing: "0.25em" }}>
-                  COLOR <span className="mx-2">·</span> <span className="text-foreground">{(selectedColor ?? colorOptions[0].name).toUpperCase()}</span>
+                  COLOR <span className="mx-2">·</span> <span className="text-foreground">{(colorOptions.find((c) => c.key === selectedColor) ?? colorOptions[0]).name.toUpperCase()}</span>
                 </div>
               </div>
               <div className="flex gap-3">
-                {colorOptions.map((c: { name: string; hex: string }) => (
+                {colorOptions.map((c) => (
                   <button
-                    key={c.name}
+                    key={c.key}
                     type="button"
-                    onClick={() => setSelectedColor(c.name)}
-                    aria-pressed={selectedColor === c.name}
+                    onClick={() => setSelectedColor(c.key)}
+                    aria-pressed={selectedColor === c.key}
                     className={`size-10 rounded-full border-2 ring-offset-2 ring-offset-background transition-all hover:scale-110 shadow-sm ${
-                      selectedColor === c.name ? "border-primary ring-2 ring-primary" : "border-border ring-1 ring-foreground/20"
+                      selectedColor === c.key ? "border-primary ring-2 ring-primary" : "border-border ring-1 ring-foreground/20"
                     }`}
                     style={{ backgroundColor: c.hex }}
                     aria-label={`Select color ${c.name}`}
@@ -389,6 +434,28 @@ function PDP() {
 
           {/* Actions */}
           <div className="mt-6 flex gap-3">
+            <div className="flex items-center border border-border bg-surface h-[60px] shrink-0">
+              <button
+                type="button"
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                disabled={qty <= 1}
+                className="h-full px-3 hover:text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                aria-label="Decrease quantity"
+              >
+                <Minus className="size-3.5" />
+              </button>
+              <span className="text-mono text-center w-6" style={{ fontSize: "13px" }}>{qty}</span>
+              <button
+                type="button"
+                onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
+                disabled={qty >= maxQty}
+                className="h-full px-3 hover:text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                aria-label="Increase quantity"
+              >
+                <Plus className="size-3.5" />
+              </button>
+            </div>
+
             <button
               ref={ctaRef}
               onClick={handleAdd}
@@ -421,7 +488,22 @@ function PDP() {
             >
               <Heart className={`size-5 ${wished ? "fill-primary" : ""}`} />
             </button>
+
+            <button
+              aria-label="Share product"
+              onClick={handleShare}
+              className={`border w-[60px] flex items-center justify-center transition-all duration-300 ${
+                shared ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-primary"
+              }`}
+            >
+              <Share2 className="size-5" />
+            </button>
           </div>
+          {shared && (
+            <p className="mt-2 text-mono text-primary" style={{ fontSize: "10px", letterSpacing: "0.15em" }}>
+              LINK COPIED
+            </p>
+          )}
 
           {/* Trust Badges */}
           <div className="mt-8 grid grid-cols-3 gap-3">

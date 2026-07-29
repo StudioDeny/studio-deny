@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight, ShoppingBag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { listProducts, type Product } from "@/lib/productsStore";
+import { listProducts, getVariantStock, type Product, type VariantStock } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 
 type PopularNowItem = { slug: string; tag?: string };
@@ -22,10 +22,17 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
   const { add } = useCart();
   const [hover, setHover] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
+  const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
   const [added, setAdded] = useState(false);
 
-  const handleQuickAdd = (size: string) => {
-    add(product, size);
+  const handleOpenSizes = () => {
+    setShowSizes(true);
+    getVariantStock(product.slug, product.sizes).then(setSizeOptions);
+  };
+
+  const handleQuickAdd = (opt: VariantStock) => {
+    if (!opt.inStock) return;
+    add(product, opt.size, 1, opt.variantId, opt.stock);
     setShowSizes(false);
     setAdded(true);
     setTimeout(() => setAdded(false), 1600);
@@ -67,7 +74,7 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
           </div>
         ) : !showSizes ? (
           <button
-            onClick={(e) => { e.preventDefault(); setShowSizes(true); }}
+            onClick={(e) => { e.preventDefault(); handleOpenSizes(); }}
             className="w-full bg-foreground/95 text-background text-mono font-bold py-2 hover:bg-primary hover:text-primary-foreground transition-colors flex items-center justify-center gap-1.5"
             style={{ fontSize: "10px", letterSpacing: "0.15em" }}
           >
@@ -75,14 +82,17 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
           </button>
         ) : (
           <div className="flex bg-foreground text-background overflow-x-auto no-scrollbar">
-            {product.sizes.map((s) => (
+            {sizeOptions.map((opt) => (
               <button
-                key={s}
-                onClick={(e) => { e.preventDefault(); handleQuickAdd(s); }}
-                className="flex-1 min-w-[30px] text-mono py-2 hover:bg-primary hover:text-primary-foreground transition-colors border-l border-black/10 first:border-l-0"
+                key={opt.variantId ?? opt.size}
+                disabled={!opt.inStock}
+                onClick={(e) => { e.preventDefault(); handleQuickAdd(opt); }}
+                className={`flex-1 min-w-[30px] text-mono py-2 transition-colors border-l border-black/10 first:border-l-0 ${
+                  opt.inStock ? "hover:bg-primary hover:text-primary-foreground" : "opacity-30 line-through cursor-not-allowed"
+                }`}
                 style={{ fontSize: "10px" }}
               >
-                {s}
+                {opt.size}
               </button>
             ))}
           </div>
