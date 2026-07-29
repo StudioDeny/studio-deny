@@ -79,10 +79,18 @@ export function CategoryCarousel() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="absolute inset-0 z-[2] flex items-center justify-center pointer-events-none">
-        <h2 className="text-white text-[clamp(2.5rem,8vw,6rem)] text-display uppercase tracking-wider text-center px-4">
-          {slide.label}
-        </h2>
+      <div className="absolute inset-0 z-[2] flex items-center justify-center pointer-events-none overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.h2
+            key={active}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE, delay: 0.15 } }}
+            exit={{ opacity: 0, y: -30, transition: { duration: 0.3 } }}
+            className="text-white text-[clamp(2.5rem,8vw,6rem)] text-display uppercase tracking-wider text-center px-4"
+          >
+            {slide.label}
+          </motion.h2>
+        </AnimatePresence>
       </div>
 
       {cfg.slides.length > 1 && (

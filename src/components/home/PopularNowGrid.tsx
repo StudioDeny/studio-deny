@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight, ShoppingBag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { listProducts, type Product } from "@/lib/productsStore";
-import { formatINR } from "@/context/CartContext";
+import { useCart, formatINR } from "@/context/CartContext";
 
 type PopularNowItem = { slug: string; tag?: string };
 type PopularNowConfig = { title: string; items: PopularNowItem[]; view_all_href?: string };
@@ -17,6 +17,80 @@ const SIZE_CLASSES = [
   "w-[150px] sm:w-[190px] h-[260px] sm:h-[300px]",
   "w-[150px] sm:w-[190px] h-[320px] sm:h-[380px]",
 ];
+
+function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: string }; sizeClass: string }) {
+  const { add } = useCart();
+  const [hover, setHover] = useState(false);
+  const [showSizes, setShowSizes] = useState(false);
+  const [added, setAdded] = useState(false);
+
+  const handleQuickAdd = (size: string) => {
+    add(product, size);
+    setShowSizes(false);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1600);
+  };
+
+  return (
+    <Link
+      to="/product/$slug"
+      params={{ slug: product.slug }}
+      className={`group relative shrink-0 overflow-hidden bg-surface ${sizeClass}`}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => { setHover(false); setShowSizes(false); }}
+    >
+      <img
+        src={product.image}
+        alt={product.name}
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+      />
+      {product.tag && (
+        <span className="absolute top-2.5 left-2.5 bg-primary text-primary-foreground text-mono font-semibold px-2 py-1" style={{ fontSize: "9px", letterSpacing: "0.2em" }}>
+          {product.tag.toUpperCase()}
+        </span>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent" />
+      <div className="absolute bottom-2.5 left-2.5 right-2.5">
+        <p className="text-white text-xs font-semibold uppercase tracking-[0.06em] truncate">{product.name}</p>
+        <p className="text-white/80 text-mono text-[11px]">{formatINR(product.price)}</p>
+      </div>
+
+      {/* Quick add — desktop hover, matches ProductCard's pattern */}
+      <div
+        className={`absolute inset-x-0 bottom-0 transition-all duration-300 hidden md:block ${
+          hover ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
+        }`}
+      >
+        {added ? (
+          <div className="w-full text-mono font-bold text-center py-2 bg-secondary text-secondary-foreground" style={{ fontSize: "10px", letterSpacing: "0.15em" }}>
+            ✓ ADDED
+          </div>
+        ) : !showSizes ? (
+          <button
+            onClick={(e) => { e.preventDefault(); setShowSizes(true); }}
+            className="w-full bg-foreground/95 text-background text-mono font-bold py-2 hover:bg-primary hover:text-primary-foreground transition-colors flex items-center justify-center gap-1.5"
+            style={{ fontSize: "10px", letterSpacing: "0.15em" }}
+          >
+            <ShoppingBag className="size-3" /> QUICK ADD
+          </button>
+        ) : (
+          <div className="flex bg-foreground text-background overflow-x-auto no-scrollbar">
+            {product.sizes.map((s) => (
+              <button
+                key={s}
+                onClick={(e) => { e.preventDefault(); handleQuickAdd(s); }}
+                className="flex-1 min-w-[30px] text-mono py-2 hover:bg-primary hover:text-primary-foreground transition-colors border-l border-black/10 first:border-l-0"
+                style={{ fontSize: "10px" }}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+}
 
 export function PopularNowGrid() {
   const [cfg, setCfg] = useState<PopularNowConfig>(DEFAULTS);
@@ -95,28 +169,7 @@ export function PopularNowGrid() {
 
         <div ref={scrollerRef} className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth pb-2 px-4 sm:px-8 lg:px-16 no-scrollbar">
           {products.map((p, i) => (
-            <Link
-              key={p.slug}
-              to="/product/$slug"
-              params={{ slug: p.slug }}
-              className={`group relative shrink-0 overflow-hidden bg-surface ${SIZE_CLASSES[i % SIZE_CLASSES.length]}`}
-            >
-              <img
-                src={p.image}
-                alt={p.name}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-              />
-              {p.tag && (
-                <span className="absolute top-2.5 left-2.5 bg-primary text-primary-foreground text-mono font-semibold px-2 py-1" style={{ fontSize: "9px", letterSpacing: "0.2em" }}>
-                  {p.tag.toUpperCase()}
-                </span>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent" />
-              <div className="absolute bottom-2.5 left-2.5 right-2.5">
-                <p className="text-white text-xs font-semibold uppercase tracking-[0.06em] truncate">{p.name}</p>
-                <p className="text-white/80 text-mono text-[11px]">{formatINR(p.price)}</p>
-              </div>
-            </Link>
+            <PopularNowTile key={p.slug} product={p} sizeClass={SIZE_CLASSES[i % SIZE_CLASSES.length]} />
           ))}
 
           {cfg.view_all_href && (

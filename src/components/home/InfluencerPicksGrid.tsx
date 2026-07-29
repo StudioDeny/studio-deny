@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Play, X, Volume2, VolumeX, ChevronUp, ChevronDown, ExternalLink, Instagram } from "lucide-react";
+import { ArrowRight, Play, X, Volume2, VolumeX, ChevronUp, ChevronDown, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, ExternalLink, Instagram } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { InfluencerPick } from "@/types/database";
 import type { Product } from "@/lib/productsStore";
@@ -42,7 +42,7 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
       onClick={handleClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="shrink-0 w-[62vw] sm:w-[30vw] lg:w-[21vw] mr-4 text-left group/tile"
+      className="shrink-0 w-[62vw] sm:w-[30vw] lg:w-[21vw] text-left group/tile"
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-surface border border-border">
         {isUpload && hovered ? (
@@ -95,9 +95,9 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
             to="/product/$slug"
             params={{ slug: taggedProduct.slug }}
             onClick={(e) => e.stopPropagation()}
-            className="absolute bottom-3 left-3 right-3 flex items-center gap-2 bg-white/95 hover:bg-white pl-1.5 pr-3 py-1.5 rounded-full w-fit max-w-full transition-colors"
+            className="absolute bottom-3 left-3 right-3 flex items-center gap-2 bg-white/95 hover:bg-white pl-1.5 pr-3 py-1.5 w-fit max-w-full transition-colors"
           >
-            <img src={taggedProduct.image} alt="" className="size-7 rounded-full object-cover shrink-0" />
+            <img src={taggedProduct.image} alt="" className="size-7 object-cover shrink-0" />
             <span className="text-xs font-semibold text-black truncate">{taggedProduct.name}</span>
           </Link>
         )}
@@ -273,6 +273,7 @@ function Lightbox({
 export function InfluencerPicksGrid() {
   const [picks, setPicks] = useState<PickWithTags[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -324,20 +325,27 @@ export function InfluencerPicksGrid() {
         </Link>
       </div>
 
-      <div className="flex overflow-hidden group py-2">
-        <div className="flex shrink-0 items-stretch ticker-scroll group-hover:[animation-play-state:paused] pl-4 sm:pl-8 lg:pl-16" style={{ animationDuration: "45s" }}>
-          {/* ticker-scroll shifts by exactly -50%, so it needs 2 equal halves — with
-              only a couple of real picks, one "half" ends up narrower than the
-              viewport, leaving blank space after it. Repeat each half until it's
-              comfortably wide regardless of how few picks actually exist. */}
-          {(() => {
-            const MIN_TILES_PER_HALF = 6;
-            const repeat = Math.max(1, Math.ceil(MIN_TILES_PER_HALF / picks.length));
-            const half = Array.from({ length: repeat }, () => picks).flat();
-            return [...half, ...half].map((pick, idx) => (
-              <GridTile key={`${pick.id}-${idx}`} pick={pick} onOpen={() => openLightboxFor(pick)} />
-            ));
-          })()}
+      <div className="relative">
+        <button
+          type="button"
+          aria-label="Previous"
+          onClick={() => scrollerRef.current?.scrollBy({ left: -320, behavior: "smooth" })}
+          className="hidden sm:flex absolute z-[2] left-2 lg:left-4 top-1/2 -translate-y-1/2 size-10 items-center justify-center bg-background/90 border border-border hover:border-primary hover:text-primary transition-colors"
+        >
+          <ChevronLeftIcon className="size-5" />
+        </button>
+        <button
+          type="button"
+          aria-label="Next"
+          onClick={() => scrollerRef.current?.scrollBy({ left: 320, behavior: "smooth" })}
+          className="hidden sm:flex absolute z-[2] right-2 lg:right-4 top-1/2 -translate-y-1/2 size-10 items-center justify-center bg-background/90 border border-border hover:border-primary hover:text-primary transition-colors"
+        >
+          <ChevronRightIcon className="size-5" />
+        </button>
+        <div ref={scrollerRef} className="flex items-stretch gap-4 overflow-x-auto scroll-smooth no-scrollbar px-4 sm:px-8 lg:px-16 py-2">
+          {picks.map((pick) => (
+            <GridTile key={pick.id} pick={pick} onOpen={() => openLightboxFor(pick)} />
+          ))}
         </div>
       </div>
 

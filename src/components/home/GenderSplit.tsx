@@ -51,7 +51,7 @@ export function GenderSplit() {
   if (!visible) return null;
 
   return (
-    <section className={`grid grid-cols-1 ${GRID_COLS[cfg.cards.length] ?? "sm:grid-cols-3"} h-[70vh] sm:h-[85vh]`}>
+    <section className={`grid grid-cols-1 ${GRID_COLS[cfg.cards.length] ?? "sm:grid-cols-3"} h-screen`}>
       {cfg.cards.map((card, idx) => (
         <motion.div
           key={idx}
@@ -64,14 +64,14 @@ export function GenderSplit() {
           <Link to={card.cta_href} className="absolute inset-0 z-10" aria-label={card.label} />
           {card.media_type === "video" ? (
             <video autoPlay loop muted playsInline preload="metadata"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]">
+              className="absolute inset-0 w-full h-full object-cover">
               <source src={card.src} type="video/mp4" />
             </video>
           ) : (
             <img
               src={card.src}
               alt={card.label}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+              className="absolute inset-0 w-full h-full object-cover"
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />

@@ -40,7 +40,7 @@ export function LookbookCarousel() {
   };
 
   const Frame = (
-    <div className="relative w-full h-[60vh] sm:h-[75vh] overflow-hidden">
+    <div className="relative w-full h-screen overflow-hidden">
       <AnimatePresence mode="sync">
         <motion.div
           key={slide.id}
