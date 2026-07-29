@@ -28,18 +28,18 @@
 :root {
   color-scheme: light;
 
-  --background: #F2F2F0;
+  --background: #D9D9D7;
   --foreground: #111111;
-  --surface: #E6E6E3;
+  --surface: #CDCDCB;
 
   --primary: #111111;
-  --primary-foreground: #F2F2F0;
-  --secondary: #D8D8D4;
+  --primary-foreground: #D9D9D7;
+  --secondary: #C2C2BE;
   --secondary-foreground: #111111;
 
-  --muted: #DCDCD8;
-  --muted-foreground: #55534E;
-  --border: rgba(0, 0, 0, 0.14);
+  --muted: #C7C7C3;
+  --muted-foreground: #4A4844;
+  --border: rgba(0, 0, 0, 0.18);
 
   --accent: #E0202A;
   --accent-foreground: #FFFFFF;
@@ -64,14 +64,14 @@
   body {
     background: linear-gradient(
       150deg,
-      #F7F7F5 0%,
-      #F2F2F0 20%,
-      #E9E9E6 50%,
-      #EDEDEA 75%,
-      #F5F5F3 100%
+      #E3E3E1 0%,
+      #D9D9D7 20%,
+      #CACAC6 50%,
+      #D2D2CE 75%,
+      #DEDEDC 100%
     );
     background-attachment: fixed;
-    background-color: #F2F2F0;
+    background-color: #D9D9D7;
     color: var(--foreground);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
