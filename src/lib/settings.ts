@@ -12,6 +12,8 @@ export type LoyaltySettings = {
   freeShipping: number;
   invoice: InvoiceTemplate;
   arrivals: ArrivalsConfig;
+  /** Curated color swatches for the shop page's COLOR filter. Empty = auto-derive from product colors. */
+  filterColors: { name: string; hex: string }[];
 };
 
 export type InvoiceTemplate = {
@@ -65,6 +67,7 @@ const DEFAULTS: LoyaltySettings = {
     ctaLabel: "SHOP THE DROP",
     productSlugs: [],
   },
+  filterColors: [],
 };
 
 export function getSettings(): LoyaltySettings {
@@ -77,6 +80,7 @@ export function getSettings(): LoyaltySettings {
       discount: { ...DEFAULTS.discount, ...(raw.discount || {}) },
       invoice: { ...DEFAULTS.invoice, ...(raw.invoice || {}) },
       arrivals: { ...DEFAULTS.arrivals, ...(raw.arrivals || {}) },
+      filterColors: raw.filterColors ?? DEFAULTS.filterColors,
       // Migrate legacy key: pointsPer100=10 meant 10pts/₹100 = 1pt/₹10.
       // New field: rupeesPerEarnedPoint defaults to 50. Ignore old value
       // unless admin has already saved the new field.

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getSettings, saveSettings, type LoyaltySettings } from "@/lib/settings";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { toast } from "sonner";
-import { Check } from "lucide-react";
+import { Check, Search } from "lucide-react";
 
 export const Route = createFileRoute("/admin/arrivals")({
   component: ArrivalsAdmin,
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/admin/arrivals")({
 function ArrivalsAdmin() {
   const [s, setS] = useState<LoyaltySettings | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [q, setQ] = useState("");
   useEffect(() => { setS(getSettings()); listProducts().then(setProducts); }, []);
   if (!s) return <div className="text-mono text-xs">LOADING…</div>;
 
@@ -24,6 +25,11 @@ function ArrivalsAdmin() {
     const next = has ? a.productSlugs.filter((x) => x !== slug) : [...a.productSlugs, slug].slice(0, 8);
     set("productSlugs", next);
   };
+
+  const picked = products.filter((p) => a.productSlugs.includes(p.slug));
+  const searchResults = q.trim()
+    ? products.filter((p) => !a.productSlugs.includes(p.slug) && p.name.toLowerCase().includes(q.trim().toLowerCase()))
+    : [];
 
   return (
     <div>
@@ -46,22 +52,57 @@ function ArrivalsAdmin() {
       </div>
 
       <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-3">PICK PRODUCTS ({a.productSlugs.length}/8)</div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {products.map((p) => {
-          const on = a.productSlugs.includes(p.slug);
-          return (
+
+      <div className="relative mb-4 max-w-md">
+        <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search products to add…"
+          className="bg-background border border-border h-10 pl-9 pr-3 w-full text-sm focus:border-primary outline-none"
+        />
+        {q.trim() && (
+          <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-background border border-border shadow-lg max-h-72 overflow-y-auto">
+            {searchResults.length === 0 ? (
+              <p className="p-3 text-xs text-muted-foreground">No matching products.</p>
+            ) : (
+              searchResults.map((p) => (
+                <button
+                  key={p.slug}
+                  type="button"
+                  disabled={a.productSlugs.length >= 8}
+                  onClick={() => { toggle(p.slug); setQ(""); }}
+                  className="w-full flex items-center gap-3 p-2 hover:bg-surface text-left disabled:opacity-40"
+                >
+                  <img src={p.image} alt={p.name} className="size-10 object-cover shrink-0" />
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold truncate">{p.name}</div>
+                    <div className="text-mono text-[10px] text-muted-foreground">{p.category}</div>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {picked.length === 0 ? (
+        <p className="text-muted-foreground text-sm mb-6">No products picked yet — search above to add up to 8.</p>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+          {picked.map((p) => (
             <button key={p.slug} onClick={() => toggle(p.slug)}
-              className={`relative border bg-surface text-left transition ${on ? "border-primary glow-primary-sm" : "border-border hover:border-primary"}`}>
+              className="relative border border-primary glow-primary-sm bg-surface text-left transition">
               <img src={p.image} alt={p.name} className="aspect-[4/5] w-full object-cover" loading="lazy" />
-              {on && <div className="absolute top-2 right-2 size-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center"><Check className="size-3" /></div>}
+              <div className="absolute top-2 right-2 size-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center"><Check className="size-3" /></div>
               <div className="p-2">
                 <div className="text-xs font-semibold truncate">{p.name}</div>
                 <div className="text-mono text-[10px] text-muted-foreground">{p.category}</div>
               </div>
             </button>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
       <button onClick={() => { saveSettings(s); toast.success("Arrivals saved"); }}
         className="mt-6 bg-primary text-primary-foreground h-12 px-6 text-mono text-xs tracking-widest hover:glow-primary">

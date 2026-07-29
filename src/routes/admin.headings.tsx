@@ -13,11 +13,15 @@ function AdminHeadings() {
   const [rows, setRows] = useState<SectionHeading[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
 
   const load = async () => {
     const { data, error } = await supabase.from("section_headings").select("*").order("label");
     if (error) toast.error(error.message);
-    else setRows(data ?? []);
+    else {
+      setRows(data ?? []);
+      setActiveKey((k) => k ?? data?.[0]?.key ?? null);
+    }
     setLoading(false);
   };
 
@@ -52,72 +56,85 @@ function AdminHeadings() {
         EVERY MAJOR SECTION HEADING SITE-WIDE — RENAME OR RECOLOR WITHOUT TOUCHING CODE.
       </p>
 
-      <div className="space-y-4 max-w-2xl">
-        {rows.length === 0 && (
-          <div className="border border-border bg-surface p-6 text-sm text-muted-foreground">
-            No headings registered yet.
-          </div>
-        )}
-        {rows.map((row) => (
-          <div key={row.key} className="border border-border bg-surface p-4 space-y-3">
-            <div className="text-mono text-[11px] tracking-widest text-primary">{row.label}</div>
-            <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">EYEBROW (small label above the heading, optional)</div>
-              <input
-                value={row.eyebrow_text ?? ""}
-                onChange={(e) => update(row.key, { eyebrow_text: e.target.value || null })}
-                className="w-full bg-background border border-border px-3 py-2 text-sm font-mono"
-              />
-            </label>
-            <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">HEADING TEXT</div>
-              <textarea
-                value={row.heading_text}
-                onChange={(e) => update(row.key, { heading_text: e.target.value })}
-                rows={2}
-                className="w-full bg-background border border-border px-3 py-2 text-sm font-mono"
-              />
-            </label>
-            <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SUBTITLE (optional)</div>
-              <input
-                value={row.subtitle_text ?? ""}
-                onChange={(e) => update(row.key, { subtitle_text: e.target.value || null })}
-                className="w-full bg-background border border-border px-3 py-2 text-sm font-mono"
-              />
-            </label>
-            <div className="flex items-end gap-3">
+      {rows.length === 0 ? (
+        <div className="border border-border bg-surface p-6 text-sm text-muted-foreground max-w-2xl">
+          No headings registered yet.
+        </div>
+      ) : (
+        <div className="max-w-2xl">
+          <label className="block mb-5">
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SECTION</div>
+            <select
+              value={activeKey ?? ""}
+              onChange={(e) => setActiveKey(e.target.value)}
+              className="w-full bg-background border border-border px-3 h-11 text-sm font-mono"
+            >
+              {rows.map((row) => (
+                <option key={row.key} value={row.key}>{row.label}</option>
+              ))}
+            </select>
+          </label>
+
+          {rows.filter((row) => row.key === activeKey).map((row) => (
+            <div key={row.key} className="border border-border bg-surface p-4 space-y-3">
               <label className="block">
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">TEXT COLOR</div>
+                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">EYEBROW (small label above the heading, optional)</div>
                 <input
-                  type="color"
-                  value={row.text_color ?? "#000000"}
-                  onChange={(e) => update(row.key, { text_color: e.target.value })}
-                  className="h-10 w-16 bg-background border border-border p-1"
+                  value={row.eyebrow_text ?? ""}
+                  onChange={(e) => update(row.key, { eyebrow_text: e.target.value || null })}
+                  className="w-full bg-background border border-border px-3 py-2 text-sm font-mono"
                 />
               </label>
-              {row.text_color && (
+              <label className="block">
+                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">HEADING TEXT</div>
+                <textarea
+                  value={row.heading_text}
+                  onChange={(e) => update(row.key, { heading_text: e.target.value })}
+                  rows={2}
+                  className="w-full bg-background border border-border px-3 py-2 text-sm font-mono"
+                />
+              </label>
+              <label className="block">
+                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SUBTITLE (optional)</div>
+                <input
+                  value={row.subtitle_text ?? ""}
+                  onChange={(e) => update(row.key, { subtitle_text: e.target.value || null })}
+                  className="w-full bg-background border border-border px-3 py-2 text-sm font-mono"
+                />
+              </label>
+              <div className="flex items-end gap-3">
+                <label className="block">
+                  <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">TEXT COLOR</div>
+                  <input
+                    type="color"
+                    value={row.text_color ?? "#000000"}
+                    onChange={(e) => update(row.key, { text_color: e.target.value })}
+                    className="h-10 w-16 bg-background border border-border p-1"
+                  />
+                </label>
+                {row.text_color && (
+                  <button
+                    type="button"
+                    onClick={() => update(row.key, { text_color: null })}
+                    className="h-10 px-3 border border-border text-mono text-[10px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary"
+                  >
+                    RESET TO THEME
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => update(row.key, { text_color: null })}
-                  className="h-10 px-3 border border-border text-mono text-[10px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary"
+                  onClick={() => save(row)}
+                  disabled={savingKey === row.key}
+                  className="ml-auto h-10 px-5 bg-primary text-primary-foreground text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50 inline-flex items-center gap-2"
                 >
-                  RESET TO THEME
+                  {savingKey === row.key && <Loader2 className="size-3.5 animate-spin" />}
+                  SAVE
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={() => save(row)}
-                disabled={savingKey === row.key}
-                className="ml-auto h-10 px-5 bg-primary text-primary-foreground text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50 inline-flex items-center gap-2"
-              >
-                {savingKey === row.key && <Loader2 className="size-3.5 animate-spin" />}
-                SAVE
-              </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,16 +1,16 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { buildMeta, buildLinks, SITE_URL, productJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
 import { listProducts, getStoredProduct as getProduct, type Product, type GalleryItem } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reviews } from "@/components/product/Reviews";
 import { useWishlist } from "@/context/WishlistContext";
-import { Heart, Truck, RotateCcw, ShieldCheck, ArrowRight, Zap, X, ZoomIn, Hand } from "lucide-react";
+import { Heart, Truck, RotateCcw, ShieldCheck, ArrowRight, Zap } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type SizeOption = { size: string; inStock: boolean; variantId?: string; price?: number };
+type VariantRow = { id: string; size: string | null; stock: number; price: number | null; color: string | null; color_hex: string | null };
 
 export const Route = createFileRoute("/product/$slug")({
   loader: async ({ params }) => {
@@ -82,9 +82,8 @@ function PDP() {
   const [variantId, setVariantId] = useState<string | undefined>();
   const [tab, setTab] = useState<"desc" | "mat" | "care" | "delivery" | "">("desc");
   const [added, setAdded] = useState(false);
-  const [sizeOptions, setSizeOptions] = useState<SizeOption[]>([]);
-  const [zoomSrc, setZoomSrc] = useState<string | null>(null);
-  const [magnifierPos, setMagnifierPos] = useState<{ x: number; y: number } | null>(null);
+  const [variants, setVariants] = useState<VariantRow[]>([]);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
   // Full gallery, in order: base image, hover image, then any extra gallery photos —
   // deduped, and grouped into rows honoring each gallery item's layout: "standalone"
@@ -140,28 +139,56 @@ function PDP() {
       .select("id, size, stock, price, color, color_hex")
       .eq("product_id", product.slug)
       .order("size")
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          setSizeOptions(data.filter((v) => v.size != null).map((v) => ({
-            size: v.size as string,
-            inStock: v.stock > 0,
-            variantId: v.id,
-            price: v.price ?? undefined,
-          })));
-        } else {
-          setSizeOptions(product.sizes.map((s: string) => ({ size: s, inStock: true })));
-        }
-      });
+      .then(({ data }) => setVariants(data ?? []));
   }, [product.slug]);
+
+  // Colors come from variants (if any admin-set colors exist) — falls back to the
+  // product's own color list for products with no per-variant color tracking.
+  const colorOptions = (() => {
+    const seen = new Map<string, string>();
+    variants.forEach((v) => { if (v.color) seen.set(v.color, v.color_hex ?? "#0a0a0a"); });
+    const fromVariants = [...seen.entries()].map(([name, hex]) => ({ name, hex }));
+    return fromVariants.length > 0 ? fromVariants : product.colors;
+  })();
+
+  // Sizes are scoped to the selected color when variants carry color data, so
+  // switching color never shows the same size duplicated once per color.
+  const sizeOptions: SizeOption[] = (() => {
+    if (variants.length === 0) return product.sizes.map((s: string) => ({ size: s, inStock: true }));
+    const hasColorData = variants.some((v) => v.color);
+    const scoped = hasColorData && selectedColor ? variants.filter((v) => v.color === selectedColor) : variants;
+    return scoped.filter((v) => v.size != null).map((v) => ({
+      size: v.size as string,
+      inStock: v.stock > 0,
+      variantId: v.id,
+      price: v.price ?? undefined,
+    }));
+  })();
 
   // Reset state on product change
   useEffect(() => {
     setSize(null);
     setVariantId(undefined);
+    setSelectedColor(null);
     setTab("desc");
     setAdded(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [product.slug]);
+
+  // Default to the first available color once variants (or the product's own
+  // color list) are known.
+  useEffect(() => {
+    if (selectedColor === null && colorOptions.length > 0) setSelectedColor(colorOptions[0].name);
+  }, [colorOptions.length]);
+
+  // Switching color invalidates the previously selected size (it belonged to a
+  // different color's variant row).
+  const isFirstColorRun = useRef(true);
+  useEffect(() => {
+    if (isFirstColorRun.current) { isFirstColorRun.current = false; return; }
+    setSize(null);
+    setVariantId(undefined);
+  }, [selectedColor]);
 
   useEffect(() => {
     const el = ctaRef.current;
@@ -195,49 +222,15 @@ function PDP() {
     return (
       <div
         key={src}
-        className={`relative group bg-surface border border-border overflow-hidden ${isFirst ? "cursor-none" : "cursor-zoom-in"}`}
+        className="relative group bg-surface overflow-hidden"
         style={{ aspectRatio: "4/5" }}
-        onClick={() => setZoomSrc(src)}
-        onMouseMove={isFirst ? (e: React.MouseEvent<HTMLDivElement>) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          setMagnifierPos({
-            x: ((e.clientX - rect.left) / rect.width) * 100,
-            y: ((e.clientY - rect.top) / rect.height) * 100,
-          });
-        } : undefined}
-        onMouseLeave={isFirst ? () => setMagnifierPos(null) : undefined}
-        title="Click to zoom"
       >
         <img
           src={src}
           alt={`${product.name} view ${index + 1}`}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+          className="absolute inset-0 w-full h-full object-cover"
           loading={isFirst ? undefined : "lazy"}
         />
-        {isFirst && magnifierPos && (
-          <>
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                backgroundImage: `url(${src})`,
-                backgroundSize: "220%",
-                backgroundPosition: `${magnifierPos.x}% ${magnifierPos.y}%`,
-                backgroundRepeat: "no-repeat",
-              }}
-            />
-            <div
-              className="absolute pointer-events-none size-10 rounded-full bg-black/60 backdrop-blur-sm border border-white/40 flex items-center justify-center text-white"
-              style={{ left: `${magnifierPos.x}%`, top: `${magnifierPos.y}%`, transform: "translate(-50%, -50%)" }}
-            >
-              <Hand className="size-4" />
-            </div>
-          </>
-        )}
-        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <span className="size-8 bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80">
-            <ZoomIn className="size-4" />
-          </span>
-        </div>
         {isFirst && product.badge && (
           <span
             className={`absolute top-4 left-4 text-mono font-semibold px-3 py-1.5 shadow-lg ${
@@ -269,9 +262,9 @@ function PDP() {
       </div>
 
       <section className="px-4 md:px-8 mt-4 grid md:grid-cols-[1.3fr_1fr] lg:grid-cols-[1.5fr_1fr] gap-6 lg:gap-12">
-        {/* Image gallery — a tall stack of every photo, scrolled past naturally (H&M-style)
-            while the info panel stays pinned via position:sticky below. */}
-        <div className="flex flex-col gap-3">
+        {/* Image gallery — a continuous stack of every photo, scrolled past naturally
+            (H&M-style, no gaps between frames) while the info panel stays pinned below. */}
+        <div className="flex flex-col">
           {(() => {
             let imgIndex = -1;
             return galleryRows.map((row, rowIdx) => {
@@ -280,7 +273,7 @@ function PDP() {
                 return renderGalleryTile(row.src, imgIndex);
               }
               return (
-                <div key={`half-${rowIdx}`} className="grid grid-cols-2 gap-3">
+                <div key={`half-${rowIdx}`} className="grid grid-cols-2">
                   {row.srcs.map((src) => {
                     imgIndex += 1;
                     return renderGalleryTile(src, imgIndex);
@@ -291,8 +284,9 @@ function PDP() {
           })()}
         </div>
 
-        {/* Product Info */}
-        <div className="md:sticky md:top-24 md:self-start flex flex-col">
+        {/* Product Info — pinned via sticky, and independently scrollable so a wheel
+            scroll with the cursor over this panel never drags the gallery underneath. */}
+        <div className="md:sticky md:top-24 md:self-start md:max-h-[calc(100vh-6rem)] md:overflow-y-auto no-scrollbar flex flex-col">
           <div className="text-mono text-primary flex items-center gap-2" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>
             <span className="size-1 bg-primary rounded-full pulse-dot" />
             {product.category.toUpperCase()}
@@ -319,23 +313,30 @@ function PDP() {
           </p>
 
           {/* Color Selection */}
-          <div className="mt-8 border-t border-border pt-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-mono text-muted-foreground" style={{ fontSize: "11px", letterSpacing: "0.25em" }}>
-                COLOR <span className="mx-2">·</span> <span className="text-foreground">{product.colors[0].name.toUpperCase()}</span>
+          {colorOptions.length > 0 && (
+            <div className="mt-8 border-t border-border pt-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-mono text-muted-foreground" style={{ fontSize: "11px", letterSpacing: "0.25em" }}>
+                  COLOR <span className="mx-2">·</span> <span className="text-foreground">{(selectedColor ?? colorOptions[0].name).toUpperCase()}</span>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                {colorOptions.map((c: { name: string; hex: string }) => (
+                  <button
+                    key={c.name}
+                    type="button"
+                    onClick={() => setSelectedColor(c.name)}
+                    aria-pressed={selectedColor === c.name}
+                    className={`size-10 rounded-full border-2 ring-offset-2 ring-offset-background transition-all hover:scale-110 shadow-sm ${
+                      selectedColor === c.name ? "border-primary ring-2 ring-primary" : "border-border ring-1 ring-foreground/20"
+                    }`}
+                    style={{ backgroundColor: c.hex }}
+                    aria-label={`Select color ${c.name}`}
+                  />
+                ))}
               </div>
             </div>
-            <div className="flex gap-3">
-              {product.colors.map((c: { name: string; hex: string }) => (
-                <button
-                  key={c.name}
-                  className="size-10 rounded-full border-2 ring-offset-2 ring-offset-background transition-all hover:scale-110 border-border ring-1 ring-foreground/20 shadow-sm"
-                  style={{ backgroundColor: c.hex }}
-                  aria-label={`Select color ${c.name}`}
-                />
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* Size Selection */}
           <div className="mt-8">
@@ -346,23 +347,26 @@ function PDP() {
               </Link>
             </div>
             <div className="grid grid-cols-4 lg:grid-cols-5 gap-2.5">
-              {(sizeOptions.length > 0 ? sizeOptions : product.sizes.map((s: string) => ({ size: s, inStock: true }))).map((opt: SizeOption) => (
-                <button
-                  key={opt.size}
-                  onClick={() => handleSizeSelect(opt)}
-                  disabled={!opt.inStock}
-                  className={`h-12 border text-mono transition-all duration-200 flex items-center justify-center relative ${
-                    size === opt.size
-                      ? "bg-foreground text-background border-foreground font-bold shadow-[0_0_15px_rgba(128,128,128,0.2)]"
-                      : opt.inStock
-                      ? "border-border text-muted-foreground hover:border-primary hover:text-primary bg-surface/50"
-                      : "border-border/30 text-muted-foreground/30 bg-surface/20 cursor-not-allowed line-through"
-                  }`}
-                  style={{ fontSize: "13px" }}
-                >
-                  {opt.size}
-                </button>
-              ))}
+              {sizeOptions.map((opt: SizeOption) => {
+                const isSelected = opt.variantId ? opt.variantId === variantId : size === opt.size;
+                return (
+                  <button
+                    key={opt.variantId ?? opt.size}
+                    onClick={() => handleSizeSelect(opt)}
+                    disabled={!opt.inStock}
+                    className={`h-12 border text-mono transition-all duration-200 flex items-center justify-center relative ${
+                      isSelected
+                        ? "bg-foreground text-background border-foreground font-bold shadow-[0_0_15px_rgba(128,128,128,0.2)]"
+                        : opt.inStock
+                        ? "border-border text-muted-foreground hover:border-primary hover:text-primary bg-surface/50"
+                        : "border-border/30 text-muted-foreground/30 bg-surface/20 cursor-not-allowed line-through"
+                    }`}
+                    style={{ fontSize: "13px" }}
+                  >
+                    {opt.size}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Stock Warning */}
@@ -521,23 +525,26 @@ function PDP() {
         <div className="flex items-center gap-3 max-w-screen-sm mx-auto">
           <div className="flex-1 overflow-x-auto scrollbar-none">
             <div className="flex gap-1.5 min-w-max pb-0.5">
-              {(sizeOptions.length > 0 ? sizeOptions : product.sizes.map((s: string) => ({ size: s, inStock: true }))).map((opt: SizeOption) => (
-                <button
-                  key={opt.size}
-                  onClick={() => handleSizeSelect(opt)}
-                  disabled={!opt.inStock}
-                  className={`h-10 min-w-[44px] px-2 border text-mono transition-all duration-150 ${
-                    size === opt.size
-                      ? "bg-foreground text-background border-foreground"
-                      : opt.inStock
-                      ? "border-border text-muted-foreground hover:border-primary hover:text-primary bg-surface/50"
-                      : "border-border/30 text-muted-foreground/30 bg-surface/20 cursor-not-allowed"
-                  }`}
-                  style={{ fontSize: "11px" }}
-                >
-                  {opt.size}
-                </button>
-              ))}
+              {sizeOptions.map((opt: SizeOption) => {
+                const isSelected = opt.variantId ? opt.variantId === variantId : size === opt.size;
+                return (
+                  <button
+                    key={opt.variantId ?? opt.size}
+                    onClick={() => handleSizeSelect(opt)}
+                    disabled={!opt.inStock}
+                    className={`h-10 min-w-[44px] px-2 border text-mono transition-all duration-150 ${
+                      isSelected
+                        ? "bg-foreground text-background border-foreground"
+                        : opt.inStock
+                        ? "border-border text-muted-foreground hover:border-primary hover:text-primary bg-surface/50"
+                        : "border-border/30 text-muted-foreground/30 bg-surface/20 cursor-not-allowed"
+                    }`}
+                    style={{ fontSize: "11px" }}
+                  >
+                    {opt.size}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <button
@@ -556,29 +563,6 @@ function PDP() {
           </button>
         </div>
       </div>
-
-      {/* Image zoom lightbox */}
-      {zoomSrc && createPortal(
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 animate-in fade-in duration-200"
-          onClick={() => setZoomSrc(null)}
-        >
-          <button
-            className="absolute top-5 right-5 size-10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:border-white/50 transition-colors"
-            onClick={() => setZoomSrc(null)}
-            aria-label="Close zoom"
-          >
-            <X className="size-5" />
-          </button>
-          <img
-            src={zoomSrc}
-            alt={product.name}
-            className="max-w-[90vw] max-h-[90vh] object-contain animate-in zoom-in-95 duration-300"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>,
-        document.body
-      )}
     </div>
   );
 }

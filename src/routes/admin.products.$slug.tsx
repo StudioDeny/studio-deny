@@ -241,7 +241,7 @@ function VariantModal({
             </label>
           </div>
           <label className="block">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SKU</div>
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SKU (optional — your own internal code for this size/color, e.g. for warehouse or invoicing use. Not shown to customers.)</div>
             <input value={v.sku ?? ""} onChange={(e) => set("sku", e.target.value || undefined)} className="inp" placeholder="SD-TEE-BLK-M" />
           </label>
         </div>

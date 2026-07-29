@@ -4,12 +4,13 @@ import { getSettings, saveSettings, TIER_KEYS, type LoyaltySettings } from "@/li
 import { supabase } from "@/lib/supabase";
 import type { BrandSettings, ThemeSettings, AppSettings } from "@/types/database";
 import { toast } from "sonner";
+import { Plus, X } from "lucide-react";
 
 export const Route = createFileRoute("/admin/settings")({
   component: AdminSettings,
 });
 
-type Tab = "loyalty" | "brand" | "theme" | "cod";
+type Tab = "loyalty" | "brand" | "theme" | "shop" | "cod";
 
 function AdminSettings() {
   const [tab, setTab] = useState<Tab>("loyalty");
@@ -20,7 +21,7 @@ function AdminSettings() {
       <p className="text-muted-foreground text-sm mb-6">Configure loyalty, brand, theme, and payment options.</p>
 
       <div className="flex flex-wrap gap-1 mb-8">
-        {(["loyalty", "brand", "theme", "cod"] as Tab[]).map((t) => (
+        {(["loyalty", "brand", "theme", "shop", "cod"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -34,6 +35,7 @@ function AdminSettings() {
       {tab === "loyalty" && <LoyaltyTab />}
       {tab === "brand" && <BrandTab />}
       {tab === "theme" && <ThemeTab />}
+      {tab === "shop" && <ShopTab />}
       {tab === "cod" && <CodTab />}
 
       <style>{`.inp{background:var(--background);border:1px solid var(--border);height:40px;padding:0 12px;width:100%;font-family:var(--font-mono,monospace);font-size:13px}textarea.inp{height:auto;padding:10px 12px}select.inp{cursor:pointer}`}</style>
@@ -312,6 +314,62 @@ function ThemeTab() {
 
       <button onClick={save} disabled={saving} className="bg-primary text-primary-foreground h-12 px-6 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50">
         {saving ? "SAVING…" : "SAVE THEME SETTINGS"}
+      </button>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────
+   SHOP TAB — filter color palette
+───────────────────────────────────── */
+function ShopTab() {
+  const [s, setS] = useState<LoyaltySettings | null>(null);
+  useEffect(() => setS(getSettings()), []);
+  if (!s) return <div className="text-mono text-xs">LOADING…</div>;
+
+  const colors = s.filterColors;
+  const setColors = (next: LoyaltySettings["filterColors"]) => setS({ ...s, filterColors: next });
+  const update = (i: number, patch: Partial<{ name: string; hex: string }>) => {
+    const next = [...colors];
+    next[i] = { ...next[i], ...patch };
+    setColors(next);
+  };
+  const remove = (i: number) => setColors(colors.filter((_, idx) => idx !== i));
+  const add = () => setColors([...colors, { name: "New Color", hex: "#0a0a0a" }]);
+
+  return (
+    <div className="space-y-6">
+      <section className="border border-border bg-surface p-6 space-y-4">
+        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">SHOP PAGE — FILTER COLORS</div>
+        <p className="text-muted-foreground text-xs text-mono">
+          Curate exactly which color swatches show in the shop page's COLOR filter. Leave empty to
+          auto-generate the list from whatever colors your live products currently use.
+        </p>
+
+        {colors.length > 0 && (
+          <div className="space-y-2">
+            {colors.map((c, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input type="color" value={c.hex} onChange={(e) => update(i, { hex: e.target.value })} className="h-10 w-12 cursor-pointer border border-border bg-background p-0.5 shrink-0" />
+                <input value={c.name} onChange={(e) => update(i, { name: e.target.value })} className="inp flex-1" placeholder="Color name" />
+                <button type="button" onClick={() => remove(i)} className="h-10 w-10 shrink-0 border border-border flex items-center justify-center hover:border-red-500 hover:text-red-500">
+                  <X className="size-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button type="button" onClick={add} className="flex items-center gap-2 border border-dashed border-border h-10 px-4 text-mono text-[11px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+          <Plus className="size-3.5" /> ADD COLOR
+        </button>
+      </section>
+
+      <button
+        onClick={() => { saveSettings(s); toast.success("Shop settings saved"); }}
+        className="bg-primary text-primary-foreground h-12 px-6 text-mono text-xs tracking-widest hover:glow-primary"
+      >
+        SAVE SETTINGS
       </button>
     </div>
   );

@@ -33,7 +33,7 @@ type NewsletterConfig = { eyebrow: string; title: string; subtitle: string; cta_
 type FaqConfig = { eyebrow: string; title: string };
 type SplitCard = { media_type: "image" | "video"; src: string; label: string; cta_href: string };
 type GenderSplitConfig = { cards: SplitCard[] };
-type CarouselSlide = { media_type: "image" | "video"; src: string; label: string; href: string };
+type CarouselSlide = { media_type: "image" | "video"; src: string; label: string; href: string; subtitle?: string; cta_label?: string };
 type CategoryCarouselConfig = { slides: CarouselSlide[] };
 type DenySpaceBenefit = { icon: string; label: string; desc: string };
 type DenySpaceConfig = { logo_url: string; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string; bg_color?: string; text_color?: string };
@@ -749,7 +749,8 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
                   </button>
                 </div>
               </div>
-              <F label="LABEL"><input value={slide.label} onChange={(e) => updateSlide(i, { label: e.target.value })} className="inp" placeholder="BEST SELLERS" /></F>
+              <F label="HEADING"><input value={slide.label} onChange={(e) => updateSlide(i, { label: e.target.value })} className="inp" placeholder="BEST SELLERS" /></F>
+              <F label="PARAGRAPH (optional)"><textarea rows={2} value={slide.subtitle ?? ""} onChange={(e) => updateSlide(i, { subtitle: e.target.value })} className="inp" placeholder="Short line under the heading…" /></F>
               <F label="MEDIA TYPE">
                 <select value={slide.media_type} onChange={(e) => updateSlide(i, { media_type: e.target.value as "video" | "image" })} className="inp" style={{ cursor: "pointer" }}>
                   <option value="image">Image / Photo</option>
@@ -762,7 +763,10 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
                 value={slide.src}
                 onChange={(url) => updateSlide(i, { src: url })}
               />
-              <F label="LINK (collection / shop URL)"><input value={slide.href} onChange={(e) => updateSlide(i, { href: e.target.value })} className="inp" placeholder="/shop?sort=best" /></F>
+              <div className="grid grid-cols-2 gap-3">
+                <F label="BUTTON LABEL (optional)"><input value={slide.cta_label ?? ""} onChange={(e) => updateSlide(i, { cta_label: e.target.value })} className="inp" placeholder="SHOP NOW" /></F>
+                <F label="LINK (collection / shop URL)"><input value={slide.href} onChange={(e) => updateSlide(i, { href: e.target.value })} className="inp" placeholder="/shop?sort=best" /></F>
+              </div>
             </div>
           ))}
           <button type="button" onClick={() => setSlides([...slides, { media_type: "image", src: "", label: "NEW SLIDE", href: "/shop" }])}

@@ -4,7 +4,8 @@ import { upsertProduct, type Product, type GalleryItem } from "@/lib/productsSto
 import { listCategories, listBrands, type Category } from "@/lib/catalog";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
-import { Upload, X, Loader2, Plus } from "lucide-react";
+import { Upload, X, Loader2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { CategoryPicker } from "@/components/admin/CategoryPicker";
 
 export const Route = createFileRoute("/admin/products/new")({
   component: NewProduct,
@@ -114,6 +115,15 @@ export function ProductForm({
     set("gallery", (p.gallery ?? []).map((item, i) => (i === idx ? { ...item, layout } : item)));
   };
 
+  const moveGalleryImage = (idx: number, dir: -1 | 1) => {
+    const list = p.gallery ?? [];
+    const j = idx + dir;
+    if (j < 0 || j >= list.length) return;
+    const next = [...list];
+    [next[idx], next[j]] = [next[j], next[idx]];
+    set("gallery", next);
+  };
+
   return (
     <div className="max-w-2xl">
       <Link
@@ -162,21 +172,12 @@ export function ProductForm({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Field label="CATEGORY">
-            <select
-              value={p.categoryId ?? ""}
-              onChange={(e) => {
-                const chosen = cats.find((c) => c.id === e.target.value);
-                setP({ ...p, categoryId: chosen?.id, category: chosen?.name ?? p.category });
-              }}
-              className="inp"
-            >
-              <option value="">— Select category —</option>
-              {cats.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.parentId ? `${cats.find((p2) => p2.id === c.parentId)?.name} / ${c.name}` : c.name}
-                </option>
-              ))}
-            </select>
+            <CategoryPicker
+              categories={cats}
+              value={p.categoryId}
+              onChange={(c) => setP({ ...p, categoryId: c.id, category: c.name })}
+              onCategoriesChange={setCats}
+            />
           </Field>
           <Field label="BRAND">
             <select
@@ -356,10 +357,15 @@ export function ProductForm({
         {/* GALLERY IMAGES */}
         <Field label="GALLERY IMAGES (additional photos — up to 8)">
           <div className="space-y-3">
-            <div className="flex flex-wrap gap-2">
+            <p className="text-mono text-[10px] text-muted-foreground leading-relaxed">
+              For every image, choose FULL PICTURE (shows edge-to-edge on the product page) or HALF PICTURE
+              (H&M-style — pairs up with the next HALF picture to show two photos side by side in one row).
+              Use the arrows to reorder — this is the order they appear on the product page.
+            </p>
+            <div className="flex flex-wrap gap-3">
               {(p.gallery ?? []).map((item, idx) => (
-                <div key={idx} className="relative w-20 shrink-0">
-                  <div className="relative w-20 h-20 border border-border">
+                <div key={idx} className="relative w-24 shrink-0">
+                  <div className="relative w-24 h-24 border border-border">
                     <img src={item.url} alt={`gallery-${idx}`} className="w-full h-full object-cover" />
                     <button
                       type="button"
@@ -369,13 +375,31 @@ export function ProductForm({
                       <X className="size-3" />
                     </button>
                   </div>
+                  <div className="flex items-center gap-1 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => moveGalleryImage(idx, -1)}
+                      disabled={idx === 0}
+                      className="h-6 w-6 shrink-0 border border-border flex items-center justify-center hover:border-primary hover:text-primary disabled:opacity-25"
+                    >
+                      <ChevronLeft className="size-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveGalleryImage(idx, 1)}
+                      disabled={idx === (p.gallery ?? []).length - 1}
+                      className="h-6 w-6 shrink-0 border border-border flex items-center justify-center hover:border-primary hover:text-primary disabled:opacity-25"
+                    >
+                      <ChevronRight className="size-3" />
+                    </button>
+                  </div>
                   <select
                     value={item.layout}
                     onChange={(e) => setGalleryLayout(idx, e.target.value as GalleryItem["layout"])}
-                    className="w-full mt-1 bg-background border border-border text-mono text-[9px] tracking-widest h-6 px-1"
+                    className="w-full mt-1 bg-background border border-border text-mono text-[9px] tracking-widest h-7 px-1"
                   >
-                    <option value="standalone">STANDALONE</option>
-                    <option value="half">HALF</option>
+                    <option value="standalone">FULL PICTURE</option>
+                    <option value="half">HALF PICTURE</option>
                   </select>
                 </div>
               ))}

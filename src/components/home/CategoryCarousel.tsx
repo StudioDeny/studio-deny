@@ -12,6 +12,8 @@ type CarouselSlide = {
   src: string;
   label: string;
   href: string;
+  subtitle?: string;
+  cta_label?: string;
 };
 
 type CategoryCarouselConfig = { slides: CarouselSlide[] };
@@ -79,17 +81,30 @@ export function CategoryCarousel() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="absolute inset-0 z-[2] flex items-center justify-center pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 z-[2] flex flex-col items-center justify-center text-center pointer-events-none overflow-hidden px-4">
         <AnimatePresence mode="wait">
-          <motion.h2
+          <motion.div
             key={active}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE, delay: 0.15 } }}
             exit={{ opacity: 0, y: -30, transition: { duration: 0.3 } }}
-            className="text-white text-[clamp(2.5rem,8vw,6rem)] text-display uppercase tracking-wider text-center px-4"
+            className="flex flex-col items-center"
           >
-            {slide.label}
-          </motion.h2>
+            <h2 className="text-white text-[clamp(2.5rem,8vw,6rem)] text-display uppercase tracking-wider">
+              {slide.label}
+            </h2>
+            {slide.subtitle && (
+              <p className="text-white/85 text-mono text-sm sm:text-base mt-3 max-w-md">{slide.subtitle}</p>
+            )}
+            {slide.cta_label && (
+              <Link
+                to={slide.href}
+                className="pointer-events-auto mt-6 inline-flex items-center gap-2 px-6 py-2.5 border border-white text-white text-xs tracking-[0.14em] uppercase text-mono hover:bg-white hover:text-black transition-colors"
+              >
+                {slide.cta_label}
+              </Link>
+            )}
+          </motion.div>
         </AnimatePresence>
       </div>
 

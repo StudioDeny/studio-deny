@@ -3,6 +3,7 @@ import { buildMeta, buildLinks, SITE_URL } from "@/lib/seo";
 import { useEffect, useMemo, useState } from "react";
 import { categories, type Category } from "@/lib/products";
 import { listProducts, type Product } from "@/lib/productsStore";
+import { getSettings } from "@/lib/settings";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { X, SlidersHorizontal, Search as SearchIcon, ChevronDown } from "lucide-react";
@@ -88,6 +89,8 @@ function Shop() {
   const max = search.max ?? maxBound;
 
   const allColors = useMemo(() => {
+    const curated = getSettings().filterColors;
+    if (curated.length > 0) return curated;
     const m = new Map<string, string>();
     products.forEach((p) => p.colors.forEach((c) => m.set(c.name, c.hex)));
     return [...m.entries()].map(([name, hex]) => ({ name, hex }));
