@@ -134,10 +134,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-border px-4 md:px-8 py-6 flex flex-col md:flex-row flex-wrap gap-3 md:gap-x-6 items-center justify-center md:justify-between" style={{ background: "var(--color-muted)" }}>
-        <div className="text-mono text-muted-foreground text-center md:text-left" style={{ fontSize: "10px", letterSpacing: "0.25em" }}>
-          © {new Date().getFullYear()} STUDIO DENY · ALL RIGHTS RESERVED
-        </div>
-        <div className="text-mono text-muted-foreground text-center" style={{ fontSize: "10px", letterSpacing: "0.18em" }}>
+        <div className="w-full md:w-auto min-w-0 text-mono text-muted-foreground text-center md:text-left break-words" style={{ fontSize: "10px", letterSpacing: "0.18em" }}>
           DEVELOPED & MAINTAINED BY{" "}
           <a
             href="https://www.artechstudio.co.in/"
@@ -148,7 +145,10 @@ export function Footer() {
             ARTECHSTUDIO
           </a>
         </div>
-        <div className="flex flex-wrap justify-center items-center gap-5 sm:gap-6 text-mono text-muted-foreground" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
+        <div className="w-full md:w-auto min-w-0 text-mono text-muted-foreground text-center break-words" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
+          © {new Date().getFullYear()} STUDIO DENY · ALL RIGHTS RESERVED
+        </div>
+        <div className="w-full md:w-auto flex flex-wrap justify-center items-center gap-5 sm:gap-6 text-mono text-muted-foreground" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
           <Link to="/privacy" className="hover:text-foreground transition-colors">PRIVACY</Link>
           <Link to="/terms" className="hover:text-foreground transition-colors">TERMS</Link>
         </div>
