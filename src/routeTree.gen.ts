@@ -52,6 +52,7 @@ import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
 import { Route as AdminNavigationRouteImport } from './routes/admin.navigation'
+import { Route as AdminMegaMenuRouteImport } from './routes/admin.mega-menu'
 import { Route as AdminMediaRouteImport } from './routes/admin.media'
 import { Route as AdminLoyaltyRouteImport } from './routes/admin.loyalty'
 import { Route as AdminLookbookCmsRouteImport } from './routes/admin.lookbook-cms'
@@ -287,6 +288,11 @@ const AdminNavigationRoute = AdminNavigationRouteImport.update({
   path: '/navigation',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMegaMenuRoute = AdminMegaMenuRouteImport.update({
+  id: '/mega-menu',
+  path: '/mega-menu',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMediaRoute = AdminMediaRouteImport.update({
   id: '/media',
   path: '/media',
@@ -416,6 +422,7 @@ export interface FileRoutesByFullPath {
   '/admin/lookbook-cms': typeof AdminLookbookCmsRoute
   '/admin/loyalty': typeof AdminLoyaltyRoute
   '/admin/media': typeof AdminMediaRoute
+  '/admin/mega-menu': typeof AdminMegaMenuRoute
   '/admin/navigation': typeof AdminNavigationRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -478,6 +485,7 @@ export interface FileRoutesByTo {
   '/admin/lookbook-cms': typeof AdminLookbookCmsRoute
   '/admin/loyalty': typeof AdminLoyaltyRoute
   '/admin/media': typeof AdminMediaRoute
+  '/admin/mega-menu': typeof AdminMegaMenuRoute
   '/admin/navigation': typeof AdminNavigationRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -541,6 +549,7 @@ export interface FileRoutesById {
   '/admin/lookbook-cms': typeof AdminLookbookCmsRoute
   '/admin/loyalty': typeof AdminLoyaltyRoute
   '/admin/media': typeof AdminMediaRoute
+  '/admin/mega-menu': typeof AdminMegaMenuRoute
   '/admin/navigation': typeof AdminNavigationRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -606,6 +615,7 @@ export interface FileRouteTypes {
     | '/admin/lookbook-cms'
     | '/admin/loyalty'
     | '/admin/media'
+    | '/admin/mega-menu'
     | '/admin/navigation'
     | '/admin/notifications'
     | '/admin/orders'
@@ -668,6 +678,7 @@ export interface FileRouteTypes {
     | '/admin/lookbook-cms'
     | '/admin/loyalty'
     | '/admin/media'
+    | '/admin/mega-menu'
     | '/admin/navigation'
     | '/admin/notifications'
     | '/admin/orders'
@@ -730,6 +741,7 @@ export interface FileRouteTypes {
     | '/admin/lookbook-cms'
     | '/admin/loyalty'
     | '/admin/media'
+    | '/admin/mega-menu'
     | '/admin/navigation'
     | '/admin/notifications'
     | '/admin/orders'
@@ -1089,6 +1101,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminNavigationRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/mega-menu': {
+      id: '/admin/mega-menu'
+      path: '/mega-menu'
+      fullPath: '/admin/mega-menu'
+      preLoaderRoute: typeof AdminMegaMenuRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/media': {
       id: '/admin/media'
       path: '/media'
@@ -1249,6 +1268,7 @@ interface AdminRouteChildren {
   AdminLookbookCmsRoute: typeof AdminLookbookCmsRoute
   AdminLoyaltyRoute: typeof AdminLoyaltyRoute
   AdminMediaRoute: typeof AdminMediaRoute
+  AdminMegaMenuRoute: typeof AdminMegaMenuRoute
   AdminNavigationRoute: typeof AdminNavigationRoute
   AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -1279,6 +1299,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLookbookCmsRoute: AdminLookbookCmsRoute,
   AdminLoyaltyRoute: AdminLoyaltyRoute,
   AdminMediaRoute: AdminMediaRoute,
+  AdminMegaMenuRoute: AdminMegaMenuRoute,
   AdminNavigationRoute: AdminNavigationRoute,
   AdminNotificationsRoute: AdminNotificationsRoute,
   AdminOrdersRoute: AdminOrdersRoute,

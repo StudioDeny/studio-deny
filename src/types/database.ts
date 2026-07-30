@@ -43,6 +43,39 @@ export type SizeRow = {
   created_at: string;
 };
 
+export type MegaMenuCategoryRow = {
+  id: string;
+  label: string;
+  href: string | null;
+  category_id: string | null;
+  position: number;
+  is_active: boolean;
+  created_at: string;
+};
+
+export type MegaMenuLinkRow = {
+  id: string;
+  menu_category_id: string;
+  label: string;
+  href: string | null;
+  category_id: string | null;
+  position: number;
+  is_active: boolean;
+  created_at: string;
+};
+
+export type MegaMenuTileRow = {
+  id: string;
+  menu_category_id: string;
+  label: string;
+  href: string | null;
+  category_id: string | null;
+  image_url: string;
+  image_type: "image" | "video";
+  position: number;
+  created_at: string;
+};
+
 export type AppRole = "admin" | "staff" | "customer";
 export type PaymentMethod = "RAZORPAY" | "COD";
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
@@ -81,6 +114,24 @@ export interface Database {
         Row: SizeRow;
         Insert: Omit<SizeRow, "id" | "created_at" | "position"> & Partial<Pick<SizeRow, "id" | "created_at" | "position">>;
         Update: Partial<Omit<SizeRow, "id" | "created_at">>;
+        Relationships: [];
+      };
+      mega_menu_categories: {
+        Row: MegaMenuCategoryRow;
+        Insert: Omit<MegaMenuCategoryRow, "id" | "created_at" | "position" | "is_active"> & Partial<Pick<MegaMenuCategoryRow, "id" | "created_at" | "position" | "is_active">>;
+        Update: Partial<Omit<MegaMenuCategoryRow, "id" | "created_at">>;
+        Relationships: [];
+      };
+      mega_menu_links: {
+        Row: MegaMenuLinkRow;
+        Insert: Omit<MegaMenuLinkRow, "id" | "created_at" | "position" | "is_active"> & Partial<Pick<MegaMenuLinkRow, "id" | "created_at" | "position" | "is_active">>;
+        Update: Partial<Omit<MegaMenuLinkRow, "id" | "created_at">>;
+        Relationships: [];
+      };
+      mega_menu_tiles: {
+        Row: MegaMenuTileRow;
+        Insert: Omit<MegaMenuTileRow, "id" | "created_at" | "position" | "image_type"> & Partial<Pick<MegaMenuTileRow, "id" | "created_at" | "position" | "image_type">>;
+        Update: Partial<Omit<MegaMenuTileRow, "id" | "created_at">>;
         Relationships: [];
       };
       announcement_bars: {

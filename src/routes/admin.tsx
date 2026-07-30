@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, ShoppingBag, Home, Users, FileText,
   Undo2, BarChart3, Trophy, Bell, Settings, Tags, Download, FileEdit,
   Megaphone, Layout, Menu, HelpCircle, Star, Image, Globe, MessageSquare,
-  UserCheck, AtSign, BookOpen, Users2, Heading, X, Ruler,
+  UserCheck, AtSign, BookOpen, Users2, Heading, X, Ruler, PanelBottom,
 } from "lucide-react";
 import { listOrders, type Order } from "@/lib/orders";
 import { getLastSeen, markSeen } from "@/lib/notifications";
@@ -73,7 +73,8 @@ function AdminLayout() {
   const cmsLinks: { to: any; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { to: "/admin/announcements", label: "ANNOUNCEMENTS", icon: Megaphone },
     { to: "/admin/website-sections", label: "SECTIONS", icon: Layout },
-    { to: "/admin/navigation", label: "NAVIGATION", icon: Menu },
+    { to: "/admin/mega-menu", label: "MEGA MENU", icon: Menu },
+    { to: "/admin/navigation", label: "FOOTER LINKS", icon: PanelBottom },
     { to: "/admin/faq", label: "FAQ", icon: HelpCircle },
     { to: "/admin/testimonials", label: "TESTIMONIALS", icon: Star },
     { to: "/admin/influencer-picks", label: "INFLUENCERS", icon: AtSign },

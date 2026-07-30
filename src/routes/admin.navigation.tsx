@@ -9,16 +9,15 @@ export const Route = createFileRoute("/admin/navigation")({
   component: AdminNavigation,
 });
 
-const LOCATIONS: { key: NavLocation; label: string }[] = [
-  { key: "header", label: "HEADER" },
-  { key: "footer", label: "FOOTER" },
-  { key: "mobile", label: "MOBILE" },
-];
+// This page used to have HEADER/FOOTER/MOBILE tabs, but header/mobile were
+// never actually wired into the navbar — the navbar has its own dedicated
+// admin page now (/admin/mega-menu). Only FOOTER is a real, consumed
+// location (Footer.tsx reads it), so that's all this page manages.
+const activeTab: NavLocation = "footer";
 
 function AdminNavigation() {
   const [menus, setMenus] = useState<NavigationMenu[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<NavLocation>("header");
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
@@ -72,23 +71,10 @@ function AdminNavigation() {
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
-        <h1 className="text-display text-4xl md:text-5xl">NAVIGATION.</h1>
+        <h1 className="text-display text-4xl md:text-5xl">FOOTER LINKS.</h1>
         <p className="text-muted-foreground text-sm mt-2">
-          Manage header, footer, and mobile navigation menus.
-          {activeTab === "footer" && " Footer links are grouped into columns by the \"group\" field — set a new group name to create a whole new column."}
+          Manage the footer's link columns. Links are grouped into columns by the "group" field — set a new group name to create a whole new column.
         </p>
-      </div>
-
-      <div className="flex gap-1 mb-6">
-        {LOCATIONS.map((l) => (
-          <button
-            key={l.key}
-            onClick={() => setActiveTab(l.key)}
-            className={`text-mono text-[10px] tracking-widest px-4 h-9 border ${activeTab === l.key ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}
-          >
-            {l.label}
-          </button>
-        ))}
       </div>
 
       {!current ? (

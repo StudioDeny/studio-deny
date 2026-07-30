@@ -6,33 +6,8 @@ import { useAuth } from "@/context/AuthContext";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { listChildCategories, type Category } from "@/lib/catalog";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-
-type CategoryNavItem = {
-  label: string;
-  slug: string;
-  dropdown: { label: string; to: string; params?: { slug: string }; search?: Record<string, unknown> }[];
-};
-
-const CATEGORY_NAV: CategoryNavItem[] = [
-  {
-    label: "WOMEN",
-    slug: "women",
-    dropdown: [
-      { label: "NEW ARRIVALS", to: "/collections/$slug", params: { slug: "women" }, search: { sort: "new" } },
-      { label: "SHOP ALL WOMEN", to: "/collections/$slug", params: { slug: "women" } },
-    ],
-  },
-  {
-    label: "MEN",
-    slug: "men",
-    dropdown: [
-      { label: "NEW ARRIVALS", to: "/collections/$slug", params: { slug: "men" }, search: { sort: "new" } },
-      { label: "SHOP ALL MEN", to: "/collections/$slug", params: { slug: "men" } },
-    ],
-  },
-];
+import { getMegaMenu, type MegaMenuCategory } from "@/lib/megaMenu";
+import { MegaMenuPanel } from "@/components/layout/MegaMenuPanel";
 
 export function Navbar() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -41,7 +16,8 @@ export function Navbar() {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [accessorySubcats, setAccessorySubcats] = useState<Category[]>([]);
+  const [megaMenu, setMegaMenu] = useState<MegaMenuCategory[]>([]);
+  const [mobileActiveTab, setMobileActiveTab] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const { user } = useAuth();
   const { count: cartCount } = useCart();
@@ -50,7 +26,10 @@ export function Navbar() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    listChildCategories("accessories").then(setAccessorySubcats);
+    getMegaMenu().then((cats) => {
+      setMegaMenu(cats);
+      setMobileActiveTab((t) => t ?? cats[0]?.id ?? null);
+    });
   }, []);
 
   // Fade the navbar background to fully transparent as the user scrolls down;
@@ -128,22 +107,22 @@ export function Navbar() {
         <div className="flex sm:grid sm:grid-cols-[1fr_auto_1fr] items-center justify-between px-4 sm:px-8 lg:px-16 py-2.5 sm:py-3 text-foreground">
           {/* Left — category nav with dropdowns (desktop only) */}
           <div className="hidden sm:flex items-center gap-6 lg:gap-8 font-body">
-            {CATEGORY_NAV.map((cat) => (
+            {megaMenu.map((cat) => (
               <div
-                key={cat.slug}
+                key={cat.id}
                 className="relative"
-                onMouseEnter={() => setOpenDropdown(cat.slug)}
-                onMouseLeave={() => setOpenDropdown((d) => (d === cat.slug ? null : d))}
+                onMouseEnter={() => setOpenDropdown(cat.id)}
+                onMouseLeave={() => setOpenDropdown((d) => (d === cat.id ? null : d))}
               >
                 <button
                   type="button"
-                  onClick={() => setOpenDropdown((d) => (d === cat.slug ? null : cat.slug))}
+                  onClick={() => setOpenDropdown((d) => (d === cat.id ? null : cat.id))}
                   className="flex items-center gap-1 text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale"
                 >
                   {cat.label} <ChevronDown className="size-3" strokeWidth={1.5} />
                 </button>
                 <AnimatePresence>
-                  {openDropdown === cat.slug && (
+                  {openDropdown === cat.id && (cat.links.length > 0 || cat.tiles.length > 0) && (
                     <motion.div
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -151,63 +130,14 @@ export function Navbar() {
                       transition={{ duration: 0.15 }}
                       className="absolute top-full left-0 pt-3 z-10"
                     >
-                      <div className="min-w-[180px] bg-background border border-border shadow-lg py-2">
-                        {cat.dropdown.map((item) => (
-                          <Link
-                            key={item.label}
-                            to={item.to}
-                            params={item.params}
-                            search={item.search as never}
-                            onClick={() => setOpenDropdown(null)}
-                            className="block px-4 py-2 text-sm tracking-wide hover:bg-surface hover:text-primary transition-colors"
-                          >
-                            {item.label}
-                          </Link>
-                        ))}
+                      <div className="bg-background border border-border shadow-lg">
+                        <MegaMenuPanel category={cat} onNavigate={() => setOpenDropdown(null)} variant="desktop" />
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
             ))}
-
-            <div
-              className="relative"
-              onMouseEnter={() => setOpenDropdown("accessories")}
-              onMouseLeave={() => setOpenDropdown((d) => (d === "accessories" ? null : d))}
-            >
-              <button
-                type="button"
-                onClick={() => setOpenDropdown((d) => (d === "accessories" ? null : "accessories"))}
-                className="flex items-center gap-1 text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale"
-              >
-                ACCESSORIES <ChevronDown className="size-3" strokeWidth={1.5} />
-              </button>
-              <AnimatePresence>
-                {openDropdown === "accessories" && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute top-full left-0 pt-3 z-10"
-                  >
-                    <div className="min-w-[180px] bg-background border border-border shadow-lg py-2">
-                      <Link to="/collections/$slug" params={{ slug: "accessories" }} onClick={() => setOpenDropdown(null)}
-                        className="block px-4 py-2 text-sm tracking-wide hover:bg-surface hover:text-primary transition-colors">
-                        SHOP ALL ACCESSORIES
-                      </Link>
-                      {accessorySubcats.map((sc) => (
-                        <Link key={sc.slug} to="/collections/$slug" params={{ slug: sc.slug }} onClick={() => setOpenDropdown(null)}
-                          className="block px-4 py-2 text-sm tracking-wide hover:bg-surface hover:text-primary transition-colors">
-                          {sc.name.toUpperCase()}
-                        </Link>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
           </div>
 
           {/* Center — logo */}
@@ -364,54 +294,59 @@ export function Navbar() {
           )}
         </AnimatePresence>
 
-        {/* Mobile nav dropdown */}
+        {/* Mobile: full-screen tabbed mega menu */}
         <AnimatePresence>
           {mobileNavOpen && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="border-t border-border px-4 pb-5 pt-2 sm:hidden overflow-hidden text-foreground bg-background"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[110] sm:hidden bg-background text-foreground flex flex-col"
             >
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="men">
-                  <AccordionTrigger className="text-sm font-bold tracking-wide uppercase">MEN</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="flex flex-col gap-1 pl-3">
-                      <Link to="/collections/$slug" params={{ slug: "men" }} search={{ sort: "new" } as never} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">NEW ARRIVALS</Link>
-                      <Link to="/collections/$slug" params={{ slug: "men" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">SHOP ALL MEN</Link>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="women">
-                  <AccordionTrigger className="text-sm font-bold tracking-wide uppercase">WOMEN</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="flex flex-col gap-1 pl-3">
-                      <Link to="/collections/$slug" params={{ slug: "women" }} search={{ sort: "new" } as never} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">NEW ARRIVALS</Link>
-                      <Link to="/collections/$slug" params={{ slug: "women" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">SHOP ALL WOMEN</Link>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="accessories">
-                  <AccordionTrigger className="text-sm font-bold tracking-wide uppercase">ACCESSORIES</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="flex flex-col gap-1 pl-3">
-                      <Link to="/collections/$slug" params={{ slug: "accessories" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">SHOP ALL ACCESSORIES</Link>
-                      <Link to="/collections/$slug" params={{ slug: "rings" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">RINGS</Link>
-                      <Link to="/collections/$slug" params={{ slug: "chains" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">CHAINS</Link>
-                      <Link to="/collections/$slug" params={{ slug: "socks" }} onClick={() => setMobileNavOpen(false)} className="py-2 text-sm tracking-wide">SOCKS</Link>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-              {user ? (
-                <Link to="/account" onClick={() => setMobileNavOpen(false)} className="block py-3 text-sm font-bold tracking-wide uppercase">ACCOUNT</Link>
-              ) : (
-                <Link to="/login" onClick={() => setMobileNavOpen(false)} className="block py-3 text-sm font-bold tracking-wide uppercase">LOGIN</Link>
-              )}
-              <Link to="/wishlist" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-between py-3 text-sm font-bold tracking-wide uppercase">
-                WISHLIST {wishSlugs.length > 0 && <span className="text-mono text-xs text-muted-foreground">({wishSlugs.length})</span>}
-              </Link>
+              <div className="flex items-center justify-between px-4 h-14 border-b border-border shrink-0">
+                <div className="flex items-center gap-5 overflow-x-auto no-scrollbar">
+                  {megaMenu.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setMobileActiveTab(cat.id)}
+                      className={`shrink-0 text-sm tracking-wide uppercase pb-1 border-b-2 transition-colors ${
+                        mobileActiveTab === cat.id ? "border-primary text-foreground font-semibold" : "border-transparent text-muted-foreground"
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  aria-label="Close menu"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="shrink-0 ml-3 flex items-center justify-center size-9 hover:opacity-60 transition-opacity"
+                >
+                  <X className="size-5" strokeWidth={1.5} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto">
+                {megaMenu
+                  .filter((cat) => cat.id === mobileActiveTab)
+                  .map((cat) => (
+                    <MegaMenuPanel key={cat.id} category={cat} onNavigate={() => setMobileNavOpen(false)} variant="mobile" />
+                  ))}
+
+                <div className="px-4 pb-6 pt-2 border-t border-border mt-2">
+                  {user ? (
+                    <Link to="/account" onClick={() => setMobileNavOpen(false)} className="block py-3 text-sm font-bold tracking-wide uppercase">ACCOUNT</Link>
+                  ) : (
+                    <Link to="/login" onClick={() => setMobileNavOpen(false)} className="block py-3 text-sm font-bold tracking-wide uppercase">LOGIN</Link>
+                  )}
+                  <Link to="/wishlist" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-between py-3 text-sm font-bold tracking-wide uppercase">
+                    WISHLIST {wishSlugs.length > 0 && <span className="text-mono text-xs text-muted-foreground">({wishSlugs.length})</span>}
+                  </Link>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
