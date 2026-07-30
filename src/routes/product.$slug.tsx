@@ -437,7 +437,7 @@ function PDP() {
                     type="button"
                     onClick={() => setSelectedColor(c.key)}
                     aria-pressed={effectiveColorKey === c.key}
-                    className={`size-10 rounded-full border-2 ring-offset-2 ring-offset-background transition-all hover:scale-110 shadow-sm ${
+                    className={`size-10 aspect-square shrink-0 rounded-full border-2 ring-offset-2 ring-offset-background transition-all hover:scale-110 shadow-sm ${
                       effectiveColorKey === c.key ? "border-primary ring-2 ring-primary" : "border-border ring-1 ring-foreground/20"
                     }`}
                     style={{ backgroundColor: c.hex }}

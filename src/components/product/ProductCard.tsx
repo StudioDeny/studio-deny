@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Heart, ShoppingBag, Check } from "lucide-react";
 import { getVariantStock, type Product, type VariantStock } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
@@ -19,6 +19,24 @@ export function ProductCard({
   const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
   const [added, setAdded] = useState(false);
   const wished = has(product.slug);
+
+  // Mobile: swipeable photo strip (image, hover image, gallery) with dots.
+  // Desktop keeps the hover crossfade below instead.
+  const photos = Array.from(new Set([product.image, product.hoverImage, ...(product.gallery ?? []).map((g) => g.url)].filter(Boolean)));
+  const [mobilePhotoIndex, setMobilePhotoIndex] = useState(0);
+  const mobileScrollerRef = useRef<HTMLDivElement>(null);
+  const handleMobileScroll = () => {
+    const el = mobileScrollerRef.current;
+    if (!el || el.clientWidth === 0) return;
+    setMobilePhotoIndex(Math.round(el.scrollLeft / el.clientWidth));
+  };
+
+  const hasDiscount = product.compareAt && product.compareAt > product.price;
+  const discountPct = hasDiscount ? Math.round(((product.compareAt! - product.price) / product.compareAt!) * 100) : 0;
+  // A "SALE" badge becomes the dynamic %-off instead; other badges (NEW
+  // DROP/LAST PIECE/SOLD OUT) are unaffected and still render top-left.
+  const showPctBadge = product.badge === "SALE" && hasDiscount;
+  const topLeftBadge = product.badge && product.badge !== "SALE" ? product.badge : null;
 
   const handleOpenSizes = () => {
     setShowSizes(true);
@@ -51,61 +69,88 @@ export function ProductCard({
           className="relative overflow-hidden"
           style={{ aspectRatio: "3/4", background: "var(--color-surface)" }}
         >
-          {/* Main image */}
-          {product.imageType === "video" ? (
-            <video
-              src={product.image}
-              autoPlay loop muted playsInline
-              className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
-              style={{ opacity: hover ? 0 : 1, transform: hover ? "scale(1.06)" : "scale(1)" }}
-            />
-          ) : (
-            <img
-              src={product.image}
-              alt={product.name}
-              loading="lazy"
-              width={800}
-              height={1000}
-              className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
-              style={{
-                opacity: hover ? 0 : 1,
-                transform: hover ? "scale(1.06)" : "scale(1)",
-              }}
-            />
-          )}
-          {/* Hover image */}
-          {product.hoverImageType === "video" ? (
-            <video
-              src={product.hoverImage}
-              autoPlay loop muted playsInline
-              className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
-              style={{ opacity: hover ? 1 : 0, transform: hover ? "scale(1)" : "scale(1.04)" }}
-            />
-          ) : (
-            <img
-              src={product.hoverImage}
-              alt=""
-              loading="lazy"
-              aria-hidden
-              className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
+          {/* Desktop: crossfade main <-> hover image */}
+          <div className="hidden md:block">
+            {product.imageType === "video" ? (
+              <video
+                src={product.image}
+                autoPlay loop muted playsInline
+                className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
+                style={{ opacity: hover ? 0 : 1, transform: hover ? "scale(1.06)" : "scale(1)" }}
+              />
+            ) : (
+              <img
+                src={product.image}
+                alt={product.name}
+                loading="lazy"
+                width={800}
+                height={1000}
+                className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
+                style={{
+                  opacity: hover ? 0 : 1,
+                  transform: hover ? "scale(1.06)" : "scale(1)",
+                }}
+              />
+            )}
+            {product.hoverImageType === "video" ? (
+              <video
+                src={product.hoverImage}
+                autoPlay loop muted playsInline
+                className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
+                style={{ opacity: hover ? 1 : 0, transform: hover ? "scale(1)" : "scale(1.04)" }}
+              />
+            ) : (
+              <img
+                src={product.hoverImage}
+                alt=""
+                loading="lazy"
+                aria-hidden
+                className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
+                style={{
+                  opacity: hover ? 1 : 0,
+                  transform: hover ? "scale(1)" : "scale(1.04)",
+                }}
+              />
+            )}
+            {/* Gradient on hover */}
+            <div
+              className="absolute inset-0 transition-opacity duration-400"
               style={{
                 opacity: hover ? 1 : 0,
-                transform: hover ? "scale(1)" : "scale(1.04)",
+                background: "linear-gradient(to top, rgba(9,9,9,0.6) 0%, transparent 60%)",
               }}
             />
+          </div>
+
+          {/* Mobile: swipeable photo strip + dot pagination (no hover on touch) */}
+          <div
+            ref={mobileScrollerRef}
+            onScroll={handleMobileScroll}
+            className="md:hidden absolute inset-0 flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+          >
+            {photos.map((url, i) => (
+              <img
+                key={url + i}
+                src={url}
+                alt={i === 0 ? product.name : ""}
+                loading={i === 0 ? undefined : "lazy"}
+                className="w-full h-full object-cover shrink-0 snap-center"
+              />
+            ))}
+          </div>
+          {photos.length > 1 && (
+            <div className="md:hidden absolute bottom-2 inset-x-0 flex items-center justify-center gap-1 z-[1]">
+              {photos.map((_, i) => (
+                <span
+                  key={i}
+                  className={`size-1.5 rounded-full transition-colors ${i === mobilePhotoIndex ? "bg-white" : "bg-white/40"}`}
+                />
+              ))}
+            </div>
           )}
 
-          {/* Gradient on hover */}
-          <div
-            className="absolute inset-0 transition-opacity duration-400"
-            style={{
-              opacity: hover ? 1 : 0,
-              background: "linear-gradient(to top, rgba(9,9,9,0.6) 0%, transparent 60%)",
-            }}
-          />
-
           {/* Badges */}
-          {(product.badge || product.isBestSeller) && (
+          {(topLeftBadge || product.isBestSeller) && (
             <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1">
               {product.isBestSeller && (
                 <span
@@ -115,23 +160,31 @@ export function ProductCard({
                   BEST SELLER
                 </span>
               )}
-              {product.badge && (
+              {topLeftBadge && (
                 <span
                   className={`text-mono font-semibold px-2 py-1 ${
-                    product.badge === "SALE"
-                      ? "bg-secondary text-secondary-foreground"
-                      : product.badge === "SOLD OUT"
+                    topLeftBadge === "SOLD OUT"
                       ? "bg-muted text-muted-foreground"
-                      : product.badge === "LAST PIECE"
+                      : topLeftBadge === "LAST PIECE"
                       ? "bg-primary text-primary-foreground glow-primary-sm"
                       : "bg-primary text-primary-foreground"
                   }`}
                   style={{ fontSize: "9px", letterSpacing: "0.25em" }}
                 >
-                  {product.badge}
+                  {topLeftBadge}
                 </span>
               )}
             </div>
+          )}
+
+          {/* Dynamic discount badge — replaces the SALE badge, bottom-left */}
+          {showPctBadge && (
+            <span
+              className="absolute bottom-2.5 left-2.5 bg-red-600 text-white font-bold px-2 py-1"
+              style={{ fontSize: "10px", letterSpacing: "0.05em" }}
+            >
+              -{discountPct}%
+            </span>
           )}
 
           {/* Wishlist — plain heart, no box */}
@@ -194,6 +247,14 @@ export function ProductCard({
           >
             {product.name}
           </h3>
+          <div className="mt-1 flex items-baseline gap-2 text-mono">
+            <span style={{ fontSize: "13px" }}>{formatINR(product.price)}</span>
+            {hasDiscount && (
+              <span className="text-muted-foreground line-through" style={{ fontSize: "11px" }}>
+                {formatINR(product.compareAt!)}
+              </span>
+            )}
+          </div>
         </div>
       </Link>
     </div>
