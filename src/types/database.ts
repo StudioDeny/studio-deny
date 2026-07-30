@@ -35,6 +35,14 @@ export type CategoryRow = {
   created_at: string;
 };
 
+export type SizeRow = {
+  id: string;
+  category_id: string;
+  label: string;
+  position: number;
+  created_at: string;
+};
+
 export type AppRole = "admin" | "staff" | "customer";
 export type PaymentMethod = "RAZORPAY" | "COD";
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
@@ -67,6 +75,12 @@ export interface Database {
         Row: CategoryRow;
         Insert: Omit<CategoryRow, "id" | "created_at" | "is_active"> & Partial<Pick<CategoryRow, "id" | "created_at" | "is_active">>;
         Update: Partial<Omit<CategoryRow, "id" | "created_at">>;
+        Relationships: [];
+      };
+      sizes: {
+        Row: SizeRow;
+        Insert: Omit<SizeRow, "id" | "created_at" | "position"> & Partial<Pick<SizeRow, "id" | "created_at" | "position">>;
+        Update: Partial<Omit<SizeRow, "id" | "created_at">>;
         Relationships: [];
       };
       announcement_bars: {

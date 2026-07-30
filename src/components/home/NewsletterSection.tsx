@@ -7,6 +7,8 @@ type NewsletterConfig = {
   title: string;
   subtitle: string;
   cta_label: string;
+  success_heading: string;
+  success_body: string;
 };
 
 const DEFAULTS: NewsletterConfig = {
@@ -14,9 +16,11 @@ const DEFAULTS: NewsletterConfig = {
   title: "READY FOR THE NEXT DROP?",
   subtitle: "Be first in line when new pieces launch. No spam, just early access.",
   cta_label: "GET EARLY ACCESS",
+  success_heading: "✓ YOU'RE ON THE LIST",
+  success_body: "We'll hit you first when the next drop goes live.",
 };
 
-function Form({ ctaLabel }: { ctaLabel: string }) {
+function Form({ ctaLabel, successHeading, successBody }: { ctaLabel: string; successHeading: string; successBody: string }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "done">("idle");
 
@@ -31,10 +35,10 @@ function Form({ ctaLabel }: { ctaLabel: string }) {
     return (
       <div className="mt-8 flex flex-col items-center gap-3">
         <div className="text-secondary font-bold text-mono" style={{ fontSize: "11px", letterSpacing: "0.25em" }}>
-          ✓ YOU'RE ON THE LIST
+          {successHeading}
         </div>
         <p className="text-muted-foreground text-mono" style={{ fontSize: "12px" }}>
-          We'll hit you first when the next drop goes live.
+          {successBody}
         </p>
       </div>
     );
@@ -104,7 +108,7 @@ export function NewsletterSection() {
         <p className="mt-4 opacity-80 max-w-md mx-auto text-mono" style={{ fontSize: "14px" }}>
           {cfg.subtitle}
         </p>
-        <Form ctaLabel={cfg.cta_label} />
+        <Form ctaLabel={cfg.cta_label} successHeading={cfg.success_heading} successBody={cfg.success_body} />
       </motion.div>
     </section>
   );

@@ -17,6 +17,8 @@ type DenySpaceConfig = {
   cta_href: string;
   bg_color?: string;
   text_color?: string;
+  bg_media_url?: string;
+  bg_media_type?: "image" | "video";
 };
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -62,13 +64,24 @@ export function DenySpace() {
 
   const bg = cfg.bg_color ?? "#0d0d0d";
   const text = cfg.text_color ?? "#ffffff";
+  const hasBgMedia = !!cfg.bg_media_url;
 
   return (
     <section
       className="py-20 sm:py-28 px-4 sm:px-8 lg:px-16 border-y border-border relative overflow-hidden"
-      style={{ background: bg }}
+      style={hasBgMedia ? undefined : { background: bg }}
     >
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30 pointer-events-none" />
+      {hasBgMedia && (
+        cfg.bg_media_type === "video" ? (
+          <video src={cfg.bg_media_url} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <img src={cfg.bg_media_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        )
+      )}
+      {!hasBgMedia && (
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30 pointer-events-none" />
+      )}
+      {hasBgMedia && <div className="absolute inset-0 bg-black/40 pointer-events-none" />}
       <div className="max-w-[900px] mx-auto relative z-10 text-center">
         <motion.div initial={{ opacity: 0, y: -16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.9 }} viewport={{ once: true }} className="flex justify-center mb-8">
           {cfg.logo_type === "video" ? (
@@ -83,7 +96,7 @@ export function DenySpace() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
           viewport={{ once: true }}
-          className="text-sm sm:text-base text-mono leading-relaxed max-w-lg mx-auto mb-14"
+          className="text-sm sm:text-base text-mono leading-relaxed max-w-lg mx-auto mb-14 whitespace-pre-line"
           style={{ color: text, opacity: 0.7 }}
         >
           {cfg.description}

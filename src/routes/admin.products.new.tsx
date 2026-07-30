@@ -2,10 +2,24 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { upsertProduct, type Product, type GalleryItem } from "@/lib/productsStore";
 import { listCategories, listBrands, type Category } from "@/lib/catalog";
+import { listSizesForCategory, type Size } from "@/lib/sizes";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, Loader2, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { CategoryPicker } from "@/components/admin/CategoryPicker";
 import { MediaField, type MediaValue } from "@/components/admin/MediaField";
+
+export type Variant = {
+  id?: string;
+  tempId?: string;
+  size: string | null;
+  color?: string | null;
+  color_hex?: string | null;
+  stock: number;
+  price?: number | null;
+  compare_price?: number | null;
+  sku?: string | null;
+};
 
 export const Route = createFileRoute("/admin/products/new")({
   component: NewProduct,
@@ -65,6 +79,79 @@ export function ProductForm({
   );
   const [saving, setSaving] = useState(false);
   const [galleryMedia, setGalleryMedia] = useState<MediaValue>({ url: "", type: "image" });
+  const [sizesForCategory, setSizesForCategory] = useState<Size[]>([]);
+  const [variants, setVariants] = useState<Variant[]>([]);
+  const [variantsLoading, setVariantsLoading] = useState(!!initial);
+  const [showVariantModal, setShowVariantModal] = useState(false);
+  const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
+
+  useEffect(() => {
+    if (!p.categoryId) { setSizesForCategory([]); return; }
+    listSizesForCategory(p.categoryId).then(setSizesForCategory);
+  }, [p.categoryId]);
+
+  const fetchVariants = async () => {
+    if (!initial) return;
+    setVariantsLoading(true);
+    const { data } = await supabase.from("product_variants").select("*").eq("product_id", initial.slug).order("size");
+    setVariants(data ?? []);
+    setVariantsLoading(false);
+  };
+  useEffect(() => { fetchVariants(); }, [initial?.slug]);
+
+  const saveVariant = async (v: Variant) => {
+    if (initial) {
+      if (v.id) {
+        const { error } = await supabase
+          .from("product_variants")
+          .update({
+            size: v.size, color: v.color ?? null, color_hex: v.color_hex ?? null,
+            stock: v.stock, price: v.price ?? null, compare_price: v.compare_price ?? null,
+            sku: v.sku ?? null,
+          })
+          .eq("id", v.id);
+        if (error) { toast.error(error.message); return; }
+      } else {
+        const { error } = await supabase.from("product_variants").insert({
+          product_id: initial.slug, size: v.size, color: v.color ?? null,
+          color_hex: v.color_hex ?? null, stock: v.stock,
+          price: v.price ?? null, compare_price: v.compare_price ?? null, sku: v.sku ?? null,
+        });
+        if (error) { toast.error(error.message); return; }
+      }
+      toast.success("Variant saved");
+      setShowVariantModal(false);
+      setEditingVariant(null);
+      fetchVariants();
+    } else {
+      setVariants((prev) => {
+        const tempId = v.tempId ?? `tmp-${Date.now()}-${prev.length}`;
+        const withId = { ...v, tempId };
+        const idx = prev.findIndex((x) => x.tempId === v.tempId);
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = withId;
+          return next;
+        }
+        return [...prev, withId];
+      });
+      setShowVariantModal(false);
+      setEditingVariant(null);
+      toast.success("Variant staged — will be saved with the product");
+    }
+  };
+
+  const deleteVariant = async (v: Variant) => {
+    if (!confirm("Delete this variant?")) return;
+    if (initial && v.id) {
+      const { error } = await supabase.from("product_variants").delete().eq("id", v.id);
+      if (error) { toast.error(error.message); return; }
+      toast.success("Deleted");
+      fetchVariants();
+    } else {
+      setVariants((prev) => prev.filter((x) => x.tempId !== v.tempId));
+    }
+  };
 
   const set = <K extends keyof Product>(k: K, v: Product[K]) =>
     setP({ ...p, [k]: v });
@@ -121,6 +208,15 @@ export function ProductForm({
           setSaving(true);
           try {
             await onSave(final);
+            if (!initial && variants.length > 0) {
+              const rows = variants.map((v) => ({
+                product_id: final.slug, size: v.size, color: v.color ?? null,
+                color_hex: v.color_hex ?? null, stock: v.stock,
+                price: v.price ?? null, compare_price: v.compare_price ?? null, sku: v.sku ?? null,
+              }));
+              const { error } = await supabase.from("product_variants").insert(rows);
+              if (error) toast.error(`Product saved, but variants failed: ${error.message}`);
+            }
           } catch (err) {
             toast.error(err instanceof Error ? err.message : "Save failed");
           } finally {
@@ -326,21 +422,34 @@ export function ProductForm({
           </div>
         </Field>
 
-        <Field label="SIZES (comma separated)">
-          <input
-            value={p.sizes.join(", ")}
-            onChange={(e) =>
-              set(
-                "sizes",
-                e.target.value
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-              )
-            }
-            className="inp"
-            placeholder="S, M, L, XL"
-          />
+        <Field label="AVAILABLE SIZES (used when this product has no variants)">
+          {!p.categoryId ? (
+            <p className="text-mono text-[11px] text-muted-foreground">Select a category first.</p>
+          ) : sizesForCategory.length === 0 ? (
+            <p className="text-mono text-[11px] text-muted-foreground">
+              No sizes defined for this category yet — add some in <Link to="/admin/sizes" className="text-primary hover:underline">Admin → Sizes</Link>.
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {sizesForCategory.map((s) => {
+                const active = p.sizes.includes(s.label);
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() =>
+                      set("sizes", active ? p.sizes.filter((x) => x !== s.label) : [...p.sizes, s.label])
+                    }
+                    className={`h-10 px-4 border text-sm font-semibold transition-colors ${
+                      active ? "bg-foreground text-background border-foreground" : "border-border hover:border-primary hover:text-primary"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </Field>
 
         <Field label="DESCRIPTION">
@@ -380,7 +489,206 @@ export function ProductForm({
           {saving ? "SAVING…" : "SAVE PRODUCT"}
         </button>
       </form>
+
+      <div className="mt-14 pt-10 border-t border-border">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-display text-3xl">VARIANTS.</h2>
+          <button
+            type="button"
+            onClick={() => { setEditingVariant({ size: "", stock: 10 }); setShowVariantModal(true); }}
+            className="flex items-center gap-2 bg-primary text-primary-foreground text-mono text-xs tracking-widest px-4 h-9 hover:glow-primary"
+          >
+            <Plus className="size-3.5" /> ADD VARIANT
+          </button>
+        </div>
+        <p className="text-muted-foreground text-xs mb-5" style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.1em" }}>
+          VARIANTS OVERRIDE SIZES FROM THE PRODUCT FORM. IF VARIANTS EXIST, THE STOREFRONT USES THEM FOR SIZE/STOCK.
+          {!initial && " NEW VARIANTS ARE SAVED WHEN YOU SAVE THE PRODUCT."}
+        </p>
+
+        {variantsLoading ? (
+          <p className="text-muted-foreground text-sm">Loading…</p>
+        ) : variants.length === 0 ? (
+          <div className="border border-dashed border-border p-8 text-center">
+            <p className="text-muted-foreground text-sm">No variants. Add size + stock combinations to track inventory per size/color.</p>
+          </div>
+        ) : (
+          <div className="border border-border bg-surface overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+                <tr>
+                  <th className="text-left p-3">SIZE</th>
+                  <th className="text-left p-3">COLOR</th>
+                  <th className="text-left p-3">STOCK</th>
+                  <th className="text-left p-3">PRICE</th>
+                  <th className="text-left p-3">SKU</th>
+                  <th className="text-right p-3">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {variants.map((v) => (
+                  <tr key={v.id ?? v.tempId}>
+                    <td className="p-3 text-mono font-bold">{v.size}</td>
+                    <td className="p-3">
+                      {v.color ? (
+                        <div className="flex items-center gap-2">
+                          {v.color_hex && (
+                            <span className="size-4 rounded-full border border-border inline-block" style={{ background: v.color_hex }} />
+                          )}
+                          <span className="text-mono text-xs">{v.color}</span>
+                        </div>
+                      ) : <span className="text-muted-foreground">—</span>}
+                    </td>
+                    <td className="p-3">
+                      <span className={`text-mono text-xs font-semibold ${v.stock === 0 ? "text-red-500" : v.stock <= 5 ? "text-amber-600" : ""}`}>
+                        {v.stock === 0 ? "OUT" : v.stock}
+                      </span>
+                    </td>
+                    <td className="p-3 text-mono text-xs">{v.price ? `₹${v.price}` : <span className="text-muted-foreground">default</span>}</td>
+                    <td className="p-3 text-muted-foreground text-xs">{v.sku || "—"}</td>
+                    <td className="p-3 text-right">
+                      <div className="inline-flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => { setEditingVariant(v); setShowVariantModal(true); }}
+                          className="text-mono text-[10px] tracking-widest text-primary hover:underline"
+                        >
+                          EDIT
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteVariant(v)}
+                          className="text-mono text-[10px] tracking-widest text-red-500 hover:underline"
+                        >
+                          DEL
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {showVariantModal && editingVariant && (
+        <VariantModal
+          initial={editingVariant}
+          categoryId={p.categoryId}
+          onSave={saveVariant}
+          onClose={() => { setShowVariantModal(false); setEditingVariant(null); }}
+        />
+      )}
+
       <style>{`.inp{background:var(--background);border:1px solid var(--border);height:40px;padding:0 12px;width:100%;font-family:var(--font-mono,monospace);font-size:14px}textarea.inp{height:auto;padding:10px 12px}`}</style>
+    </div>
+  );
+}
+
+function VariantModal({
+  initial, categoryId, onSave, onClose,
+}: {
+  initial: Variant;
+  categoryId?: string;
+  onSave: (v: Variant) => void;
+  onClose: () => void;
+}) {
+  const [v, setV] = useState<Variant>(initial);
+  const [sizesForCategory, setSizesForCategory] = useState<Size[]>([]);
+  const set = <K extends keyof Variant>(k: K, val: Variant[K]) => setV((prev) => ({ ...prev, [k]: val }));
+
+  useEffect(() => {
+    if (!categoryId) { setSizesForCategory([]); return; }
+    listSizesForCategory(categoryId).then(setSizesForCategory);
+  }, [categoryId]);
+
+  const submit = () => {
+    if (!(v.size ?? "").trim()) { toast.error("Size is required"); return; }
+    onSave(v);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+      <div className="bg-surface border border-border w-full max-w-md p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-display text-2xl">{initial.id ? "EDIT" : "ADD"} VARIANT.</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="size-4" /></button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SIZE *</div>
+            {!categoryId ? (
+              <p className="text-mono text-[11px] text-muted-foreground">Select a category on the product form first.</p>
+            ) : sizesForCategory.length === 0 ? (
+              <p className="text-mono text-[11px] text-muted-foreground">
+                No sizes defined for this category yet — add some in Admin → Sizes.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {sizesForCategory.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => set("size", s.label)}
+                    className={`h-9 px-3 border text-sm font-semibold transition-colors ${
+                      v.size === s.label ? "bg-foreground text-background border-foreground" : "border-border hover:border-primary hover:text-primary"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <label className="block">
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">STOCK *</div>
+            <input type="number" value={v.stock} min={0} onChange={(e) => set("stock", Number(e.target.value))} className="inp" />
+          </label>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COLOR NAME</div>
+              <input value={v.color ?? ""} onChange={(e) => set("color", e.target.value || undefined)} className="inp" placeholder="Black" />
+            </label>
+            <label className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COLOR HEX</div>
+              <input value={v.color_hex ?? ""} onChange={(e) => set("color_hex", e.target.value || undefined)} className="inp" placeholder="#0a0a0a" />
+            </label>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">PRICE ₹ (blank = product default)</div>
+              <input
+                type="number" value={v.price ?? ""}
+                onChange={(e) => set("price", e.target.value ? Number(e.target.value) : undefined)}
+                className="inp"
+              />
+            </label>
+            <label className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COMPARE AT ₹</div>
+              <input
+                type="number" value={v.compare_price ?? ""}
+                onChange={(e) => set("compare_price", e.target.value ? Number(e.target.value) : undefined)}
+                className="inp"
+              />
+            </label>
+          </div>
+          <label className="block">
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SKU (optional — your own internal code for this size/color, e.g. for warehouse or invoicing use. Not shown to customers.)</div>
+            <input value={v.sku ?? ""} onChange={(e) => set("sku", e.target.value || undefined)} className="inp" placeholder="SD-TEE-BLK-M" />
+          </label>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button onClick={submit} className="flex-1 bg-primary text-primary-foreground text-mono text-xs tracking-widest h-10 hover:glow-primary">
+            SAVE VARIANT
+          </button>
+          <button onClick={onClose} className="border border-border px-6 text-mono text-xs tracking-widest h-10 hover:border-primary">
+            CANCEL
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

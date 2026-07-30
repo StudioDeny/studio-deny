@@ -44,6 +44,7 @@ import { Route as CollaboratorsArtRouteImport } from './routes/collaborators.art
 import { Route as AdminWebsiteSectionsRouteImport } from './routes/admin.website-sections'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTestimonialsRouteImport } from './routes/admin.testimonials'
+import { Route as AdminSizesRouteImport } from './routes/admin.sizes'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
 import { Route as AdminRefundsRouteImport } from './routes/admin.refunds'
@@ -246,6 +247,11 @@ const AdminTestimonialsRoute = AdminTestimonialsRouteImport.update({
   path: '/testimonials',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSizesRoute = AdminSizesRouteImport.update({
+  id: '/sizes',
+  path: '/sizes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -417,6 +423,7 @@ export interface FileRoutesByFullPath {
   '/admin/refunds': typeof AdminRefundsRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/sizes': typeof AdminSizesRoute
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/website-sections': typeof AdminWebsiteSectionsRoute
@@ -477,6 +484,7 @@ export interface FileRoutesByTo {
   '/admin/refunds': typeof AdminRefundsRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/sizes': typeof AdminSizesRoute
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/website-sections': typeof AdminWebsiteSectionsRoute
@@ -540,6 +548,7 @@ export interface FileRoutesById {
   '/admin/refunds': typeof AdminRefundsRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/sizes': typeof AdminSizesRoute
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/website-sections': typeof AdminWebsiteSectionsRoute
@@ -604,6 +613,7 @@ export interface FileRouteTypes {
     | '/admin/refunds'
     | '/admin/seo'
     | '/admin/settings'
+    | '/admin/sizes'
     | '/admin/testimonials'
     | '/admin/users'
     | '/admin/website-sections'
@@ -664,6 +674,7 @@ export interface FileRouteTypes {
     | '/admin/refunds'
     | '/admin/seo'
     | '/admin/settings'
+    | '/admin/sizes'
     | '/admin/testimonials'
     | '/admin/users'
     | '/admin/website-sections'
@@ -726,6 +737,7 @@ export interface FileRouteTypes {
     | '/admin/refunds'
     | '/admin/seo'
     | '/admin/settings'
+    | '/admin/sizes'
     | '/admin/testimonials'
     | '/admin/users'
     | '/admin/website-sections'
@@ -1021,6 +1033,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTestimonialsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/sizes': {
+      id: '/admin/sizes'
+      path: '/sizes'
+      fullPath: '/admin/sizes'
+      preLoaderRoute: typeof AdminSizesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/settings': {
       id: '/admin/settings'
       path: '/settings'
@@ -1237,6 +1256,7 @@ interface AdminRouteChildren {
   AdminRefundsRoute: typeof AdminRefundsRoute
   AdminSeoRoute: typeof AdminSeoRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminSizesRoute: typeof AdminSizesRoute
   AdminTestimonialsRoute: typeof AdminTestimonialsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminWebsiteSectionsRoute: typeof AdminWebsiteSectionsRoute
@@ -1266,6 +1286,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminRefundsRoute: AdminRefundsRoute,
   AdminSeoRoute: AdminSeoRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminSizesRoute: AdminSizesRoute,
   AdminTestimonialsRoute: AdminTestimonialsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminWebsiteSectionsRoute: AdminWebsiteSectionsRoute,

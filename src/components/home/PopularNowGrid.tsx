@@ -11,10 +11,10 @@ type PopularNowConfig = { title: string; items: PopularNowItem[]; view_all_href?
 
 const DEFAULTS: PopularNowConfig = { title: "POPULAR NOW", items: [], view_all_href: "/shop" };
 
-// Uneven card widths/heights, cycling every 3 tiles for the mixed-size look.
+// Mixed tile shapes cycling every 3: tall rectangle, square, narrow rectangle.
 const SIZE_CLASSES = [
   "w-[210px] sm:w-[260px] h-[320px] sm:h-[380px]",
-  "w-[150px] sm:w-[190px] h-[260px] sm:h-[300px]",
+  "w-[210px] sm:w-[260px] h-[210px] sm:h-[260px]",
   "w-[150px] sm:w-[190px] h-[320px] sm:h-[380px]",
 ];
 

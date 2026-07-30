@@ -368,7 +368,7 @@ function PDP() {
             {product.compareAt && (
               <>
                 <span className="text-muted-foreground line-through" style={{ fontSize: "16px" }}>{formatINR(product.compareAt)}</span>
-                <span className="text-secondary font-bold px-2 py-0.5 border border-secondary/30 bg-secondary/10" style={{ fontSize: "11px", letterSpacing: "0.15em" }}>
+                <span className="bg-secondary text-secondary-foreground font-bold px-2 py-0.5" style={{ fontSize: "11px", letterSpacing: "0.15em" }}>
                   SAVE {Math.round(((product.compareAt - displayPrice) / product.compareAt) * 100)}%
                 </span>
               </>

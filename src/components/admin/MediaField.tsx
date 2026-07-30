@@ -110,6 +110,16 @@ export function MediaField({
           )}
         </div>
       )}
+
+      {value.url && (
+        <div className="mt-2 h-24 w-24 border border-border rounded overflow-hidden bg-muted/30 shrink-0">
+          {value.type === "video" ? (
+            <video src={value.url} className="h-full w-full object-cover" muted playsInline />
+          ) : (
+            <img src={value.url} alt="Preview" className="h-full w-full object-cover" />
+          )}
+        </div>
+      )}
     </div>
   );
 }

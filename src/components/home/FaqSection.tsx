@@ -5,8 +5,8 @@ import { Plus, Minus, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type FaqPreviewItem = { question: string; answer: string };
-type FaqConfig = { eyebrow: string; title: string };
-const DEFAULTS: FaqConfig = { eyebrow: "GOT QUESTIONS?", title: "WE'VE GOT ANSWERS." };
+type FaqConfig = { eyebrow: string; title: string; view_all_label?: string };
+const DEFAULTS: FaqConfig = { eyebrow: "GOT QUESTIONS?", title: "WE'VE GOT ANSWERS.", view_all_label: "VIEW ALL FAQS" };
 
 const PREVIEW_LIMIT = 5;
 
@@ -27,7 +27,11 @@ export function FaqSection() {
         if (!data) return;
         const row = data as unknown as { is_visible: boolean; config: Partial<FaqConfig> };
         setVisible(row.is_visible);
-        setCfg({ eyebrow: row.config?.eyebrow || DEFAULTS.eyebrow, title: row.config?.title || DEFAULTS.title });
+        setCfg({
+          eyebrow: row.config?.eyebrow || DEFAULTS.eyebrow,
+          title: row.config?.title || DEFAULTS.title,
+          view_all_label: row.config?.view_all_label || DEFAULTS.view_all_label,
+        });
       });
   }, []);
 
@@ -74,7 +78,7 @@ export function FaqSection() {
             to="/faq"
             className="inline-flex items-center gap-2 text-mono text-xs tracking-[0.2em] uppercase border-b border-foreground/40 pb-1 hover:border-primary hover:text-primary transition-colors"
           >
-            VIEW ALL FAQS <ArrowRight className="size-4" />
+            {cfg.view_all_label ?? "VIEW ALL FAQS"} <ArrowRight className="size-4" />
           </Link>
         </div>
       </div>

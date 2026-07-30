@@ -39,7 +39,7 @@ export function FabricTabsSection() {
   const [fabricTabs, setFabricTabs] = useState<FabricTab[]>(DEFAULT_FABRIC_TABS);
   const [activeFabric, setActiveFabric] = useState(DEFAULT_FABRIC_TABS[0]);
   const [visible, setVisible] = useState(true);
-  const productSpecsHeading = useSectionHeading("product_specifications", "PREMIUM FABRIC.", { eyebrow: "THE DETAILS" });
+  const productSpecsHeading = useSectionHeading("product_specifications", "PREMIUM FABRIC.", { eyebrow: "THE DETAILS", subtitle: "UNCOMPROMISED QUALITY." });
 
   useEffect(() => {
     supabase
@@ -73,7 +73,7 @@ export function FabricTabsSection() {
             {productSpecsHeading.text}
             <br />
             <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(0,0,0,0.55)" }}>
-              UNCOMPROMISED QUALITY.
+              {productSpecsHeading.subtitle}
             </span>
           </h2>
         </motion.div>

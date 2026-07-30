@@ -28,19 +28,24 @@ type ArrivalsConfig = { eyebrow: string; title: string; subtitle: string; cta_la
 type LookbookConfig = { images: string[]; title: string };
 type WhyUsFeature = { label: string; desc: string };
 type WhyUsConfig = { eyebrow: string; title: string; subtitle: string; features: WhyUsFeature[] };
-type NewsletterConfig = { eyebrow: string; title: string; subtitle: string; cta_label: string };
-type FaqConfig = { eyebrow: string; title: string };
+type NewsletterConfig = { eyebrow: string; title: string; subtitle: string; cta_label: string; success_heading?: string; success_body?: string };
+type FaqConfig = { eyebrow: string; title: string; view_all_label?: string };
 type SplitCard = { media_type: "image" | "video"; src: string; label: string; cta_href: string };
-type GenderSplitConfig = { cards: SplitCard[] };
+type GenderSplitConfig = { cards: SplitCard[]; explore_label?: string };
 type CarouselSlide = { media_type: "image" | "video"; src: string; label: string; href: string; subtitle?: string; cta_label?: string };
 type CategoryCarouselConfig = { slides: CarouselSlide[] };
 type DenySpaceBenefit = { icon: string; label: string; desc: string };
-type DenySpaceConfig = { logo_url: string; logo_type?: "image" | "video"; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string; bg_color?: string; text_color?: string };
+type DenySpaceConfig = { logo_url: string; logo_type?: "image" | "video"; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string; bg_color?: string; text_color?: string; bg_media_url?: string; bg_media_type?: "image" | "video" };
 type PopularNowItem = { slug: string; tag?: string };
 type PopularNowConfig = { title: string; items: PopularNowItem[]; view_all_href?: string };
 type FabricTab = { id: string; name: string; title: string; desc: string; img: string; img_type?: "image" | "video"; href?: string };
 type FabricTabsConfig = { tabs: FabricTab[] };
 type MotionPictureConfig = { video_url: string; media_type?: "image" | "video"; subtext: string };
+type InfluencerPicksConfig = { explore_label?: string };
+type ContactCard = { label: string; desc: string };
+type ContactSupportConfig = { cards: ContactCard[]; cta_label?: string };
+type TestimonialFallback = { quote: string; name: string; city: string };
+type TestimonialsConfig = { fallback_quotes?: TestimonialFallback[] };
 
 const DENYSPACE_ICONS = ["Truck", "RotateCcw", "ShieldCheck", "Gift", "Star", "Sparkles", "Heart", "Award", "Package", "Zap", "Clock", "CheckCircle"];
 
@@ -696,6 +701,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           </div>
           <F label="EYEBROW TEXT"><input value={c.eyebrow ?? ""} onChange={(e) => set("eyebrow", e.target.value)} className="inp" placeholder="GOT QUESTIONS?" /></F>
           <F label="SECTION HEADING"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="WE'VE GOT ANSWERS." /></F>
+          <F label="VIEW ALL LINK TEXT"><input value={c.view_all_label ?? ""} onChange={(e) => set("view_all_label", e.target.value)} className="inp" placeholder="VIEW ALL FAQS" /></F>
         </div>
       );
     }
@@ -734,6 +740,10 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           </div>
           <F label="HEADING"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="READY FOR THE NEXT DROP?" /></F>
           <F label="SUBTEXT"><textarea rows={2} value={c.subtitle ?? ""} onChange={(e) => set("subtitle", e.target.value)} className="inp" /></F>
+          <div className="grid grid-cols-2 gap-3">
+            <F label="SUCCESS HEADING (shown after signup)"><input value={c.success_heading ?? ""} onChange={(e) => set("success_heading", e.target.value)} className="inp" placeholder="✓ YOU'RE ON THE LIST" /></F>
+            <F label="SUCCESS BODY"><input value={c.success_body ?? ""} onChange={(e) => set("success_body", e.target.value)} className="inp" placeholder="We'll hit you first when the next drop goes live." /></F>
+          </div>
         </div>
       );
     }
@@ -751,6 +761,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
             Full-bleed cards side by side (Men / Accessories / Women, or however you want to split it) — up to 3.
           </div>
+          <F label="BUTTON TEXT (shown on every card)"><input value={c.explore_label ?? ""} onChange={(e) => set("explore_label", e.target.value)} className="inp" placeholder="EXPLORE" /></F>
           {cards.map((card, i) => (
             <div key={i} className="border border-border rounded p-4 space-y-3 bg-muted/20">
               <div className="text-[11px] font-semibold tracking-widest text-foreground">CARD {i + 1}</div>
@@ -843,15 +854,29 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
             value={{ url: c.logo_url ?? "", type: c.logo_type ?? "image" }}
             onChange={(v) => onChange({ ...cfg, logo_url: v.url, logo_type: v.type })}
           />
-          <F label="DESCRIPTION"><textarea rows={3} value={c.description ?? ""} onChange={(e) => set("description", e.target.value)} className="inp" /></F>
+          <F label="DESCRIPTION (use a new line for a line break)"><textarea rows={3} value={c.description ?? ""} onChange={(e) => set("description", e.target.value)} className="inp" /></F>
           <div className="grid grid-cols-2 gap-3">
             <F label="CTA LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="JOIN DENYSPACE" /></F>
             <F label="CTA LINK"><input value={c.cta_href ?? ""} onChange={(e) => set("cta_href", e.target.value)} className="inp" placeholder="/rewards" /></F>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <F label="BACKGROUND COLOR"><input type="color" value={c.bg_color ?? "#0d0d0d"} onChange={(e) => set("bg_color", e.target.value)} className="inp h-10 p-1" /></F>
+            <F label="BACKGROUND COLOR (used when no background media is set)"><input type="color" value={c.bg_color ?? "#0d0d0d"} onChange={(e) => set("bg_color", e.target.value)} className="inp h-10 p-1" /></F>
             <F label="TEXT COLOR"><input type="color" value={c.text_color ?? "#ffffff"} onChange={(e) => set("text_color", e.target.value)} className="inp h-10 p-1" /></F>
           </div>
+          <MediaField
+            label="BACKGROUND MEDIA (optional — overrides background color when set)"
+            value={{ url: c.bg_media_url ?? "", type: c.bg_media_type ?? "image" }}
+            onChange={(v) => onChange({ ...cfg, bg_media_url: v.url, bg_media_type: v.type })}
+          />
+          {c.bg_media_url && (
+            <button
+              type="button"
+              onClick={() => onChange({ ...cfg, bg_media_url: "" })}
+              className="text-mono text-[10px] tracking-widest text-red-500 hover:underline"
+            >
+              REMOVE BACKGROUND MEDIA
+            </button>
+          )}
           <div className="text-[11px] font-semibold tracking-widest text-foreground mt-2 mb-1">BENEFIT ICONS (4 items)</div>
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="border border-border rounded p-3 space-y-2 bg-muted/20">
@@ -875,6 +900,85 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               </F>
             </div>
           ))}
+        </div>
+      );
+    }
+    case "influencer_picks": {
+      const c = cfg as Partial<InfluencerPicksConfig>;
+      return (
+        <div className="space-y-4">
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            The picks themselves are managed on the <strong className="text-foreground">Influencer Picks</strong> admin page; the heading is managed on <strong className="text-foreground">Headings</strong> (key: influencer_picks). Here you set the link text.
+          </div>
+          <F label="LINK TEXT"><input value={c.explore_label ?? ""} onChange={(e) => set("explore_label", e.target.value)} className="inp" placeholder="EXPLORE OUR COLLECTION" /></F>
+        </div>
+      );
+    }
+    case "contact_support": {
+      const c = cfg as Partial<ContactSupportConfig>;
+      const cards: ContactCard[] = c.cards ?? [];
+      const DEFAULT_CARDS: ContactCard[] = [
+        { label: "EMAIL US", desc: "For order issues, returns & general queries" },
+        { label: "WHATSAPP", desc: "Quick help via WhatsApp chat" },
+        { label: "HOURS", desc: "Response within 24 hours" },
+      ];
+      const updateCard = (i: number, patch: Partial<ContactCard>) => {
+        const base = cards.length === 3 ? cards : DEFAULT_CARDS;
+        const next = [...base];
+        next[i] = { ...next[i], ...patch };
+        set("cards", next);
+      };
+      return (
+        <div className="space-y-4">
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            Email/WhatsApp/hours values come from Brand Settings. The heading is managed on <strong className="text-foreground">Headings</strong> (key: contact_support). Here you edit each card's label/description and the button text.
+          </div>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="border border-border rounded p-3 space-y-2 bg-muted/20">
+              <div className="text-[10px] font-semibold tracking-widest text-muted-foreground">CARD {i + 1}</div>
+              <F label="LABEL">
+                <input value={(cards.length === 3 ? cards : DEFAULT_CARDS)[i]?.label ?? ""} onChange={(e) => updateCard(i, { label: e.target.value })} className="inp" />
+              </F>
+              <F label="DESCRIPTION">
+                <input value={(cards.length === 3 ? cards : DEFAULT_CARDS)[i]?.desc ?? ""} onChange={(e) => updateCard(i, { desc: e.target.value })} className="inp" />
+              </F>
+            </div>
+          ))}
+          <F label="BUTTON TEXT"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="VISIT SUPPORT PAGE" /></F>
+        </div>
+      );
+    }
+    case "testimonials": {
+      const c = cfg as Partial<TestimonialsConfig>;
+      const quotes: TestimonialFallback[] = c.fallback_quotes ?? [];
+      const updateQuote = (i: number, patch: Partial<TestimonialFallback>) => {
+        const next = [...quotes];
+        next[i] = { ...next[i], ...patch };
+        set("fallback_quotes", next);
+      };
+      const removeQuote = (i: number) => set("fallback_quotes", quotes.filter((_, idx) => idx !== i));
+      return (
+        <div className="space-y-4">
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            Real testimonials are managed on the <strong className="text-foreground">Testimonials</strong> admin page. The quotes below are only shown as a placeholder when no real testimonials exist yet. The heading is managed on <strong className="text-foreground">Headings</strong> (key: testimonials).
+          </div>
+          {quotes.map((q, i) => (
+            <div key={i} className="border border-border rounded p-3 space-y-2 bg-muted/20">
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] font-semibold tracking-widest text-muted-foreground">FALLBACK QUOTE {i + 1}</div>
+                <button type="button" onClick={() => removeQuote(i)} className="text-mono text-[10px] tracking-widest text-red-500 hover:underline">REMOVE</button>
+              </div>
+              <F label="QUOTE"><textarea rows={2} value={q.quote} onChange={(e) => updateQuote(i, { quote: e.target.value })} className="inp" /></F>
+              <div className="grid grid-cols-2 gap-3">
+                <F label="NAME"><input value={q.name} onChange={(e) => updateQuote(i, { name: e.target.value })} className="inp" /></F>
+                <F label="CITY"><input value={q.city} onChange={(e) => updateQuote(i, { city: e.target.value })} className="inp" /></F>
+              </div>
+            </div>
+          ))}
+          <button type="button" onClick={() => set("fallback_quotes", [...quotes, { quote: "", name: "", city: "" }])}
+            className="w-full h-10 rounded border border-dashed border-border text-xs font-semibold tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+            + ADD FALLBACK QUOTE
+          </button>
         </div>
       );
     }

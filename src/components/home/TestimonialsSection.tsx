@@ -23,11 +23,18 @@ export function TestimonialsSection() {
   useEffect(() => {
     supabase
       .from("website_sections")
-      .select("is_visible")
+      .select("config, is_visible")
       .eq("page_slug", "home")
       .eq("section_type", "testimonials")
       .single()
-      .then(({ data }) => { if (data) setVisible((data as { is_visible: boolean }).is_visible); });
+      .then(({ data }) => {
+        if (!data) return;
+        const row = data as unknown as { is_visible: boolean; config: { fallback_quotes?: { quote: string; name: string; city: string }[] } };
+        setVisible(row.is_visible);
+        if (row.config?.fallback_quotes && row.config.fallback_quotes.length > 0) {
+          setTestimonials(row.config.fallback_quotes.map((q) => ({ ...q, rating: 5 })));
+        }
+      });
   }, []);
 
   useEffect(() => {

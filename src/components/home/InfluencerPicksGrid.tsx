@@ -9,6 +9,7 @@ import type { Product } from "@/lib/productsStore";
 import { useSectionHeading } from "@/lib/sectionHeadings";
 
 type PickWithTags = InfluencerPick & { products: Pick<Product, "slug" | "name" | "image">[] };
+type InfluencerPicksConfig = { explore_label?: string };
 
 function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) {
   const [hovered, setHovered] = useState(false);
@@ -282,16 +283,22 @@ export function InfluencerPicksGrid() {
   const [picks, setPicks] = useState<PickWithTags[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [visible, setVisible] = useState(true);
+  const [cfg, setCfg] = useState<InfluencerPicksConfig>({ explore_label: "EXPLORE OUR COLLECTION" });
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     supabase
       .from("website_sections")
-      .select("is_visible")
+      .select("config, is_visible")
       .eq("page_slug", "home")
       .eq("section_type", "influencer_picks")
       .single()
-      .then(({ data }) => { if (data) setVisible((data as { is_visible: boolean }).is_visible); });
+      .then(({ data }) => {
+        if (!data) return;
+        const row = data as unknown as { is_visible: boolean; config: Partial<InfluencerPicksConfig> };
+        setVisible(row.is_visible);
+        if (row.config?.explore_label) setCfg({ explore_label: row.config.explore_label });
+      });
   }, []);
 
   useEffect(() => {
@@ -340,7 +347,7 @@ export function InfluencerPicksGrid() {
           </h2>
         </motion.div>
         <Link to="/shop" className="hidden sm:inline-flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-mono hover:text-primary transition-colors">
-          EXPLORE OUR COLLECTION <ArrowRight className="size-3.5" />
+          {cfg.explore_label ?? "EXPLORE OUR COLLECTION"} <ArrowRight className="size-3.5" />
         </Link>
       </div>
 

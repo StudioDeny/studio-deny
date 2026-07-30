@@ -11,9 +11,10 @@ type SplitCard = {
   cta_href: string;
 };
 
-type GenderSplitConfig = { cards: SplitCard[] };
+type GenderSplitConfig = { cards: SplitCard[]; explore_label?: string };
 
 const DEFAULTS: GenderSplitConfig = {
+  explore_label: "EXPLORE",
   cards: [
     { media_type: "image", src: "https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&q=80&w=1200", label: "MEN", cta_href: "/collections/men" },
     { media_type: "image", src: "https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&q=80&w=1200", label: "ACCESSORIES", cta_href: "/collections/accessories" },
@@ -44,7 +45,9 @@ export function GenderSplit() {
         const row = data as unknown as { is_visible: boolean; config: unknown };
         setVisible(row.is_visible);
         const cfgData = row.config as Partial<GenderSplitConfig>;
-        if (cfgData?.cards && cfgData.cards.length > 0) setCfg({ cards: cfgData.cards });
+        if (cfgData?.cards && cfgData.cards.length > 0) {
+          setCfg({ cards: cfgData.cards, explore_label: cfgData.explore_label || DEFAULTS.explore_label });
+        }
       });
   }, []);
 
@@ -80,7 +83,7 @@ export function GenderSplit() {
               {card.label}
             </h3>
             <span className="inline-flex items-center gap-2 px-6 py-2.5 border border-white text-white text-xs tracking-[0.14em] uppercase text-mono">
-              EXPLORE <ArrowRight className="size-3.5" />
+              {cfg.explore_label ?? "EXPLORE"} <ArrowRight className="size-3.5" />
             </span>
           </div>
         </motion.div>

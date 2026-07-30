@@ -100,7 +100,7 @@ export function QuickViewModal({ product, open, onClose }: Props) {
               {product.compareAt && (
                 <>
                   <span className="text-muted-foreground line-through" style={{ fontSize: "14px" }}>{formatINR(product.compareAt)}</span>
-                  <span className="text-secondary" style={{ fontSize: "11px", letterSpacing: "0.1em" }}>
+                  <span className="bg-secondary text-secondary-foreground font-bold px-1.5 py-0.5" style={{ fontSize: "11px", letterSpacing: "0.1em" }}>
                     -{Math.round(((product.compareAt - product.price) / product.compareAt) * 100)}%
                   </span>
                 </>

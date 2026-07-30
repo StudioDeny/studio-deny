@@ -16,10 +16,10 @@ const DEFAULTS: ArrivalsConfig = {
   product_slugs: [],
 };
 
-// Uneven card widths/heights, cycling every 3 tiles — same mixed-size look as Popular Now.
+// Mixed tile shapes cycling every 3: tall rectangle, square, narrow rectangle — same look as Popular Now.
 const SIZE_CLASSES = [
   "w-[210px] sm:w-[260px] h-[320px] sm:h-[380px]",
-  "w-[150px] sm:w-[190px] h-[260px] sm:h-[300px]",
+  "w-[210px] sm:w-[260px] h-[210px] sm:h-[260px]",
   "w-[150px] sm:w-[190px] h-[320px] sm:h-[380px]",
 ];
 
