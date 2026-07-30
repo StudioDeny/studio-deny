@@ -307,19 +307,19 @@ function LinkTargetPicker({
 }) {
   const mode = categoryId ? "category" : "url";
   return (
-    <div className="flex items-center gap-2 flex-1 min-w-0">
+    <div className="flex items-center gap-2 w-full flex-wrap sm:flex-nowrap">
       <div className="inline-flex border border-border rounded overflow-hidden shrink-0">
         <button
           type="button"
           onClick={() => onChange({ href: href ?? "", category_id: null })}
-          className={`px-2 h-9 text-[9px] font-semibold tracking-widest ${mode === "url" ? "bg-foreground text-background" : "bg-background text-muted-foreground"}`}
+          className={`px-2.5 h-9 text-[9px] font-semibold tracking-widest whitespace-nowrap ${mode === "url" ? "bg-foreground text-background" : "bg-background text-muted-foreground"}`}
         >
           URL
         </button>
         <button
           type="button"
           onClick={() => onChange({ href: null, category_id: allCategories[0]?.id ?? null })}
-          className={`px-2 h-9 text-[9px] font-semibold tracking-widest ${mode === "category" ? "bg-foreground text-background" : "bg-background text-muted-foreground"}`}
+          className={`px-2.5 h-9 text-[9px] font-semibold tracking-widest whitespace-nowrap ${mode === "category" ? "bg-foreground text-background" : "bg-background text-muted-foreground"}`}
         >
           CATEGORY
         </button>
@@ -329,13 +329,13 @@ function LinkTargetPicker({
           value={href ?? ""}
           onChange={(e) => onChange({ href: e.target.value, category_id: null })}
           placeholder="/collections/men or a full URL"
-          className="inp flex-1 min-w-0"
+          className="inp flex-1 min-w-[160px]"
         />
       ) : (
         <select
           value={categoryId ?? ""}
           onChange={(e) => onChange({ href: null, category_id: e.target.value })}
-          className="inp flex-1 min-w-0"
+          className="inp flex-1 min-w-[160px]"
         >
           {allCategories.map((c) => (
             <option key={c.id} value={c.id}>{categoryLabel(c, allCategories)}</option>
@@ -359,25 +359,27 @@ function CategoryRow({
   const dragControls = useDragControls();
   return (
     <Reorder.Item value={cat} dragListener={false} dragControls={dragControls}>
-      <div className={`flex items-center gap-2 p-2.5 border ${selected ? "border-primary bg-primary/5" : "border-border bg-background"}`}>
-        <DragHandle dragControls={dragControls} />
-        <input value={cat.label} onChange={(e) => onChange({ label: e.target.value })} className="inp w-40 shrink-0" placeholder="Label" />
+      <div className={`flex flex-col gap-2 p-2.5 border ${selected ? "border-primary bg-primary/5" : "border-border bg-background"}`}>
+        <div className="flex items-center gap-2">
+          <DragHandle dragControls={dragControls} />
+          <input value={cat.label} onChange={(e) => onChange({ label: e.target.value })} className="inp flex-1 min-w-0" placeholder="Label" />
+          <label className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
+            <input type="checkbox" checked={cat.is_active} onChange={(e) => onChange({ is_active: e.target.checked })} />
+            ACTIVE
+          </label>
+          <button type="button" onClick={onSelect} className="shrink-0 text-mono text-[10px] tracking-widest text-primary hover:underline px-1 whitespace-nowrap">
+            MANAGE →
+          </button>
+          <button type="button" onClick={onDelete} className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500">
+            <Trash2 className="size-3.5" />
+          </button>
+        </div>
         <LinkTargetPicker
           href={cat.href}
           categoryId={cat.category_id}
           allCategories={allCategories}
           onChange={(patch) => onChange(patch)}
         />
-        <label className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
-          <input type="checkbox" checked={cat.is_active} onChange={(e) => onChange({ is_active: e.target.checked })} />
-          ACTIVE
-        </label>
-        <button type="button" onClick={onSelect} className="shrink-0 text-mono text-[10px] tracking-widest text-primary hover:underline px-1">
-          MANAGE →
-        </button>
-        <button type="button" onClick={onDelete} className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500">
-          <Trash2 className="size-3.5" />
-        </button>
       </div>
     </Reorder.Item>
   );
@@ -394,17 +396,19 @@ function LinkRow({
   const dragControls = useDragControls();
   return (
     <Reorder.Item value={item} dragListener={false} dragControls={dragControls}>
-      <div className="flex items-center gap-2 p-2.5 border border-border bg-background">
-        <DragHandle dragControls={dragControls} />
-        <input value={item.label} onChange={(e) => onChange({ label: e.target.value })} className="inp w-40 shrink-0" placeholder="Label" />
+      <div className="flex flex-col gap-2 p-2.5 border border-border bg-background">
+        <div className="flex items-center gap-2">
+          <DragHandle dragControls={dragControls} />
+          <input value={item.label} onChange={(e) => onChange({ label: e.target.value })} className="inp flex-1 min-w-0" placeholder="Label" />
+          <label className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
+            <input type="checkbox" checked={item.is_active} onChange={(e) => onChange({ is_active: e.target.checked })} />
+            ACTIVE
+          </label>
+          <button type="button" onClick={onDelete} className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500">
+            <Trash2 className="size-3.5" />
+          </button>
+        </div>
         <LinkTargetPicker href={item.href} categoryId={item.category_id} allCategories={allCategories} onChange={(patch) => onChange(patch)} />
-        <label className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
-          <input type="checkbox" checked={item.is_active} onChange={(e) => onChange({ is_active: e.target.checked })} />
-          ACTIVE
-        </label>
-        <button type="button" onClick={onDelete} className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500">
-          <Trash2 className="size-3.5" />
-        </button>
       </div>
     </Reorder.Item>
   );
@@ -425,12 +429,12 @@ function TileRow({
         <div className="pt-2.5"><DragHandle dragControls={dragControls} /></div>
         <div className="flex-1 space-y-2 min-w-0">
           <div className="flex items-center gap-2">
-            <input value={item.label} onChange={(e) => onChange({ label: e.target.value })} className="inp w-40 shrink-0" placeholder="Label" />
-            <LinkTargetPicker href={item.href} categoryId={item.category_id} allCategories={allCategories} onChange={(patch) => onChange(patch)} />
+            <input value={item.label} onChange={(e) => onChange({ label: e.target.value })} className="inp flex-1 min-w-0" placeholder="Label" />
             <button type="button" onClick={onDelete} className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500">
               <Trash2 className="size-3.5" />
             </button>
           </div>
+          <LinkTargetPicker href={item.href} categoryId={item.category_id} allCategories={allCategories} onChange={(patch) => onChange(patch)} />
           <MediaField
             value={{ url: item.image_url, type: item.image_type }}
             onChange={(v) => onChange({ image_url: v.url, image_type: v.type })}
