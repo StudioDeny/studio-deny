@@ -99,45 +99,52 @@ export function ProductForm({
   };
   useEffect(() => { fetchVariants(); }, [initial?.slug]);
 
-  const saveVariant = async (v: Variant) => {
+  // `vs` is one entry per selected size — editing an existing row always
+  // yields exactly one; adding a new one can yield several at once (pick
+  // multiple sizes for the same color/stock/price to create a row per size).
+  const saveVariant = async (vs: Variant[]) => {
+    if (vs.length === 0) return;
     if (initial) {
-      if (v.id) {
+      const existingId = vs[0].id;
+      if (existingId) {
+        const existing = vs[0];
         const { error } = await supabase
           .from("product_variants")
           .update({
-            size: v.size, color: v.color ?? null, color_hex: v.color_hex ?? null,
-            stock: v.stock, price: v.price ?? null, compare_price: v.compare_price ?? null,
-            sku: v.sku ?? null,
+            size: existing.size, color: existing.color ?? null, color_hex: existing.color_hex ?? null,
+            stock: existing.stock, price: existing.price ?? null, compare_price: existing.compare_price ?? null,
+            sku: existing.sku ?? null,
           })
-          .eq("id", v.id);
+          .eq("id", existingId);
         if (error) { toast.error(error.message); return; }
       } else {
-        const { error } = await supabase.from("product_variants").insert({
+        const rows = vs.map((v) => ({
           product_id: initial.slug, size: v.size, color: v.color ?? null,
           color_hex: v.color_hex ?? null, stock: v.stock,
           price: v.price ?? null, compare_price: v.compare_price ?? null, sku: v.sku ?? null,
-        });
+        }));
+        const { error } = await supabase.from("product_variants").insert(rows);
         if (error) { toast.error(error.message); return; }
       }
-      toast.success("Variant saved");
+      toast.success(vs.length > 1 ? `${vs.length} variants saved` : "Variant saved");
       setShowVariantModal(false);
       setEditingVariant(null);
       fetchVariants();
     } else {
       setVariants((prev) => {
-        const tempId = v.tempId ?? `tmp-${Date.now()}-${prev.length}`;
-        const withId = { ...v, tempId };
-        const idx = prev.findIndex((x) => x.tempId === v.tempId);
-        if (idx >= 0) {
-          const next = [...prev];
-          next[idx] = withId;
-          return next;
-        }
-        return [...prev, withId];
+        let next = [...prev];
+        vs.forEach((v, i) => {
+          const tempId = v.tempId ?? `tmp-${Date.now()}-${prev.length + i}`;
+          const withId = { ...v, tempId };
+          const idx = next.findIndex((x) => x.tempId === v.tempId);
+          if (idx >= 0) next[idx] = withId;
+          else next = [...next, withId];
+        });
+        return next;
       });
       setShowVariantModal(false);
       setEditingVariant(null);
-      toast.success("Variant staged — will be saved with the product");
+      toast.success(vs.length > 1 ? `${vs.length} variants staged — will be saved with the product` : "Variant staged — will be saved with the product");
     }
   };
 
@@ -591,10 +598,12 @@ function VariantModal({
 }: {
   initial: Variant;
   categoryId?: string;
-  onSave: (v: Variant) => void;
+  onSave: (vs: Variant[]) => void;
   onClose: () => void;
 }) {
+  const isEditing = !!(initial.id || initial.tempId);
   const [v, setV] = useState<Variant>(initial);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(initial.size ? [initial.size] : []);
   const [sizesForCategory, setSizesForCategory] = useState<Size[]>([]);
   const set = <K extends keyof Variant>(k: K, val: Variant[K]) => setV((prev) => ({ ...prev, [k]: val }));
 
@@ -603,22 +612,29 @@ function VariantModal({
     listSizesForCategory(categoryId).then(setSizesForCategory);
   }, [categoryId]);
 
+  const toggleSize = (label: string) => {
+    if (isEditing) { setSelectedSizes([label]); return; }
+    setSelectedSizes((prev) => (prev.includes(label) ? prev.filter((s) => s !== label) : [...prev, label]));
+  };
+
   const submit = () => {
-    if (!(v.size ?? "").trim()) { toast.error("Size is required"); return; }
-    onSave(v);
+    if (selectedSizes.length === 0) { toast.error("Pick at least one size"); return; }
+    onSave(selectedSizes.map((size) => ({ ...v, size })));
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
       <div className="bg-surface border border-border w-full max-w-md p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-display text-2xl">{initial.id ? "EDIT" : "ADD"} VARIANT.</h2>
+          <h2 className="text-display text-2xl">{isEditing ? "EDIT" : "ADD"} VARIANT.</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="size-4" /></button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SIZE *</div>
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">
+              SIZE * {!isEditing && "(pick multiple to create one variant per size)"}
+            </div>
             {!categoryId ? (
               <p className="text-mono text-[11px] text-muted-foreground">Select a category on the product form first.</p>
             ) : sizesForCategory.length === 0 ? (
@@ -631,9 +647,9 @@ function VariantModal({
                   <button
                     key={s.id}
                     type="button"
-                    onClick={() => set("size", s.label)}
+                    onClick={() => toggleSize(s.label)}
                     className={`h-9 px-3 border text-sm font-semibold transition-colors ${
-                      v.size === s.label ? "bg-foreground text-background border-foreground" : "border-border hover:border-primary hover:text-primary"
+                      selectedSizes.includes(s.label) ? "bg-foreground text-background border-foreground" : "border-border hover:border-primary hover:text-primary"
                     }`}
                   >
                     {s.label}

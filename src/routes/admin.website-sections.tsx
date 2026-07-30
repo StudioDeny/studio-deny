@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { WebsiteSection, SectionType } from "@/types/database";
-import { ChevronUp, ChevronDown, Pencil, Eye, EyeOff, Trash2, X, Check, Search } from "lucide-react";
+import {
+  ChevronUp, ChevronDown, Pencil, Eye, EyeOff, Trash2, X, Check, Search,
+  Truck, RotateCcw, ShieldCheck, Gift, Star, Sparkles, Heart, Award,
+  Package, Zap, Clock, CheckCircle, type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { MediaField } from "@/components/admin/MediaField";
@@ -24,12 +28,12 @@ type HeroSlide = {
 };
 type HeroConfig = { slides: HeroSlide[] };
 type MarqueeConfig = { items: string[]; speed: number };
-type ArrivalsConfig = { eyebrow: string; title: string; subtitle: string; cta_label: string; product_slugs: string[] };
+type ArrivalsConfig = { cta_label: string; product_slugs: string[] };
 type LookbookConfig = { images: string[]; title: string };
 type WhyUsFeature = { label: string; desc: string };
-type WhyUsConfig = { eyebrow: string; title: string; subtitle: string; features: WhyUsFeature[] };
-type NewsletterConfig = { eyebrow: string; title: string; subtitle: string; cta_label: string; success_heading?: string; success_body?: string };
-type FaqConfig = { eyebrow: string; title: string; view_all_label?: string };
+type WhyUsConfig = { features: WhyUsFeature[] };
+type NewsletterConfig = { cta_label: string; success_heading?: string; success_body?: string };
+type FaqConfig = { view_all_label?: string };
 type SplitCard = { media_type: "image" | "video"; src: string; label: string; cta_href: string };
 type GenderSplitConfig = { cards: SplitCard[]; explore_label?: string };
 type CarouselSlide = { media_type: "image" | "video"; src: string; label: string; href: string; subtitle?: string; cta_label?: string };
@@ -37,7 +41,7 @@ type CategoryCarouselConfig = { slides: CarouselSlide[] };
 type DenySpaceBenefit = { icon: string; label: string; desc: string };
 type DenySpaceConfig = { logo_url: string; logo_type?: "image" | "video"; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string; bg_color?: string; text_color?: string; bg_media_url?: string; bg_media_type?: "image" | "video" };
 type PopularNowItem = { slug: string; tag?: string };
-type PopularNowConfig = { title: string; items: PopularNowItem[]; view_all_href?: string };
+type PopularNowConfig = { items: PopularNowItem[]; view_all_href?: string };
 type FabricTab = { id: string; name: string; title: string; desc: string; img: string; img_type?: "image" | "video"; href?: string };
 type FabricTabsConfig = { tabs: FabricTab[] };
 type MotionPictureConfig = { video_url: string; media_type?: "image" | "video"; subtext: string };
@@ -48,6 +52,60 @@ type TestimonialFallback = { quote: string; name: string; city: string };
 type TestimonialsConfig = { fallback_quotes?: TestimonialFallback[] };
 
 const DENYSPACE_ICONS = ["Truck", "RotateCcw", "ShieldCheck", "Gift", "Star", "Sparkles", "Heart", "Award", "Package", "Zap", "Clock", "CheckCircle"];
+const ICON_MAP: Record<string, LucideIcon> = {
+  Truck, RotateCcw, ShieldCheck, Gift, Star, Sparkles, Heart, Award,
+  Package, Zap, Clock, CheckCircle,
+};
+
+function IconPicker({ value, onChange }: { value: string; onChange: (name: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const SelectedIcon = ICON_MAP[value] ?? Star;
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="inp flex items-center gap-2 text-left"
+      >
+        <SelectedIcon className="size-4 shrink-0" />
+        <span className="flex-1">{value}</span>
+        <ChevronDown className={`size-3.5 shrink-0 opacity-60 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute z-20 top-full left-0 mt-1 bg-background border border-border shadow-lg p-2 grid grid-cols-4 gap-1 w-[220px]">
+          {DENYSPACE_ICONS.map((name) => {
+            const Icon = ICON_MAP[name];
+            return (
+              <button
+                key={name}
+                type="button"
+                title={name}
+                onClick={() => { onChange(name); setOpen(false); }}
+                className={`flex flex-col items-center gap-1 p-2 rounded hover:bg-surface hover:text-primary transition-colors ${
+                  value === name ? "bg-surface text-primary" : ""
+                }`}
+              >
+                <Icon className="size-4" />
+                <span className="text-[8px] tracking-wide truncate w-full text-center">{name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const TYPE_COLORS: Record<string, string> = {
   hero:          "bg-blue-100 text-blue-800",
@@ -485,12 +543,10 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
       };
       return (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <F label="EYEBROW"><input value={c.eyebrow ?? ""} onChange={(e) => set("eyebrow", e.target.value)} className="inp" placeholder="JUST DROPPED" /></F>
-            <F label="CTA LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="VIEW ALL" /></F>
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            The heading/eyebrow/subtext for this section is managed on the <strong className="text-foreground">Headings</strong> admin page (key: new_arrivals).
           </div>
-          <F label="HEADING"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="NEW ARRIVALS." /></F>
-          <F label="SUBTEXT"><input value={c.subtitle ?? ""} onChange={(e) => set("subtitle", e.target.value)} className="inp" /></F>
+          <F label="CTA LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="VIEW ALL" /></F>
           <F label={`ADD PRODUCTS — search and add, up to 12 (${selected.length}/12 selected)`}>
             <div className="relative">
               <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -561,7 +617,9 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
       };
       return (
         <div className="space-y-4">
-          <F label="HEADING"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="POPULAR NOW" /></F>
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            The heading for this section is managed on the <strong className="text-foreground">Headings</strong> admin page (key: popular_now).
+          </div>
           <F label="VIEW ALL LINK (the tile at the end of the row)"><input value={c.view_all_href ?? ""} onChange={(e) => set("view_all_href", e.target.value)} className="inp" placeholder="/shop" /></F>
           {items.length > 0 && (
             <F label="SELECTED — order, and an optional tag (BEST SELLER, NEW ARRIVAL, or any custom text)">
@@ -697,10 +755,8 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
       return (
         <div className="space-y-4">
           <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
-            FAQ items are managed in the <strong className="text-foreground">FAQ</strong> admin page. Here you can edit the section heading and toggle visibility.
+            FAQ items are managed in the <strong className="text-foreground">FAQ</strong> admin page. The section heading/eyebrow is managed on <strong className="text-foreground">Headings</strong> (key: faq). Here you edit the "view all" link text and toggle visibility.
           </div>
-          <F label="EYEBROW TEXT"><input value={c.eyebrow ?? ""} onChange={(e) => set("eyebrow", e.target.value)} className="inp" placeholder="GOT QUESTIONS?" /></F>
-          <F label="SECTION HEADING"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="WE'VE GOT ANSWERS." /></F>
           <F label="VIEW ALL LINK TEXT"><input value={c.view_all_label ?? ""} onChange={(e) => set("view_all_label", e.target.value)} className="inp" placeholder="VIEW ALL FAQS" /></F>
         </div>
       );
@@ -710,11 +766,9 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
       const features: WhyUsFeature[] = c.features ?? [];
       return (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <F label="EYEBROW"><input value={c.eyebrow ?? ""} onChange={(e) => set("eyebrow", e.target.value)} className="inp" placeholder="WHY STUDIO DENY" /></F>
-            <F label="TITLE LINE 1"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="BUILT DIFFERENT." /></F>
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            The heading/eyebrow/second line is managed on the <strong className="text-foreground">Headings</strong> admin page (key: why_us).
           </div>
-          <F label="TITLE LINE 2"><input value={c.subtitle ?? ""} onChange={(e) => set("subtitle", e.target.value)} className="inp" placeholder="STAYS DIFFERENT." /></F>
           <div className="text-[11px] font-semibold tracking-widest text-foreground mt-2 mb-1">PILLARS (4 items)</div>
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="border border-border rounded p-3 space-y-2 bg-muted/20">
@@ -734,12 +788,10 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
       const c = cfg as Partial<NewsletterConfig>;
       return (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <F label="EYEBROW"><input value={c.eyebrow ?? ""} onChange={(e) => set("eyebrow", e.target.value)} className="inp" placeholder="DROP ALERTS" /></F>
-            <F label="CTA BUTTON"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="GET EARLY ACCESS" /></F>
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            The heading/eyebrow/subtext is managed on the <strong className="text-foreground">Headings</strong> admin page (key: newsletter).
           </div>
-          <F label="HEADING"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="READY FOR THE NEXT DROP?" /></F>
-          <F label="SUBTEXT"><textarea rows={2} value={c.subtitle ?? ""} onChange={(e) => set("subtitle", e.target.value)} className="inp" /></F>
+          <F label="CTA BUTTON"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="GET EARLY ACCESS" /></F>
           <div className="grid grid-cols-2 gap-3">
             <F label="SUCCESS HEADING (shown after signup)"><input value={c.success_heading ?? ""} onChange={(e) => set("success_heading", e.target.value)} className="inp" placeholder="✓ YOU'RE ON THE LIST" /></F>
             <F label="SUCCESS BODY"><input value={c.success_body ?? ""} onChange={(e) => set("success_body", e.target.value)} className="inp" placeholder="We'll hit you first when the next drop goes live." /></F>
@@ -883,13 +935,10 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               <div className="text-[10px] font-semibold tracking-widest text-muted-foreground">ICON {i + 1}</div>
               <div className="grid grid-cols-2 gap-3">
                 <F label="ICON">
-                  <select
+                  <IconPicker
                     value={benefits[i]?.icon ?? "Star"}
-                    onChange={(e) => { const next = [...benefits]; next[i] = { ...next[i], icon: e.target.value }; set("benefits", next); }}
-                    className="inp" style={{ cursor: "pointer" }}
-                  >
-                    {DENYSPACE_ICONS.map((name) => <option key={name} value={name}>{name}</option>)}
-                  </select>
+                    onChange={(name) => { const next = [...benefits]; next[i] = { ...next[i], icon: name }; set("benefits", next); }}
+                  />
                 </F>
                 <F label="LABEL">
                   <input value={benefits[i]?.label ?? ""} onChange={(e) => { const next = [...benefits]; next[i] = { ...next[i], label: e.target.value }; set("benefits", next); }} className="inp" placeholder="FREE SHIPPING" />

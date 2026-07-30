@@ -1,20 +1,15 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { useSectionHeading } from "@/lib/sectionHeadings";
 
 type NewsletterConfig = {
-  eyebrow: string;
-  title: string;
-  subtitle: string;
   cta_label: string;
   success_heading: string;
   success_body: string;
 };
 
 const DEFAULTS: NewsletterConfig = {
-  eyebrow: "DROP ALERTS",
-  title: "READY FOR THE NEXT DROP?",
-  subtitle: "Be first in line when new pieces launch. No spam, just early access.",
   cta_label: "GET EARLY ACCESS",
   success_heading: "✓ YOU'RE ON THE LIST",
   success_body: "We'll hit you first when the next drop goes live.",
@@ -70,6 +65,7 @@ function Form({ ctaLabel, successHeading, successBody }: { ctaLabel: string; suc
 export function NewsletterSection() {
   const [cfg, setCfg] = useState<NewsletterConfig>(DEFAULTS);
   const [visible, setVisible] = useState(true);
+  const heading = useSectionHeading("newsletter", "READY FOR THE NEXT DROP?", { eyebrow: "DROP ALERTS", subtitle: "Be first in line when new pieces launch. No spam, just early access." });
 
   useEffect(() => {
     supabase
@@ -100,13 +96,13 @@ export function NewsletterSection() {
         className="max-w-[760px] mx-auto px-4 sm:px-8 text-center"
       >
         <div className="text-mono text-primary mb-3" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>
-          ◢ {cfg.eyebrow}
+          ◢ {heading.eyebrow}
         </div>
-        <h2 className="text-display leading-[0.88]" style={{ fontSize: "clamp(2.3rem,9vw,6rem)" }}>
-          {cfg.title}
+        <h2 className="text-display leading-[0.88]" style={heading.color ? { fontSize: "clamp(2.3rem,9vw,6rem)", color: heading.color } : { fontSize: "clamp(2.3rem,9vw,6rem)" }}>
+          {heading.text}
         </h2>
         <p className="mt-4 opacity-80 max-w-md mx-auto text-mono" style={{ fontSize: "14px" }}>
-          {cfg.subtitle}
+          {heading.subtitle}
         </p>
         <Form ctaLabel={cfg.cta_label} successHeading={cfg.success_heading} successBody={cfg.success_body} />
       </motion.div>

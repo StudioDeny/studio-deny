@@ -3,10 +3,11 @@ import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { Plus, Minus, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useSectionHeading } from "@/lib/sectionHeadings";
 
 type FaqPreviewItem = { question: string; answer: string };
-type FaqConfig = { eyebrow: string; title: string; view_all_label?: string };
-const DEFAULTS: FaqConfig = { eyebrow: "GOT QUESTIONS?", title: "WE'VE GOT ANSWERS.", view_all_label: "VIEW ALL FAQS" };
+type FaqConfig = { view_all_label?: string };
+const DEFAULTS: FaqConfig = { view_all_label: "VIEW ALL FAQS" };
 
 const PREVIEW_LIMIT = 5;
 
@@ -15,6 +16,7 @@ export function FaqSection() {
   const [visible, setVisible] = useState(true);
   const [items, setItems] = useState<FaqPreviewItem[]>([]);
   const [open, setOpen] = useState<number | null>(0);
+  const heading = useSectionHeading("faq", "WE'VE GOT ANSWERS.", { eyebrow: "GOT QUESTIONS?" });
 
   useEffect(() => {
     supabase
@@ -28,8 +30,6 @@ export function FaqSection() {
         const row = data as unknown as { is_visible: boolean; config: Partial<FaqConfig> };
         setVisible(row.is_visible);
         setCfg({
-          eyebrow: row.config?.eyebrow || DEFAULTS.eyebrow,
-          title: row.config?.title || DEFAULTS.title,
           view_all_label: row.config?.view_all_label || DEFAULTS.view_all_label,
         });
       });
@@ -51,8 +51,8 @@ export function FaqSection() {
     <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border">
       <div className="max-w-3xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10">
-          <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {cfg.eyebrow}</div>
-          <h2 className="text-[clamp(2.5rem,7vw,5rem)] leading-[0.95] tracking-[-0.03em] uppercase text-display">{cfg.title}</h2>
+          <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {heading.eyebrow}</div>
+          <h2 className="text-[clamp(2.5rem,7vw,5rem)] leading-[0.95] tracking-[-0.03em] uppercase text-display" style={heading.color ? { color: heading.color } : undefined}>{heading.text}</h2>
         </motion.div>
 
         <ul className="border-t border-border">

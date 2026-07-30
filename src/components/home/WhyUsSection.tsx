@@ -2,21 +2,16 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Package, Zap, Shield, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useSectionHeading } from "@/lib/sectionHeadings";
 
 type Feature = { label: string; desc: string };
 type WhyUsConfig = {
-  eyebrow: string;
-  title: string;
-  subtitle: string;
   features: Feature[];
 };
 
 const ICONS = [Package, Zap, Shield, CheckCircle];
 
 const DEFAULTS: WhyUsConfig = {
-  eyebrow: "WHY STUDIO DENY",
-  title: "BUILT DIFFERENT.",
-  subtitle: "STAYS DIFFERENT.",
   features: [
     { label: "PREMIUM GSM FABRIC", desc: "300+ GSM heavyweight cotton. Structured, substantial, and built to outlast trends by decades." },
     { label: "LIMITED DROPS ONLY", desc: "Every piece ships in limited quantities. Own something not everyone has — because that's the point." },
@@ -28,6 +23,7 @@ const DEFAULTS: WhyUsConfig = {
 export function WhyUsSection() {
   const [cfg, setCfg] = useState<WhyUsConfig>(DEFAULTS);
   const [visible, setVisible] = useState(true);
+  const heading = useSectionHeading("why_us", "BUILT DIFFERENT.", { eyebrow: "WHY STUDIO DENY", subtitle: "STAYS DIFFERENT." });
 
   useEffect(() => {
     supabase
@@ -59,13 +55,13 @@ export function WhyUsSection() {
           className="mb-12"
         >
           <div className="text-mono text-primary mb-3" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>
-            ◢ {cfg.eyebrow}
+            ◢ {heading.eyebrow}
           </div>
-          <h2 className="text-display leading-none" style={{ fontSize: "clamp(36px, 7vw, 80px)" }}>
-            {cfg.title}
+          <h2 className="text-display leading-none" style={heading.color ? { fontSize: "clamp(36px, 7vw, 80px)", color: heading.color } : { fontSize: "clamp(36px, 7vw, 80px)" }}>
+            {heading.text}
             <br />
             <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(0,0,0,0.55)" }}>
-              {cfg.subtitle}
+              {heading.subtitle}
             </span>
           </h2>
         </motion.div>

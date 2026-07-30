@@ -5,11 +5,12 @@ import { ChevronLeft, ChevronRight, ArrowRight, ShoppingBag } from "lucide-react
 import { supabase } from "@/lib/supabase";
 import { listProducts, getVariantStock, type Product, type VariantStock } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
+import { useSectionHeading } from "@/lib/sectionHeadings";
 
 type PopularNowItem = { slug: string; tag?: string };
-type PopularNowConfig = { title: string; items: PopularNowItem[]; view_all_href?: string };
+type PopularNowConfig = { items: PopularNowItem[]; view_all_href?: string };
 
-const DEFAULTS: PopularNowConfig = { title: "POPULAR NOW", items: [], view_all_href: "/shop" };
+const DEFAULTS: PopularNowConfig = { items: [], view_all_href: "/shop" };
 
 // Mixed tile shapes cycling every 3: tall rectangle, square, narrow rectangle.
 const SIZE_CLASSES = [
@@ -115,6 +116,7 @@ export function PopularNowGrid() {
   const [visible, setVisible] = useState(true);
   const [products, setProducts] = useState<(Product & { tag?: string })[]>([]);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const heading = useSectionHeading("popular_now", "POPULAR NOW");
 
   useEffect(() => {
     supabase
@@ -129,7 +131,6 @@ export function PopularNowGrid() {
         setVisible(row.is_visible);
         const cfgData = row.config as Partial<PopularNowConfig>;
         if (cfgData) setCfg({
-          title: cfgData.title ?? DEFAULTS.title,
           items: cfgData.items ?? [],
           view_all_href: cfgData.view_all_href || DEFAULTS.view_all_href,
         });
@@ -163,8 +164,9 @@ export function PopularNowGrid() {
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
         className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-8 sm:mb-12 px-4 sm:px-8 lg:px-16"
+        style={heading.color ? { color: heading.color } : undefined}
       >
-        {cfg.title}
+        {heading.text}
       </motion.h2>
 
       <div className="relative">

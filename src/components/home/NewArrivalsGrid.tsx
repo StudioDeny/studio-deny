@@ -5,13 +5,11 @@ import { ChevronLeft, ChevronRight, ArrowRight, ShoppingBag } from "lucide-react
 import { supabase } from "@/lib/supabase";
 import { listProducts, getVariantStock, type Product, type VariantStock } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
+import { useSectionHeading } from "@/lib/sectionHeadings";
 
-type ArrivalsConfig = { eyebrow: string; title: string; subtitle: string; cta_label: string; product_slugs: string[] };
+type ArrivalsConfig = { cta_label: string; product_slugs: string[] };
 
 const DEFAULTS: ArrivalsConfig = {
-  eyebrow: "FRESH OFF THE PRESS",
-  title: "NEW ARRIVALS",
-  subtitle: "",
   cta_label: "SHOP THE DROP",
   product_slugs: [],
 };
@@ -119,6 +117,7 @@ export function NewArrivalsGrid() {
   const [visible, setVisible] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const heading = useSectionHeading("new_arrivals", "NEW ARRIVALS", { eyebrow: "FRESH OFF THE PRESS", subtitle: "" });
 
   useEffect(() => {
     supabase
@@ -133,9 +132,6 @@ export function NewArrivalsGrid() {
         setVisible(row.is_visible);
         const cfgData = row.config as Partial<ArrivalsConfig>;
         if (cfgData) setCfg({
-          eyebrow: cfgData.eyebrow || DEFAULTS.eyebrow,
-          title: cfgData.title || DEFAULTS.title,
-          subtitle: cfgData.subtitle ?? DEFAULTS.subtitle,
           cta_label: cfgData.cta_label || DEFAULTS.cta_label,
           product_slugs: cfgData.product_slugs ?? [],
         });
@@ -166,13 +162,16 @@ export function NewArrivalsGrid() {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          {cfg.eyebrow && (
-            <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {cfg.eyebrow}</div>
+          {heading.eyebrow && (
+            <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {heading.eyebrow}</div>
           )}
-          <h2 className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display">
-            {cfg.title}
+          <h2
+            className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display"
+            style={heading.color ? { color: heading.color } : undefined}
+          >
+            {heading.text}
           </h2>
-          {cfg.subtitle && <p className="mt-3 max-w-xl text-sm sm:text-base opacity-80 text-mono">{cfg.subtitle}</p>}
+          {heading.subtitle && <p className="mt-3 max-w-xl text-sm sm:text-base opacity-80 text-mono">{heading.subtitle}</p>}
         </motion.div>
         {cfg.cta_label && (
           <Link
