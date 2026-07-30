@@ -9,8 +9,8 @@ import { NewArrivalsGrid } from "@/components/home/NewArrivalsGrid";
 import { LookbookCarousel } from "@/components/home/LookbookCarousel";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { WhyUsSection } from "@/components/home/WhyUsSection";
-import { InstagramFeedSection } from "@/components/home/InstagramFeedSection";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
+import { FaqSection } from "@/components/home/FaqSection";
 import { GenderSplit } from "@/components/home/GenderSplit";
 import { CategoryCarousel } from "@/components/home/CategoryCarousel";
 import { DenySpace } from "@/components/home/DenySpace";
@@ -41,23 +41,25 @@ export const Route = createFileRoute("/")({
 // "home") and renders itself in position order below. Each component fetches
 // its own config/visibility — this map only decides *which* component a
 // section_type dispatches to. "hero" is handled separately above the loop
-// (it needs its slides fetched once, not re-fetched per row) and "faq" has
-// no homepage component (dedicated /faq page exists instead), so both are
+// since it needs its slides fetched once, not re-fetched per row, so it's
 // intentionally absent here and simply skipped if encountered.
 const SECTION_COMPONENTS: Record<string, React.ComponentType> = {
   marquee: MarqueeTicker,
-  new_arrivals: NewArrivalsGrid,
-  lookbook: LookbookCarousel,
-  testimonials: TestimonialsSection,
-  why_us: WhyUsSection,
-  instagram_feed: InstagramFeedSection,
-  newsletter: NewsletterSection,
   gender_split: GenderSplit,
   category_carousel: CategoryCarousel,
-  denyspace: DenySpace,
   popular_now: PopularNowGrid,
+  why_us: WhyUsSection,
+  lookbook: LookbookCarousel,
+  new_arrivals: NewArrivalsGrid,
   fabric_tabs: FabricTabsSection,
+  denyspace: DenySpace,
+  influencer_picks: InfluencerPicksGrid,
   motion_picture: MotionPictureSection,
+  community: CommunityBento,
+  contact_support: ContactSupportSection,
+  testimonials: TestimonialsSection,
+  newsletter: NewsletterSection,
+  faq: FaqSection,
 };
 
 function Index() {
@@ -99,13 +101,6 @@ function Index() {
         const Section = SECTION_COMPONENTS[type];
         return <Section key={type} />;
       })}
-
-      {/* Table-driven sections below aren't part of the website_sections
-          position system (no matching section_type exists for them), so
-          they stay pinned here rather than being reorderable. */}
-      <InfluencerPicksGrid />
-      <CommunityBento />
-      <ContactSupportSection />
     </div>
   );
 }

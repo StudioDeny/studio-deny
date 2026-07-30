@@ -19,7 +19,18 @@ const ASPECT_CLASS: Record<BentoSize, string> = {
 
 export function CommunityBento() {
   const [photos, setPhotos] = useState<CommunityPhoto[]>([]);
+  const [visible, setVisible] = useState(true);
   const heading = useSectionHeading("worn_by_community", "WORN BY OUR COMMUNITY", { eyebrow: "THE STREETS SPEAK", subtitle: "Real people, real fits. Tag us @studiodeny" });
+
+  useEffect(() => {
+    supabase
+      .from("website_sections")
+      .select("is_visible")
+      .eq("page_slug", "home")
+      .eq("section_type", "community")
+      .single()
+      .then(({ data }) => { if (data) setVisible((data as { is_visible: boolean }).is_visible); });
+  }, []);
 
   useEffect(() => {
     supabase
@@ -30,7 +41,7 @@ export function CommunityBento() {
       .then(({ data }) => { if (data) setPhotos(data); });
   }, []);
 
-  if (photos.length === 0) return null;
+  if (!visible || photos.length === 0) return null;
 
   return (
     <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 border-t border-border max-w-[1560px] mx-auto">

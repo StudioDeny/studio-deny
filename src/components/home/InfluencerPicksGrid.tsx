@@ -281,7 +281,18 @@ function Lightbox({
 export function InfluencerPicksGrid() {
   const [picks, setPicks] = useState<PickWithTags[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [visible, setVisible] = useState(true);
   const scrollerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    supabase
+      .from("website_sections")
+      .select("is_visible")
+      .eq("page_slug", "home")
+      .eq("section_type", "influencer_picks")
+      .single()
+      .then(({ data }) => { if (data) setVisible((data as { is_visible: boolean }).is_visible); });
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -309,7 +320,7 @@ export function InfluencerPicksGrid() {
 
   const heading = useSectionHeading("influencer_picks", "INFLUENCER PICKS", { eyebrow: "AS SEEN ON" });
 
-  if (picks.length === 0) return null;
+  if (!visible || picks.length === 0) return null;
 
   const openLightboxFor = (pick: PickWithTags) => {
     const idx = picks.findIndex((p) => p.id === pick.id);

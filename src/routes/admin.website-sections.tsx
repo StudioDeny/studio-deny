@@ -28,7 +28,6 @@ type ArrivalsConfig = { eyebrow: string; title: string; subtitle: string; cta_la
 type LookbookConfig = { images: string[]; title: string };
 type WhyUsFeature = { label: string; desc: string };
 type WhyUsConfig = { eyebrow: string; title: string; subtitle: string; features: WhyUsFeature[] };
-type InstagramConfig = { eyebrow: string; title: string; handle: string; image_urls: string[] };
 type NewsletterConfig = { eyebrow: string; title: string; subtitle: string; cta_label: string };
 type FaqConfig = { eyebrow: string; title: string };
 type SplitCard = { media_type: "image" | "video"; src: string; label: string; cta_href: string };
@@ -47,30 +46,32 @@ const DENYSPACE_ICONS = ["Truck", "RotateCcw", "ShieldCheck", "Gift", "Star", "S
 
 const TYPE_COLORS: Record<string, string> = {
   hero:          "bg-blue-100 text-blue-800",
+  marquee:       "bg-purple-100 text-purple-800",
   gender_split:  "bg-indigo-100 text-indigo-800",
   category_carousel: "bg-teal-100 text-teal-800",
-  denyspace:     "bg-fuchsia-100 text-fuchsia-800",
-  marquee:       "bg-purple-100 text-purple-800",
-  new_arrivals:  "bg-emerald-100 text-emerald-800",
-  lookbook:      "bg-amber-100 text-amber-800",
-  testimonials:  "bg-pink-100 text-pink-800",
-  faq:           "bg-orange-100 text-orange-800",
-  why_us:        "bg-cyan-100 text-cyan-800",
-  instagram_feed:"bg-rose-100 text-rose-800",
-  newsletter:    "bg-lime-100 text-lime-800",
   popular_now:   "bg-sky-100 text-sky-800",
+  why_us:        "bg-cyan-100 text-cyan-800",
+  lookbook:      "bg-amber-100 text-amber-800",
+  new_arrivals:  "bg-emerald-100 text-emerald-800",
   fabric_tabs:   "bg-violet-100 text-violet-800",
+  denyspace:     "bg-fuchsia-100 text-fuchsia-800",
+  influencer_picks: "bg-rose-100 text-rose-800",
   motion_picture:"bg-slate-100 text-slate-800",
+  community:     "bg-yellow-100 text-yellow-800",
+  contact_support: "bg-red-100 text-red-800",
+  testimonials:  "bg-pink-100 text-pink-800",
+  newsletter:    "bg-lime-100 text-lime-800",
+  faq:           "bg-orange-100 text-orange-800",
 };
 
-// Originally-seeded home-page order — used only by "Reset order to default"
-// below. Resets position alone; section content (picked products, headings,
+// Canonical home-page order — used only by "Reset order to default" below.
+// Resets position alone; section content (picked products, headings,
 // slides, etc.) is never touched.
 const DEFAULT_POSITIONS: Record<string, number> = {
-  hero: 0, marquee: 1, new_arrivals: 2, faq: 3, lookbook: 4, testimonials: 5,
-  why_us: 6, instagram_feed: 7, newsletter: 8, gender_split: 9,
-  category_carousel: 10, denyspace: 11, popular_now: 18, fabric_tabs: 19,
-  motion_picture: 20,
+  hero: 0, marquee: 1, gender_split: 2, category_carousel: 3, popular_now: 4,
+  why_us: 5, lookbook: 6, new_arrivals: 7, fabric_tabs: 8, denyspace: 9,
+  influencer_picks: 10, motion_picture: 11, community: 12, contact_support: 13,
+  testimonials: 14, newsletter: 15, faq: 16,
 };
 
 function AdminWebsiteSections() {
@@ -720,21 +721,6 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               </F>
             </div>
           ))}
-        </div>
-      );
-    }
-    case "instagram_feed": {
-      const c = cfg as Partial<InstagramConfig>;
-      return (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <F label="EYEBROW"><input value={c.eyebrow ?? ""} onChange={(e) => set("eyebrow", e.target.value)} className="inp" placeholder="THE COMMUNITY" /></F>
-            <F label="TITLE"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="@STUDIODENY" /></F>
-          </div>
-          <F label="INSTAGRAM HANDLE (no @)"><input value={c.handle ?? ""} onChange={(e) => set("handle", e.target.value)} className="inp" placeholder="studiodeny" /></F>
-          <F label="IMAGE URLS — one per line, up to 6">
-            <textarea rows={8} value={(c.image_urls ?? []).join("\n")} onChange={(e) => set("image_urls", e.target.value.split("\n").map((s) => s.trim()).filter(Boolean).slice(0, 6))} className="inp" placeholder="https://…" />
-          </F>
         </div>
       );
     }

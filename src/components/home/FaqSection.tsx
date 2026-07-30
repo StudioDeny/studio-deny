@@ -1,0 +1,83 @@
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
+import { Plus, Minus, ArrowRight } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+
+type FaqPreviewItem = { question: string; answer: string };
+type FaqConfig = { eyebrow: string; title: string };
+const DEFAULTS: FaqConfig = { eyebrow: "GOT QUESTIONS?", title: "WE'VE GOT ANSWERS." };
+
+const PREVIEW_LIMIT = 5;
+
+export function FaqSection() {
+  const [cfg, setCfg] = useState<FaqConfig>(DEFAULTS);
+  const [visible, setVisible] = useState(true);
+  const [items, setItems] = useState<FaqPreviewItem[]>([]);
+  const [open, setOpen] = useState<number | null>(0);
+
+  useEffect(() => {
+    supabase
+      .from("website_sections")
+      .select("config, is_visible")
+      .eq("page_slug", "home")
+      .eq("section_type", "faq")
+      .single()
+      .then(({ data }) => {
+        if (!data) return;
+        const row = data as unknown as { is_visible: boolean; config: Partial<FaqConfig> };
+        setVisible(row.is_visible);
+        setCfg({ eyebrow: row.config?.eyebrow || DEFAULTS.eyebrow, title: row.config?.title || DEFAULTS.title });
+      });
+  }, []);
+
+  useEffect(() => {
+    supabase
+      .from("faq_items")
+      .select("question, answer")
+      .eq("is_active", true)
+      .order("position")
+      .limit(PREVIEW_LIMIT)
+      .then(({ data }) => { if (data) setItems(data); });
+  }, []);
+
+  if (!visible || items.length === 0) return null;
+
+  return (
+    <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border">
+      <div className="max-w-3xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10">
+          <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {cfg.eyebrow}</div>
+          <h2 className="text-[clamp(2.5rem,7vw,5rem)] leading-[0.95] tracking-[-0.03em] uppercase text-display">{cfg.title}</h2>
+        </motion.div>
+
+        <ul className="border-t border-border">
+          {items.map((item, i) => {
+            const isOpen = open === i;
+            return (
+              <li key={i} className="border-b border-border">
+                <button
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  className="w-full flex items-center justify-between gap-4 py-5 text-left hover:text-primary transition-colors"
+                >
+                  <span className="font-semibold">{item.question}</span>
+                  {isOpen ? <Minus className="size-4 shrink-0" /> : <Plus className="size-4 shrink-0" />}
+                </button>
+                {isOpen && <p className="pb-5 text-muted-foreground leading-relaxed">{item.answer}</p>}
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="mt-8 text-center">
+          <Link
+            to="/faq"
+            className="inline-flex items-center gap-2 text-mono text-xs tracking-[0.2em] uppercase border-b border-foreground/40 pb-1 hover:border-primary hover:text-primary transition-colors"
+          >
+            VIEW ALL FAQS <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}

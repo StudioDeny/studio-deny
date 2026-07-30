@@ -15,7 +15,18 @@ const CONTACT_DEFAULTS: ContactSupport = {
 
 export function ContactSupportSection() {
   const [contact, setContact] = useState<ContactSupport>(CONTACT_DEFAULTS);
+  const [visible, setVisible] = useState(true);
   const heading = useSectionHeading("contact_support", "CONTACT SUPPORT", { eyebrow: "WE'RE HERE" });
+
+  useEffect(() => {
+    supabase
+      .from("website_sections")
+      .select("is_visible")
+      .eq("page_slug", "home")
+      .eq("section_type", "contact_support")
+      .single()
+      .then(({ data }) => { if (data) setVisible((data as { is_visible: boolean }).is_visible); });
+  }, []);
 
   useEffect(() => {
     supabase
@@ -35,7 +46,7 @@ export function ContactSupportSection() {
       });
   }, []);
 
-  if (!contact.enabled) return null;
+  if (!visible || !contact.enabled) return null;
 
   return (
     <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border bg-surface/20">
