@@ -104,40 +104,56 @@ export function Navbar() {
         {/* flex on mobile (only 2 children are actually visible there, so justify-between
             puts them flush at opposite edges), grid on desktop (needs the 3-track layout
             so the logo can sit truly centered between the left nav and right icons). */}
-        <div className="flex sm:grid sm:grid-cols-[1fr_auto_1fr] items-center justify-between px-4 sm:px-8 lg:px-16 py-2.5 sm:py-3 text-foreground">
-          {/* Left — category nav with dropdowns (desktop only) */}
-          <div className="hidden sm:flex items-center gap-6 lg:gap-8 font-body">
+        <div className="relative flex sm:grid sm:grid-cols-[1fr_auto_1fr] items-center justify-between px-4 sm:px-8 lg:px-16 py-2.5 sm:py-3 text-foreground">
+          {/* Left — category nav (desktop only). Hovering/clicking a tab opens a
+              half-page side panel anchored to the left edge (H&M-style), not a
+              small dropdown under the tab itself. */}
+          <div
+            className="hidden sm:flex items-center gap-6 lg:gap-8 font-body"
+            onMouseLeave={() => setOpenDropdown(null)}
+          >
             {megaMenu.map((cat) => (
-              <div
+              <button
                 key={cat.id}
-                className="relative"
+                type="button"
                 onMouseEnter={() => setOpenDropdown(cat.id)}
-                onMouseLeave={() => setOpenDropdown((d) => (d === cat.id ? null : d))}
+                onClick={() => setOpenDropdown((d) => (d === cat.id ? null : cat.id))}
+                className="flex items-center gap-1 text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale"
               >
-                <button
-                  type="button"
-                  onClick={() => setOpenDropdown((d) => (d === cat.id ? null : cat.id))}
-                  className="flex items-center gap-1 text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale"
-                >
-                  {cat.label} <ChevronDown className="size-3" strokeWidth={1.5} />
-                </button>
-                <AnimatePresence>
-                  {openDropdown === cat.id && (cat.links.length > 0 || cat.products.length > 0) && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 6 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute top-full left-0 pt-3 z-10"
-                    >
-                      <div className="bg-background border border-border shadow-lg">
-                        <MegaMenuPanel category={cat} onNavigate={() => setOpenDropdown(null)} variant="desktop" />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                {cat.label} <ChevronDown className="size-3" strokeWidth={1.5} />
+              </button>
             ))}
+
+            <AnimatePresence>
+              {(() => {
+                const activeCat = megaMenu.find((c) => c.id === openDropdown);
+                if (!activeCat || (activeCat.links.length === 0 && activeCat.products.length === 0)) return null;
+                return (
+                  <>
+                    <motion.div
+                      key="mega-menu-backdrop"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="fixed inset-0 z-[95] bg-black/40"
+                      onClick={() => setOpenDropdown(null)}
+                    />
+                    <motion.div
+                      key="mega-menu-panel"
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -12 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full left-0 z-[101] bg-background border-r border-b border-border shadow-2xl overflow-y-auto"
+                      style={{ width: "min(50vw, 720px)", maxHeight: "calc(100vh - 120px)" }}
+                    >
+                      <MegaMenuPanel category={activeCat} onNavigate={() => setOpenDropdown(null)} variant="desktop" />
+                    </motion.div>
+                  </>
+                );
+              })()}
+            </AnimatePresence>
           </div>
 
           {/* Center — logo */}
