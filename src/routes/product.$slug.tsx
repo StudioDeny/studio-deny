@@ -127,6 +127,20 @@ function PDP() {
     }
     return rows;
   })();
+  // Mobile ignores standalone/half — every image is just one slide in a swipe carousel.
+  const galleryFlat: GalleryMediaItem[] = galleryRows.flatMap((row) => (row.type === "standalone" ? [row.item] : row.items));
+  const [mobileGalleryIndex, setMobileGalleryIndex] = useState(0);
+  const mobileGalleryRef = useRef<HTMLDivElement>(null);
+  const handleMobileGalleryScroll = () => {
+    const el = mobileGalleryRef.current;
+    if (!el || el.clientWidth === 0) return;
+    setMobileGalleryIndex(Math.round(el.scrollLeft / el.clientWidth));
+  };
+  const scrollMobileGalleryTo = (index: number) => {
+    const el = mobileGalleryRef.current;
+    if (!el) return;
+    el.scrollTo({ left: index * el.clientWidth, behavior: "smooth" });
+  };
   const [ctaVisible, setCtaVisible] = useState(true);
   const [related, setRelated] = useState<Product[]>([]);
   const ctaRef = useRef<HTMLButtonElement>(null);
@@ -329,26 +343,65 @@ function PDP() {
       </div>
 
       <section className="px-4 md:px-8 mt-4 grid md:grid-cols-[1.3fr_1fr] lg:grid-cols-[1.5fr_1fr] gap-6 lg:gap-12">
-        {/* Image gallery — a continuous stack of every photo, scrolled past naturally
-            (H&M-style, no gaps between frames) while the info panel stays pinned below. */}
+        {/* Image gallery. Desktop: continuous stack honoring each item's standalone/half
+            layout (H&M-style). Mobile: standalone/half doesn't fit a narrow screen, so
+            every image is one full-width swipeable slide, with a thumbnail strip below
+            to jump to any image directly — the standard mobile PDP pattern. */}
         <div className="flex flex-col">
-          {(() => {
-            let imgIndex = -1;
-            return galleryRows.map((row, rowIdx) => {
-              if (row.type === "standalone") {
-                imgIndex += 1;
-                return renderGalleryTile(row.item, imgIndex);
-              }
-              return (
-                <div key={`half-${rowIdx}`} className="grid grid-cols-2">
-                  {row.items.map((media) => {
-                    imgIndex += 1;
-                    return renderGalleryTile(media, imgIndex);
-                  })}
+          <div className="hidden md:flex md:flex-col">
+            {(() => {
+              let imgIndex = -1;
+              return galleryRows.map((row, rowIdx) => {
+                if (row.type === "standalone") {
+                  imgIndex += 1;
+                  return renderGalleryTile(row.item, imgIndex);
+                }
+                return (
+                  <div key={`half-${rowIdx}`} className="grid grid-cols-2">
+                    {row.items.map((media) => {
+                      imgIndex += 1;
+                      return renderGalleryTile(media, imgIndex);
+                    })}
+                  </div>
+                );
+              });
+            })()}
+          </div>
+
+          <div className="md:hidden">
+            <div
+              ref={mobileGalleryRef}
+              onScroll={handleMobileGalleryScroll}
+              className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+            >
+              {galleryFlat.map((media, i) => (
+                <div key={media.url} className="w-full shrink-0 snap-center">
+                  {renderGalleryTile(media, i)}
                 </div>
-              );
-            });
-          })()}
+              ))}
+            </div>
+            {galleryFlat.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto no-scrollbar px-4 py-3">
+                {galleryFlat.map((media, i) => (
+                  <button
+                    key={media.url}
+                    type="button"
+                    onClick={() => scrollMobileGalleryTo(i)}
+                    aria-label={`View image ${i + 1}`}
+                    className={`relative shrink-0 size-14 overflow-hidden border-2 transition-colors ${
+                      mobileGalleryIndex === i ? "border-primary" : "border-border/60"
+                    }`}
+                  >
+                    {media.type === "video" ? (
+                      <video src={media.url} className="w-full h-full object-cover" muted playsInline />
+                    ) : (
+                      <img src={media.url} alt="" className="w-full h-full object-cover" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Product Info — pinned via sticky, and independently scrollable so a wheel
