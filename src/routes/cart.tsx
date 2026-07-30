@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCart, formatINR } from "@/context/CartContext";
+import { getSettings } from "@/lib/settings";
 import { Minus, Plus, Trash2, ArrowRight, ShieldCheck, ShoppingBag } from "lucide-react";
 
 export const Route = createFileRoute("/cart")({
@@ -7,11 +8,13 @@ export const Route = createFileRoute("/cart")({
   head: () => ({ meta: [{ title: "Bag — STUDIO DENY" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
-const FREE_SHIP = 999;
-
 function CartPage() {
   const { items, remove, setQty, subtotal } = useCart();
   const navigate = useNavigate();
+  // Same threshold checkout.tsx actually charges against (admin-configurable
+  // at /admin/settings) — this used to hardcode ₹999 here, out of sync with
+  // whatever checkout was really enforcing.
+  const FREE_SHIP = getSettings().freeShipping;
   const remaining = Math.max(0, FREE_SHIP - subtotal);
   const pct = Math.min(100, (subtotal / FREE_SHIP) * 100);
   const shipping = subtotal >= FREE_SHIP ? 0 : 99;
@@ -56,8 +59,8 @@ function CartPage() {
           {/* Shipping Progress Bar */}
           <div className="mb-8 p-5 border border-border bg-surface/50">
             {subtotal >= FREE_SHIP ? (
-              <p className="text-mono text-secondary flex items-center gap-2" style={{ fontSize: "11px", letterSpacing: "0.25em" }}>
-                <span className="size-1.5 bg-secondary rounded-full pulse-dot inline-block" />
+              <p className="text-mono font-bold flex items-center gap-2 bg-secondary text-secondary-foreground px-2.5 py-1 -m-1 w-fit" style={{ fontSize: "11px", letterSpacing: "0.25em" }}>
+                <span className="size-1.5 bg-secondary-foreground rounded-full pulse-dot inline-block" />
                 FREE SHIPPING UNLOCKED ✓
               </p>
             ) : (
@@ -175,7 +178,7 @@ function CartPage() {
               </div>
               <div className="flex justify-between text-muted-foreground">
                 <span>SHIPPING</span>
-                <span className={shipping === 0 ? "text-secondary font-bold" : "text-foreground"}>
+                <span className={shipping === 0 ? "text-primary font-bold" : "text-foreground"}>
                   {shipping === 0 ? "FREE" : formatINR(shipping)}
                 </span>
               </div>

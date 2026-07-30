@@ -97,7 +97,7 @@ function LoyaltyTab() {
           After a customer qualifies, they earn 1 point for every <strong>₹{s.rupeesPerEarnedPoint}</strong> spent.
           Each point is worth <strong>₹{s.rupeesPerPoint}</strong> at redemption.
         </p>
-        <div className="grid sm:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 gap-4">
           <label>
             <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">₹ PER POINT EARNED</div>
             <input
@@ -115,10 +115,6 @@ function LoyaltyTab() {
               onChange={(e) => setS({ ...s, rupeesPerPoint: Math.max(1, Number(e.target.value) || 1) })}
               className="inp"
             />
-          </label>
-          <label>
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">FREE SHIPPING ABOVE ₹</div>
-            <input type="number" value={s.freeShipping} onChange={(e) => setS({ ...s, freeShipping: Number(e.target.value) || 0 })} className="inp" />
           </label>
         </div>
 
@@ -350,6 +346,18 @@ function ShopTab() {
 
   return (
     <div className="space-y-6">
+      <section className="border border-border bg-surface p-6 space-y-4">
+        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">SHIPPING</div>
+        <p className="text-muted-foreground text-xs text-mono">
+          Orders at or above this subtotal get free shipping — this is the actual threshold checkout
+          charges against, and what the cart page/drawer's "free shipping unlocked" banner reflects.
+        </p>
+        <label className="block max-w-xs">
+          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">FREE SHIPPING ABOVE ₹</div>
+          <input type="number" min={0} value={s.freeShipping} onChange={(e) => setS({ ...s, freeShipping: Math.max(0, Number(e.target.value) || 0) })} className="inp" />
+        </label>
+      </section>
+
       <section className="border border-border bg-surface p-6 space-y-4">
         <div className="text-mono text-[11px] tracking-[0.25em] text-primary">SHOP PAGE — FILTER COLORS</div>
         <p className="text-muted-foreground text-xs text-mono">
