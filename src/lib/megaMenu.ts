@@ -1,49 +1,59 @@
-// Mega menu: an independent nav structure (top-level categories -> link
-// column -> horizontally-scrollable image tiles), each link/tile optionally
-// pointing at a real product category (resolved to /collections/{slug}) or
-// a plain custom URL. See supabase/migrations/20260730000006_create_mega_menu.sql.
+// Mega menu: a top-level category -> a link column -> up to 3 featured
+// products, shown as a horizontally-scrollable tile row. Every level
+// resolves through something that already exists — a tab and a sublink
+// both ARE a real category, a tile IS a real product — there are no
+// free-text labels or custom URLs anywhere.
+// See supabase/migrations/20260730000006_create_mega_menu.sql and
+// supabase/migrations/20260730000007_simplify_mega_menu.sql.
 import { supabase } from "./supabase";
-import type { MegaMenuCategoryRow, MegaMenuLinkRow, MegaMenuTileRow } from "@/types/database";
+import type { MegaMenuCategoryRow, MegaMenuLinkRow, MegaMenuProductRow } from "@/types/database";
 
 export type MegaMenuLink = { id: string; label: string; href: string; position: number };
-export type MegaMenuTile = { id: string; label: string; href: string; imageUrl: string; imageType: "image" | "video"; position: number };
-export type MegaMenuCategory = { id: string; label: string; href: string; position: number; links: MegaMenuLink[]; tiles: MegaMenuTile[] };
-
-/** A link/tile/category row resolves to a category's collection page when
- * `category_id` is set, otherwise falls back to its own `href` text. */
-export function resolveMegaMenuHref(categoryId: string | null, href: string | null, slugById: Map<string, string>): string {
-  if (categoryId) {
-    const slug = slugById.get(categoryId);
-    if (slug) return `/collections/${slug}`;
-  }
-  return href || "#";
-}
+export type MegaMenuProduct = { id: string; label: string; href: string; imageUrl: string; position: number };
+export type MegaMenuCategory = { id: string; label: string; href: string; position: number; links: MegaMenuLink[]; products: MegaMenuProduct[] };
 
 /** Public, read-only fetch of the full active mega menu tree — used by the
  * live Navbar. Admin CRUD reads/writes the raw tables directly instead. */
 export async function getMegaMenu(): Promise<MegaMenuCategory[]> {
-  const [{ data: cats }, { data: links }, { data: tiles }, { data: categories }] = await Promise.all([
+  const [{ data: cats }, { data: links }, { data: prods }, { data: categories }] = await Promise.all([
     supabase.from("mega_menu_categories").select("*").eq("is_active", true).order("position"),
     supabase.from("mega_menu_links").select("*").eq("is_active", true).order("position"),
-    supabase.from("mega_menu_tiles").select("*").order("position"),
-    supabase.from("categories").select("id, slug"),
+    supabase.from("mega_menu_products").select("*").order("position"),
+    supabase.from("categories").select("id, name, slug"),
   ]);
 
-  const slugById = new Map((categories ?? []).map((c) => [c.id as string, c.slug as string]));
   const categoryRows = (cats ?? []) as MegaMenuCategoryRow[];
   const linkRows = (links ?? []) as MegaMenuLinkRow[];
-  const tileRows = (tiles ?? []) as MegaMenuTileRow[];
+  const productRows = (prods ?? []) as MegaMenuProductRow[];
+  const catById = new Map((categories ?? []).map((c) => [c.id as string, c as { id: string; name: string; slug: string }]));
 
-  return categoryRows.map((c) => ({
-    id: c.id,
-    label: c.label,
-    href: resolveMegaMenuHref(c.category_id, c.href, slugById),
-    position: c.position,
-    links: linkRows
-      .filter((l) => l.menu_category_id === c.id)
-      .map((l) => ({ id: l.id, label: l.label, href: resolveMegaMenuHref(l.category_id, l.href, slugById), position: l.position })),
-    tiles: tileRows
-      .filter((t) => t.menu_category_id === c.id)
-      .map((t) => ({ id: t.id, label: t.label, href: resolveMegaMenuHref(t.category_id, t.href, slugById), imageUrl: t.image_url, imageType: t.image_type, position: t.position })),
-  }));
+  const slugsNeeded = Array.from(new Set(productRows.map((p) => p.product_slug)));
+  const { data: products } = slugsNeeded.length > 0
+    ? await supabase.from("products").select("slug, name, image").in("slug", slugsNeeded)
+    : { data: [] as { slug: string; name: string; image: string }[] };
+  const productBySlug = new Map((products ?? []).map((p) => [p.slug, p]));
+
+  return categoryRows
+    .filter((c) => catById.has(c.category_id))
+    .map((c) => {
+      const cat = catById.get(c.category_id)!;
+      return {
+        id: c.id,
+        label: cat.name,
+        href: `/collections/${cat.slug}`,
+        position: c.position,
+        links: linkRows
+          .filter((l) => l.menu_category_id === c.id && catById.has(l.category_id))
+          .map((l) => {
+            const lc = catById.get(l.category_id)!;
+            return { id: l.id, label: lc.name, href: `/collections/${lc.slug}`, position: l.position };
+          }),
+        products: productRows
+          .filter((p) => p.menu_category_id === c.id && productBySlug.has(p.product_slug))
+          .map((p) => {
+            const prod = productBySlug.get(p.product_slug)!;
+            return { id: p.id, label: prod.name, href: `/product/${prod.slug}`, imageUrl: prod.image, position: p.position };
+          }),
+      };
+    });
 }

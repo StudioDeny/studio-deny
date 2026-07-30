@@ -80,18 +80,23 @@ function AdminCatalog() {
         <Panel title="CATEGORIES">
           <AddRow value={newCat} onChange={setNewCat} onAdd={addCat} placeholder="New category name" />
           <select value={newCatParent} onChange={(e) => setNewCatParent(e.target.value)}
-            className="bg-background border border-border h-9 px-2 text-xs mb-2 w-full">
+            className="bg-background border border-border h-9 px-2 text-xs mb-1 w-full">
             <option value="">— Top level —</option>
             {cats.filter((c) => c.parentId === null).map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
+          <p className="text-[11px] text-muted-foreground mb-2">
+            Filters the list below to that parent's children, and is where a new category you add gets nested.
+          </p>
           <List
-            items={cats.map((c) => ({
-              slug: c.slug,
-              name: c.name,
-              meta: c.parentId ? `under ${cats.find((p) => p.id === c.parentId)?.name ?? "?"}` : undefined,
-            }))}
+            items={cats
+              .filter((c) => (newCatParent ? c.parentId === newCatParent : c.parentId === null))
+              .map((c) => ({
+                slug: c.slug,
+                name: c.name,
+                meta: c.parentId ? `under ${cats.find((p) => p.id === c.parentId)?.name ?? "?"}` : undefined,
+              }))}
             onEdit={(it) => setEditing({ kind: "cat", slug: it.slug, name: it.name })}
             onDelete={(slug) => removeCat(slug)}
             editing={editing?.kind === "cat" ? editing : null}

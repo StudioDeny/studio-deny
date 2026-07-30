@@ -43,11 +43,13 @@ export type SizeRow = {
   created_at: string;
 };
 
+// Every mega-menu level resolves through something that already exists —
+// no free-text labels or custom URLs. A tab and a sublink both ARE a real
+// category (label comes from categories.name, link from categories.slug);
+// a tile IS a real product (image/label/link all come from it).
 export type MegaMenuCategoryRow = {
   id: string;
-  label: string;
-  href: string | null;
-  category_id: string | null;
+  category_id: string;
   position: number;
   is_active: boolean;
   created_at: string;
@@ -56,22 +58,16 @@ export type MegaMenuCategoryRow = {
 export type MegaMenuLinkRow = {
   id: string;
   menu_category_id: string;
-  label: string;
-  href: string | null;
-  category_id: string | null;
+  category_id: string;
   position: number;
   is_active: boolean;
   created_at: string;
 };
 
-export type MegaMenuTileRow = {
+export type MegaMenuProductRow = {
   id: string;
   menu_category_id: string;
-  label: string;
-  href: string | null;
-  category_id: string | null;
-  image_url: string;
-  image_type: "image" | "video";
+  product_slug: string;
   position: number;
   created_at: string;
 };
@@ -128,10 +124,10 @@ export interface Database {
         Update: Partial<Omit<MegaMenuLinkRow, "id" | "created_at">>;
         Relationships: [];
       };
-      mega_menu_tiles: {
-        Row: MegaMenuTileRow;
-        Insert: Omit<MegaMenuTileRow, "id" | "created_at" | "position" | "image_type"> & Partial<Pick<MegaMenuTileRow, "id" | "created_at" | "position" | "image_type">>;
-        Update: Partial<Omit<MegaMenuTileRow, "id" | "created_at">>;
+      mega_menu_products: {
+        Row: MegaMenuProductRow;
+        Insert: Omit<MegaMenuProductRow, "id" | "created_at" | "position"> & Partial<Pick<MegaMenuProductRow, "id" | "created_at" | "position">>;
+        Update: Partial<Omit<MegaMenuProductRow, "id" | "created_at">>;
         Relationships: [];
       };
       announcement_bars: {

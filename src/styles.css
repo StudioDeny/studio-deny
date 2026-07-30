@@ -99,6 +99,24 @@
   ::-webkit-scrollbar-thumb:hover {
     background: var(--primary);
   }
+
+  /* Every button gets a subtle hover/press animation site-wide, layered on
+     top of whatever color/border hover styles it already has. A vertical
+     lift (not scale) so it never overflows full-width buttons. */
+  button:not(:disabled) {
+    transition: transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+  }
+  button:not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+  button:not(:disabled):active {
+    transform: translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    button:not(:disabled):hover, button:not(:disabled):active {
+      transform: none;
+    }
+  }
 }
 
 @layer utilities {

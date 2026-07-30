@@ -122,7 +122,7 @@ export function CartDrawer() {
                     </div>
 
                     {/* Qty + Price */}
-                    <div className="mt-3 flex items-center justify-between">
+                    <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center border border-border">
                         <button
                           className="size-7 flex items-center justify-center hover:text-primary transition-colors"

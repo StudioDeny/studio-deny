@@ -122,7 +122,7 @@ export function Navbar() {
                   {cat.label} <ChevronDown className="size-3" strokeWidth={1.5} />
                 </button>
                 <AnimatePresence>
-                  {openDropdown === cat.id && (cat.links.length > 0 || cat.tiles.length > 0) && (
+                  {openDropdown === cat.id && (cat.links.length > 0 || cat.products.length > 0) && (
                     <motion.div
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}

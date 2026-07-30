@@ -98,7 +98,7 @@ function CartPage() {
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 </Link>
-                <div className="flex-1 flex flex-col justify-between py-1">
+                <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
                   <div>
                     <div className="flex justify-between items-start gap-4">
                       <div>
@@ -129,7 +129,7 @@ function CartPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-end justify-between mt-6">
+                  <div className="flex items-end justify-between flex-wrap gap-2 mt-6">
                     <div className="flex items-center border border-border bg-surface h-10">
                       <button
                         className="h-full px-3 sm:px-4 hover:text-primary transition-colors hover:bg-background"

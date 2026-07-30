@@ -3,16 +3,17 @@ import { useEffect, useState } from "react";
 import { Reorder, useDragControls } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { listCategories, type Category } from "@/lib/catalog";
-import { resolveMegaMenuHref, type MegaMenuCategory as ResolvedMegaMenuCategory } from "@/lib/megaMenu";
+import { listProducts, type Product } from "@/lib/productsStore";
 import { MegaMenuPanel } from "@/components/layout/MegaMenuPanel";
-import { MediaField } from "@/components/admin/MediaField";
-import type { MegaMenuCategoryRow, MegaMenuLinkRow, MegaMenuTileRow } from "@/types/database";
-import { GripVertical, Plus, Trash2 } from "lucide-react";
+import type { MegaMenuCategoryRow, MegaMenuLinkRow, MegaMenuProductRow } from "@/types/database";
+import { GripVertical, Plus, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/mega-menu")({
   component: AdminMegaMenu,
 });
+
+const MAX_PRODUCTS = 3;
 
 function categoryLabel(c: Category, all: Category[]): string {
   const parent = c.parentId ? all.find((p) => p.id === c.parentId) : undefined;
@@ -22,38 +23,52 @@ function categoryLabel(c: Category, all: Category[]): string {
 function AdminMegaMenu() {
   const [categories, setCategories] = useState<MegaMenuCategoryRow[]>([]);
   const [links, setLinks] = useState<MegaMenuLinkRow[]>([]);
-  const [tiles, setTiles] = useState<MegaMenuTileRow[]>([]);
+  const [products, setProducts] = useState<MegaMenuProductRow[]>([]);
   const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingSection, setSavingSection] = useState<string | null>(null);
 
   const load = async () => {
-    const [{ data: cats }, { data: lks }, { data: tls }, cats2] = await Promise.all([
+    const [{ data: cats }, { data: lks }, { data: prods }, cats2, prods2] = await Promise.all([
       supabase.from("mega_menu_categories").select("*").order("position"),
       supabase.from("mega_menu_links").select("*").order("position"),
-      supabase.from("mega_menu_tiles").select("*").order("position"),
+      supabase.from("mega_menu_products").select("*").order("position"),
       listCategories(),
+      listProducts(),
     ]);
     setCategories(cats ?? []);
     setLinks(lks ?? []);
-    setTiles(tls ?? []);
+    setProducts(prods ?? []);
     setAllCategories(cats2);
+    setAllProducts(prods2);
     setSelectedId((id) => id ?? cats?.[0]?.id ?? null);
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
 
+  const catName = (categoryId: string) => allCategories.find((c) => c.id === categoryId)?.name ?? "—";
+  const productBySlug = (slug: string) => allProducts.find((p) => p.slug === slug);
+
   const selected = categories.find((c) => c.id === selectedId) ?? null;
   const selectedLinks = links.filter((l) => l.menu_category_id === selectedId);
-  const selectedTiles = tiles.filter((t) => t.menu_category_id === selectedId);
+  const selectedProducts = products.filter((p) => p.menu_category_id === selectedId);
 
-  // ── Categories ──────────────────────────────────────────────
+  // A category can only be a navbar tab once, and (separately) can't be
+  // both the tab itself and a sublink under that same tab.
+  const usedAsTab = new Set(categories.filter((c) => c.id !== selectedId).map((c) => c.category_id));
+  const availableForTab = allCategories.filter((c) => !usedAsTab.has(c.id) || c.id === selected?.category_id);
+  const usedAsLink = new Set(selectedLinks.map((l) => l.category_id));
+
+  // ── Categories (navbar tabs) ────────────────────────────────
   const addCategory = async () => {
+    const first = allCategories.find((c) => !usedAsTab.has(c.id));
+    if (!first) return toast.error("Every category is already a navbar tab.");
     const { data, error } = await supabase
       .from("mega_menu_categories")
-      .insert({ label: "NEW CATEGORY", href: null, category_id: null, position: categories.length })
+      .insert({ category_id: first.id, position: categories.length })
       .select()
       .single();
     if (error) return toast.error(error.message);
@@ -62,14 +77,14 @@ function AdminMegaMenu() {
   };
 
   const deleteCategory = async (id: string) => {
-    if (!confirm("Delete this category and all its links/tiles?")) return;
+    if (!confirm("Remove this tab from the navbar? Its links and featured products go with it.")) return;
     const { error } = await supabase.from("mega_menu_categories").delete().eq("id", id);
     if (error) return toast.error(error.message);
     setCategories((c) => c.filter((x) => x.id !== id));
     setLinks((l) => l.filter((x) => x.menu_category_id !== id));
-    setTiles((t) => t.filter((x) => x.menu_category_id !== id));
+    setProducts((p) => p.filter((x) => x.menu_category_id !== id));
     setSelectedId((cur) => (cur === id ? null : cur));
-    toast.success("Deleted");
+    toast.success("Removed");
   };
 
   const reorderCategories = async (next: MegaMenuCategoryRow[]) => {
@@ -82,15 +97,15 @@ function AdminMegaMenu() {
     const { error } = await supabase.from("mega_menu_categories").upsert(categories);
     setSavingSection(null);
     if (error) return toast.error(error.message);
-    toast.success("Categories saved");
+    toast.success("Navbar tabs saved");
   };
 
-  // ── Links ───────────────────────────────────────────────────
-  const addLink = async () => {
+  // ── Links (sublinks) ────────────────────────────────────────
+  const addLink = async (categoryId: string) => {
     if (!selectedId) return;
     const { data, error } = await supabase
       .from("mega_menu_links")
-      .insert({ menu_category_id: selectedId, label: "NEW LINK", href: null, category_id: null, position: selectedLinks.length })
+      .insert({ menu_category_id: selectedId, category_id: categoryId, position: selectedLinks.length })
       .select()
       .single();
     if (error) return toast.error(error.message);
@@ -98,10 +113,13 @@ function AdminMegaMenu() {
   };
 
   const deleteLink = async (id: string) => {
-    if (!confirm("Delete this link?")) return;
     const { error } = await supabase.from("mega_menu_links").delete().eq("id", id);
     if (error) return toast.error(error.message);
     setLinks((l) => l.filter((x) => x.id !== id));
+  };
+
+  const toggleLinkActive = (id: string, is_active: boolean) => {
+    setLinks((ls) => ls.map((l) => (l.id === id ? { ...l, is_active } : l)));
   };
 
   const reorderLinks = async (next: MegaMenuLinkRow[]) => {
@@ -117,48 +135,41 @@ function AdminMegaMenu() {
     toast.success("Links saved");
   };
 
-  // ── Tiles ───────────────────────────────────────────────────
-  const addTile = async () => {
+  // ── Featured products (tiles) ──────────────────────────────
+  const addProduct = async (slug: string) => {
     if (!selectedId) return;
     const { data, error } = await supabase
-      .from("mega_menu_tiles")
-      .insert({ menu_category_id: selectedId, label: "NEW TILE", href: null, category_id: null, image_url: "", position: selectedTiles.length })
+      .from("mega_menu_products")
+      .insert({ menu_category_id: selectedId, product_slug: slug, position: selectedProducts.length })
       .select()
       .single();
     if (error) return toast.error(error.message);
-    setTiles((t) => [...t, data]);
+    setProducts((p) => [...p, data]);
   };
 
-  const deleteTile = async (id: string) => {
-    if (!confirm("Delete this tile?")) return;
-    const { error } = await supabase.from("mega_menu_tiles").delete().eq("id", id);
+  const removeProduct = async (id: string) => {
+    const { error } = await supabase.from("mega_menu_products").delete().eq("id", id);
     if (error) return toast.error(error.message);
-    setTiles((t) => t.filter((x) => x.id !== id));
+    setProducts((p) => p.filter((x) => x.id !== id));
   };
 
-  const reorderTiles = async (next: MegaMenuTileRow[]) => {
-    setTiles((all) => [...all.filter((t) => t.menu_category_id !== selectedId), ...next]);
-    await Promise.all(next.map((t, i) => supabase.from("mega_menu_tiles").update({ position: i }).eq("id", t.id)));
-  };
-
-  const saveTiles = async () => {
-    setSavingSection("tiles");
-    const { error } = await supabase.from("mega_menu_tiles").upsert(selectedTiles);
-    setSavingSection(null);
-    if (error) return toast.error(error.message);
-    toast.success("Tiles saved");
+  const reorderProducts = async (next: MegaMenuProductRow[]) => {
+    setProducts((all) => [...all.filter((p) => p.menu_category_id !== selectedId), ...next]);
+    await Promise.all(next.map((p, i) => supabase.from("mega_menu_products").update({ position: i }).eq("id", p.id)));
   };
 
   // ── Live preview ────────────────────────────────────────────
-  const slugById = new Map(allCategories.map((c) => [c.id, c.slug]));
-  const previewCategory: ResolvedMegaMenuCategory | null = selected
+  const previewCategory = selected
     ? {
         id: selected.id,
-        label: selected.label,
-        href: resolveMegaMenuHref(selected.category_id, selected.href, slugById),
+        label: catName(selected.category_id),
+        href: "#",
         position: selected.position,
-        links: selectedLinks.map((l) => ({ id: l.id, label: l.label, href: resolveMegaMenuHref(l.category_id, l.href, slugById), position: l.position })),
-        tiles: selectedTiles.map((t) => ({ id: t.id, label: t.label, href: resolveMegaMenuHref(t.category_id, t.href, slugById), imageUrl: t.image_url, imageType: t.image_type, position: t.position })),
+        links: selectedLinks.filter((l) => l.is_active).map((l) => ({ id: l.id, label: catName(l.category_id), href: "#", position: l.position })),
+        products: selectedProducts
+          .map((p) => ({ p, prod: productBySlug(p.product_slug) }))
+          .filter((x) => x.prod)
+          .map(({ p, prod }) => ({ id: p.id, label: prod!.name, href: "#", imageUrl: prod!.image, position: p.position })),
       }
     : null;
 
@@ -168,71 +179,88 @@ function AdminMegaMenu() {
     <div>
       <h1 className="text-display text-4xl md:text-5xl mb-2">MEGA MENU.</h1>
       <p className="text-muted-foreground text-sm mb-8 max-w-2xl">
-        This builds the dropdown that opens when a shopper hovers WOMEN, MEN, etc. in the navbar. Three levels: the tabs themselves, the text links on the left of the dropdown, and the photo tiles on the right. Drag the <span className="inline-flex items-center justify-center size-4 border border-border rounded align-middle"><GripVertical className="size-2.5" /></span> handle to reorder anything.
+        This builds the dropdown that opens when a shopper hovers WOMEN, MEN, etc. in the navbar. Everything here is picked from categories and products you already have — there's nowhere to type a custom link. Drag the <span className="inline-flex items-center justify-center size-4 border border-border rounded align-middle"><GripVertical className="size-2.5" /></span> handle to reorder anything.
       </p>
 
       <div className="grid lg:grid-cols-[1fr_420px] gap-8">
         <div className="space-y-8 min-w-0">
           {/* CATEGORIES */}
           <Panel
-            title="STEP 1 — TOP-LEVEL CATEGORIES"
-            description={'These are the tabs in the navbar itself (e.g. "WOMEN"). Click MANAGE on one below to edit what appears inside its dropdown.'}
+            title="STEP 1 — NAVBAR TABS"
+            description='Each tab is one of your existing categories (e.g. "Men"). Click MANAGE on one to set up what appears inside its dropdown.'
           >
             <Reorder.Group axis="y" values={categories} onReorder={reorderCategories} className="space-y-2">
               {categories.map((cat) => (
                 <CategoryRow
                   key={cat.id}
                   cat={cat}
+                  label={catName(cat.category_id)}
                   selected={cat.id === selectedId}
-                  allCategories={allCategories}
+                  options={allCategories.filter((c) => !usedAsTab.has(c.id) || c.id === cat.category_id)}
                   onSelect={() => setSelectedId(cat.id)}
                   onChange={(patch) => setCategories((cs) => cs.map((c) => (c.id === cat.id ? { ...c, ...patch } : c)))}
                   onDelete={() => deleteCategory(cat.id)}
                 />
               ))}
             </Reorder.Group>
-            <RowActions onAdd={addCategory} addLabel="ADD CATEGORY" onSave={saveCategories} saving={savingSection === "categories"} />
+            {categories.length === 0 && <p className="text-sm text-muted-foreground mb-3">No navbar tabs yet.</p>}
+            <RowActions onAdd={addCategory} addLabel="ADD TAB" onSave={saveCategories} saving={savingSection === "categories"} />
           </Panel>
 
           {/* LINKS */}
           {selected && (
             <Panel
-              title={`STEP 2 — TEXT LINKS INSIDE "${selected.label}"`}
-              description="The plain text links stacked down the left side of this category's dropdown (e.g. NEW ARRIVALS, SHOP ALL)."
+              title={`STEP 2 — LINKS INSIDE "${catName(selected.category_id).toUpperCase()}"`}
+              description="The plain text links stacked down the left side of this tab's dropdown. Pick any existing category — it doesn't have to be a child of this tab."
             >
               <Reorder.Group axis="y" values={selectedLinks} onReorder={reorderLinks} className="space-y-2">
                 {selectedLinks.map((link) => (
                   <LinkRow
                     key={link.id}
                     item={link}
-                    allCategories={allCategories}
-                    onChange={(patch) => setLinks((ls) => ls.map((l) => (l.id === link.id ? { ...l, ...patch } : l)))}
+                    label={catName(link.category_id)}
+                    onToggleActive={(v) => toggleLinkActive(link.id, v)}
                     onDelete={() => deleteLink(link.id)}
                   />
                 ))}
               </Reorder.Group>
-              <RowActions onAdd={addLink} addLabel="ADD LINK" onSave={saveLinks} saving={savingSection === "links"} />
+              {selectedLinks.length > 0 && (
+                <button
+                  type="button"
+                  onClick={saveLinks}
+                  disabled={savingSection === "links"}
+                  className="bg-primary text-primary-foreground h-9 px-5 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50 mb-3"
+                >
+                  {savingSection === "links" ? "SAVING…" : "SAVE VISIBILITY"}
+                </button>
+              )}
+              <CategoryAdder
+                options={allCategories.filter((c) => !usedAsLink.has(c.id))}
+                allCategories={allCategories}
+                onAdd={addLink}
+              />
             </Panel>
           )}
 
-          {/* TILES */}
+          {/* PRODUCTS */}
           {selected && (
             <Panel
-              title={`STEP 3 — PHOTO TILES INSIDE "${selected.label}"`}
-              description="The row of photo cards next to the links, e.g. DRESSES / SHORTS / ACCESSORIES. Shoppers can scroll through these if there are more than fit on screen."
+              title={`STEP 3 — FEATURED PRODUCTS IN "${catName(selected.category_id).toUpperCase()}"`}
+              description={`Up to ${MAX_PRODUCTS} products shown as the scrollable photo row next to the links (image + name come straight from the product).`}
             >
-              <Reorder.Group axis="y" values={selectedTiles} onReorder={reorderTiles} className="space-y-3">
-                {selectedTiles.map((tile) => (
-                  <TileRow
-                    key={tile.id}
-                    item={tile}
-                    allCategories={allCategories}
-                    onChange={(patch) => setTiles((ts) => ts.map((t) => (t.id === tile.id ? { ...t, ...patch } : t)))}
-                    onDelete={() => deleteTile(tile.id)}
-                  />
+              <Reorder.Group axis="y" values={selectedProducts} onReorder={reorderProducts} className="space-y-2">
+                {selectedProducts.map((p) => (
+                  <ProductRow key={p.id} item={p} product={productBySlug(p.product_slug)} onRemove={() => removeProduct(p.id)} />
                 ))}
               </Reorder.Group>
-              <RowActions onAdd={addTile} addLabel="ADD TILE" onSave={saveTiles} saving={savingSection === "tiles"} />
+              {selectedProducts.length === 0 && <p className="text-sm text-muted-foreground mb-3">No featured products yet.</p>}
+              {selectedProducts.length < MAX_PRODUCTS && (
+                <ProductAdder
+                  allProducts={allProducts}
+                  excludeSlugs={selectedProducts.map((p) => p.product_slug)}
+                  onAdd={addProduct}
+                />
+              )}
             </Panel>
           )}
         </div>
@@ -240,19 +268,19 @@ function AdminMegaMenu() {
         {/* LIVE PREVIEW */}
         <div className="lg:sticky lg:top-6 self-start">
           <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-1">LIVE PREVIEW</div>
-          <p className="text-xs text-muted-foreground mb-3">This is exactly what shoppers see for the category you're managing below.</p>
+          <p className="text-xs text-muted-foreground mb-3">This is exactly what shoppers see for the tab you're managing below.</p>
           <div className="border border-border bg-background">
             <div className="flex items-center gap-5 px-5 h-14 border-b border-border overflow-x-auto no-scrollbar">
               {categories.map((c) => (
                 <span key={c.id} className={`text-sm tracking-wide shrink-0 ${c.id === selectedId ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
-                  {c.label}
+                  {catName(c.category_id)}
                 </span>
               ))}
             </div>
             {previewCategory ? (
               <MegaMenuPanel category={previewCategory} onNavigate={() => {}} variant="desktop" />
             ) : (
-              <p className="p-6 text-sm text-muted-foreground">Select a category to preview it.</p>
+              <p className="p-6 text-sm text-muted-foreground">Add a tab to preview it.</p>
             )}
           </div>
         </div>
@@ -275,7 +303,7 @@ function Panel({ title, description, children }: { title: string; description?: 
 
 function RowActions({ onAdd, addLabel, onSave, saving }: { onAdd: () => void; addLabel: string; onSave: () => void; saving: boolean }) {
   return (
-    <div className="flex items-center gap-3 mt-3">
+    <div className="flex items-center gap-3">
       <button
         type="button"
         onClick={onAdd}
@@ -308,69 +336,13 @@ function DragHandle({ dragControls }: { dragControls: ReturnType<typeof useDragC
   );
 }
 
-function LinkTargetPicker({
-  href, categoryId, allCategories, onChange,
-}: {
-  href: string | null;
-  categoryId: string | null;
-  allCategories: Category[];
-  onChange: (patch: { href: string | null; category_id: string | null }) => void;
-}) {
-  // Mode is its own state, not just derived from categoryId — otherwise
-  // switching to "shop category" and not having picked one yet (categoryId
-  // still null) would immediately flip back to "custom link" on re-render.
-  const [mode, setMode] = useState<"url" | "category">(categoryId ? "category" : "url");
-
-  return (
-    <div>
-      <div className="text-mono text-[9px] tracking-widest text-muted-foreground/70 mb-1">WHEN CLICKED, GO TO:</div>
-      <div className="flex items-center gap-2 w-full flex-wrap sm:flex-nowrap">
-        <div className="inline-flex border border-border rounded overflow-hidden shrink-0">
-          <button
-            type="button"
-            onClick={() => { setMode("url"); onChange({ href: href ?? "", category_id: null }); }}
-            className={`px-2.5 h-9 text-[9px] font-semibold tracking-widest whitespace-nowrap ${mode === "url" ? "bg-foreground text-background" : "bg-background text-muted-foreground"}`}
-          >
-            CUSTOM LINK
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("category")}
-            className={`px-2.5 h-9 text-[9px] font-semibold tracking-widest whitespace-nowrap ${mode === "category" ? "bg-foreground text-background" : "bg-background text-muted-foreground"}`}
-          >
-            SHOP CATEGORY
-          </button>
-        </div>
-        {mode === "url" ? (
-          <input
-            value={href ?? ""}
-            onChange={(e) => onChange({ href: e.target.value, category_id: null })}
-            placeholder="e.g. /collections/men or a full https:// URL"
-            className="inp flex-1 min-w-[160px]"
-          />
-        ) : (
-          <select
-            value={categoryId ?? ""}
-            onChange={(e) => onChange({ href: null, category_id: e.target.value || null })}
-            className="inp flex-1 min-w-[160px]"
-          >
-            <option value="">— choose a category —</option>
-            {allCategories.map((c) => (
-              <option key={c.id} value={c.id}>{categoryLabel(c, allCategories)}</option>
-            ))}
-          </select>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function CategoryRow({
-  cat, selected, allCategories, onSelect, onChange, onDelete,
+  cat, label, selected, options, onSelect, onChange, onDelete,
 }: {
   cat: MegaMenuCategoryRow;
+  label: string;
   selected: boolean;
-  allCategories: Category[];
+  options: Category[];
   onSelect: () => void;
   onChange: (patch: Partial<MegaMenuCategoryRow>) => void;
   onDelete: () => void;
@@ -378,96 +350,129 @@ function CategoryRow({
   const dragControls = useDragControls();
   return (
     <Reorder.Item value={cat} dragListener={false} dragControls={dragControls}>
-      <div className={`flex flex-col gap-2 p-2.5 border ${selected ? "border-primary bg-primary/5" : "border-border bg-background"}`}>
-        <div className="flex items-center gap-2">
-          <DragHandle dragControls={dragControls} />
-          <input value={cat.label} onChange={(e) => onChange({ label: e.target.value })} className="inp flex-1 min-w-0" placeholder="Label" />
-          <label title="Uncheck to hide this tab from the navbar without deleting it" className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
-            <input type="checkbox" checked={cat.is_active} onChange={(e) => onChange({ is_active: e.target.checked })} />
-            SHOWN
-          </label>
-          <button
-            type="button"
-            onClick={onSelect}
-            title="Edit this category's links and photo tiles"
-            className={`shrink-0 border h-9 px-3 text-mono text-[10px] tracking-widest whitespace-nowrap transition-colors ${
-              selected ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary hover:text-primary"
-            }`}
-          >
-            MANAGE →
-          </button>
-          <button type="button" onClick={onDelete} title="Delete this category" className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500">
-            <Trash2 className="size-3.5" />
-          </button>
-        </div>
-        <LinkTargetPicker
-          href={cat.href}
-          categoryId={cat.category_id}
-          allCategories={allCategories}
-          onChange={(patch) => onChange(patch)}
-        />
+      <div className={`flex items-center gap-2 p-2.5 border ${selected ? "border-primary bg-primary/5" : "border-border bg-background"}`}>
+        <DragHandle dragControls={dragControls} />
+        <select value={cat.category_id} onChange={(e) => onChange({ category_id: e.target.value })} className="inp flex-1 min-w-0">
+          {options.map((c) => (
+            <option key={c.id} value={c.id}>{categoryLabel(c, options)}</option>
+          ))}
+        </select>
+        <label title="Uncheck to hide this tab from the navbar without deleting it" className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
+          <input type="checkbox" checked={cat.is_active} onChange={(e) => onChange({ is_active: e.target.checked })} />
+          SHOWN
+        </label>
+        <button
+          type="button"
+          onClick={onSelect}
+          title="Edit this tab's links and featured products"
+          className={`shrink-0 border h-9 px-3 text-mono text-[10px] tracking-widest whitespace-nowrap transition-all hover:scale-[1.03] ${
+            selected ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+          }`}
+        >
+          {label.toUpperCase()} {selected ? "✓" : "→"}
+        </button>
+        <button type="button" onClick={onDelete} title="Remove this tab" className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500 transition-all hover:scale-110">
+          <Trash2 className="size-3.5" />
+        </button>
       </div>
     </Reorder.Item>
   );
 }
 
 function LinkRow({
-  item, allCategories, onChange, onDelete,
+  item, label, onToggleActive, onDelete,
 }: {
   item: MegaMenuLinkRow;
-  allCategories: Category[];
-  onChange: (patch: Partial<MegaMenuLinkRow>) => void;
+  label: string;
+  onToggleActive: (v: boolean) => void;
   onDelete: () => void;
 }) {
   const dragControls = useDragControls();
   return (
     <Reorder.Item value={item} dragListener={false} dragControls={dragControls}>
-      <div className="flex flex-col gap-2 p-2.5 border border-border bg-background">
-        <div className="flex items-center gap-2">
-          <DragHandle dragControls={dragControls} />
-          <input value={item.label} onChange={(e) => onChange({ label: e.target.value })} className="inp flex-1 min-w-0" placeholder="Label" />
-          <label title="Uncheck to hide this link without deleting it" className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
-            <input type="checkbox" checked={item.is_active} onChange={(e) => onChange({ is_active: e.target.checked })} />
-            SHOWN
-          </label>
-          <button type="button" onClick={onDelete} title="Delete this link" className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500">
-            <Trash2 className="size-3.5" />
-          </button>
-        </div>
-        <LinkTargetPicker href={item.href} categoryId={item.category_id} allCategories={allCategories} onChange={(patch) => onChange(patch)} />
+      <div className="flex items-center gap-2 p-2.5 border border-border bg-background">
+        <DragHandle dragControls={dragControls} />
+        <span className="flex-1 text-sm font-semibold">{label}</span>
+        <label title="Uncheck to hide this link without deleting it" className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
+          <input type="checkbox" checked={item.is_active} onChange={(e) => onToggleActive(e.target.checked)} />
+          SHOWN
+        </label>
+        <button type="button" onClick={onDelete} title="Remove this link" className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500 transition-all hover:scale-110">
+          <Trash2 className="size-3.5" />
+        </button>
       </div>
     </Reorder.Item>
   );
 }
 
-function TileRow({
-  item, allCategories, onChange, onDelete,
-}: {
-  item: MegaMenuTileRow;
-  allCategories: Category[];
-  onChange: (patch: Partial<MegaMenuTileRow>) => void;
-  onDelete: () => void;
-}) {
+function CategoryAdder({ options, allCategories, onAdd }: { options: Category[]; allCategories: Category[]; onAdd: (categoryId: string) => void }) {
+  const [value, setValue] = useState("");
+  if (options.length === 0) return <p className="text-xs text-muted-foreground">Every category is already linked here.</p>;
+  return (
+    <div className="flex gap-2">
+      <select value={value} onChange={(e) => setValue(e.target.value)} className="inp flex-1">
+        <option value="">— choose a category to add —</option>
+        {options.map((c) => (
+          <option key={c.id} value={c.id}>{categoryLabel(c, allCategories)}</option>
+        ))}
+      </select>
+      <button
+        type="button"
+        onClick={() => { if (value) { onAdd(value); setValue(""); } }}
+        disabled={!value}
+        className="flex items-center gap-1.5 border border-border h-9 px-3 text-mono text-[11px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-all hover:scale-[1.03] disabled:opacity-40 disabled:hover:scale-100 shrink-0"
+      >
+        <Plus className="size-3.5" /> ADD LINK
+      </button>
+    </div>
+  );
+}
+
+function ProductRow({ item, product, onRemove }: { item: MegaMenuProductRow; product?: Product; onRemove: () => void }) {
   const dragControls = useDragControls();
   return (
     <Reorder.Item value={item} dragListener={false} dragControls={dragControls}>
-      <div className="flex items-start gap-2 p-3 border border-border bg-background">
-        <div className="pt-2.5"><DragHandle dragControls={dragControls} /></div>
-        <div className="flex-1 space-y-2 min-w-0">
-          <div className="flex items-center gap-2">
-            <input value={item.label} onChange={(e) => onChange({ label: e.target.value })} className="inp flex-1 min-w-0" placeholder="Label" />
-            <button type="button" onClick={onDelete} className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500">
-              <Trash2 className="size-3.5" />
-            </button>
-          </div>
-          <LinkTargetPicker href={item.href} categoryId={item.category_id} allCategories={allCategories} onChange={(patch) => onChange(patch)} />
-          <MediaField
-            label="TILE PHOTO"
-            value={{ url: item.image_url, type: item.image_type }}
-            onChange={(v) => onChange({ image_url: v.url, image_type: v.type })}
-          />
+      <div className="flex items-center gap-2 p-2 border border-border bg-background">
+        <DragHandle dragControls={dragControls} />
+        <div className="size-10 shrink-0 overflow-hidden bg-surface">
+          {product && <img src={product.image} alt={product.name} className="w-full h-full object-cover" />}
         </div>
+        <span className="flex-1 text-sm font-semibold truncate">{product?.name ?? item.product_slug}</span>
+        <button type="button" onClick={onRemove} title="Remove this product" className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500 transition-all hover:scale-110">
+          <Trash2 className="size-3.5" />
+        </button>
       </div>
     </Reorder.Item>
+  );
+}
+
+function ProductAdder({ allProducts, excludeSlugs, onAdd }: { allProducts: Product[]; excludeSlugs: string[]; onAdd: (slug: string) => void }) {
+  const [search, setSearch] = useState("");
+  const q = search.trim().toLowerCase();
+  const results = q ? allProducts.filter((p) => !excludeSlugs.includes(p.slug) && p.name.toLowerCase().includes(q)) : [];
+  return (
+    <div className="relative">
+      <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+      <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products to feature…" className="inp pl-9" />
+      {q && (
+        <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-background border border-border rounded shadow-lg max-h-64 overflow-y-auto">
+          {results.length === 0 ? (
+            <p className="p-3 text-sm text-muted-foreground">No matching products.</p>
+          ) : (
+            results.map((p) => (
+              <button
+                key={p.slug}
+                type="button"
+                onClick={() => { onAdd(p.slug); setSearch(""); }}
+                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/40 text-left transition-colors"
+              >
+                <img src={p.image} alt="" className="size-8 object-cover shrink-0 bg-surface" />
+                <span className="text-sm text-foreground flex-1 truncate">{p.name}</span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
   );
 }

@@ -15,9 +15,9 @@ export function Reviews({ slug }: { slug: string }) {
           <span className="text-muted-foreground">· {count} reviews</span>
         </div>
       </div>
-      <ul className="grid md:grid-cols-3 gap-4">
+      <ul className="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 pb-1">
         {reviews.map((r, i) => (
-          <li key={i} className="border border-border bg-surface p-5">
+          <li key={i} className="shrink-0 w-[82%] sm:w-[65%] md:w-auto snap-center border border-border bg-surface p-5">
             <Stars value={r.rating} />
             <h3 className="font-bold mt-3">{r.title}</h3>
             <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{r.body}</p>

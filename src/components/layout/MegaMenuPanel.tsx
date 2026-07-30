@@ -34,9 +34,9 @@ export function MegaMenuPanel({
         </div>
       )}
 
-      {category.tiles.length > 0 && (
+      {category.products.length > 0 && (
         <div className="relative flex-1 min-w-0">
-          {isDesktop && category.tiles.length > 2 && (
+          {isDesktop && category.products.length > 2 && (
             <>
               <button
                 type="button"
@@ -57,37 +57,29 @@ export function MegaMenuPanel({
             </>
           )}
           <div ref={scrollerRef} className="flex gap-3 overflow-x-auto no-scrollbar scroll-smooth">
-            {category.tiles.map((t) => (
+            {category.products.map((p) => (
               <Link
-                key={t.id}
+                key={p.id}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                to={t.href as any}
+                to={p.href as any}
                 onClick={onNavigate}
                 className={`group shrink-0 ${isDesktop ? "w-[150px] sm:w-[170px]" : "w-[130px]"}`}
               >
                 <div className="relative w-full overflow-hidden bg-surface" style={{ aspectRatio: "4/5" }}>
-                  {t.imageType === "video" ? (
-                    <video
-                      src={t.imageUrl}
-                      autoPlay loop muted playsInline
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <img
-                      src={t.imageUrl}
-                      alt={t.label}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  )}
+                  <img
+                    src={p.imageUrl}
+                    alt={p.label}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                 </div>
-                <p className="mt-2 text-xs tracking-wide text-center truncate">{t.label}</p>
+                <p className="mt-2 text-xs tracking-wide text-center truncate">{p.label}</p>
               </Link>
             ))}
           </div>
         </div>
       )}
 
-      {category.links.length === 0 && category.tiles.length === 0 && (
+      {category.links.length === 0 && category.products.length === 0 && (
         <p className="text-sm text-muted-foreground">Nothing in this menu yet.</p>
       )}
     </div>
