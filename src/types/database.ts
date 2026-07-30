@@ -1,6 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
-export type GalleryItem = { url: string; layout: "standalone" | "half" };
+export type GalleryItem = { url: string; layout: "standalone" | "half"; type?: "image" | "video" };
 
 export type DBProduct = {
   slug: string;
@@ -309,6 +309,7 @@ export type Testimonial = {
   name: string;
   role: string | null;
   avatar: string | null;
+  avatar_type: "image" | "video";
   body: string;
   rating: number;
   is_active: boolean;
@@ -337,7 +338,9 @@ export type BrandSettings = {
   site_name: string;
   tagline: string | null;
   logo_url: string | null;
+  logo_type: "image" | "video";
   favicon_url: string | null;
+  favicon_type: "image" | "video";
   og_default_image: string | null;
   social_instagram: string | null;
   social_whatsapp: string | null;
@@ -560,6 +563,7 @@ export type LookbookSlide = {
 export type CommunityPhoto = {
   id: string;
   image_url: string;
+  media_type: "image" | "video";
   handle: string | null;
   bento_size: BentoSize;
   is_active: boolean;
@@ -575,6 +579,7 @@ export type InfluencerPick = {
   video_url: string | null;
   link_url: string | null;
   thumbnail_url: string | null;
+  thumbnail_type: "image" | "video";
   quote: string | null;
   is_active: boolean;
   position: number;

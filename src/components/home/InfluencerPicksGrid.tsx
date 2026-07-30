@@ -56,11 +56,19 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
           />
         ) : (
           pick.thumbnail_url && (
-            <img
-              src={pick.thumbnail_url}
-              alt={pick.name}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/tile:scale-[1.03]"
-            />
+            pick.thumbnail_type === "video" ? (
+              <video
+                src={pick.thumbnail_url}
+                autoPlay muted loop playsInline
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/tile:scale-[1.03]"
+              />
+            ) : (
+              <img
+                src={pick.thumbnail_url}
+                alt={pick.name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/tile:scale-[1.03]"
+              />
+            )
           )
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-black/25" />

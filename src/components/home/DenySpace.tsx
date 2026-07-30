@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 type Benefit = { icon: string; label: string; desc: string };
 type DenySpaceConfig = {
   logo_url: string;
+  logo_type?: "image" | "video";
   description: string;
   benefits: Benefit[];
   cta_label: string;
@@ -70,7 +71,11 @@ export function DenySpace() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30 pointer-events-none" />
       <div className="max-w-[900px] mx-auto relative z-10 text-center">
         <motion.div initial={{ opacity: 0, y: -16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.9 }} viewport={{ once: true }} className="flex justify-center mb-8">
-          <img src={cfg.logo_url} alt="DenySpace" className="w-full max-w-[220px] sm:max-w-[280px] h-auto invert" />
+          {cfg.logo_type === "video" ? (
+            <video src={cfg.logo_url} autoPlay loop muted playsInline className="w-full max-w-[220px] sm:max-w-[280px] h-auto invert" />
+          ) : (
+            <img src={cfg.logo_url} alt="DenySpace" className="w-full max-w-[220px] sm:max-w-[280px] h-auto invert" />
+          )}
         </motion.div>
 
         <motion.p

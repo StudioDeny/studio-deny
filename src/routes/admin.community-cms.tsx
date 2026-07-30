@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { CommunityPhoto, BentoSize } from "@/types/database";
-import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { MediaField, type MediaValue } from "@/components/admin/MediaField";
 
 export const Route = createFileRoute("/admin/community-cms")({
   component: CommunityCmsAdmin,
@@ -16,7 +16,8 @@ const BENTO_SIZES: BentoSize[] = ["sm", "md", "lg", "wide", "tall"];
 function CommunityCmsAdmin() {
   const [rows, setRows] = useState<CommunityPhoto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
+  const [newMedia, setNewMedia] = useState<MediaValue>({ url: "", type: "image" });
+  const [adding, setAdding] = useState(false);
 
   const load = async () => {
     const { data, error } = await supabase.from("community_photos").select("*").order("position");
@@ -50,23 +51,19 @@ function CommunityCmsAdmin() {
     await Promise.all(next.map((r, i) => supabase.from("community_photos").update({ position: i }).eq("id", r.id)));
   };
 
-  const addFromFile = async (file: File) => {
-    setUploading(true);
-    try {
-      const result = await uploadToCloudinary(file);
-      const { data, error } = await supabase
-        .from("community_photos")
-        .insert({ image_url: result.secure_url, handle: null, bento_size: "md", is_active: true, position: rows.length })
-        .select()
-        .single();
-      if (error) { toast.error(error.message); return; }
-      setRows((r) => [...r, data]);
-      toast.success("Photo added");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
-    }
+  const addPhoto = async () => {
+    if (!newMedia.url.trim()) return toast.error("Add an image/video URL, or upload one, first");
+    setAdding(true);
+    const { data, error } = await supabase
+      .from("community_photos")
+      .insert({ image_url: newMedia.url, media_type: newMedia.type, handle: null, bento_size: "md", is_active: true, position: rows.length })
+      .select()
+      .single();
+    setAdding(false);
+    if (error) { toast.error(error.message); return; }
+    setRows((r) => [...r, data]);
+    setNewMedia({ url: "", type: "image" });
+    toast.success("Added");
   };
 
   if (loading) return <div className="text-mono text-xs">LOADING…</div>;
@@ -82,7 +79,11 @@ function CommunityCmsAdmin() {
         {rows.map((photo, idx) => (
           <div key={photo.id} className="relative border border-border overflow-hidden bg-surface">
             <div className="relative aspect-square">
-              <img src={photo.image_url} alt={photo.handle ?? ""} className="w-full h-full object-cover" />
+              {photo.media_type === "video" ? (
+                <video src={photo.image_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+              ) : (
+                <img src={photo.image_url} alt={photo.handle ?? ""} className="w-full h-full object-cover" />
+              )}
               <button type="button" onClick={() => remove(photo.id)}
                 className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1 hover:bg-red-600 transition-colors">
                 <Trash2 className="size-3" />
@@ -114,18 +115,35 @@ function CommunityCmsAdmin() {
               >
                 {BENTO_SIZES.map((s) => <option key={s} value={s}>{s.toUpperCase()}</option>)}
               </select>
+              <div className="inline-flex border border-border rounded overflow-hidden w-full">
+                {(["image", "video"] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => update(photo.id, { media_type: t })}
+                    className={`flex-1 h-7 text-[10px] font-semibold tracking-widest uppercase transition-colors ${
+                      photo.media_type === t ? "bg-foreground text-background" : "bg-background text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         ))}
 
-        <label className="aspect-square border border-dashed border-border hover:border-primary hover:text-primary flex flex-col items-center justify-center gap-2 transition-colors cursor-pointer">
-          {uploading ? <Loader2 className="size-5 animate-spin" /> : <Plus className="size-5 text-muted-foreground" />}
-          <span className="text-mono text-[10px] tracking-widest text-muted-foreground">
-            <Upload className="inline size-3 mr-1" /> ADD PHOTO
-          </span>
-          <input type="file" accept="image/*" className="hidden" disabled={uploading}
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) addFromFile(f); e.target.value = ""; }} />
-        </label>
+        <div className="aspect-square border border-dashed border-border p-3 flex flex-col justify-center gap-2">
+          <MediaField value={newMedia} onChange={setNewMedia} />
+          <button
+            type="button"
+            onClick={addPhoto}
+            disabled={adding}
+            className="w-full h-8 border border-border text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary disabled:opacity-50"
+          >
+            {adding ? "ADDING…" : "ADD"}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -6,19 +6,24 @@ import { supabase } from "@/lib/supabase";
 import { listProducts, getVariantStock, type Product, type VariantStock } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 
-type PopularNowItem = { slug: string; tag?: string };
-type PopularNowConfig = { title: string; items: PopularNowItem[]; view_all_href?: string };
+type ArrivalsConfig = { eyebrow: string; title: string; subtitle: string; cta_label: string; product_slugs: string[] };
 
-const DEFAULTS: PopularNowConfig = { title: "POPULAR NOW", items: [], view_all_href: "/shop" };
+const DEFAULTS: ArrivalsConfig = {
+  eyebrow: "FRESH OFF THE PRESS",
+  title: "NEW ARRIVALS",
+  subtitle: "",
+  cta_label: "SHOP THE DROP",
+  product_slugs: [],
+};
 
-// Uneven card widths/heights, cycling every 3 tiles for the mixed-size look.
+// Uneven card widths/heights, cycling every 3 tiles — same mixed-size look as Popular Now.
 const SIZE_CLASSES = [
   "w-[210px] sm:w-[260px] h-[320px] sm:h-[380px]",
   "w-[150px] sm:w-[190px] h-[260px] sm:h-[300px]",
   "w-[150px] sm:w-[190px] h-[320px] sm:h-[380px]",
 ];
 
-function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: string }; sizeClass: string }) {
+function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: string }) {
   const { add } = useCart();
   const [hover, setHover] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
@@ -59,9 +64,9 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
         />
       )}
-      {product.tag && (
+      {product.badge && (
         <span className="absolute top-2.5 left-2.5 bg-primary text-primary-foreground text-mono font-semibold px-2 py-1" style={{ fontSize: "9px", letterSpacing: "0.2em" }}>
-          {product.tag.toUpperCase()}
+          {product.badge.toUpperCase()}
         </span>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent" />
@@ -70,7 +75,6 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
         <p className="text-white/80 text-mono text-[11px]">{formatINR(product.price)}</p>
       </div>
 
-      {/* Quick add — desktop hover, matches ProductCard's pattern */}
       <div
         className={`absolute inset-x-0 bottom-0 transition-all duration-300 hidden md:block ${
           hover ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
@@ -110,10 +114,10 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
   );
 }
 
-export function PopularNowGrid() {
-  const [cfg, setCfg] = useState<PopularNowConfig>(DEFAULTS);
+export function NewArrivalsGrid() {
+  const [cfg, setCfg] = useState<ArrivalsConfig>(DEFAULTS);
   const [visible, setVisible] = useState(true);
-  const [products, setProducts] = useState<(Product & { tag?: string })[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -121,33 +125,31 @@ export function PopularNowGrid() {
       .from("website_sections")
       .select("config, is_visible")
       .eq("page_slug", "home")
-      .eq("section_type", "popular_now")
+      .eq("section_type", "new_arrivals")
       .single()
       .then(({ data }) => {
         if (!data) return;
         const row = data as unknown as { is_visible: boolean; config: unknown };
         setVisible(row.is_visible);
-        const cfgData = row.config as Partial<PopularNowConfig>;
+        const cfgData = row.config as Partial<ArrivalsConfig>;
         if (cfgData) setCfg({
-          title: cfgData.title ?? DEFAULTS.title,
-          items: cfgData.items ?? [],
-          view_all_href: cfgData.view_all_href || DEFAULTS.view_all_href,
+          eyebrow: cfgData.eyebrow || DEFAULTS.eyebrow,
+          title: cfgData.title || DEFAULTS.title,
+          subtitle: cfgData.subtitle ?? DEFAULTS.subtitle,
+          cta_label: cfgData.cta_label || DEFAULTS.cta_label,
+          product_slugs: cfgData.product_slugs ?? [],
         });
       });
   }, []);
 
   useEffect(() => {
-    if (cfg.items.length === 0) { setProducts([]); return; }
+    if (cfg.product_slugs.length === 0) { setProducts([]); return; }
     listProducts().then((all) => {
       const bySlug = new Map(all.map((p) => [p.slug, p]));
-      const withTags: (Product & { tag?: string })[] = [];
-      for (const item of cfg.items) {
-        const p = bySlug.get(item.slug);
-        if (p) withTags.push({ ...p, tag: item.tag });
-      }
-      setProducts(withTags);
+      const chosen = cfg.product_slugs.map((slug) => bySlug.get(slug)).filter(Boolean) as Product[];
+      setProducts(chosen);
     });
-  }, [cfg.items]);
+  }, [cfg.product_slugs]);
 
   if (!visible || products.length === 0) return null;
 
@@ -157,15 +159,31 @@ export function PopularNowGrid() {
 
   return (
     <section className="py-16 sm:py-24 relative">
-      <motion.h2
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-        className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-8 sm:mb-12 px-4 sm:px-8 lg:px-16"
-      >
-        {cfg.title}
-      </motion.h2>
+      <div className="px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 flex items-end justify-between flex-wrap gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+        >
+          {cfg.eyebrow && (
+            <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {cfg.eyebrow}</div>
+          )}
+          <h2 className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display">
+            {cfg.title}
+          </h2>
+          {cfg.subtitle && <p className="mt-3 max-w-xl text-sm sm:text-base opacity-80 text-mono">{cfg.subtitle}</p>}
+        </motion.div>
+        {cfg.cta_label && (
+          <Link
+            to="/shop"
+            className="group inline-flex items-center gap-2 text-mono text-xs sm:text-sm tracking-[0.2em] uppercase border-b border-foreground/40 pb-1 hover:border-primary hover:text-primary transition-colors"
+          >
+            {cfg.cta_label}
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        )}
+      </div>
 
       <div className="relative">
         <button
@@ -187,20 +205,8 @@ export function PopularNowGrid() {
 
         <div ref={scrollerRef} className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth pb-2 px-4 sm:px-8 lg:px-16 no-scrollbar">
           {products.map((p, i) => (
-            <PopularNowTile key={p.slug} product={p} sizeClass={SIZE_CLASSES[i % SIZE_CLASSES.length]} />
+            <ArrivalTile key={p.slug} product={p} sizeClass={SIZE_CLASSES[i % SIZE_CLASSES.length]} />
           ))}
-
-          {cfg.view_all_href && (
-            <Link
-              to={cfg.view_all_href}
-              className={`group relative shrink-0 overflow-hidden bg-foreground text-background border border-foreground flex flex-col items-center justify-center gap-3 ${SIZE_CLASSES[products.length % SIZE_CLASSES.length]}`}
-            >
-              <span className="text-sm font-semibold uppercase tracking-[0.15em] text-mono text-center px-4">View All</span>
-              <span className="size-10 rounded-full border border-background/40 flex items-center justify-center transition-transform group-hover:translate-x-1">
-                <ArrowRight className="size-4" />
-              </span>
-            </Link>
-          )}
         </div>
       </div>
     </section>

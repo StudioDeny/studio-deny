@@ -2,10 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { InfluencerPick, InfluencerVideoSource } from "@/types/database";
-import { uploadToCloudinary, uploadVideoToCloudinary } from "@/lib/cloudinary";
+import { uploadVideoToCloudinary } from "@/lib/cloudinary";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Upload, X, Search } from "lucide-react";
 import { toast } from "sonner";
+import { MediaField } from "@/components/admin/MediaField";
 
 export const Route = createFileRoute("/admin/influencer-picks")({
   component: InfluencerPicksAdmin,
@@ -19,6 +20,7 @@ const EMPTY: Omit<InfluencerPick, "id" | "created_at"> = {
   video_url: null,
   link_url: null,
   thumbnail_url: null,
+  thumbnail_type: "image",
   quote: null,
   is_active: true,
   position: 0,
@@ -30,9 +32,7 @@ function InfluencerPicksAdmin() {
   const [modal, setModal] = useState<Partial<InfluencerPick> | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
-  const [uploadingThumb, setUploadingThumb] = useState(false);
   const videoRef = useRef<HTMLInputElement>(null);
-  const thumbRef = useRef<HTMLInputElement>(null);
 
   // Product tagging state (only usable once the pick has an id)
   const [taggedSlugs, setTaggedSlugs] = useState<string[]>([]);
@@ -101,21 +101,6 @@ function InfluencerPicksAdmin() {
     }
   };
 
-  const handleThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingThumb(true);
-    try {
-      const result = await uploadToCloudinary(file);
-      setModal((m) => (m ? { ...m, thumbnail_url: result.secure_url } : m));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploadingThumb(false);
-      e.target.value = "";
-    }
-  };
-
   const save = async () => {
     if (!modal) return;
     if (!modal.name?.trim()) return toast.error("Name is required");
@@ -129,6 +114,7 @@ function InfluencerPicksAdmin() {
       video_url: modal.video_url || null,
       link_url: modal.link_url || null,
       thumbnail_url: modal.thumbnail_url || null,
+      thumbnail_type: modal.thumbnail_type ?? "image",
       quote: modal.quote || null,
       is_active: modal.is_active ?? true,
       position: modal.position ?? 0,
@@ -286,18 +272,11 @@ function InfluencerPicksAdmin() {
                 </F>
               )}
 
-              <F label="THUMBNAIL (shown in the grid before hover / for reel links)">
-                <div className="flex items-center gap-3">
-                  {modal.thumbnail_url && <img src={modal.thumbnail_url} alt="" className="w-16 h-20 object-cover border border-border" />}
-                  <div className="flex flex-col gap-2 flex-1">
-                    <input ref={thumbRef} type="file" accept="image/*" className="hidden" onChange={handleThumbUpload} />
-                    <button type="button" onClick={() => thumbRef.current?.click()} disabled={uploadingThumb}
-                      className="border border-border h-9 px-3 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary disabled:opacity-50">
-                      <Upload className="size-3" /> {uploadingThumb ? "UPLOADING…" : "UPLOAD THUMBNAIL"}
-                    </button>
-                  </div>
-                </div>
-              </F>
+              <MediaField
+                label="THUMBNAIL (shown in the grid before hover / for reel links)"
+                value={{ url: modal.thumbnail_url ?? "", type: modal.thumbnail_type ?? "image" }}
+                onChange={(v) => setModal({ ...modal, thumbnail_url: v.url, thumbnail_type: v.type })}
+              />
 
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={modal.is_active ?? true} onChange={(e) => setModal({ ...modal, is_active: e.target.checked })} className="w-4 h-4" />

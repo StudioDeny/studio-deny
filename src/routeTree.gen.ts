@@ -63,7 +63,6 @@ import { Route as AdminExportRouteImport } from './routes/admin.export'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCommunityCmsRouteImport } from './routes/admin.community-cms'
 import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
-import { Route as AdminArrivalsRouteImport } from './routes/admin.arrivals'
 import { Route as AdminAnnouncementsRouteImport } from './routes/admin.announcements'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin.products.index'
@@ -342,11 +341,6 @@ const AdminCatalogRoute = AdminCatalogRouteImport.update({
   path: '/catalog',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminArrivalsRoute = AdminArrivalsRouteImport.update({
-  id: '/arrivals',
-  path: '/arrivals',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminAnnouncementsRoute = AdminAnnouncementsRouteImport.update({
   id: '/announcements',
   path: '/announcements',
@@ -404,7 +398,6 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
-  '/admin/arrivals': typeof AdminArrivalsRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/community-cms': typeof AdminCommunityCmsRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -466,7 +459,6 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
-  '/admin/arrivals': typeof AdminArrivalsRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/community-cms': typeof AdminCommunityCmsRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -529,7 +521,6 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
-  '/admin/arrivals': typeof AdminArrivalsRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/community-cms': typeof AdminCommunityCmsRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -594,7 +585,6 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/announcements'
-    | '/admin/arrivals'
     | '/admin/catalog'
     | '/admin/community-cms'
     | '/admin/customers'
@@ -656,7 +646,6 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/announcements'
-    | '/admin/arrivals'
     | '/admin/catalog'
     | '/admin/community-cms'
     | '/admin/customers'
@@ -718,7 +707,6 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/announcements'
-    | '/admin/arrivals'
     | '/admin/catalog'
     | '/admin/community-cms'
     | '/admin/customers'
@@ -1166,13 +1154,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCatalogRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/arrivals': {
-      id: '/admin/arrivals'
-      path: '/arrivals'
-      fullPath: '/admin/arrivals'
-      preLoaderRoute: typeof AdminArrivalsRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/announcements': {
       id: '/admin/announcements'
       path: '/announcements'
@@ -1237,7 +1218,6 @@ const AdminProductsRouteWithChildren = AdminProductsRoute._addFileChildren(
 interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminAnnouncementsRoute: typeof AdminAnnouncementsRoute
-  AdminArrivalsRoute: typeof AdminArrivalsRoute
   AdminCatalogRoute: typeof AdminCatalogRoute
   AdminCommunityCmsRoute: typeof AdminCommunityCmsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
@@ -1267,7 +1247,6 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminAnnouncementsRoute: AdminAnnouncementsRoute,
-  AdminArrivalsRoute: AdminArrivalsRoute,
   AdminCatalogRoute: AdminCatalogRoute,
   AdminCommunityCmsRoute: AdminCommunityCmsRoute,
   AdminCustomersRoute: AdminCustomersRoute,

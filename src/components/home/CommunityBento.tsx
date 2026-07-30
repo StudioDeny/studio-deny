@@ -56,7 +56,11 @@ export function CommunityBento() {
             viewport={{ once: true }}
             className={`relative overflow-hidden border border-border group mb-2 sm:mb-3 break-inside-avoid ${ASPECT_CLASS[photo.bento_size]}`}
           >
-            <img src={photo.image_url} alt={photo.handle ?? "community"} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
+            {photo.media_type === "video" ? (
+              <video src={photo.image_url} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" autoPlay loop muted playsInline />
+            ) : (
+              <img src={photo.image_url} alt={photo.handle ?? "community"} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
+            )}
             {photo.handle && (
               <>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/0 to-transparent opacity-70 group-hover:opacity-100 transition-opacity duration-300" />

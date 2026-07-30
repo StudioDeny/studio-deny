@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { upsertProduct, type Product, type GalleryItem } from "@/lib/productsStore";
 import { listCategories, listBrands, type Category } from "@/lib/catalog";
-import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
-import { Upload, X, Loader2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { CategoryPicker } from "@/components/admin/CategoryPicker";
+import { MediaField, type MediaValue } from "@/components/admin/MediaField";
 
 export const Route = createFileRoute("/admin/products/new")({
   component: NewProduct,
@@ -64,47 +64,19 @@ export function ProductForm({
     }
   );
   const [saving, setSaving] = useState(false);
-  const [uploadingImg, setUploadingImg] = useState(false);
-  const [uploadingHover, setUploadingHover] = useState(false);
-  const [uploadingGallery, setUploadingGallery] = useState(false);
-  const imgRef = useRef<HTMLInputElement>(null);
-  const hoverRef = useRef<HTMLInputElement>(null);
-  const galleryRef = useRef<HTMLInputElement>(null);
+  const [galleryMedia, setGalleryMedia] = useState<MediaValue>({ url: "", type: "image" });
 
   const set = <K extends keyof Product>(k: K, v: Product[K]) =>
     setP({ ...p, [k]: v });
   const slugify = (s: string) =>
     s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-  const handleImageUpload = async (
-    file: File,
-    field: "image" | "hoverImage",
-    setUploading: (v: boolean) => void
-  ) => {
-    setUploading(true);
-    try {
-      const result = await uploadToCloudinary(file);
-      set(field, result.secure_url);
-      toast.success("Image uploaded");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleGalleryUpload = async (files: FileList) => {
-    setUploadingGallery(true);
-    try {
-      const uploads = await Promise.all(Array.from(files).map((f) => uploadToCloudinary(f)));
-      const items: GalleryItem[] = uploads.map((r) => ({ url: r.secure_url, layout: "standalone" as const }));
-      set("gallery", [...(p.gallery ?? []), ...items]);
-      toast.success(`${items.length} image(s) added to gallery`);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Upload failed");
-    } finally {
-      setUploadingGallery(false);
-    }
+  const addGalleryItem = () => {
+    if (!galleryMedia.url.trim()) return toast.error("Add an image/video URL, or upload one, first");
+    if ((p.gallery ?? []).length >= 8) return toast.error("Gallery is full (8 max)");
+    const items: GalleryItem[] = [...(p.gallery ?? []), { url: galleryMedia.url, layout: "standalone", type: galleryMedia.type }];
+    set("gallery", items);
+    setGalleryMedia({ url: "", type: "image" });
   };
 
   const removeGalleryImage = (idx: number) => {
@@ -113,6 +85,10 @@ export function ProductForm({
 
   const setGalleryLayout = (idx: number, layout: GalleryItem["layout"]) => {
     set("gallery", (p.gallery ?? []).map((item, i) => (i === idx ? { ...item, layout } : item)));
+  };
+
+  const setGalleryType = (idx: number, type: "image" | "video") => {
+    set("gallery", (p.gallery ?? []).map((item, i) => (i === idx ? { ...item, type } : item)));
   };
 
   const moveGalleryImage = (idx: number, dir: -1 | 1) => {
@@ -250,115 +226,25 @@ export function ProductForm({
           </Field>
         </div>
 
-        {/* IMAGE UPLOAD */}
-        <Field label="PRODUCT IMAGE">
-          <div className="flex gap-2 items-start">
-            <div className="flex-1">
-              {p.image ? (
-                <div className="relative w-24 h-24 border border-border">
-                  <img
-                    src={p.image}
-                    alt="product"
-                    className="w-full h-full object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => set("image", "")}
-                    className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5"
-                  >
-                    <X className="size-3" />
-                  </button>
-                </div>
-              ) : (
-                <input
-                  value={p.image}
-                  onChange={(e) => set("image", e.target.value)}
-                  className="inp"
-                  placeholder="Paste URL or upload →"
-                />
-              )}
-            </div>
-            <input
-              ref={imgRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) handleImageUpload(f, "image", setUploadingImg);
-              }}
-            />
-            {!p.image && (
-              <button
-                type="button"
-                onClick={() => imgRef.current?.click()}
-                disabled={uploadingImg}
-                className="border border-border h-10 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50"
-              >
-                {uploadingImg ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
-                UPLOAD
-              </button>
-            )}
-          </div>
-        </Field>
+        {/* IMAGE */}
+        <MediaField
+          label="PRODUCT IMAGE"
+          value={{ url: p.image, type: p.imageType ?? "image" }}
+          onChange={(v) => setP({ ...p, image: v.url, imageType: v.type })}
+        />
 
-        {/* HOVER IMAGE UPLOAD */}
-        <Field label="HOVER IMAGE">
-          <div className="flex gap-2 items-start">
-            <div className="flex-1">
-              {p.hoverImage ? (
-                <div className="relative w-24 h-24 border border-border">
-                  <img
-                    src={p.hoverImage}
-                    alt="hover"
-                    className="w-full h-full object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => set("hoverImage", "")}
-                    className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5"
-                  >
-                    <X className="size-3" />
-                  </button>
-                </div>
-              ) : (
-                <input
-                  value={p.hoverImage}
-                  onChange={(e) => set("hoverImage", e.target.value)}
-                  className="inp"
-                  placeholder="Paste URL or upload →"
-                />
-              )}
-            </div>
-            <input
-              ref={hoverRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) handleImageUpload(f, "hoverImage", setUploadingHover);
-              }}
-            />
-            {!p.hoverImage && (
-              <button
-                type="button"
-                onClick={() => hoverRef.current?.click()}
-                disabled={uploadingHover}
-                className="border border-border h-10 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50"
-              >
-                {uploadingHover ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
-                UPLOAD
-              </button>
-            )}
-          </div>
-        </Field>
+        {/* HOVER IMAGE */}
+        <MediaField
+          label="HOVER IMAGE"
+          value={{ url: p.hoverImage, type: p.hoverImageType ?? "image" }}
+          onChange={(v) => setP({ ...p, hoverImage: v.url, hoverImageType: v.type })}
+        />
 
         {/* GALLERY IMAGES */}
-        <Field label="GALLERY IMAGES (additional photos — up to 8)">
+        <Field label="GALLERY MEDIA (additional photos/videos — up to 8)">
           <div className="space-y-3">
             <p className="text-mono text-[10px] text-muted-foreground leading-relaxed">
-              For every image, choose FULL PICTURE (shows edge-to-edge on the product page) or HALF PICTURE
+              For every item, choose FULL PICTURE (shows edge-to-edge on the product page) or HALF PICTURE
               (H&M-style — pairs up with the next HALF picture to show two photos side by side in one row).
               Use the arrows to reorder — this is the order they appear on the product page.
             </p>
@@ -366,7 +252,11 @@ export function ProductForm({
               {(p.gallery ?? []).map((item, idx) => (
                 <div key={idx} className="relative w-24 shrink-0">
                   <div className="relative w-24 h-24 border border-border">
-                    <img src={item.url} alt={`gallery-${idx}`} className="w-full h-full object-cover" />
+                    {item.type === "video" ? (
+                      <video src={item.url} className="w-full h-full object-cover" muted />
+                    ) : (
+                      <img src={item.url} alt={`gallery-${idx}`} className="w-full h-full object-cover" />
+                    )}
                     <button
                       type="button"
                       onClick={() => removeGalleryImage(idx)}
@@ -401,31 +291,38 @@ export function ProductForm({
                     <option value="standalone">FULL PICTURE</option>
                     <option value="half">HALF PICTURE</option>
                   </select>
+                  <div className="inline-flex border border-border rounded overflow-hidden w-full mt-1">
+                    {(["image", "video"] as const).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setGalleryType(idx, t)}
+                        className={`flex-1 h-6 text-[9px] font-semibold tracking-widest uppercase transition-colors ${
+                          (item.type ?? "image") === t ? "bg-foreground text-background" : "bg-background text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                ref={galleryRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={(e) => { if (e.target.files?.length) handleGalleryUpload(e.target.files); }}
-              />
-              <button
-                type="button"
-                onClick={() => galleryRef.current?.click()}
-                disabled={uploadingGallery || (p.gallery ?? []).length >= 8}
-                className="border border-border h-10 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50"
-              >
-                {uploadingGallery ? <Loader2 className="size-3 animate-spin" /> : <Plus className="size-3" />}
-                ADD IMAGES
-              </button>
-              {(p.gallery ?? []).length > 0 && (
-                <span className="text-mono text-[10px] text-muted-foreground">{(p.gallery ?? []).length}/8 photos</span>
-              )}
-            </div>
+            {(p.gallery ?? []).length < 8 && (
+              <div className="border border-dashed border-border rounded p-3 max-w-sm">
+                <MediaField value={galleryMedia} onChange={setGalleryMedia} />
+                <button
+                  type="button"
+                  onClick={addGalleryItem}
+                  className="mt-2 w-full h-8 border border-border text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary"
+                >
+                  ADD TO GALLERY
+                </button>
+              </div>
+            )}
+            {(p.gallery ?? []).length > 0 && (
+              <span className="text-mono text-[10px] text-muted-foreground">{(p.gallery ?? []).length}/8</span>
+            )}
           </div>
         </Field>
 

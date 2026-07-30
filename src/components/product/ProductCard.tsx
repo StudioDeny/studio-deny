@@ -52,30 +52,48 @@ export function ProductCard({
           style={{ aspectRatio: "3/4", background: "var(--color-surface)" }}
         >
           {/* Main image */}
-          <img
-            src={product.image}
-            alt={product.name}
-            loading="lazy"
-            width={800}
-            height={1000}
-            className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
-            style={{
-              opacity: hover ? 0 : 1,
-              transform: hover ? "scale(1.06)" : "scale(1)",
-            }}
-          />
+          {product.imageType === "video" ? (
+            <video
+              src={product.image}
+              autoPlay loop muted playsInline
+              className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
+              style={{ opacity: hover ? 0 : 1, transform: hover ? "scale(1.06)" : "scale(1)" }}
+            />
+          ) : (
+            <img
+              src={product.image}
+              alt={product.name}
+              loading="lazy"
+              width={800}
+              height={1000}
+              className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
+              style={{
+                opacity: hover ? 0 : 1,
+                transform: hover ? "scale(1.06)" : "scale(1)",
+              }}
+            />
+          )}
           {/* Hover image */}
-          <img
-            src={product.hoverImage}
-            alt=""
-            loading="lazy"
-            aria-hidden
-            className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
-            style={{
-              opacity: hover ? 1 : 0,
-              transform: hover ? "scale(1)" : "scale(1.04)",
-            }}
-          />
+          {product.hoverImageType === "video" ? (
+            <video
+              src={product.hoverImage}
+              autoPlay loop muted playsInline
+              className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
+              style={{ opacity: hover ? 1 : 0, transform: hover ? "scale(1)" : "scale(1.04)" }}
+            />
+          ) : (
+            <img
+              src={product.hoverImage}
+              alt=""
+              loading="lazy"
+              aria-hidden
+              className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
+              style={{
+                opacity: hover ? 1 : 0,
+                transform: hover ? "scale(1)" : "scale(1.04)",
+              }}
+            />
+          )}
 
           {/* Gradient on hover */}
           <div

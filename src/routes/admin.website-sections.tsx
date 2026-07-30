@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { WebsiteSection, SectionType } from "@/types/database";
-import { ChevronUp, ChevronDown, Pencil, Eye, EyeOff, Trash2, X, Check, Upload, Loader2, Search } from "lucide-react";
+import { ChevronUp, ChevronDown, Pencil, Eye, EyeOff, Trash2, X, Check, Search } from "lucide-react";
 import { toast } from "sonner";
 import { listProducts, type Product } from "@/lib/productsStore";
-import { uploadToCloudinary, uploadVideoToCloudinary } from "@/lib/cloudinary";
+import { MediaField } from "@/components/admin/MediaField";
 
 export const Route = createFileRoute("/admin/website-sections")({
   component: AdminWebsiteSections,
@@ -36,12 +36,12 @@ type GenderSplitConfig = { cards: SplitCard[] };
 type CarouselSlide = { media_type: "image" | "video"; src: string; label: string; href: string; subtitle?: string; cta_label?: string };
 type CategoryCarouselConfig = { slides: CarouselSlide[] };
 type DenySpaceBenefit = { icon: string; label: string; desc: string };
-type DenySpaceConfig = { logo_url: string; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string; bg_color?: string; text_color?: string };
+type DenySpaceConfig = { logo_url: string; logo_type?: "image" | "video"; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string; bg_color?: string; text_color?: string };
 type PopularNowItem = { slug: string; tag?: string };
 type PopularNowConfig = { title: string; items: PopularNowItem[]; view_all_href?: string };
-type FabricTab = { id: string; name: string; title: string; desc: string; img: string; href?: string };
+type FabricTab = { id: string; name: string; title: string; desc: string; img: string; img_type?: "image" | "video"; href?: string };
 type FabricTabsConfig = { tabs: FabricTab[] };
-type MotionPictureConfig = { video_url: string; subtext: string };
+type MotionPictureConfig = { video_url: string; media_type?: "image" | "video"; subtext: string };
 
 const DENYSPACE_ICONS = ["Truck", "RotateCcw", "ShieldCheck", "Gift", "Star", "Sparkles", "Heart", "Award", "Package", "Zap", "Clock", "CheckCircle"];
 
@@ -63,12 +63,23 @@ const TYPE_COLORS: Record<string, string> = {
   motion_picture:"bg-slate-100 text-slate-800",
 };
 
+// Originally-seeded home-page order — used only by "Reset order to default"
+// below. Resets position alone; section content (picked products, headings,
+// slides, etc.) is never touched.
+const DEFAULT_POSITIONS: Record<string, number> = {
+  hero: 0, marquee: 1, new_arrivals: 2, faq: 3, lookbook: 4, testimonials: 5,
+  why_us: 6, instagram_feed: 7, newsletter: 8, gender_split: 9,
+  category_carousel: 10, denyspace: 11, popular_now: 18, fabric_tabs: 19,
+  motion_picture: 20,
+};
+
 function AdminWebsiteSections() {
   const [sections, setSections] = useState<WebsiteSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<WebsiteSection | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
 
   const load = async () => {
     const { data, error } = await supabase
@@ -114,6 +125,20 @@ function AdminWebsiteSections() {
     );
   };
 
+  const resetOrderToDefault = async () => {
+    if (!confirm("Reset every section back to its original order? This only changes order — no content, visibility, or headings are touched.")) return;
+    setResetting(true);
+    const updates = sections
+      .filter((s) => s.section_type in DEFAULT_POSITIONS)
+      .map((s) => supabase.from("website_sections").update({ position: DEFAULT_POSITIONS[s.section_type] }).eq("id", s.id));
+    const results = await Promise.all(updates);
+    const failed = results.find((r) => r.error);
+    if (failed?.error) { toast.error(failed.error.message); setResetting(false); return; }
+    toast.success("Order reset to default");
+    setResetting(false);
+    load();
+  };
+
   const saveConfig = async () => {
     if (!editing) return;
     setSaving(true);
@@ -136,9 +161,18 @@ function AdminWebsiteSections() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-display text-4xl md:text-5xl text-foreground">WEBSITE SECTIONS.</h1>
-        <p className="text-sm mt-2 text-muted-foreground">Toggle visibility, reorder, and edit each homepage section. Delete duplicates with the trash icon.</p>
+      <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-display text-4xl md:text-5xl text-foreground">WEBSITE SECTIONS.</h1>
+          <p className="text-sm mt-2 text-muted-foreground">Toggle visibility, reorder, and edit each homepage section. Delete duplicates with the trash icon.</p>
+        </div>
+        <button
+          onClick={resetOrderToDefault}
+          disabled={resetting}
+          className="h-9 px-4 rounded border border-border bg-background text-[11px] font-semibold tracking-widest uppercase hover:border-primary hover:text-primary transition-colors disabled:opacity-40 shrink-0"
+        >
+          {resetting ? "RESETTING…" : "RESET ORDER TO DEFAULT"}
+        </button>
       </div>
 
       <div className="rounded-lg border border-border overflow-hidden">
@@ -319,6 +353,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   useEffect(() => { listProducts().then(setAllProducts); }, []);
   const [popularNowSearch, setPopularNowSearch] = useState("");
+  const [arrivalsSearch, setArrivalsSearch] = useState("");
 
   switch (section.section_type as SectionType) {
     case "hero": {
@@ -391,17 +426,10 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               </F>
               <F label="SUBTEXT"><input value={slide.subtitle} onChange={(e) => updateSlide(i, { subtitle: e.target.value })} className="inp" placeholder="Elevated streetwear…" /></F>
 
-              <F label="MEDIA TYPE">
-                <select value={slide.media_type} onChange={(e) => updateSlide(i, { media_type: e.target.value as "video" | "image" })} className="inp" style={{ cursor: "pointer" }}>
-                  <option value="image">Image / Photo</option>
-                  <option value="video">Video</option>
-                </select>
-              </F>
-              <MediaUrlField
-                label={slide.media_type === "video" ? "VIDEO" : "IMAGE"}
-                mediaType={slide.media_type}
-                value={slide.src}
-                onChange={(url) => updateSlide(i, { src: url })}
+              <MediaField
+                label="SLIDE MEDIA"
+                value={{ url: slide.src, type: slide.media_type }}
+                onChange={(v) => updateSlide(i, { src: v.url, media_type: v.type })}
               />
 
               <div className="grid grid-cols-2 gap-3">
@@ -442,6 +470,13 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
     case "new_arrivals": {
       const c = cfg as Partial<ArrivalsConfig>;
       const selected = c.product_slugs ?? [];
+      const moveSlug = (i: number, dir: -1 | 1) => {
+        const j = i + dir;
+        if (j < 0 || j >= selected.length) return;
+        const next = [...selected];
+        [next[i], next[j]] = [next[j], next[i]];
+        set("product_slugs", next);
+      };
       return (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -450,26 +485,55 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           </div>
           <F label="HEADING"><input value={c.title ?? ""} onChange={(e) => set("title", e.target.value)} className="inp" placeholder="NEW ARRIVALS." /></F>
           <F label="SUBTEXT"><input value={c.subtitle ?? ""} onChange={(e) => set("subtitle", e.target.value)} className="inp" /></F>
-          <F label={`PRODUCTS — select up to 4 (${selected.length}/4 selected)`}>
-            <div className="border border-border rounded divide-y divide-border max-h-52 overflow-y-auto mt-1">
-              {allProducts.length === 0 && <div className="p-3 text-sm text-muted-foreground">No products found.</div>}
-              {allProducts.map((p) => (
-                <label key={p.slug} className="flex items-center gap-3 px-3 py-2 hover:bg-muted/40 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(p.slug)}
-                    onChange={(e) => {
-                      const next = e.target.checked ? [...selected, p.slug].slice(-4) : selected.filter((s) => s !== p.slug);
-                      set("product_slugs", next);
-                    }}
-                    className="w-4 h-4 accent-primary"
-                  />
-                  <span className="text-sm text-foreground flex-1">{p.name}</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">{p.slug}</span>
-                </label>
-              ))}
+          <F label={`ADD PRODUCTS — search and add, up to 12 (${selected.length}/12 selected)`}>
+            <div className="relative">
+              <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={arrivalsSearch}
+                onChange={(e) => setArrivalsSearch(e.target.value)}
+                placeholder="Search products to add…"
+                className="inp pl-9"
+              />
+              {arrivalsSearch.trim() && (
+                <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-background border border-border rounded shadow-lg max-h-64 overflow-y-auto">
+                  {(() => {
+                    const q = arrivalsSearch.trim().toLowerCase();
+                    const results = allProducts.filter((p) => !selected.includes(p.slug) && p.name.toLowerCase().includes(q));
+                    if (results.length === 0) return <p className="p-3 text-sm text-muted-foreground">No matching products.</p>;
+                    return results.map((p) => (
+                      <button
+                        key={p.slug}
+                        type="button"
+                        disabled={selected.length >= 12}
+                        onClick={() => { set("product_slugs", [...selected, p.slug].slice(0, 12)); setArrivalsSearch(""); }}
+                        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/40 text-left disabled:opacity-40"
+                      >
+                        <span className="text-sm text-foreground flex-1 truncate">{p.name}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">{p.slug}</span>
+                      </button>
+                    ));
+                  })()}
+                </div>
+              )}
             </div>
           </F>
+          {selected.length > 0 && (
+            <F label="SELECTED — order">
+              <div className="border border-border rounded divide-y divide-border">
+                {selected.map((slug, i) => {
+                  const p = allProducts.find((ap) => ap.slug === slug);
+                  return (
+                    <div key={slug} className="flex items-center gap-2 px-3 py-2">
+                      <span className="text-sm text-foreground flex-1 truncate">{p?.name ?? slug}</span>
+                      <button type="button" onClick={() => moveSlug(i, -1)} disabled={i === 0} className="text-muted-foreground hover:text-primary disabled:opacity-30"><ChevronUp className="size-4" /></button>
+                      <button type="button" onClick={() => moveSlug(i, 1)} disabled={i === selected.length - 1} className="text-muted-foreground hover:text-primary disabled:opacity-30"><ChevronDown className="size-4" /></button>
+                      <button type="button" onClick={() => set("product_slugs", selected.filter((s) => s !== slug))} className="text-muted-foreground hover:text-red-500"><X className="size-4" /></button>
+                    </div>
+                  );
+                })}
+              </div>
+            </F>
+          )}
         </div>
       );
     }
@@ -575,7 +639,11 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               <F label="HEADLINE"><input value={tab.title} onChange={(e) => updateTab(i, { title: e.target.value })} className="inp" placeholder="300+ GSM HEAVYWEIGHT COTTON" /></F>
               <F label="DESCRIPTION"><textarea rows={3} value={tab.desc} onChange={(e) => updateTab(i, { desc: e.target.value })} className="inp" /></F>
               <F label="LINK (where the arrow navigates to)"><input value={tab.href ?? ""} onChange={(e) => updateTab(i, { href: e.target.value })} className="inp" placeholder="/collections/tops" /></F>
-              <MediaUrlField label="PHOTO" mediaType="image" value={tab.img} onChange={(url) => updateTab(i, { img: url })} />
+              <MediaField
+                label="PHOTO"
+                value={{ url: tab.img, type: tab.img_type ?? "image" }}
+                onChange={(v) => updateTab(i, { img: v.url, img_type: v.type })}
+              />
             </div>
           ))}
           <button type="button" onClick={() => set("tabs", [...tabs, { id: `tab-${Date.now()}`, name: "NEW TAB", title: "", desc: "", img: "" }])}
@@ -592,7 +660,11 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
             The heading text/color for this section is managed on the <strong className="text-foreground">Headings</strong> admin page (key: motion_picture). Here you set the background video and the subtext line.
           </div>
-          <MediaUrlField label="BACKGROUND VIDEO" mediaType="video" value={c.video_url ?? ""} onChange={(url) => set("video_url", url)} />
+          <MediaField
+            label="BACKGROUND MEDIA"
+            value={{ url: c.video_url ?? "", type: c.media_type ?? "video" }}
+            onChange={(v) => onChange({ ...cfg, video_url: v.url, media_type: v.type })}
+          />
           <F label="SUBTEXT"><textarea rows={2} value={c.subtext ?? ""} onChange={(e) => set("subtext", e.target.value)} className="inp" /></F>
         </div>
       );
@@ -697,17 +769,10 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
             <div key={i} className="border border-border rounded p-4 space-y-3 bg-muted/20">
               <div className="text-[11px] font-semibold tracking-widest text-foreground">CARD {i + 1}</div>
               <F label="LABEL"><input value={card.label} onChange={(e) => updateCard(i, { label: e.target.value })} className="inp" placeholder="SHOP MEN" /></F>
-              <F label="MEDIA TYPE">
-                <select value={card.media_type} onChange={(e) => updateCard(i, { media_type: e.target.value as "video" | "image" })} className="inp" style={{ cursor: "pointer" }}>
-                  <option value="image">Image / Photo</option>
-                  <option value="video">Video</option>
-                </select>
-              </F>
-              <MediaUrlField
-                label={card.media_type === "video" ? "VIDEO" : "IMAGE"}
-                mediaType={card.media_type}
-                value={card.src}
-                onChange={(url) => updateCard(i, { src: url })}
+              <MediaField
+                label="CARD MEDIA"
+                value={{ url: card.src, type: card.media_type }}
+                onChange={(v) => updateCard(i, { src: v.url, media_type: v.type })}
               />
               <F label="CTA LINK"><input value={card.cta_href} onChange={(e) => updateCard(i, { cta_href: e.target.value })} className="inp" placeholder="/collections/men" /></F>
             </div>
@@ -764,17 +829,10 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               </div>
               <F label="HEADING"><input value={slide.label} onChange={(e) => updateSlide(i, { label: e.target.value })} className="inp" placeholder="BEST SELLERS" /></F>
               <F label="PARAGRAPH (optional)"><textarea rows={2} value={slide.subtitle ?? ""} onChange={(e) => updateSlide(i, { subtitle: e.target.value })} className="inp" placeholder="Short line under the heading…" /></F>
-              <F label="MEDIA TYPE">
-                <select value={slide.media_type} onChange={(e) => updateSlide(i, { media_type: e.target.value as "video" | "image" })} className="inp" style={{ cursor: "pointer" }}>
-                  <option value="image">Image / Photo</option>
-                  <option value="video">Video</option>
-                </select>
-              </F>
-              <MediaUrlField
-                label={slide.media_type === "video" ? "VIDEO" : "IMAGE"}
-                mediaType={slide.media_type}
-                value={slide.src}
-                onChange={(url) => updateSlide(i, { src: url })}
+              <MediaField
+                label="SLIDE MEDIA"
+                value={{ url: slide.src, type: slide.media_type }}
+                onChange={(v) => updateSlide(i, { src: v.url, media_type: v.type })}
               />
               <div className="grid grid-cols-2 gap-3">
                 <F label="BUTTON LABEL (optional)"><input value={slide.cta_label ?? ""} onChange={(e) => updateSlide(i, { cta_label: e.target.value })} className="inp" placeholder="SHOP NOW" /></F>
@@ -794,7 +852,11 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
       const benefits: DenySpaceBenefit[] = c.benefits ?? [];
       return (
         <div className="space-y-4">
-          <F label="LOGO URL"><input value={c.logo_url ?? ""} onChange={(e) => set("logo_url", e.target.value)} className="inp" /></F>
+          <MediaField
+            label="LOGO"
+            value={{ url: c.logo_url ?? "", type: c.logo_type ?? "image" }}
+            onChange={(v) => onChange({ ...cfg, logo_url: v.url, logo_type: v.type })}
+          />
           <F label="DESCRIPTION"><textarea rows={3} value={c.description ?? ""} onChange={(e) => set("description", e.target.value)} className="inp" /></F>
           <div className="grid grid-cols-2 gap-3">
             <F label="CTA LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="JOIN DENYSPACE" /></F>
@@ -844,62 +906,3 @@ function F({ label, children }: { label: string; children: React.ReactNode }) {
   );
 }
 
-/** Paste-a-URL input plus an "upload a file" button (image or video,
- * matching `mediaType`) for any carousel/card slide's media field. */
-function MediaUrlField({
-  label,
-  mediaType,
-  value,
-  onChange,
-}: {
-  label: string;
-  mediaType: "image" | "video";
-  value: string;
-  onChange: (url: string) => void;
-}) {
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const handleFile = async (file: File) => {
-    setUploading(true);
-    try {
-      const result = mediaType === "video" ? await uploadVideoToCloudinary(file) : await uploadToCloudinary(file);
-      onChange(result.secure_url);
-      toast.success("Uploaded");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Upload failed");
-    } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  };
-
-  return (
-    <F label={label}>
-      <div className="flex gap-2">
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="inp flex-1"
-          placeholder={mediaType === "video" ? "Paste a video URL, or upload →" : "Paste an image URL, or upload →"}
-        />
-        <input
-          ref={fileRef}
-          type="file"
-          accept={mediaType === "video" ? "video/*" : "image/*"}
-          className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
-        />
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          className="border border-border h-10 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50 shrink-0"
-        >
-          {uploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
-          UPLOAD
-        </button>
-      </div>
-    </F>
-  );
-}

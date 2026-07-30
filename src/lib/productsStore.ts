@@ -14,7 +14,9 @@ export type Product = {
   price: number;
   compareAt?: number;
   image: string;
+  imageType?: "image" | "video";
   hoverImage: string;
+  hoverImageType?: "image" | "video";
   gallery?: GalleryItem[];
   badge?: "NEW DROP" | "LAST PIECE" | "SALE" | "SOLD OUT";
   sizes: string[];
@@ -37,7 +39,9 @@ type DBProduct = {
   price: number;
   compare_at: number | null;
   image: string;
+  image_type: "image" | "video" | null;
   hover_image: string;
+  hover_image_type: "image" | "video" | null;
   gallery: GalleryItem[] | null;
   badge: string | null;
   sizes: string[];
@@ -64,7 +68,9 @@ function fromDB(r: DBProduct): Product {
     price: Number(r.price),
     compareAt: r.compare_at ? Number(r.compare_at) : undefined,
     image: r.image,
+    imageType: r.image_type ?? "image",
     hoverImage: r.hover_image,
+    hoverImageType: r.hover_image_type ?? "image",
     gallery: (r.gallery as GalleryItem[]) ?? [],
     badge: (r.badge as Product["badge"]) ?? undefined,
     sizes: r.sizes ?? [],
@@ -89,7 +95,9 @@ function toDB(p: Product): Omit<DBProduct, "created_at" | "updated_at"> {
     price: p.price,
     compare_at: p.compareAt ?? null,
     image: p.image,
+    image_type: p.imageType ?? "image",
     hover_image: p.hoverImage,
+    hover_image_type: p.hoverImageType ?? "image",
     gallery: p.gallery ?? [],
     badge: p.badge ?? null,
     sizes: p.sizes,

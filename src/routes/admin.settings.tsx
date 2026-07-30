@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import type { BrandSettings, ThemeSettings, AppSettings } from "@/types/database";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
+import { MediaField } from "@/components/admin/MediaField";
 
 export const Route = createFileRoute("/admin/settings")({
   component: AdminSettings,
@@ -162,7 +163,9 @@ function BrandTab() {
       site_name: data.site_name ?? "STUDIO DENY",
       tagline: data.tagline || null,
       logo_url: data.logo_url || null,
+      logo_type: data.logo_type ?? "image",
       favicon_url: data.favicon_url || null,
+      favicon_type: data.favicon_type ?? "image",
       og_default_image: data.og_default_image || null,
       social_instagram: data.social_instagram || null,
       social_whatsapp: data.social_whatsapp || null,
@@ -193,8 +196,16 @@ function BrandTab() {
           <F label="SITE NAME"><input value={data.site_name ?? ""} onChange={(e) => set("site_name", e.target.value)} className="inp" /></F>
           <F label="TAGLINE"><input value={data.tagline ?? ""} onChange={(e) => set("tagline", e.target.value)} className="inp" /></F>
         </div>
-        <F label="LOGO URL"><input value={data.logo_url ?? ""} onChange={(e) => set("logo_url", e.target.value)} className="inp" placeholder="https://..." /></F>
-        <F label="FAVICON URL"><input value={data.favicon_url ?? ""} onChange={(e) => set("favicon_url", e.target.value)} className="inp" placeholder="https://..." /></F>
+        <MediaField
+          label="LOGO"
+          value={{ url: data.logo_url ?? "", type: data.logo_type ?? "image" }}
+          onChange={(v) => setData((d) => ({ ...d, logo_url: v.url, logo_type: v.type }))}
+        />
+        <MediaField
+          label="FAVICON"
+          value={{ url: data.favicon_url ?? "", type: data.favicon_type ?? "image" }}
+          onChange={(v) => setData((d) => ({ ...d, favicon_url: v.url, favicon_type: v.type }))}
+        />
         <F label="DEFAULT OG IMAGE"><input value={data.og_default_image ?? ""} onChange={(e) => set("og_default_image", e.target.value)} className="inp" placeholder="1200×630 image URL" /></F>
       </section>
 

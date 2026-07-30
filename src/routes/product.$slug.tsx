@@ -91,36 +91,38 @@ function PDP() {
   // Full gallery, in order: base image, hover image, then any extra gallery photos —
   // deduped, and grouped into rows honoring each gallery item's layout: "standalone"
   // renders full-width, consecutive "half" items pair up side-by-side (H&M-style).
-  type GalleryRow = { type: "standalone"; src: string } | { type: "half"; srcs: string[] };
+  type GalleryMediaItem = { url: string; type: "image" | "video" };
+  type GalleryRow = { type: "standalone"; item: GalleryMediaItem } | { type: "half"; items: GalleryMediaItem[] };
   const galleryRows: GalleryRow[] = (() => {
     const seen = new Set<string>();
     const rows: GalleryRow[] = [];
-    const pushStandalone = (src: string) => {
-      if (!src || seen.has(src)) return;
-      seen.add(src);
-      rows.push({ type: "standalone", src });
+    const pushStandalone = (url: string, mediaType: "image" | "video") => {
+      if (!url || seen.has(url)) return;
+      seen.add(url);
+      rows.push({ type: "standalone", item: { url, type: mediaType } });
     };
-    pushStandalone(product.image);
-    pushStandalone(product.hoverImage);
+    pushStandalone(product.image, product.imageType ?? "image");
+    pushStandalone(product.hoverImage, product.hoverImageType ?? "image");
 
     const gallery = (product.gallery ?? []).filter((g: GalleryItem) => g.url && !seen.has(g.url));
     let i = 0;
     while (i < gallery.length) {
       const item = gallery[i];
       seen.add(item.url);
+      const media: GalleryMediaItem = { url: item.url, type: item.type ?? "image" };
       if (item.layout === "half") {
         const next = gallery[i + 1];
         if (next && next.layout === "half" && !seen.has(next.url)) {
           seen.add(next.url);
-          rows.push({ type: "half", srcs: [item.url, next.url] });
+          rows.push({ type: "half", items: [media, { url: next.url, type: next.type ?? "image" }] });
           i += 2;
           continue;
         }
-        rows.push({ type: "half", srcs: [item.url] });
+        rows.push({ type: "half", items: [media] });
         i += 1;
         continue;
       }
-      rows.push({ type: "standalone", src: item.url });
+      rows.push({ type: "standalone", item: media });
       i += 1;
     }
     return rows;
@@ -274,20 +276,28 @@ function PDP() {
     setVariantId(opt.variantId);
   };
 
-  const renderGalleryTile = (src: string, index: number) => {
+  const renderGalleryTile = (media: GalleryMediaItem, index: number) => {
     const isFirst = index === 0;
     return (
       <div
-        key={src}
+        key={media.url}
         className="relative group bg-surface overflow-hidden"
         style={{ aspectRatio: "4/5" }}
       >
-        <img
-          src={src}
-          alt={`${product.name} view ${index + 1}`}
-          className="absolute inset-0 w-full h-full object-cover"
-          loading={isFirst ? undefined : "lazy"}
-        />
+        {media.type === "video" ? (
+          <video
+            src={media.url}
+            autoPlay loop muted playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <img
+            src={media.url}
+            alt={`${product.name} view ${index + 1}`}
+            className="absolute inset-0 w-full h-full object-cover"
+            loading={isFirst ? undefined : "lazy"}
+          />
+        )}
         {isFirst && product.badge && (
           <span
             className={`absolute top-4 left-4 text-mono font-semibold px-3 py-1.5 shadow-lg ${
@@ -327,13 +337,13 @@ function PDP() {
             return galleryRows.map((row, rowIdx) => {
               if (row.type === "standalone") {
                 imgIndex += 1;
-                return renderGalleryTile(row.src, imgIndex);
+                return renderGalleryTile(row.item, imgIndex);
               }
               return (
                 <div key={`half-${rowIdx}`} className="grid grid-cols-2">
-                  {row.srcs.map((src) => {
+                  {row.items.map((media) => {
                     imgIndex += 1;
-                    return renderGalleryTile(src, imgIndex);
+                    return renderGalleryTile(media, imgIndex);
                   })}
                 </div>
               );

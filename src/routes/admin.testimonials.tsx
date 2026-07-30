@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Testimonial } from "@/types/database";
-import { uploadToCloudinary } from "@/lib/cloudinary";
-import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Star, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Star } from "lucide-react";
 import { toast } from "sonner";
+import { MediaField } from "@/components/admin/MediaField";
 
 export const Route = createFileRoute("/admin/testimonials")({
   component: AdminTestimonials,
@@ -14,6 +14,7 @@ const EMPTY: Omit<Testimonial, "id" | "created_at"> = {
   name: "",
   role: null,
   avatar: null,
+  avatar_type: "image",
   body: "",
   rating: 5,
   is_active: true,
@@ -25,8 +26,6 @@ function AdminTestimonials() {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<Partial<Testimonial> | null>(null);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const { data, error } = await supabase.from("testimonials").select("*").order("position");
@@ -63,21 +62,6 @@ function AdminTestimonials() {
     toast.success("Deleted");
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const result = await uploadToCloudinary(file);
-      setModal((m) => m ? { ...m, avatar: result.secure_url } : m);
-      toast.success("Avatar uploaded");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const save = async () => {
     if (!modal) return;
     if (!modal.name?.trim()) return toast.error("Name is required");
@@ -87,6 +71,7 @@ function AdminTestimonials() {
       name: modal.name,
       role: modal.role || null,
       avatar: modal.avatar || null,
+      avatar_type: modal.avatar_type ?? "image",
       body: modal.body,
       rating: modal.rating ?? 5,
       is_active: modal.is_active ?? true,
@@ -228,23 +213,11 @@ function AdminTestimonials() {
                   <span className="text-mono text-[11px] text-muted-foreground self-center ml-1">{modal.rating ?? 5}/5</span>
                 </div>
               </F>
-              <F label="AVATAR">
-                <div className="flex items-center gap-3">
-                  {modal.avatar && <img src={modal.avatar} alt="" className="w-12 h-12 rounded-full object-cover border border-border" />}
-                  <div className="flex flex-col gap-2">
-                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                    <button
-                      type="button"
-                      onClick={() => fileRef.current?.click()}
-                      disabled={uploading}
-                      className="border border-border h-9 px-3 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary disabled:opacity-50"
-                    >
-                      <Upload className="size-3" /> {uploading ? "UPLOADING…" : "UPLOAD"}
-                    </button>
-                    <input value={modal.avatar ?? ""} onChange={(e) => setModal({ ...modal, avatar: e.target.value })} placeholder="or paste URL" className="inp" style={{ height: 36 }} />
-                  </div>
-                </div>
-              </F>
+              <MediaField
+                label="AVATAR"
+                value={{ url: modal.avatar ?? "", type: modal.avatar_type ?? "image" }}
+                onChange={(v) => setModal({ ...modal, avatar: v.url, avatar_type: v.type })}
+              />
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={modal.is_active ?? true} onChange={(e) => setModal({ ...modal, is_active: e.target.checked })} className="w-4 h-4" />
                 <span className="text-mono text-[11px] tracking-widest">ACTIVE</span>
