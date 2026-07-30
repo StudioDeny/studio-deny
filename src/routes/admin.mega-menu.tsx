@@ -80,10 +80,13 @@ function AdminMegaMenu() {
     if (!confirm("Remove this tab from the navbar? Its links and featured products go with it.")) return;
     const { error } = await supabase.from("mega_menu_categories").delete().eq("id", id);
     if (error) return toast.error(error.message);
-    setCategories((c) => c.filter((x) => x.id !== id));
+    const next = categories.filter((x) => x.id !== id);
+    setCategories(next);
     setLinks((l) => l.filter((x) => x.menu_category_id !== id));
     setProducts((p) => p.filter((x) => x.menu_category_id !== id));
-    setSelectedId((cur) => (cur === id ? null : cur));
+    // Fall back to the first remaining tab so Step 2/3 and the preview
+    // don't go blank until a refresh when the deleted tab was selected.
+    setSelectedId((cur) => (cur === id ? (next[0]?.id ?? null) : cur));
     toast.success("Removed");
   };
 
@@ -453,7 +456,7 @@ function ProductAdder({ allProducts, excludeSlugs, onAdd }: { allProducts: Produ
   return (
     <div className="relative">
       <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-      <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products to feature…" className="inp pl-9" />
+      <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products to feature…" className="inp" style={{ paddingLeft: "2.25rem" }} />
       {q && (
         <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-background border border-border rounded shadow-lg max-h-64 overflow-y-auto">
           {results.length === 0 ? (

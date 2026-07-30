@@ -554,7 +554,8 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
                 value={arrivalsSearch}
                 onChange={(e) => setArrivalsSearch(e.target.value)}
                 placeholder="Search products to add…"
-                className="inp pl-9"
+                className="inp"
+                style={{ paddingLeft: "2.25rem" }}
               />
               {arrivalsSearch.trim() && (
                 <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-background border border-border rounded shadow-lg max-h-64 overflow-y-auto">
@@ -651,7 +652,8 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
                 value={popularNowSearch}
                 onChange={(e) => setPopularNowSearch(e.target.value)}
                 placeholder="Search products to add…"
-                className="inp pl-9"
+                className="inp"
+                style={{ paddingLeft: "2.25rem" }}
               />
               {popularNowSearch.trim() && (
                 <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-background border border-border rounded shadow-lg max-h-64 overflow-y-auto">
