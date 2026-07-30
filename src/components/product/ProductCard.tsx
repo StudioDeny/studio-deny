@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Heart, ShoppingBag } from "lucide-react";
+import { Heart, ShoppingBag, Check } from "lucide-react";
 import { getVariantStock, type Product, type VariantStock } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -145,44 +145,44 @@ export function ProductCard({
             <Heart className={`size-4 drop-shadow ${wished ? "fill-primary" : ""}`} />
           </button>
 
-          {/* Quick add — desktop hover, always visible (compact) on mobile */}
+          {/* Quick add — small circular icon bottom-right; click expands a pill-style
+              size row overlaying the same spot. Icon is always visible on mobile
+              (no hover there), hover-gated on desktop. Cursor leaving the card
+              (or tapping away, via the Link nav on outside taps) collapses it. */}
+          {!showSizes && (
+            <button
+              aria-label={added ? "Added to bag" : "Quick add"}
+              onClick={(e) => { e.preventDefault(); if (!added) handleOpenSizes(); }}
+              className={`absolute bottom-2.5 right-2.5 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 opacity-100 ${
+                hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90"
+              } ${added ? "bg-secondary text-secondary-foreground" : "bg-foreground/95 text-background hover:bg-primary hover:text-primary-foreground"}`}
+            >
+              {added ? <Check className="size-4" /> : <ShoppingBag className="size-4" />}
+            </button>
+          )}
+
           <div
             className={`absolute inset-x-0 bottom-0 transition-all duration-300 ${
-              hover ? "md:translate-y-0 md:opacity-100" : "md:translate-y-full md:opacity-0"
+              showSizes ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
             }`}
           >
-            {added ? (
-              <div
-                className="w-full text-mono font-bold text-center py-2.5 md:py-3 bg-secondary text-secondary-foreground"
-                style={{ fontSize: "11px", letterSpacing: "0.2em" }}
-              >
-                ✓ ADDED
-              </div>
-            ) : !showSizes ? (
-              <button
-                onClick={(e) => { e.preventDefault(); handleOpenSizes(); }}
-                className="w-full bg-foreground/95 text-background text-mono font-bold py-2.5 md:py-3 hover:bg-primary hover:text-primary-foreground transition-colors flex items-center justify-center gap-2"
-                style={{ fontSize: "11px", letterSpacing: "0.2em" }}
-              >
-                <ShoppingBag className="size-3.5" /> QUICK ADD
-              </button>
-            ) : (
-              <div className="flex bg-foreground text-background overflow-x-auto">
-                {sizeOptions.map((opt) => (
-                  <button
-                    key={opt.variantId ?? opt.size}
-                    disabled={!opt.inStock}
-                    onClick={(e) => { e.preventDefault(); handleQuickAdd(opt); }}
-                    className={`flex-1 min-w-[36px] text-mono py-2.5 md:py-3 transition-colors border-l border-black/10 first:border-l-0 ${
-                      opt.inStock ? "hover:bg-primary hover:text-primary-foreground" : "opacity-30 line-through cursor-not-allowed"
-                    }`}
-                    style={{ fontSize: "11px" }}
-                  >
-                    {opt.size}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="flex flex-wrap justify-center gap-1.5 p-2.5 bg-background/95 backdrop-blur-sm">
+              {sizeOptions.map((opt) => (
+                <button
+                  key={opt.variantId ?? opt.size}
+                  disabled={!opt.inStock}
+                  onClick={(e) => { e.preventDefault(); handleQuickAdd(opt); }}
+                  className={`rounded-full px-3.5 py-1.5 text-mono font-semibold border transition-colors ${
+                    opt.inStock
+                      ? "border-foreground/30 hover:bg-foreground hover:text-background"
+                      : "border-border opacity-30 line-through cursor-not-allowed"
+                  }`}
+                  style={{ fontSize: "11px" }}
+                >
+                  {opt.size}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
