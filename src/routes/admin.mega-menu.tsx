@@ -168,13 +168,16 @@ function AdminMegaMenu() {
     <div>
       <h1 className="text-display text-4xl md:text-5xl mb-2">MEGA MENU.</h1>
       <p className="text-muted-foreground text-sm mb-8 max-w-2xl">
-        Manage the navbar's top-level categories, their link column, and their scrollable image tiles. Drag the grip handle to reorder. Each link/tile can point at a real product category (its collection page) or any custom URL.
+        This builds the dropdown that opens when a shopper hovers WOMEN, MEN, etc. in the navbar. Three levels: the tabs themselves, the text links on the left of the dropdown, and the photo tiles on the right. Drag the <span className="inline-flex items-center justify-center size-4 border border-border rounded align-middle"><GripVertical className="size-2.5" /></span> handle to reorder anything.
       </p>
 
       <div className="grid lg:grid-cols-[1fr_420px] gap-8">
         <div className="space-y-8 min-w-0">
           {/* CATEGORIES */}
-          <Panel title="TOP-LEVEL CATEGORIES">
+          <Panel
+            title="STEP 1 — TOP-LEVEL CATEGORIES"
+            description={'These are the tabs in the navbar itself (e.g. "WOMEN"). Click MANAGE on one below to edit what appears inside its dropdown.'}
+          >
             <Reorder.Group axis="y" values={categories} onReorder={reorderCategories} className="space-y-2">
               {categories.map((cat) => (
                 <CategoryRow
@@ -193,7 +196,10 @@ function AdminMegaMenu() {
 
           {/* LINKS */}
           {selected && (
-            <Panel title={`LINKS — ${selected.label}`}>
+            <Panel
+              title={`STEP 2 — TEXT LINKS INSIDE "${selected.label}"`}
+              description="The plain text links stacked down the left side of this category's dropdown (e.g. NEW ARRIVALS, SHOP ALL)."
+            >
               <Reorder.Group axis="y" values={selectedLinks} onReorder={reorderLinks} className="space-y-2">
                 {selectedLinks.map((link) => (
                   <LinkRow
@@ -211,7 +217,10 @@ function AdminMegaMenu() {
 
           {/* TILES */}
           {selected && (
-            <Panel title={`IMAGE TILES — ${selected.label}`}>
+            <Panel
+              title={`STEP 3 — PHOTO TILES INSIDE "${selected.label}"`}
+              description="The row of photo cards next to the links, e.g. DRESSES / SHORTS / ACCESSORIES. Shoppers can scroll through these if there are more than fit on screen."
+            >
               <Reorder.Group axis="y" values={selectedTiles} onReorder={reorderTiles} className="space-y-3">
                 {selectedTiles.map((tile) => (
                   <TileRow
@@ -230,7 +239,8 @@ function AdminMegaMenu() {
 
         {/* LIVE PREVIEW */}
         <div className="lg:sticky lg:top-6 self-start">
-          <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-3">LIVE PREVIEW</div>
+          <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-1">LIVE PREVIEW</div>
+          <p className="text-xs text-muted-foreground mb-3">This is exactly what shoppers see for the category you're managing below.</p>
           <div className="border border-border bg-background">
             <div className="flex items-center gap-5 px-5 h-14 border-b border-border overflow-x-auto no-scrollbar">
               {categories.map((c) => (
@@ -253,10 +263,11 @@ function AdminMegaMenu() {
   );
 }
 
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+function Panel({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
     <section className="border border-border bg-surface p-5">
-      <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-4">{title}</div>
+      <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-1">{title}</div>
+      <p className="text-xs text-muted-foreground mb-4 max-w-lg">{description}</p>
       {children}
     </section>
   );
@@ -305,43 +316,51 @@ function LinkTargetPicker({
   allCategories: Category[];
   onChange: (patch: { href: string | null; category_id: string | null }) => void;
 }) {
-  const mode = categoryId ? "category" : "url";
+  // Mode is its own state, not just derived from categoryId — otherwise
+  // switching to "shop category" and not having picked one yet (categoryId
+  // still null) would immediately flip back to "custom link" on re-render.
+  const [mode, setMode] = useState<"url" | "category">(categoryId ? "category" : "url");
+
   return (
-    <div className="flex items-center gap-2 w-full flex-wrap sm:flex-nowrap">
-      <div className="inline-flex border border-border rounded overflow-hidden shrink-0">
-        <button
-          type="button"
-          onClick={() => onChange({ href: href ?? "", category_id: null })}
-          className={`px-2.5 h-9 text-[9px] font-semibold tracking-widest whitespace-nowrap ${mode === "url" ? "bg-foreground text-background" : "bg-background text-muted-foreground"}`}
-        >
-          URL
-        </button>
-        <button
-          type="button"
-          onClick={() => onChange({ href: null, category_id: allCategories[0]?.id ?? null })}
-          className={`px-2.5 h-9 text-[9px] font-semibold tracking-widest whitespace-nowrap ${mode === "category" ? "bg-foreground text-background" : "bg-background text-muted-foreground"}`}
-        >
-          CATEGORY
-        </button>
+    <div>
+      <div className="text-mono text-[9px] tracking-widest text-muted-foreground/70 mb-1">WHEN CLICKED, GO TO:</div>
+      <div className="flex items-center gap-2 w-full flex-wrap sm:flex-nowrap">
+        <div className="inline-flex border border-border rounded overflow-hidden shrink-0">
+          <button
+            type="button"
+            onClick={() => { setMode("url"); onChange({ href: href ?? "", category_id: null }); }}
+            className={`px-2.5 h-9 text-[9px] font-semibold tracking-widest whitespace-nowrap ${mode === "url" ? "bg-foreground text-background" : "bg-background text-muted-foreground"}`}
+          >
+            CUSTOM LINK
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("category")}
+            className={`px-2.5 h-9 text-[9px] font-semibold tracking-widest whitespace-nowrap ${mode === "category" ? "bg-foreground text-background" : "bg-background text-muted-foreground"}`}
+          >
+            SHOP CATEGORY
+          </button>
+        </div>
+        {mode === "url" ? (
+          <input
+            value={href ?? ""}
+            onChange={(e) => onChange({ href: e.target.value, category_id: null })}
+            placeholder="e.g. /collections/men or a full https:// URL"
+            className="inp flex-1 min-w-[160px]"
+          />
+        ) : (
+          <select
+            value={categoryId ?? ""}
+            onChange={(e) => onChange({ href: null, category_id: e.target.value || null })}
+            className="inp flex-1 min-w-[160px]"
+          >
+            <option value="">— choose a category —</option>
+            {allCategories.map((c) => (
+              <option key={c.id} value={c.id}>{categoryLabel(c, allCategories)}</option>
+            ))}
+          </select>
+        )}
       </div>
-      {mode === "url" ? (
-        <input
-          value={href ?? ""}
-          onChange={(e) => onChange({ href: e.target.value, category_id: null })}
-          placeholder="/collections/men or a full URL"
-          className="inp flex-1 min-w-[160px]"
-        />
-      ) : (
-        <select
-          value={categoryId ?? ""}
-          onChange={(e) => onChange({ href: null, category_id: e.target.value })}
-          className="inp flex-1 min-w-[160px]"
-        >
-          {allCategories.map((c) => (
-            <option key={c.id} value={c.id}>{categoryLabel(c, allCategories)}</option>
-          ))}
-        </select>
-      )}
     </div>
   );
 }
@@ -363,14 +382,21 @@ function CategoryRow({
         <div className="flex items-center gap-2">
           <DragHandle dragControls={dragControls} />
           <input value={cat.label} onChange={(e) => onChange({ label: e.target.value })} className="inp flex-1 min-w-0" placeholder="Label" />
-          <label className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
+          <label title="Uncheck to hide this tab from the navbar without deleting it" className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
             <input type="checkbox" checked={cat.is_active} onChange={(e) => onChange({ is_active: e.target.checked })} />
-            ACTIVE
+            SHOWN
           </label>
-          <button type="button" onClick={onSelect} className="shrink-0 text-mono text-[10px] tracking-widest text-primary hover:underline px-1 whitespace-nowrap">
+          <button
+            type="button"
+            onClick={onSelect}
+            title="Edit this category's links and photo tiles"
+            className={`shrink-0 border h-9 px-3 text-mono text-[10px] tracking-widest whitespace-nowrap transition-colors ${
+              selected ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+            }`}
+          >
             MANAGE →
           </button>
-          <button type="button" onClick={onDelete} className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500">
+          <button type="button" onClick={onDelete} title="Delete this category" className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500">
             <Trash2 className="size-3.5" />
           </button>
         </div>
@@ -400,11 +426,11 @@ function LinkRow({
         <div className="flex items-center gap-2">
           <DragHandle dragControls={dragControls} />
           <input value={item.label} onChange={(e) => onChange({ label: e.target.value })} className="inp flex-1 min-w-0" placeholder="Label" />
-          <label className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
+          <label title="Uncheck to hide this link without deleting it" className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
             <input type="checkbox" checked={item.is_active} onChange={(e) => onChange({ is_active: e.target.checked })} />
-            ACTIVE
+            SHOWN
           </label>
-          <button type="button" onClick={onDelete} className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500">
+          <button type="button" onClick={onDelete} title="Delete this link" className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500">
             <Trash2 className="size-3.5" />
           </button>
         </div>
@@ -436,6 +462,7 @@ function TileRow({
           </div>
           <LinkTargetPicker href={item.href} categoryId={item.category_id} allCategories={allCategories} onChange={(patch) => onChange(patch)} />
           <MediaField
+            label="TILE PHOTO"
             value={{ url: item.image_url, type: item.image_type }}
             onChange={(v) => onChange({ image_url: v.url, image_type: v.type })}
           />
