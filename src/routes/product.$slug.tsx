@@ -167,13 +167,25 @@ function PDP() {
     return fromVariants.length > 0 ? fromVariants : product.colors.map((c: { name: string; hex: string }) => ({ key: c.hex, ...c }));
   })();
 
+  // The color actually in effect right now — derived synchronously from the
+  // current colorOptions instead of trusting `selectedColor` state directly.
+  // `selectedColor` is only updated by a useEffect, which runs one render
+  // behind whenever colorOptions itself just changed (e.g. the moment the
+  // real variant colors replace the product's placeholder color list after
+  // the initial fetch resolves). Scoping sizes off the stale `selectedColor`
+  // in that one render caused a real, network-timing-dependent bug: the size
+  // list would filter against a color key ("#0a0a0a", the placeholder) that
+  // no longer exists in the real colorOptions, silently producing zero
+  // matches. Deriving it fresh every render closes that window entirely.
+  const effectiveColorKey = (colorOptions.find((c) => c.key === selectedColor) ?? colorOptions[0])?.key ?? null;
+
   // Sizes are scoped to the selected color when variants carry color data, so
   // switching color never shows the same size duplicated once per color.
   const sizeOptions: SizeOption[] = (() => {
     if (variants.length === 0) return product.sizes.map((s: string) => ({ size: s, inStock: true }));
     const hasColorData = variants.some((v) => v.color);
-    const scoped = hasColorData && selectedColor
-      ? variants.filter((v) => (v.color_hex ?? "#0a0a0a") === selectedColor)
+    const scoped = hasColorData && effectiveColorKey
+      ? variants.filter((v) => (v.color_hex ?? "#0a0a0a") === effectiveColorKey)
       : variants;
     return scoped.filter((v) => v.size != null).map((v) => ({
       size: v.size as string,
@@ -362,7 +374,7 @@ function PDP() {
             <div className="mt-8 border-t border-border pt-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-mono text-muted-foreground" style={{ fontSize: "11px", letterSpacing: "0.25em" }}>
-                  COLOR <span className="mx-2">·</span> <span className="text-foreground">{(colorOptions.find((c) => c.key === selectedColor) ?? colorOptions[0]).name.toUpperCase()}</span>
+                  COLOR <span className="mx-2">·</span> <span className="text-foreground">{(colorOptions.find((c) => c.key === effectiveColorKey) ?? colorOptions[0]).name.toUpperCase()}</span>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -371,9 +383,9 @@ function PDP() {
                     key={c.key}
                     type="button"
                     onClick={() => setSelectedColor(c.key)}
-                    aria-pressed={selectedColor === c.key}
+                    aria-pressed={effectiveColorKey === c.key}
                     className={`size-10 rounded-full border-2 ring-offset-2 ring-offset-background transition-all hover:scale-110 shadow-sm ${
-                      selectedColor === c.key ? "border-primary ring-2 ring-primary" : "border-border ring-1 ring-foreground/20"
+                      effectiveColorKey === c.key ? "border-primary ring-2 ring-primary" : "border-border ring-1 ring-foreground/20"
                     }`}
                     style={{ backgroundColor: c.hex }}
                     aria-label={`Select color ${c.name}`}
