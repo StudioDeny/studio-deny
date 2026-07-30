@@ -141,9 +141,7 @@ function PDP() {
     if (!el) return;
     el.scrollTo({ left: index * el.clientWidth, behavior: "smooth" });
   };
-  const [ctaVisible, setCtaVisible] = useState(true);
   const [related, setRelated] = useState<Product[]>([]);
-  const ctaRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     listProducts().then((all) => {
@@ -239,14 +237,6 @@ function PDP() {
     setSize(null);
     setVariantId(undefined);
   }, [selectedColor]);
-
-  useEffect(() => {
-    const el = ctaRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => setCtaVisible(entry.isIntersecting), { threshold: 0.5 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [sizeOptions]);
 
   const selectedVariant = sizeOptions.find((o) => o.variantId === variantId);
   const displayPrice = selectedVariant?.price ?? product.price;
@@ -532,7 +522,6 @@ function PDP() {
             </div>
 
             <button
-              ref={ctaRef}
               onClick={handleAdd}
               disabled={!size || isOOS}
               className={`flex-1 font-bold text-mono transition-all duration-300 flex items-center justify-center gap-3 ${
@@ -673,53 +662,6 @@ function PDP() {
         </section>
       )}
 
-      {/* Mobile sticky add-to-cart (shows when CTA scrolls out of view) */}
-      <div
-        className={`fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 transition-all duration-300 ${
-          ctaVisible ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
-        }`}
-      >
-        <div className="flex items-center gap-3 max-w-screen-sm mx-auto">
-          <div className="flex-1 overflow-x-auto scrollbar-none">
-            <div className="flex gap-1.5 min-w-max pb-0.5">
-              {sizeOptions.map((opt: SizeOption) => {
-                const isSelected = opt.variantId ? opt.variantId === variantId : size === opt.size;
-                return (
-                  <button
-                    key={opt.variantId ?? opt.size}
-                    onClick={() => handleSizeSelect(opt)}
-                    disabled={!opt.inStock}
-                    className={`h-10 min-w-[44px] px-2 border text-mono transition-all duration-150 ${
-                      isSelected
-                        ? "bg-foreground text-background border-foreground"
-                        : opt.inStock
-                        ? "border-border text-muted-foreground hover:border-primary hover:text-primary bg-surface/50"
-                        : "border-border/30 text-muted-foreground/30 bg-surface/20 cursor-not-allowed"
-                    }`}
-                    style={{ fontSize: "11px" }}
-                  >
-                    {opt.size}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <button
-            onClick={handleAdd}
-            disabled={!size || isOOS}
-            className={`h-10 px-5 font-bold text-mono whitespace-nowrap transition-all duration-300 shrink-0 ${
-              added
-                ? "bg-secondary text-secondary-foreground"
-                : size
-                ? "bg-primary text-primary-foreground"
-                : "bg-surface border border-border text-muted-foreground"
-            }`}
-            style={{ fontSize: "11px", letterSpacing: "0.2em", opacity: isOOS ? 0.5 : 1 }}
-          >
-            {isOOS ? "SOLD OUT" : added ? "✓ ADDED" : "ADD TO BAG"}
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

@@ -13,7 +13,7 @@ export const Route = createFileRoute("/admin/mega-menu")({
   component: AdminMegaMenu,
 });
 
-const MAX_PRODUCTS = 3;
+const MAX_PRODUCTS = 2;
 
 function categoryLabel(c: Category, all: Category[]): string {
   const parent = c.parentId ? all.find((p) => p.id === c.parentId) : undefined;
@@ -249,7 +249,7 @@ function AdminMegaMenu() {
           {selected && (
             <Panel
               title={`STEP 3 — FEATURED PRODUCTS IN "${catName(selected.category_id).toUpperCase()}"`}
-              description={`Up to ${MAX_PRODUCTS} products shown as the scrollable photo row next to the links (image + name come straight from the product).`}
+              description={`${MAX_PRODUCTS} products shown side by side next to the links (image + name come straight from the product).`}
             >
               <Reorder.Group axis="y" values={selectedProducts} onReorder={reorderProducts} className="space-y-2">
                 {selectedProducts.map((p) => (

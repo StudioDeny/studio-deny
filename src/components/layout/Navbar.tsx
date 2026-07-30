@@ -112,17 +112,23 @@ export function Navbar() {
             className="hidden sm:flex items-center gap-6 lg:gap-8 font-body"
             onMouseLeave={() => setOpenDropdown(null)}
           >
-            {megaMenu.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onMouseEnter={() => setOpenDropdown(cat.id)}
-                onClick={() => setOpenDropdown((d) => (d === cat.id ? null : cat.id))}
-                className="flex items-center gap-1 text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale"
-              >
-                {cat.label} <ChevronDown className="size-3" strokeWidth={1.5} />
-              </button>
-            ))}
+            {/* Tabs need their own stacking context above the backdrop below —
+                otherwise the backdrop (position:fixed) paints over these plain
+                static buttons regardless of DOM order, silently swallowing
+                hover/click and making it look like only clicking outside works. */}
+            <div className="relative z-[96] flex items-center gap-6 lg:gap-8">
+              {megaMenu.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onMouseEnter={() => setOpenDropdown(cat.id)}
+                  onClick={() => setOpenDropdown((d) => (d === cat.id ? null : cat.id))}
+                  className="flex items-center gap-1 text-sm tracking-wide hover:opacity-60 transition-opacity hover-scale"
+                >
+                  {cat.label} <ChevronDown className="size-3" strokeWidth={1.5} />
+                </button>
+              ))}
+            </div>
 
             <AnimatePresence>
               {(() => {
