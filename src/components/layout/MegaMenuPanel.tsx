@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import type { MegaMenuCategory } from "@/lib/megaMenu";
+import type { MegaMenuCategory, MegaMenuProduct } from "@/lib/megaMenu";
+import { formatINR } from "@/context/CartContext";
 
 /** Link column + product tiles for one mega-menu category. Shared by the
  * desktop side panel, the mobile full-screen panel, and the admin's live
  * preview — driven entirely by the `category` prop, no data fetching of
  * its own. Desktop: the 2 featured products sit edge-to-edge side by side
- * filling the panel's other half, name overlaid on the image. Mobile:
- * each product is one full-width swipeable slide, same overlay style. */
+ * filling the panel's other half, name overlaid on the image. Mobile: a
+ * 2-up shop-style grid (photo, discount badge, name, price) since there
+ * are never more than 2 — no scrolling needed to see them both. */
 export function MegaMenuPanel({
   category,
   onNavigate,
@@ -56,18 +58,8 @@ export function MegaMenuPanel({
             ))}
           </div>
         ) : (
-          <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
-            {category.products.map((p) => (
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              <Link key={p.id} to={p.href as any} onClick={onNavigate} className="group relative shrink-0 w-full snap-center overflow-hidden bg-surface" style={{ aspectRatio: "4/5" }}>
-                <img
-                  src={p.imageUrl}
-                  alt={p.label}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                {nameOverlay(p.label)}
-              </Link>
-            ))}
+          <div className="grid grid-cols-2 gap-3 px-4 pb-4">
+            {category.products.map((p) => <MobileProductCard key={p.id} product={p} onNavigate={onNavigate} />)}
           </div>
         )
       )}
@@ -76,5 +68,36 @@ export function MegaMenuPanel({
         <p className="text-sm text-muted-foreground p-6">Nothing in this menu yet.</p>
       )}
     </div>
+  );
+}
+
+function MobileProductCard({ product, onNavigate }: { product: MegaMenuProduct; onNavigate: () => void }) {
+  const discountPct = product.compareAt && product.compareAt > product.price
+    ? Math.round(((product.compareAt - product.price) / product.compareAt) * 100)
+    : null;
+
+  return (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    <Link to={product.href as any} onClick={onNavigate} className="group block">
+      <div className="relative w-full overflow-hidden bg-surface" style={{ aspectRatio: "4/5" }}>
+        <img
+          src={product.imageUrl}
+          alt={product.label}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        {discountPct !== null && (
+          <span className="absolute top-2 left-2 bg-red-600 text-white font-bold px-1.5 py-0.5" style={{ fontSize: "10px" }}>
+            -{discountPct}%
+          </span>
+        )}
+      </div>
+      <p className="mt-2 text-xs tracking-wide truncate">{product.label}</p>
+      <div className="flex items-center gap-1.5">
+        <span className="text-sm font-semibold">{formatINR(product.price)}</span>
+        {discountPct !== null && (
+          <span className="text-xs text-muted-foreground line-through">{formatINR(product.compareAt!)}</span>
+        )}
+      </div>
+    </Link>
   );
 }

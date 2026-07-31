@@ -172,7 +172,10 @@ function AdminMegaMenu() {
         products: selectedProducts
           .map((p) => ({ p, prod: productBySlug(p.product_slug) }))
           .filter((x) => x.prod)
-          .map(({ p, prod }) => ({ id: p.id, label: prod!.name, href: "#", imageUrl: prod!.image, position: p.position })),
+          .map(({ p, prod }) => ({
+            id: p.id, label: prod!.name, href: "#", imageUrl: prod!.image,
+            price: prod!.price, compareAt: prod!.compareAt ?? null, position: p.position,
+          })),
       }
     : null;
 

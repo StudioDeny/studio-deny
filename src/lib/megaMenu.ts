@@ -9,7 +9,7 @@ import { supabase } from "./supabase";
 import type { MegaMenuCategoryRow, MegaMenuLinkRow, MegaMenuProductRow } from "@/types/database";
 
 export type MegaMenuLink = { id: string; label: string; href: string; position: number };
-export type MegaMenuProduct = { id: string; label: string; href: string; imageUrl: string; position: number };
+export type MegaMenuProduct = { id: string; label: string; href: string; imageUrl: string; price: number; compareAt: number | null; position: number };
 export type MegaMenuCategory = { id: string; label: string; href: string; position: number; links: MegaMenuLink[]; products: MegaMenuProduct[] };
 
 /** Public, read-only fetch of the full active mega menu tree — used by the
@@ -29,8 +29,8 @@ export async function getMegaMenu(): Promise<MegaMenuCategory[]> {
 
   const slugsNeeded = Array.from(new Set(productRows.map((p) => p.product_slug)));
   const { data: products } = slugsNeeded.length > 0
-    ? await supabase.from("products").select("slug, name, image").in("slug", slugsNeeded)
-    : { data: [] as { slug: string; name: string; image: string }[] };
+    ? await supabase.from("products").select("slug, name, image, price, compare_at").in("slug", slugsNeeded)
+    : { data: [] as { slug: string; name: string; image: string; price: number; compare_at: number | null }[] };
   const productBySlug = new Map((products ?? []).map((p) => [p.slug, p]));
 
   return categoryRows
@@ -52,7 +52,10 @@ export async function getMegaMenu(): Promise<MegaMenuCategory[]> {
           .filter((p) => p.menu_category_id === c.id && productBySlug.has(p.product_slug))
           .map((p) => {
             const prod = productBySlug.get(p.product_slug)!;
-            return { id: p.id, label: prod.name, href: `/product/${prod.slug}`, imageUrl: prod.image, position: p.position };
+            return {
+              id: p.id, label: prod.name, href: `/product/${prod.slug}`, imageUrl: prod.image,
+              price: prod.price, compareAt: prod.compare_at, position: p.position,
+            };
           }),
       };
     });
