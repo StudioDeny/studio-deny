@@ -5,11 +5,70 @@ import type { PopupPromo } from "@/types/database";
 import { MediaField, type MediaValue } from "@/components/admin/MediaField";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
-import { Loader2, Upload } from "lucide-react";
+import {
+  Loader2, Upload, ChevronDown, Lock, Zap, Gift, Trophy, Truck, RotateCcw,
+  ShieldCheck, Star, Sparkles, Heart, Award, Package, Clock, CheckCircle,
+  type LucideIcon,
+} from "lucide-react";
 
 export const Route = createFileRoute("/admin/popup")({
   component: AdminPopup,
 });
+
+const ICON_NAMES = [
+  "Lock", "Zap", "Gift", "Trophy", "Truck", "RotateCcw", "ShieldCheck", "Star",
+  "Sparkles", "Heart", "Award", "Package", "Clock", "CheckCircle",
+];
+const ICON_MAP: Record<string, LucideIcon> = {
+  Lock, Zap, Gift, Trophy, Truck, RotateCcw, ShieldCheck, Star,
+  Sparkles, Heart, Award, Package, Clock, CheckCircle,
+};
+
+function IconPicker({ value, onChange }: { value: string; onChange: (name: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const SelectedIcon = ICON_MAP[value] ?? Star;
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="inp flex items-center gap-2 text-left">
+        <SelectedIcon className="size-4 shrink-0" />
+        <span className="flex-1">{value}</span>
+        <ChevronDown className={`size-3.5 shrink-0 opacity-60 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute z-20 top-full left-0 mt-1 bg-background border border-border shadow-lg p-2 grid grid-cols-4 gap-1 w-[220px]">
+          {ICON_NAMES.map((name) => {
+            const Icon = ICON_MAP[name];
+            return (
+              <button
+                key={name}
+                type="button"
+                title={name}
+                onClick={() => { onChange(name); setOpen(false); }}
+                className={`flex flex-col items-center gap-1 p-2 rounded hover:bg-surface hover:text-primary transition-colors ${
+                  value === name ? "bg-surface text-primary" : ""
+                }`}
+              >
+                <Icon className="size-4" />
+                <span className="text-[8px] tracking-wide truncate w-full text-center">{name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function LogoField({ value, onChange }: { value: string | null; onChange: (url: string | null) => void }) {
   const [uploading, setUploading] = useState(false);
@@ -188,23 +247,47 @@ function AdminPopup() {
         </div>
 
         <div className="border border-border bg-surface p-4 space-y-3">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">RULE ROW LABELS</div>
+          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">RULE ROW</div>
           <div className="grid grid-cols-3 gap-3">
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">UNLOCK</div>
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">UNLOCK ICON</div>
+              <IconPicker value={row.rule_unlock_icon} onChange={(name) => update({ rule_unlock_icon: name })} />
+            </label>
+            <label className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">EARN ICON</div>
+              <IconPicker value={row.rule_earn_icon} onChange={(name) => update({ rule_earn_icon: name })} />
+            </label>
+            <label className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">REDEEM ICON</div>
+              <IconPicker value={row.rule_redeem_icon} onChange={(name) => update({ rule_redeem_icon: name })} />
+            </label>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <label className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">UNLOCK LABEL</div>
               <input value={row.rule_unlock_label} onChange={(e) => update({ rule_unlock_label: e.target.value })} className="inp" />
             </label>
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">EARN</div>
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">EARN LABEL</div>
               <input value={row.rule_earn_label} onChange={(e) => update({ rule_earn_label: e.target.value })} className="inp" />
             </label>
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">REDEEM</div>
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">REDEEM LABEL</div>
               <input value={row.rule_redeem_label} onChange={(e) => update({ rule_redeem_label: e.target.value })} className="inp" />
             </label>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">EARN VALUE (E.G. "1 PT")</div>
+              <input value={row.rule_earn_value} onChange={(e) => update({ rule_earn_value: e.target.value })} className="inp" />
+            </label>
+            <label className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">UNLOCK SUB TEXT (E.G. "SINGLE ORDER")</div>
+              <input value={row.rule_unlock_sub} onChange={(e) => update({ rule_unlock_sub: e.target.value })} className="inp" />
+            </label>
+          </div>
           <p className="text-[11px] text-muted-foreground">
-            The values under each label (₹ amounts) come from the loyalty math in Settings → Loyalty, not from here.
+            UNLOCK's ₹ amount and EARN/REDEEM's "per ₹…" sub text come from the loyalty math in Settings → Loyalty, not from here.
           </p>
         </div>
 

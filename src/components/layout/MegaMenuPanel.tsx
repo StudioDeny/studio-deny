@@ -47,7 +47,7 @@ export function MegaMenuPanel({
           <div className="grid grid-cols-2 flex-1 min-w-0 self-stretch">
             {category.products.map((p) => (
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              <Link key={p.id} to={p.href as any} onClick={onNavigate} className="group relative min-w-0 overflow-hidden bg-surface" style={{ aspectRatio: "4/5" }}>
+              <Link key={p.id} to={p.href as any} onClick={onNavigate} className="group relative min-w-0 h-full overflow-hidden bg-surface">
                 <img
                   src={p.imageUrl}
                   alt={p.label}

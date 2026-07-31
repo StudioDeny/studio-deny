@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trophy, Zap, Gift, ArrowRight, Lock } from "lucide-react";
+import {
+  X, Trophy, ArrowRight, Lock, Zap, Gift, Truck, RotateCcw, ShieldCheck, Star,
+  Sparkles, Heart, Award, Package, Clock, CheckCircle, type LucideIcon,
+} from "lucide-react";
 import { getSettings } from "@/lib/settings";
 import { supabase } from "@/lib/supabase";
 import type { PopupPromo } from "@/types/database";
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  Lock, Zap, Gift, Trophy, Truck, RotateCcw, ShieldCheck, Star,
+  Sparkles, Heart, Award, Package, Clock, CheckCircle,
+};
 
 const DEFAULTS: PopupPromo = {
   id: "",
@@ -21,6 +29,11 @@ const DEFAULTS: PopupPromo = {
   rule_unlock_label: "UNLOCK",
   rule_earn_label: "EARN",
   rule_redeem_label: "REDEEM",
+  rule_unlock_icon: "Lock",
+  rule_earn_icon: "Zap",
+  rule_redeem_icon: "Gift",
+  rule_earn_value: "1 PT",
+  rule_unlock_sub: "single order",
   tier_1_label: "ROOKIE",
   tier_2_label: "RUNNER",
   tier_3_label: "RIOT",
@@ -152,19 +165,19 @@ export function LoyaltyModal() {
                 <div className="grid grid-cols-3 gap-3 mb-8">
                   {[
                     {
-                      icon: Lock,
+                      icon: ICON_MAP[cfg.rule_unlock_icon] ?? Lock,
                       label: cfg.rule_unlock_label,
                       value: `₹${s.entryThreshold.toLocaleString()}`,
-                      sub: "single order",
+                      sub: cfg.rule_unlock_sub,
                     },
                     {
-                      icon: Zap,
+                      icon: ICON_MAP[cfg.rule_earn_icon] ?? Zap,
                       label: cfg.rule_earn_label,
-                      value: `1 PT`,
+                      value: cfg.rule_earn_value,
                       sub: `per ₹${s.rupeesPerEarnedPoint}`,
                     },
                     {
-                      icon: Gift,
+                      icon: ICON_MAP[cfg.rule_redeem_icon] ?? Gift,
                       label: cfg.rule_redeem_label,
                       value: `₹${s.rupeesPerPoint}`,
                       sub: "per point",

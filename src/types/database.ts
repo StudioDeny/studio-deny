@@ -668,6 +668,11 @@ export type PopupPromo = {
   rule_unlock_label: string;
   rule_earn_label: string;
   rule_redeem_label: string;
+  rule_unlock_icon: string;
+  rule_earn_icon: string;
+  rule_redeem_icon: string;
+  rule_earn_value: string;
+  rule_unlock_sub: string;
   tier_1_label: string;
   tier_2_label: string;
   tier_3_label: string;
