@@ -30,7 +30,7 @@ export function MegaMenuPanel({
   return (
     <div className={isDesktop ? "flex gap-8 items-stretch" : "flex flex-col gap-6"}>
       {category.links.length > 0 && (
-        <div className={isDesktop ? "flex flex-col gap-1 min-w-[160px] shrink-0 py-6 pl-6" : "flex flex-col gap-1 px-4 pt-4"}>
+        <div className={isDesktop ? "flex flex-col gap-1 flex-1 min-w-0 py-6 pl-6" : "flex flex-col gap-1 px-4 pt-4"}>
           {category.links.map((l) => (
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             <Link key={l.id} to={l.href as any} onClick={onNavigate} className="py-2 text-sm tracking-wide hover:text-primary hover:translate-x-1 transition-all duration-200 w-fit">
