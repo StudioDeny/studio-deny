@@ -35,7 +35,7 @@ ALTER TABLE mega_menu_categories
   DROP COLUMN IF EXISTS label;
 DO $$ BEGIN
   ALTER TABLE mega_menu_categories ADD CONSTRAINT mega_menu_categories_category_id_key UNIQUE (category_id);
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+EXCEPTION WHEN duplicate_object OR duplicate_table THEN NULL; END $$;
 
 ALTER TABLE mega_menu_links
   ALTER COLUMN category_id SET NOT NULL,
