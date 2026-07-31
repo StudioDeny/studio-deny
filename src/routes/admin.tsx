@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, ShoppingBag, Home, Users, FileText,
   Undo2, BarChart3, Trophy, Bell, Settings, Tags, Download, FileEdit,
   Megaphone, Layout, Menu, HelpCircle, Star, Image, Globe, MessageSquare,
-  UserCheck, AtSign, BookOpen, Users2, Heading, X, Ruler, PanelBottom,
+  UserCheck, AtSign, BookOpen, Users2, Heading, X, Ruler, PanelBottom, Sparkles,
 } from "lucide-react";
 import { listOrders, type Order } from "@/lib/orders";
 import { getLastSeen, markSeen } from "@/lib/notifications";
@@ -81,6 +81,7 @@ function AdminLayout() {
     { to: "/admin/lookbook-cms", label: "LOOK BOOK", icon: BookOpen },
     { to: "/admin/community-cms", label: "COMMUNITY", icon: Users2 },
     { to: "/admin/headings", label: "HEADINGS", icon: Heading },
+    { to: "/admin/popup", label: "POPUP", icon: Sparkles },
     { to: "/admin/media", label: "MEDIA", icon: Image },
     { to: "/admin/seo", label: "SEO", icon: Globe },
     { to: "/admin/notifications", label: "WHATSAPP", icon: MessageSquare },

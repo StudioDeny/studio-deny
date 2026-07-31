@@ -156,7 +156,7 @@ export function NewArrivalsGrid() {
   };
 
   return (
-    <section className="py-16 sm:py-24 relative">
+    <section className="py-16 sm:py-24 relative bg-[#E2E2E4]">
       <div className="px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 flex items-end justify-between flex-wrap gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

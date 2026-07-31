@@ -32,7 +32,7 @@ export function MarqueeTicker() {
   const durationSeconds = Math.max(8, 2000 / cfg.speed);
 
   return (
-    <section className="border-y border-border bg-surface/50 overflow-hidden py-5 group">
+    <section className="border-y border-border bg-[#E2E2E4] overflow-hidden py-5 group">
       <div className="flex overflow-hidden">
         {[0, 1].map((dup) => (
           <div

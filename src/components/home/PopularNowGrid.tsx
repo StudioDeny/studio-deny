@@ -158,7 +158,7 @@ export function PopularNowGrid() {
   };
 
   return (
-    <section className="py-16 sm:py-24 relative">
+    <section className="py-16 sm:py-24 relative bg-[#D9D9D7]">
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

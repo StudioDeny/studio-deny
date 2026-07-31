@@ -3,35 +3,68 @@ import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Trophy, Zap, Gift, ArrowRight, Lock } from "lucide-react";
 import { getSettings } from "@/lib/settings";
+import { supabase } from "@/lib/supabase";
+import type { PopupPromo } from "@/types/database";
 
-const SEEN_KEY = "sd_loyalty_modal_seen";
+const DEFAULTS: PopupPromo = {
+  id: "",
+  enabled: true,
+  delay_seconds: 15,
+  bg_type: "none",
+  bg_image_url: null,
+  bg_video_url: null,
+  logo_url: null,
+  badge_text: "DENY WORLD",
+  headline_line1: "EARN WHILE",
+  headline_line2: "YOU DROP.",
+  body_text: "Join Deny World — our private loyalty pool. One qualifying order unlocks you. After that, every rupee earns.",
+  rule_unlock_label: "UNLOCK",
+  rule_earn_label: "EARN",
+  rule_redeem_label: "REDEEM",
+  tier_1_label: "ROOKIE",
+  tier_2_label: "RUNNER",
+  tier_3_label: "RIOT",
+  tier_4_label: "LEGEND",
+  cta_primary_text: "LEARN MORE",
+  cta_primary_href: "/rewards",
+  cta_secondary_text: "LATER",
+  created_at: "",
+  updated_at: "",
+};
 
+/** Fires every page load, no "seen before" memory — the delay is the only gate. */
 export function LoyaltyModal() {
   const [open, setOpen] = useState(false);
+  const [cfg, setCfg] = useState<PopupPromo>(DEFAULTS);
   const s = getSettings();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (localStorage.getItem(SEEN_KEY)) return;
-
-    let scrolled = false;
-    const onScroll = () => { scrolled = true; };
-    window.addEventListener("scroll", onScroll, { passive: true });
-
-    const timer = setTimeout(() => {
-      if (scrolled) setOpen(true);
-    }, 15000);
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      clearTimeout(timer);
-    };
+    (async () => {
+      try {
+        const { data } = await supabase.from("popup_promo").select("*").limit(1).maybeSingle();
+        if (data) setCfg(data as PopupPromo);
+      } catch {
+        // keep DEFAULTS — the popup must still show even if this fetch fails
+      }
+    })();
   }, []);
 
-  const dismiss = () => {
-    setOpen(false);
-    localStorage.setItem(SEEN_KEY, "1");
-  };
+  useEffect(() => {
+    if (typeof window === "undefined" || !cfg.enabled) return;
+    const timer = setTimeout(() => setOpen(true), Math.max(0, cfg.delay_seconds) * 1000);
+    return () => clearTimeout(timer);
+  }, [cfg.enabled, cfg.delay_seconds]);
+
+  const dismiss = () => setOpen(false);
+
+  if (!cfg.enabled) return null;
+
+  const tiers = [
+    { name: cfg.tier_1_label, color: "bg-white/10" },
+    { name: cfg.tier_2_label, color: "bg-blue-500/20" },
+    { name: cfg.tier_3_label, color: "bg-primary/20" },
+    { name: cfg.tier_4_label, color: "bg-primary/40" },
+  ];
 
   return (
     <AnimatePresence>
@@ -59,11 +92,30 @@ export function LoyaltyModal() {
             style={{ pointerEvents: "none" }}
           >
             <div
-              className="relative w-full max-w-lg bg-[#0a0a0a] border border-white/10 overflow-hidden"
-              style={{ pointerEvents: "auto" }}
+              className="relative w-full max-w-lg border border-white/10 overflow-hidden"
+              style={{ pointerEvents: "auto", backgroundColor: "#0a0a0a" }}
             >
-              {/* Grid texture */}
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+              {/* Background */}
+              {cfg.bg_type === "image" && cfg.bg_image_url ? (
+                <>
+                  <img src={cfg.bg_image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/65" />
+                </>
+              ) : cfg.bg_type === "video" && cfg.bg_video_url ? (
+                <>
+                  <video
+                    src={cfg.bg_video_url}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/65" />
+                </>
+              ) : (
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+              )}
 
               {/* Close */}
               <button
@@ -74,22 +126,26 @@ export function LoyaltyModal() {
               </button>
 
               <div className="relative p-8 sm:p-10">
+                {cfg.logo_url && (
+                  <img src={cfg.logo_url} alt="" className="h-8 mb-6 object-contain object-left" />
+                )}
+
                 {/* Badge */}
                 <div className="inline-flex items-center gap-2 border border-white/20 bg-white/5 px-3 py-1.5 mb-6">
                   <Trophy className="w-3 h-3 text-primary" />
-                  <span className="text-mono text-[10px] tracking-[0.25em] text-white/70">DENY WORLD</span>
+                  <span className="text-mono text-[10px] tracking-[0.25em] text-white/70">{cfg.badge_text}</span>
                 </div>
 
                 <h2 className="text-display text-[clamp(2.2rem,6vw,3.5rem)] leading-[0.9] tracking-[-0.02em] uppercase mb-4">
-                  EARN WHILE
+                  {cfg.headline_line1}
                   <br />
                   <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.35)" }}>
-                    YOU DROP.
+                    {cfg.headline_line2}
                   </span>
                 </h2>
 
                 <p className="text-white/60 text-sm text-mono leading-relaxed mb-8 max-w-md">
-                  Join Deny World — our private loyalty pool. One qualifying order unlocks you. After that, every rupee earns.
+                  {cfg.body_text}
                 </p>
 
                 {/* Rules row */}
@@ -97,19 +153,19 @@ export function LoyaltyModal() {
                   {[
                     {
                       icon: Lock,
-                      label: "UNLOCK",
+                      label: cfg.rule_unlock_label,
                       value: `₹${s.entryThreshold.toLocaleString()}`,
                       sub: "single order",
                     },
                     {
                       icon: Zap,
-                      label: "EARN",
+                      label: cfg.rule_earn_label,
                       value: `1 PT`,
                       sub: `per ₹${s.rupeesPerEarnedPoint}`,
                     },
                     {
                       icon: Gift,
-                      label: "REDEEM",
+                      label: cfg.rule_redeem_label,
                       value: `₹${s.rupeesPerPoint}`,
                       sub: "per point",
                     },
@@ -125,12 +181,7 @@ export function LoyaltyModal() {
 
                 {/* Tiers mini */}
                 <div className="flex gap-1.5 mb-8">
-                  {[
-                    { name: "ROOKIE", color: "bg-white/10" },
-                    { name: "RUNNER", color: "bg-blue-500/20" },
-                    { name: "RIOT", color: "bg-primary/20" },
-                    { name: "LEGEND", color: "bg-primary/40" },
-                  ].map((t) => (
+                  {tiers.map((t) => (
                     <div key={t.name} className={`flex-1 ${t.color} border border-white/10 py-2 text-center`}>
                       <div className="text-mono text-[9px] tracking-[0.15em] text-white/60">{t.name}</div>
                     </div>
@@ -140,17 +191,18 @@ export function LoyaltyModal() {
                 {/* CTAs */}
                 <div className="flex gap-3">
                   <Link
-                    to="/rewards"
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    to={cfg.cta_primary_href as any}
                     onClick={dismiss}
                     className="flex-1 bg-white text-black h-11 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest uppercase font-bold hover:bg-white/90 transition-colors"
                   >
-                    LEARN MORE <ArrowRight className="w-3.5 h-3.5" />
+                    {cfg.cta_primary_text} <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                   <button
                     onClick={dismiss}
                     className="border border-white/15 h-11 px-5 text-mono text-xs tracking-widest text-white/50 hover:text-white hover:border-white/40 transition-colors"
                   >
-                    LATER
+                    {cfg.cta_secondary_text}
                   </button>
                 </div>
               </div>

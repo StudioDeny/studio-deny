@@ -87,7 +87,7 @@ export function NewsletterSection() {
   if (!visible) return null;
 
   return (
-    <section id="cta-end" className="py-20 sm:py-28 border-t border-border/30">
+    <section id="cta-end" className="py-20 sm:py-28 border-t border-border/30 bg-[#E2E2E4]">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

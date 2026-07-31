@@ -32,7 +32,7 @@ export function MegaMenuPanel({
   return (
     <div className={isDesktop ? "flex gap-8 items-stretch" : "flex flex-col gap-6"}>
       {category.links.length > 0 && (
-        <div className={isDesktop ? "flex flex-col gap-1 flex-1 min-w-0 py-6 pl-6" : "flex flex-col gap-1 px-4 pt-4"}>
+        <div className={isDesktop ? "flex flex-col gap-1 w-[220px] shrink-0 py-6 pl-6" : "flex flex-col gap-1 px-4 pt-4"}>
           {category.links.map((l) => (
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             <Link key={l.id} to={l.href as any} onClick={onNavigate} className="py-2 text-sm tracking-wide hover:text-primary hover:translate-x-1 transition-all duration-200 w-fit">
@@ -44,10 +44,10 @@ export function MegaMenuPanel({
 
       {category.products.length > 0 && (
         isDesktop ? (
-          <div className="grid grid-cols-2 flex-1 min-w-0 min-h-[360px]">
+          <div className="grid grid-cols-2 flex-1 min-w-0 self-stretch">
             {category.products.map((p) => (
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              <Link key={p.id} to={p.href as any} onClick={onNavigate} className="group relative min-w-0 overflow-hidden bg-surface">
+              <Link key={p.id} to={p.href as any} onClick={onNavigate} className="group relative min-w-0 overflow-hidden bg-surface" style={{ aspectRatio: "4/5" }}>
                 <img
                   src={p.imageUrl}
                   alt={p.label}

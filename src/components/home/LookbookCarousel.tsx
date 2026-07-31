@@ -85,7 +85,7 @@ export function LookbookCarousel() {
   );
 
   return (
-    <section className="py-14 sm:py-20 bg-surface/10 overflow-hidden border-t border-border">
+    <section className="py-14 sm:py-20 bg-[#CDCDCB] overflow-hidden border-t border-border">
       <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-10">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
           <h2

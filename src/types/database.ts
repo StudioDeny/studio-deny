@@ -310,6 +310,12 @@ export interface Database {
         Update: Partial<Omit<SectionHeading, "key">>;
         Relationships: [];
       };
+      popup_promo: {
+        Row: PopupPromo;
+        Insert: Omit<PopupPromo, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<PopupPromo, "id" | "created_at" | "updated_at">>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -645,6 +651,32 @@ export type InfluencerPick = {
   is_active: boolean;
   position: number;
   created_at: string;
+};
+
+export type PopupPromo = {
+  id: string;
+  enabled: boolean;
+  delay_seconds: number;
+  bg_type: "none" | "image" | "video";
+  bg_image_url: string | null;
+  bg_video_url: string | null;
+  logo_url: string | null;
+  badge_text: string;
+  headline_line1: string;
+  headline_line2: string;
+  body_text: string;
+  rule_unlock_label: string;
+  rule_earn_label: string;
+  rule_redeem_label: string;
+  tier_1_label: string;
+  tier_2_label: string;
+  tier_3_label: string;
+  tier_4_label: string;
+  cta_primary_text: string;
+  cta_primary_href: string;
+  cta_secondary_text: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type SectionHeading = {
