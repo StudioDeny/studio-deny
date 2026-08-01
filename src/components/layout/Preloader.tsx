@@ -4,9 +4,57 @@ import { motion, AnimatePresence } from "framer-motion";
 export function Preloader() {
   const [loading, setLoading] = useState(true);
   const [count, setCount] = useState(0);
+  const [glitchState, setGlitchState] = useState<{
+    opacity: number;
+    offsetX: number;
+    skew: number;
+  }>({
+    opacity: 0,
+    offsetX: 0,
+    skew: 0,
+  });
 
   useEffect(() => {
-    // Percentage counter logic
+    // Rapid non-uniform glitch bursts packed into 1.8s
+    const glitchBursts = [
+      { time: 80, opacity: 0.9, duration: 35, x: -6, skew: 5 },
+      { time: 120, opacity: 0.4, duration: 25, x: 8, skew: -8 },
+      { time: 420, opacity: 0.85, duration: 50, x: 5, skew: -4 },
+      { time: 750, opacity: 0.95, duration: 30, x: -10, skew: 12 },
+      { time: 790, opacity: 0.3, duration: 25, x: 12, skew: -10 },
+      { time: 830, opacity: 0.88, duration: 40, x: -4, skew: 3 },
+      { time: 1150, opacity: 0.7, duration: 35, x: 6, skew: -6 },
+      { time: 1400, opacity: 1.0, duration: 30, x: -12, skew: 15 },
+      { time: 1435, opacity: 0.3, duration: 20, x: 14, skew: -12 },
+      { time: 1470, opacity: 0.9, duration: 35, x: -8, skew: 6 },
+      { time: 1650, opacity: 1.0, duration: 180, x: -5, skew: 8 }, // Final climax glitch blast
+    ];
+
+    const timeouts: NodeJS.Timeout[] = [];
+
+    glitchBursts.forEach(({ time, opacity, duration, x, skew }) => {
+      timeouts.push(
+        setTimeout(() => {
+          setGlitchState({
+            opacity,
+            offsetX: x,
+            skew,
+          });
+
+          timeouts.push(
+            setTimeout(() => {
+              setGlitchState({
+                opacity: 0,
+                offsetX: 0,
+                skew: 0,
+              });
+            }, duration)
+          );
+        }, time)
+      );
+    });
+
+    // Fast 0-100% percentage counter (13ms per tick = ~1.3s count time)
     const interval = setInterval(() => {
       setCount((prev) => {
         if (prev >= 100) {
@@ -15,70 +63,107 @@ export function Preloader() {
         }
         return prev + 1;
       });
-    }, 20);
+    }, 13);
 
-    // Fade out timer
-    const timeout = setTimeout(() => {
+    // Completely unmount preloader by 1.85s (under 2s max)
+    const exitTimeout = setTimeout(() => {
       setLoading(false);
-    }, 2800);
+    }, 1850);
 
     return () => {
       clearInterval(interval);
-      clearTimeout(timeout);
+      timeouts.forEach(clearTimeout);
+      clearTimeout(exitTimeout);
     };
   }, []);
+
+  const isGlitched = glitchState.opacity > 0;
 
   return (
     <AnimatePresence>
       {loading && (
         <motion.div
           key="preloader"
-          initial={{ y: 0 }}
-          exit={{ y: "-100%" }}
-          transition={{ duration: 0.8, ease: [0.85, 0, 0.15, 1] }}
-          className="fixed inset-0 z-[1000] bg-background flex flex-col items-center justify-center pointer-events-none"
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0, scale: 1.04 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="fixed inset-0 z-[10000] bg-black flex flex-col items-center justify-center pointer-events-none select-none overflow-hidden"
         >
-          <div className="relative overflow-hidden px-4">
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-              className="flex flex-col items-center"
+          {/* Irregular Full-Screen Glitch Flash Strobe Layer */}
+          <div
+            className="absolute inset-0 bg-white z-50 pointer-events-none transition-opacity duration-30 ease-linear mix-blend-difference"
+            style={{ opacity: glitchState.opacity }}
+          />
+
+          {/* Ambient Dark Vignette Glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-900/60 via-black to-black opacity-90" />
+
+          {/* Main Content Container */}
+          <div className="relative z-10 flex flex-col items-center justify-center px-6 max-w-3xl text-center">
+            {/* DENY SPACE Logo with Irregular Glitch Jitter & RGB Aberration */}
+            <div
+              className="relative p-4 transition-transform duration-30"
+              style={{
+                transform: `translate3d(${glitchState.offsetX}px, 0, 0) skewX(${glitchState.skew}deg)`,
+              }}
             >
-              <h1 className="text-display text-5xl md:text-[10rem] leading-none text-foreground tracking-tighter uppercase text-center">
-                STUDIO <br className="md:hidden" /> DENY
-              </h1>
-              
-              <div className="mt-8 md:mt-12 flex items-center gap-6 overflow-hidden">
-                <motion.div 
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 1, delay: 0.5 }}
-                  className="w-12 md:w-24 h-[1px] bg-primary origin-left opacity-30" 
+              {/* Main Logo Image */}
+              <img
+                src="/deny-space-preloader.png"
+                alt="DENY SPACE"
+                className={`w-[300px] sm:w-[460px] md:w-[580px] h-auto object-contain invert brightness-200 contrast-200 transition-all duration-30 ${
+                  isGlitched
+                    ? "drop-shadow-[-8px_0_15px_rgba(255,0,85,0.9)] drop-shadow-[8px_0_15px_rgba(0,240,255,0.9)] brightness-[2.5]"
+                    : "drop-shadow-[0_0_30px_rgba(255,255,255,0.4)]"
+                }`}
+              />
+
+              {/* RGB Glitch Ghost Clone 1 */}
+              {isGlitched && (
+                <img
+                  src="/deny-space-preloader.png"
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-contain invert brightness-150 opacity-70 mix-blend-screen pointer-events-none"
+                  style={{
+                    transform: `translate3d(${-glitchState.offsetX * 1.5}px, ${Math.random() * 4 - 2}px, 0)`,
+                    filter: "drop-shadow(0 0 10px #ff0055)",
+                  }}
                 />
-                <div className="text-mono text-[11px] md:text-[13px] tracking-[0.5em] text-primary glow-primary-sm">
+              )}
+            </div>
+
+            {/* Percentage Counter and Glitch Line */}
+            <div className="w-full max-w-xs sm:max-w-sm flex flex-col items-center gap-3 mt-4">
+              <div className="flex items-center justify-between w-full text-mono text-xs sm:text-sm tracking-[0.4em] font-extrabold text-zinc-400">
+                <span className={isGlitched ? "text-[#ff0055]" : "text-zinc-500 uppercase"}>
+                  {isGlitched ? "GLITCH // SYS" : "STUDIO DENY"}
+                </span>
+                <span className={`tracking-[0.2em] ${isGlitched ? "text-[#00f0ff]" : "text-white"}`}>
                   {count}%
-                </div>
-                <motion.div 
-                   initial={{ scaleX: 0 }}
-                   animate={{ scaleX: 1 }}
-                   transition={{ duration: 1, delay: 0.5 }}
-                   className="w-12 md:w-24 h-[1px] bg-primary origin-right opacity-30" 
+                </span>
+              </div>
+
+              {/* Progress Line with Glitch Color Shift */}
+              <div className="w-full h-[2px] bg-zinc-900 relative overflow-hidden rounded-full border border-zinc-800">
+                <motion.div
+                  className={`h-full transition-colors duration-30 ${
+                    isGlitched
+                      ? "bg-[#ff0055] shadow-[0_0_15px_#ff0055]"
+                      : "bg-white shadow-[0_0_15px_#ffffff]"
+                  }`}
+                  style={{ width: `${count}%` }}
+                  transition={{ ease: "linear" }}
                 />
               </div>
-            </motion.div>
+            </div>
           </div>
-          
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="absolute bottom-10 text-mono text-[9px] tracking-[0.4em] text-muted-foreground opacity-30 uppercase"
-          >
-            ◢ IDENTITY IS STREET
-          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
+
+
+
+
+
