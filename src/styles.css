@@ -1,13 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
+/* Storefront fonts (Archivo Black / Satoshi). Bebas Neue + Barlow are kept
+   loaded too — the admin panel (.admin-shell) still uses them, see below. */
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap');
 
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
 
 @theme inline {
-  --font-display: 'Bebas Neue', system-ui, sans-serif;
-  --font-body: 'Barlow', system-ui, sans-serif;
-  --font-mono: 'Barlow', system-ui, sans-serif;
+  --font-display: 'Archivo Black', system-ui, sans-serif;
+  --font-body: 'Satoshi', system-ui, sans-serif;
+  --font-mono: 'Satoshi', system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -49,6 +52,14 @@
 
 @media (min-width: 640px) {
   :root { --topbar-h: 160px; }
+}
+
+/* Admin panel keeps the original fonts — excluded from the storefront's
+   Archivo Black / Satoshi switch. Applied on AdminLayout's root element. */
+.admin-shell {
+  --font-display: 'Bebas Neue', system-ui, sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-mono: 'Barlow', system-ui, sans-serif;
 }
 
 @layer base {

@@ -107,7 +107,7 @@ function AdminLayout() {
   );
 
   return (
-    <div className="min-h-screen md:grid md:grid-cols-[220px_1fr]">
+    <div className="admin-shell min-h-screen md:grid md:grid-cols-[220px_1fr]">
       {/* Mobile top bar — just the logo (back to site) + hamburger. No storefront
           navbar renders on admin routes (see __root.tsx), so this is the only
           header on mobile. */}
