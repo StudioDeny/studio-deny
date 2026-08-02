@@ -1,9 +1,26 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
+import type { PreloaderSettings } from "@/types/database";
+
+const DEFAULTS: PreloaderSettings = {
+  id: "",
+  font_size_px: 14,
+  font_weight: 800,
+  font_family: "",
+  font_color: "#FFFFFF",
+  bg_type: "color",
+  bg_color: "#000000",
+  bg_image_url: null,
+  bg_video_url: null,
+  created_at: "",
+  updated_at: "",
+};
 
 export function Preloader() {
   const [loading, setLoading] = useState(true);
   const [count, setCount] = useState(0);
+  const [cfg, setCfg] = useState<PreloaderSettings>(DEFAULTS);
   const [glitchState, setGlitchState] = useState<{
     opacity: number;
     offsetX: number;
@@ -13,6 +30,17 @@ export function Preloader() {
     offsetX: 0,
     skew: 0,
   });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.from("preloader_settings").select("*").limit(1).maybeSingle();
+        if (data) setCfg(data as PreloaderSettings);
+      } catch {
+        // keep DEFAULTS
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     // Rapid non-uniform glitch bursts packed into 1.8s
@@ -87,8 +115,24 @@ export function Preloader() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.04 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="fixed inset-0 z-[10000] bg-black flex flex-col items-center justify-center pointer-events-none select-none overflow-hidden"
+          className="fixed inset-0 z-[10000] flex flex-col items-center justify-center pointer-events-none select-none overflow-hidden"
+          style={{ backgroundColor: cfg.bg_type === "color" ? cfg.bg_color : "#000000" }}
         >
+          {/* Admin-configured backdrop (image/video) */}
+          {cfg.bg_type === "image" && cfg.bg_image_url && (
+            <img src={cfg.bg_image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          )}
+          {cfg.bg_type === "video" && cfg.bg_video_url && (
+            <video
+              src={cfg.bg_video_url}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+
           {/* Irregular Full-Screen Glitch Flash Strobe Layer */}
           <div
             className="absolute inset-0 bg-white z-50 pointer-events-none transition-opacity duration-30 ease-linear mix-blend-difference"
@@ -134,11 +178,18 @@ export function Preloader() {
 
             {/* Percentage Counter and Glitch Line */}
             <div className="w-full max-w-xs sm:max-w-sm flex flex-col items-center gap-3 mt-4">
-              <div className="flex items-center justify-between w-full text-mono text-xs sm:text-sm tracking-[0.4em] font-extrabold text-zinc-400">
-                <span className={isGlitched ? "text-[#ff0055]" : "text-zinc-500 uppercase"}>
+              <div
+                className="flex items-center justify-between w-full tracking-[0.4em]"
+                style={{
+                  fontSize: `${cfg.font_size_px}px`,
+                  fontWeight: cfg.font_weight,
+                  fontFamily: cfg.font_family || undefined,
+                }}
+              >
+                <span className={isGlitched ? "text-[#ff0055]" : "uppercase"} style={isGlitched ? undefined : { color: cfg.font_color }}>
                   {isGlitched ? "GLITCH // SYS" : "STUDIO DENY"}
                 </span>
-                <span className={`tracking-[0.2em] ${isGlitched ? "text-[#00f0ff]" : "text-white"}`}>
+                <span className="tracking-[0.2em]" style={{ color: isGlitched ? "#00f0ff" : cfg.font_color }}>
                   {count}%
                 </span>
               </div>

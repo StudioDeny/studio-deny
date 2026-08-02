@@ -14,7 +14,7 @@ const DEFAULT_FABRIC_TABS: FabricTab[] = [
     name: "T-SHIRTS",
     title: "300+ GSM HEAVYWEIGHT COTTON",
     desc: "Substantial, heavyweight fabric that drapes perfectly and doesn't cling. Pre-shrunk for a consistent fit. Engineered pattern making for the perfect relaxed silhouette with dropped shoulders.",
-    img: "https://studio-deny-demo.vercel.app/assets/001_18.JPG",
+    img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=1200",
     href: "/collections/tops",
   },
   {
@@ -22,7 +22,7 @@ const DEFAULT_FABRIC_TABS: FabricTab[] = [
     name: "SHIRTS",
     title: "PREMIUM OXFORD & FLANNEL",
     desc: "Double-needle stitching on all stress points. High-density weaves for durability while maintaining breathability. Built to soften and get better with every wash.",
-    img: "https://studio-deny-demo.vercel.app/assets/001_13.JPG",
+    img: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&q=80&w=1200",
     href: "/shop?q=shirts",
   },
   {
@@ -79,7 +79,7 @@ export function FabricTabsSection() {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
-          <div className="order-1 relative h-[45vh] sm:h-[60vh] lg:h-[80vh] overflow-hidden border border-border">
+          <div className="order-1 w-full relative h-[45vh] sm:h-[60vh] lg:h-[80vh] overflow-hidden border border-border bg-surface">
             <AnimatePresence mode="wait">
               {activeFabric.img_type === "video" ? (
                 <motion.video
@@ -95,7 +95,7 @@ export function FabricTabsSection() {
             </AnimatePresence>
             <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-60" />
           </div>
-          <div className="order-2 flex flex-col justify-center space-y-6 sm:space-y-8">
+          <div className="order-2 w-full flex flex-col justify-center space-y-6 sm:space-y-8">
             {fabricTabs.map((fabric) => (
               <div key={fabric.id} onMouseEnter={() => setActiveFabric(fabric)} onClick={() => setActiveFabric(fabric)}
                 className="group cursor-pointer border-b border-border pb-6 sm:pb-8 last:border-0">
