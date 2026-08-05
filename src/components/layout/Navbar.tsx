@@ -96,8 +96,10 @@ export function Navbar() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className={`relative z-[100] flex flex-col transition-colors duration-300 ${
-          scrolled ? "bg-background/0 border-b border-transparent" : "bg-background border-b border-border"
+        className={`relative z-[100] flex flex-col transition-all duration-500 ${
+          scrolled
+            ? "bg-gradient-to-b from-background/95 via-background/85 to-background/60 backdrop-blur-md border-b border-border/40 shadow-lg"
+            : "bg-background border-b border-border"
         }`}
       >
         {/* Main bar — left: category dropdowns, center: logo, right: icons */}
