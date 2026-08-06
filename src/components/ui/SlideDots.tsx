@@ -2,7 +2,7 @@ type SlideDotsProps = {
   count: number;
   active: number;
   onSelect: (i: number) => void;
-  /** ms until autoplay advances — drives the progress ring on the active dot. Omit to disable the ring. */
+  /** ms until autoplay advances — drives the progress bar on the active indicator. Omit to disable. */
   durationMs?: number;
   className?: string;
 };
@@ -11,7 +11,7 @@ export function SlideDots({ count, active, onSelect, durationMs, className = "" 
   if (count <= 1) return null;
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex items-center gap-2 sm:gap-2.5 ${className}`}>
       {Array.from({ length: count }).map((_, i) => {
         const isActive = i === active;
         return (
@@ -20,28 +20,25 @@ export function SlideDots({ count, active, onSelect, durationMs, className = "" 
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSelect(i); }}
             aria-label={`Go to slide ${i + 1}`}
-            className="relative flex items-center justify-center size-3.5"
+            className="group relative py-2.5 flex items-center focus:outline-none"
           >
-            {isActive && (
-              <>
-                <span className="absolute inset-0 rounded-full border border-white/35" />
-                {durationMs && (
-                  <svg key={`${active}-${durationMs}`} className="absolute inset-0 -rotate-90" viewBox="0 0 14 14">
-                    <circle
-                      cx="7"
-                      cy="7"
-                      r="6"
-                      fill="none"
-                      stroke="white"
-                      strokeWidth="1.5"
-                      strokeDasharray="37.7"
-                      style={{ animation: `dot-ring-progress ${durationMs}ms linear forwards` }}
-                    />
-                  </svg>
-                )}
-              </>
-            )}
-            <span className={`size-1.5 rounded-full transition-colors ${isActive ? "bg-white" : "bg-white/40 hover:bg-white/70"}`} />
+            <div
+              className={`h-[3px] rounded-full overflow-hidden transition-all duration-300 ${
+                isActive ? "w-10 sm:w-14 bg-white/30" : "w-5 sm:w-7 bg-white/30 hover:bg-white/60"
+              }`}
+            >
+              {isActive && (
+                <div
+                  key={`${active}-${durationMs}`}
+                  className="h-full bg-white rounded-full"
+                  style={
+                    durationMs
+                      ? { animation: `slide-bar-fill ${durationMs}ms linear forwards` }
+                      : { width: "100%" }
+                  }
+                />
+              )}
+            </div>
           </button>
         );
       })}

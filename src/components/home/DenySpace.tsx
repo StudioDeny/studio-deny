@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import {
   Truck, RotateCcw, ShieldCheck, Gift, Star, Sparkles, Heart, Award,
@@ -39,6 +39,127 @@ const DEFAULTS: DenySpaceConfig = {
   cta_href: "/rewards",
 };
 
+function PlayableDenyLogo({
+  logoUrl,
+  logoType,
+}: {
+  logoUrl: string;
+  logoType?: "image" | "video";
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dragX = useMotionValue(0);
+  const dragY = useMotionValue(0);
+
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const isHovered = useMotionValue(0);
+
+  const springConfig = { damping: 24, stiffness: 190, mass: 0.5 };
+
+  const hoverRotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [14, -14]), springConfig);
+  const hoverRotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-14, 14]), springConfig);
+  const hoverTranslateX = useSpring(useTransform(mouseX, [-0.5, 0.5], [-12, 12]), springConfig);
+  const hoverTranslateY = useSpring(useTransform(mouseY, [-0.5, 0.5], [-12, 12]), springConfig);
+
+  const dragRotateZ = useTransform(dragX, [-250, 250], [-25, 25]);
+  const dragRotateX = useTransform(dragY, [-180, 180], [18, -18]);
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current || isDragging) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const xPct = (e.clientX - rect.left) / rect.width - 0.5;
+    const yPct = (e.clientY - rect.top) / rect.height - 0.5;
+
+    mouseX.set(xPct);
+    mouseY.set(yPct);
+  };
+
+  const handleMouseEnter = () => {
+    isHovered.set(1);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+    isHovered.set(0);
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="relative select-none flex flex-col items-center justify-center p-0 touch-none"
+    >
+      {/* Draggable Physics & Magnetic 3D Tilt Container */}
+      <motion.div
+        drag
+        dragSnapToOrigin
+        dragElastic={0.7}
+        dragTransition={{ bounceStiffness: 450, bounceDamping: 20 }}
+        style={{
+          x: isDragging ? dragX : hoverTranslateX,
+          y: isDragging ? dragY : hoverTranslateY,
+          rotateZ: isDragging ? dragRotateZ : 0,
+          rotateX: isDragging ? dragRotateX : hoverRotateX,
+          rotateY: isDragging ? 0 : hoverRotateY,
+          perspective: 1000,
+        }}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={() => {
+          setIsDragging(false);
+          mouseX.set(0);
+          mouseY.set(0);
+        }}
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 1.08 }}
+        whileDrag={{ scale: 1.12 }}
+        className="relative z-10 p-0 rounded-2xl group touch-none select-none cursor-grab active:cursor-grabbing"
+      >
+        {/* Ambient Floating Motion (Breathing when idle) */}
+        <motion.div
+          animate={
+            isDragging
+              ? { y: 0, rotateZ: 0 }
+              : {
+                  y: [0, -6, 0],
+                  rotateZ: [-0.6, 0.6, -0.6],
+                }
+          }
+          transition={{
+            duration: 4.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="relative z-10 flex justify-center pointer-events-none select-none"
+        >
+          {logoType === "video" ? (
+            <video
+              src={logoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              draggable={false}
+              className="w-full max-w-[220px] sm:max-w-[300px] h-auto invert pointer-events-none select-none transition-transform duration-300"
+            />
+          ) : (
+            <img
+              src={logoUrl}
+              alt="DenySpace"
+              draggable={false}
+              className="w-full max-w-[220px] sm:max-w-[300px] h-auto invert pointer-events-none select-none transition-transform duration-300"
+            />
+          )}
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+}
+
 export function DenySpace() {
   const [cfg, setCfg] = useState<DenySpaceConfig>(DEFAULTS);
   const [visible, setVisible] = useState(true);
@@ -68,7 +189,7 @@ export function DenySpace() {
 
   return (
     <section
-      className="py-20 sm:py-28 px-4 sm:px-8 lg:px-16 border-y border-border relative overflow-hidden"
+      className="py-10 sm:py-16 px-4 sm:px-8 lg:px-16 border-y border-border relative overflow-hidden"
       style={hasBgMedia ? undefined : { background: bg }}
     >
       {hasBgMedia && (
@@ -83,12 +204,8 @@ export function DenySpace() {
       )}
       {hasBgMedia && <div className="absolute inset-0 bg-black/40 pointer-events-none" />}
       <div className="max-w-[900px] mx-auto relative z-10 text-center">
-        <motion.div initial={{ opacity: 0, y: -16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.9 }} viewport={{ once: true }} className="flex justify-center mb-8">
-          {cfg.logo_type === "video" ? (
-            <video src={cfg.logo_url} autoPlay loop muted playsInline className="w-full max-w-[220px] sm:max-w-[280px] h-auto invert" />
-          ) : (
-            <img src={cfg.logo_url} alt="DenySpace" className="w-full max-w-[220px] sm:max-w-[280px] h-auto invert" />
-          )}
+        <motion.div initial={{ opacity: 0, y: -16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.9 }} viewport={{ once: true }} className="flex justify-center mb-0 mt-0">
+          <PlayableDenyLogo logoUrl={cfg.logo_url} logoType={cfg.logo_type} />
         </motion.div>
 
         <motion.p
@@ -96,7 +213,7 @@ export function DenySpace() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
           viewport={{ once: true }}
-          className="text-sm sm:text-base text-mono leading-relaxed max-w-lg mx-auto mb-14 whitespace-pre-line"
+          className="text-sm sm:text-base text-mono leading-relaxed max-w-lg mx-auto mt-1 mb-10 whitespace-pre-line"
           style={{ color: text, opacity: 0.7 }}
         >
           {cfg.description}

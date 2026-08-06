@@ -9,6 +9,8 @@ import { getSettings } from "@/lib/settings";
 import { supabase } from "@/lib/supabase";
 import type { PopupPromo } from "@/types/database";
 
+import { useAuth } from "@/context/AuthContext";
+
 const ICON_MAP: Record<string, LucideIcon> = {
   Lock, Zap, Gift, Trophy, Truck, RotateCcw, ShieldCheck, Star,
   Sparkles, Heart, Award, Package, Clock, CheckCircle,
@@ -45,8 +47,9 @@ const DEFAULTS: PopupPromo = {
   updated_at: "",
 };
 
-/** Fires every page load, no "seen before" memory — the delay is the only gate. */
+/** Shows once per user session/login — remembered in localStorage so page refreshes won't show it again. */
 export function LoyaltyModal() {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [cfg, setCfg] = useState<PopupPromo>(DEFAULTS);
   const s = getSettings();
@@ -64,11 +67,29 @@ export function LoyaltyModal() {
 
   useEffect(() => {
     if (typeof window === "undefined" || !cfg.enabled) return;
-    const timer = setTimeout(() => setOpen(true), Math.max(0, cfg.delay_seconds) * 1000);
-    return () => clearTimeout(timer);
-  }, [cfg.enabled, cfg.delay_seconds]);
 
-  const dismiss = () => setOpen(false);
+    const seenKey = user ? `deny_popup_seen_${user.id}` : "deny_popup_seen";
+    if (localStorage.getItem(seenKey) || localStorage.getItem("deny_popup_seen")) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setOpen(true);
+      localStorage.setItem(seenKey, "true");
+      localStorage.setItem("deny_popup_seen", "true");
+    }, Math.max(0, cfg.delay_seconds) * 1000);
+
+    return () => clearTimeout(timer);
+  }, [cfg.enabled, cfg.delay_seconds, user]);
+
+  const dismiss = () => {
+    if (typeof window !== "undefined") {
+      const seenKey = user ? `deny_popup_seen_${user.id}` : "deny_popup_seen";
+      localStorage.setItem(seenKey, "true");
+      localStorage.setItem("deny_popup_seen", "true");
+    }
+    setOpen(false);
+  };
 
   if (!cfg.enabled) return null;
 

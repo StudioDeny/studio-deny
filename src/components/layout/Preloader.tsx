@@ -3,50 +3,59 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export function Preloader() {
   const [loading, setLoading] = useState(true);
-  const [count, setCount] = useState(0);
   const [glitchState, setGlitchState] = useState<{
-    opacity: number;
+    isGlitched: boolean;
     offsetX: number;
     skew: number;
+    redShiftX: number;
+    sliceTop: number;
+    sliceBot: number;
   }>({
-    opacity: 0,
+    isGlitched: false,
     offsetX: 0,
     skew: 0,
+    redShiftX: 0,
+    sliceTop: 0,
+    sliceBot: 0,
   });
 
   useEffect(() => {
-    // Rapid non-uniform glitch bursts packed into 1.8s
+    // High-frequency dynamic red glitch bursts
     const glitchBursts = [
-      { time: 80, opacity: 0.9, duration: 35, x: -6, skew: 5 },
-      { time: 120, opacity: 0.4, duration: 25, x: 8, skew: -8 },
-      { time: 420, opacity: 0.85, duration: 50, x: 5, skew: -4 },
-      { time: 750, opacity: 0.95, duration: 30, x: -10, skew: 12 },
-      { time: 790, opacity: 0.3, duration: 25, x: 12, skew: -10 },
-      { time: 830, opacity: 0.88, duration: 40, x: -4, skew: 3 },
-      { time: 1150, opacity: 0.7, duration: 35, x: 6, skew: -6 },
-      { time: 1400, opacity: 1.0, duration: 30, x: -12, skew: 15 },
-      { time: 1435, opacity: 0.3, duration: 20, x: 14, skew: -12 },
-      { time: 1470, opacity: 0.9, duration: 35, x: -8, skew: 6 },
-      { time: 1650, opacity: 1.0, duration: 180, x: -5, skew: 8 }, // Final climax glitch blast
+      { time: 100, duration: 80, x: -4, skew: 1.5, redX: 7, sliceTop: 10, sliceBot: 60 },
+      { time: 260, duration: 110, x: 6, skew: -2, redX: -9, sliceTop: 45, sliceBot: 15 },
+      { time: 480, duration: 70, x: -3, skew: 1, redX: 5, sliceTop: 70, sliceBot: 5 },
+      { time: 690, duration: 130, x: 9, skew: -3.5, redX: -12, sliceTop: 20, sliceBot: 40 },
+      { time: 940, duration: 90, x: -7, skew: 2.5, redX: 10, sliceTop: 55, sliceBot: 20 },
+      { time: 1180, duration: 140, x: 11, skew: -4, redX: -15, sliceTop: 15, sliceBot: 50 },
+      { time: 1440, duration: 80, x: -5, skew: 2, redX: 8, sliceTop: 35, sliceBot: 30 },
+      { time: 1680, duration: 150, x: 10, skew: -3, redX: -11, sliceTop: 65, sliceBot: 8 },
+      { time: 1980, duration: 110, x: -8, skew: 3, redX: 12, sliceTop: 25, sliceBot: 35 },
     ];
 
     const timeouts: NodeJS.Timeout[] = [];
 
-    glitchBursts.forEach(({ time, opacity, duration, x, skew }) => {
+    glitchBursts.forEach(({ time, duration, x, skew, redX, sliceTop, sliceBot }) => {
       timeouts.push(
         setTimeout(() => {
           setGlitchState({
-            opacity,
+            isGlitched: true,
             offsetX: x,
             skew,
+            redShiftX: redX,
+            sliceTop,
+            sliceBot,
           });
 
           timeouts.push(
             setTimeout(() => {
               setGlitchState({
-                opacity: 0,
+                isGlitched: false,
                 offsetX: 0,
                 skew: 0,
+                redShiftX: 0,
+                sliceTop: 0,
+                sliceBot: 0,
               });
             }, duration)
           );
@@ -54,30 +63,16 @@ export function Preloader() {
       );
     });
 
-    // Fast 0-100% percentage counter (13ms per tick = ~1.3s count time)
-    const interval = setInterval(() => {
-      setCount((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 1;
-      });
-    }, 13);
-
-    // Completely unmount preloader by 1.85s (under 2s max)
+    // Unmount preloader smoothly (~2.35s total)
     const exitTimeout = setTimeout(() => {
       setLoading(false);
-    }, 1850);
+    }, 2350);
 
     return () => {
-      clearInterval(interval);
       timeouts.forEach(clearTimeout);
       clearTimeout(exitTimeout);
     };
   }, []);
-
-  const isGlitched = glitchState.opacity > 0;
 
   return (
     <AnimatePresence>
@@ -85,76 +80,40 @@ export function Preloader() {
         <motion.div
           key="preloader"
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 1.04 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-          className="fixed inset-0 z-[10000] bg-black flex flex-col items-center justify-center pointer-events-none select-none overflow-hidden"
+          exit={{ opacity: 0, scale: 1.02 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="fixed inset-0 z-[10000] bg-white flex flex-col items-center justify-center pointer-events-none select-none overflow-hidden"
         >
-          {/* Irregular Full-Screen Glitch Flash Strobe Layer */}
-          <div
-            className="absolute inset-0 bg-white z-50 pointer-events-none transition-opacity duration-30 ease-linear mix-blend-difference"
-            style={{ opacity: glitchState.opacity }}
-          />
-
-          {/* Ambient Dark Vignette Glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-900/60 via-black to-black opacity-90" />
-
           {/* Main Content Container */}
           <div className="relative z-10 flex flex-col items-center justify-center px-6 max-w-3xl text-center">
-            {/* DENY SPACE Logo with Irregular Glitch Jitter & RGB Aberration */}
+            {/* DENY SPACE Graphic Logo with High-Frequency Solid Red Glitch Invert */}
             <div
-              className="relative p-4 transition-transform duration-30"
+              className="relative p-4 transition-transform duration-70 ease-out"
               style={{
                 transform: `translate3d(${glitchState.offsetX}px, 0, 0) skewX(${glitchState.skew}deg)`,
               }}
             >
-              {/* Main Logo Image */}
+              {/* Base Solid Black Logo Graphic */}
               <img
                 src="/deny-space-preloader.png"
                 alt="DENY SPACE"
-                className={`w-[300px] sm:w-[460px] md:w-[580px] h-auto object-contain invert brightness-200 contrast-200 transition-all duration-30 ${
-                  isGlitched
-                    ? "drop-shadow-[-8px_0_15px_rgba(255,0,85,0.9)] drop-shadow-[8px_0_15px_rgba(0,240,255,0.9)] brightness-[2.5]"
-                    : "drop-shadow-[0_0_30px_rgba(255,255,255,0.4)]"
-                }`}
+                className="w-[300px] sm:w-[460px] md:w-[580px] h-auto object-contain transition-transform duration-70 ease-out"
               />
 
-              {/* RGB Glitch Ghost Clone 1 */}
-              {isGlitched && (
+              {/* Crisp Solid Red Flashing / Sliced Glitch Layer */}
+              {glitchState.isGlitched && (
                 <img
                   src="/deny-space-preloader.png"
                   alt=""
-                  className="absolute inset-0 w-full h-full object-contain invert brightness-150 opacity-70 mix-blend-screen pointer-events-none"
+                  className="absolute inset-0 w-full h-full object-contain pointer-events-none transition-transform duration-50 ease-out z-20"
                   style={{
-                    transform: `translate3d(${-glitchState.offsetX * 1.5}px, ${Math.random() * 4 - 2}px, 0)`,
-                    filter: "drop-shadow(0 0 10px #ff0055)",
+                    transform: `translate3d(${glitchState.redShiftX}px, 0, 0)`,
+                    filter:
+                      "invert(16%) sepia(99%) saturate(7400%) hue-rotate(352deg) brightness(95%) contrast(110%)",
+                    clipPath: `inset(${glitchState.sliceTop}% 0 ${glitchState.sliceBot}% 0)`,
                   }}
                 />
               )}
-            </div>
-
-            {/* Percentage Counter and Glitch Line */}
-            <div className="w-full max-w-xs sm:max-w-sm flex flex-col items-center gap-3 mt-4">
-              <div className="flex items-center justify-between w-full text-mono text-xs sm:text-sm tracking-[0.4em] font-extrabold text-zinc-400">
-                <span className={isGlitched ? "text-[#ff0055]" : "text-zinc-500 uppercase"}>
-                  {isGlitched ? "GLITCH // SYS" : "STUDIO DENY"}
-                </span>
-                <span className={`tracking-[0.2em] ${isGlitched ? "text-[#00f0ff]" : "text-white"}`}>
-                  {count}%
-                </span>
-              </div>
-
-              {/* Progress Line with Glitch Color Shift */}
-              <div className="w-full h-[2px] bg-zinc-900 relative overflow-hidden rounded-full border border-zinc-800">
-                <motion.div
-                  className={`h-full transition-colors duration-30 ${
-                    isGlitched
-                      ? "bg-[#ff0055] shadow-[0_0_15px_#ff0055]"
-                      : "bg-white shadow-[0_0_15px_#ffffff]"
-                  }`}
-                  style={{ width: `${count}%` }}
-                  transition={{ ease: "linear" }}
-                />
-              </div>
             </div>
           </div>
         </motion.div>
@@ -162,8 +121,3 @@ export function Preloader() {
     </AnimatePresence>
   );
 }
-
-
-
-
-

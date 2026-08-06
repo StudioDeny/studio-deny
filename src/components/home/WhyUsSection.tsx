@@ -45,7 +45,7 @@ export function WhyUsSection() {
   if (!visible) return null;
 
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border/30 bg-[#D2D2CE]">
+    <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border/30 bg-[#E2E2E4]">
       <div className="max-w-[1320px] mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

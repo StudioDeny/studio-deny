@@ -53,7 +53,7 @@ export function TestimonialsSection() {
   if (!visible) return null;
 
   return (
-    <section className="py-16 sm:py-24 overflow-hidden bg-[#CDCDCB]">
+    <section className="py-16 sm:py-24 overflow-hidden bg-[#E2E2E4]">
       <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10 sm:mb-14 text-center">
           <h2

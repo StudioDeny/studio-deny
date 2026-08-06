@@ -40,7 +40,7 @@ export function LookbookCarousel() {
   };
 
   const Frame = (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full h-[65vh] sm:h-[75vh] max-h-[750px] min-h-[420px] overflow-hidden">
       <AnimatePresence mode="sync">
         <motion.div
           key={slide.id}
@@ -85,8 +85,8 @@ export function LookbookCarousel() {
   );
 
   return (
-    <section className="py-14 sm:py-20 bg-[#CDCDCB] overflow-hidden border-t border-border">
-      <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-10">
+    <section className="pt-4 sm:pt-6 pb-0 bg-[#E2E2E4] overflow-hidden border-t border-border">
+      <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-3 sm:mb-4">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
           <h2
             className="text-[clamp(3rem,10vw,6rem)] leading-none tracking-[-0.03em] uppercase text-display"
@@ -94,11 +94,11 @@ export function LookbookCarousel() {
           >
             {heading.text}
           </h2>
-          <p className="text-base sm:text-lg mt-3 opacity-80 max-w-xl text-mono">{heading.subtitle}</p>
+          <p className="text-base sm:text-lg mt-1.5 opacity-80 max-w-xl text-mono">{heading.subtitle}</p>
         </motion.div>
       </div>
       {slide.link_href ? (
-        <Link to={slide.link_href} className="block">{Frame}</Link>
+        <Link to={slide.link_href} className="block leading-none">{Frame}</Link>
       ) : (
         Frame
       )}

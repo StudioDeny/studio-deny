@@ -54,7 +54,7 @@ export function GenderSplit() {
   if (!visible) return null;
 
   return (
-    <section className={`bg-[#E3E3E1] grid grid-cols-1 ${GRID_COLS[cfg.cards.length] ?? "sm:grid-cols-3"} h-screen`}>
+    <section className={`bg-[#E2E2E4] grid grid-cols-1 ${GRID_COLS[cfg.cards.length] ?? "sm:grid-cols-3"} h-screen`}>
       {cfg.cards.map((card, idx) => (
         <motion.div
           key={idx}
