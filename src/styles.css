@@ -1,16 +1,13 @@
-/* Storefront fonts (Archivo Black / Satoshi). Bebas Neue + Barlow are kept
-   loaded too — the admin panel (.admin-shell) still uses them, see below. */
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
-@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
 
-@import "tailwindcss" source(none);
+@import "tailwindcss";
 @source "../src";
 @import "tw-animate-css";
 
 @theme inline {
-  --font-display: 'Archivo Black', system-ui, sans-serif;
-  --font-body: 'Satoshi', system-ui, sans-serif;
-  --font-mono: 'Satoshi', system-ui, sans-serif;
+  --font-display: 'Anton', 'Bebas Neue', system-ui, sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-mono: 'Barlow', system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -31,13 +28,13 @@
 :root {
   color-scheme: light;
 
-  --background: #D9D9D7;
+  --background: #E2E2E4;
   --foreground: #111111;
-  --surface: #CDCDCB;
+  --surface: #D5D5D8;
 
   --primary: #111111;
-  --primary-foreground: #D9D9D7;
-  --secondary: #C2C2BE;
+  --primary-foreground: #E2E2E4;
+  --secondary: #D5D5D8;
   --secondary-foreground: #111111;
 
   --muted: #C7C7C3;
@@ -54,12 +51,21 @@
   :root { --topbar-h: 160px; }
 }
 
-/* Admin panel keeps the original fonts — excluded from the storefront's
-   Archivo Black / Satoshi switch. Applied on AdminLayout's root element. */
-.admin-shell {
-  --font-display: 'Bebas Neue', system-ui, sans-serif;
-  --font-body: 'Barlow', system-ui, sans-serif;
-  --font-mono: 'Barlow', system-ui, sans-serif;
+/* Lenis Smooth Scroll Base Rules */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 @layer base {
@@ -69,28 +75,22 @@
   }
   html {
     color-scheme: light;
-    scroll-behavior: smooth;
-    font-size: 16px;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
   }
   body {
-    background: linear-gradient(
-      150deg,
-      #E3E3E1 0%,
-      #D9D9D7 20%,
-      #CACAC6 50%,
-      #D2D2CE 75%,
-      #DEDEDC 100%
-    );
-    background-attachment: fixed;
-    background-color: #D9D9D7;
+    background-color: #E2E2E4;
+    background: #E2E2E4;
     color: var(--foreground);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+    font-weight: 400;
     letter-spacing: 0.01em;
   }
   ::selection {
@@ -131,7 +131,7 @@
 }
 
 @layer utilities {
-  .text-display { font-family: var(--font-display); }
+  .text-display { font-family: var(--font-display); font-weight: 400; }
   .text-mono { font-family: var(--font-body); }
 
   /* Glow effects */
@@ -198,6 +198,11 @@
   @keyframes dot-ring-progress {
     from { stroke-dashoffset: 37.7; }
     to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes slide-bar-fill {
+    from { width: 0%; }
+    to { width: 100%; }
   }
 
   /* Fill-sweep button: border/ghost button that fills solid on hover,

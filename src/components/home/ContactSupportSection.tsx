@@ -66,7 +66,7 @@ export function ContactSupportSection() {
   if (!visible || !contact.enabled) return null;
 
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border bg-[#D2D2CE]">
+    <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border bg-[#E2E2E4]">
       <div className="max-w-[1280px] mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-12 text-center">
           <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{heading.eyebrow}</span>

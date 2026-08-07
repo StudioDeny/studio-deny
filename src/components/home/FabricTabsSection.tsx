@@ -62,7 +62,7 @@ export function FabricTabsSection() {
   if (!visible) return null;
 
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-y border-border bg-[#E3E3E1]">
+    <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-y border-border bg-[#E2E2E4]">
       <div className="max-w-[1560px] mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-12 sm:mb-16">
           <span className="inline-flex items-center px-3 py-1 border border-border text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-4">{productSpecsHeading.eyebrow}</span>

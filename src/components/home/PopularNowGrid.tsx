@@ -158,17 +158,33 @@ export function PopularNowGrid() {
   };
 
   return (
-    <section className="py-16 sm:py-24 relative bg-[#D9D9D7]">
-      <motion.h2
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-        className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-8 sm:mb-12 px-4 sm:px-8 lg:px-16"
-        style={heading.color ? { color: heading.color } : undefined}
-      >
-        {heading.text}
-      </motion.h2>
+    <section className="py-16 sm:py-24 relative bg-[#E2E2E4]">
+      <div className="px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 flex items-end justify-between flex-wrap gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+        >
+          {heading.eyebrow && (
+            <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {heading.eyebrow}</div>
+          )}
+          <h2
+            className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display"
+            style={heading.color ? { color: heading.color } : undefined}
+          >
+            {heading.text}
+          </h2>
+          {heading.subtitle && <p className="mt-3 max-w-xl text-sm sm:text-base opacity-80 text-mono">{heading.subtitle}</p>}
+        </motion.div>
+        <Link
+          to={cfg.view_all_href || "/shop"}
+          className="group inline-flex items-center gap-2 text-mono text-xs sm:text-sm tracking-[0.2em] uppercase border-b border-foreground/40 pb-1 hover:border-primary hover:text-primary transition-colors"
+        >
+          EXPLORE COLLECTION
+          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        </Link>
+      </div>
 
       <div className="relative">
         <button
