@@ -63,15 +63,15 @@ export function MegaMenuPanel({
 
   return (
     <div className={isDesktop ? "flex items-stretch h-full w-full overflow-hidden bg-white text-black" : "flex flex-col gap-6 bg-white text-black"}>
-      {/* Navigation Links Column (Width 220–240px, Vertically Centered with Animated Left Bar) */}
+      {/* Navigation Links Column (Width 220–240px, Minimal Luxury Typography) */}
       {isDesktop ? (
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="w-[220px] lg:w-[240px] shrink-0 h-full overflow-y-auto custom-scrollbar p-5 lg:px-7 flex flex-col justify-center border-r border-black/5 bg-white"
+          className="w-[220px] lg:w-[240px] shrink-0 h-full overflow-y-auto custom-scrollbar p-6 lg:px-8 flex flex-col justify-center border-r border-black/5 bg-white"
         >
-          <div className="flex flex-col gap-1 my-auto">
+          <div className="flex flex-col gap-1.5 my-auto">
             {category.links.length > 0 ? (
               category.links.map((l) => (
                 <motion.div key={l.id} variants={linkVariants}>
@@ -79,13 +79,12 @@ export function MegaMenuPanel({
                   <Link
                     to={l.href as any}
                     onClick={onNavigate}
-                    className="group relative py-1.5 px-3 -mx-3 rounded-none text-xs font-mono tracking-[0.06em] text-black/70 hover:text-black font-medium hover:bg-black/[0.03] transition-all duration-200 flex items-center justify-between capitalize"
+                    activeProps={{ className: "text-black font-medium underline underline-offset-4 decoration-black/30" }}
+                    inactiveProps={{ className: "text-black/60 font-normal" }}
+                    className="group py-1.5 text-sm tracking-wide hover:text-black hover:font-medium transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] flex items-center justify-between capitalize w-full bg-transparent font-body"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="w-1 h-3 bg-black rounded-full transition-all duration-200 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0" />
-                      <span className="group-hover:translate-x-0.5 transition-transform duration-200">{l.label}</span>
-                    </div>
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-[10px] text-black/50 font-mono">
+                    <span>{l.label}</span>
+                    <span className="opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] text-xs text-black/40 font-mono">
                       →
                     </span>
                   </Link>
