@@ -128,14 +128,14 @@ export function Navbar() {
         transition={{ duration: 0.8, delay: 0.2 }}
         className="relative z-[100] flex flex-col bg-white text-black border-b border-black/10 shadow-sm"
       >
-        {/* Main bar — left: category dropdowns, center: logo, right: icons */}
+        {/* Main bar — left: category dropdowns, center: logo, right: icons — ALWAYS z-[100] ON TOP */}
         <div
-          className="relative flex sm:grid sm:grid-cols-[1fr_auto_1fr] items-center justify-between px-4 sm:px-8 lg:px-16 py-2.5 sm:py-3"
+          className="relative z-[100] flex sm:grid sm:grid-cols-[1fr_auto_1fr] items-center justify-between px-4 sm:px-8 lg:px-16 py-2.5 sm:py-3 bg-white"
           onMouseLeave={handleMouseLeaveNav}
         >
           {/* Left — category nav (desktop only) */}
           <div className="hidden sm:flex items-center gap-6 lg:gap-8 font-body">
-            <div className="relative z-[96] flex items-center gap-6 lg:gap-8 py-1">
+            <div className="relative z-[102] flex items-center gap-6 lg:gap-8 py-1">
               {megaMenu.map((cat) => {
                 const isOpen = openDropdown === cat.id;
                 return (
@@ -263,7 +263,7 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Mega Menu Dropdown Panel — anchored to navbar full width */}
+        {/* Mega Menu Dropdown Panel — anchored immediately below navbar at top-full (z-[90]) */}
         <AnimatePresence>
           {(() => {
             const activeCat = megaMenu.find((c) => c.id === openDropdown);
@@ -276,19 +276,19 @@ export function Navbar() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="fixed inset-x-0 bottom-0 top-[84px] z-[95] bg-black/25 backdrop-blur-[2px] pointer-events-auto"
+                  className="fixed inset-x-0 bottom-0 top-[84px] z-[80] bg-black/25 backdrop-blur-[2px] pointer-events-auto"
                   onClick={() => setOpenDropdown(null)}
                 />
-                {/* Full-width Floating Dropdown Panel Container */}
+                {/* Full-width Floating Dropdown Panel Container — z-[90] sits under main bar z-[100] */}
                 <motion.div
                   key="mega-menu-panel-container"
-                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
+                  initial={{ opacity: 0, y: 0 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
+                  exit={{ opacity: 0, y: 0 }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] as const }}
                   onMouseEnter={handleMouseEnterPanel}
                   onMouseLeave={handleMouseLeaveNav}
-                  className="absolute top-[calc(100%-1px)] left-0 right-0 w-full z-[99] bg-white border-b border-black/10 shadow-lg overflow-hidden h-[360px] lg:h-[380px]"
+                  className="absolute top-full left-0 right-0 w-full z-[90] bg-white border-b border-black/10 shadow-lg overflow-hidden h-[360px] lg:h-[380px]"
                 >
                   {/* Invisible hover bridge connecting nav tab row to dropdown container */}
                   <div className="absolute -top-4 inset-x-0 h-4 bg-transparent pointer-events-auto" />
@@ -320,7 +320,7 @@ export function Navbar() {
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="overflow-hidden border-t border-black/10 bg-white"
+              className="overflow-hidden border-t border-black/10 bg-white z-[99]"
             >
               {/* Search input row */}
               <form onSubmit={handleSearch} className="flex items-center gap-3 px-4 sm:px-8 lg:px-16 py-3 border-b border-black/10">
