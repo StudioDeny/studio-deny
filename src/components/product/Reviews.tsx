@@ -33,9 +33,16 @@ export function Reviews({ slug }: { slug: string }) {
 
 function Stars({ value }: { value: number }) {
   return (
-    <div className="inline-flex">
+    <div className="inline-flex gap-0.5">
       {[1, 2, 3, 4, 5].map((i) => (
-        <Star key={i} className={`size-4 ${i <= Math.round(value) ? "fill-white text-white" : "text-muted-foreground"}`} />
+        <Star
+          key={i}
+          className={`size-4 ${
+            i <= Math.round(value)
+              ? "fill-black text-black"
+              : "fill-transparent text-black/40 stroke-[1.5]"
+          }`}
+        />
       ))}
     </div>
   );

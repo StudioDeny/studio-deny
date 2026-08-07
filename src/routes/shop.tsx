@@ -227,7 +227,7 @@ function Shop() {
                   key={c.name}
                   onClick={() => toggleArr("colors", c.name)}
                   title={c.name}
-                  className={`size-7 rounded-full border-2 transition ${on ? "border-primary scale-110" : "border-border hover:border-foreground"}`}
+                  className={`size-7 rounded-none border-2 transition ${on ? "border-primary scale-105" : "border-border hover:border-foreground"}`}
                   style={{ background: c.hex }}
                 />
               );
