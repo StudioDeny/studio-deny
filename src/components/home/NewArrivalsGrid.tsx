@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { listProducts, getVariantStock, type Product, type VariantStock } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { useQuickAdd } from "@/context/QuickAddContext";
 
 type ArrivalsConfig = { cta_label: string; product_slugs: string[] };
 
@@ -23,6 +24,7 @@ const SIZE_CLASSES = [
 
 function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: string }) {
   const { add } = useCart();
+  const { openQuickAdd } = useQuickAdd();
   const [hover, setHover] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
   const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
@@ -73,19 +75,16 @@ function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: stri
         <p className="text-white/80 text-mono text-[11px]">{formatINR(product.price)}</p>
       </div>
 
-      {/* Quick add — small circular icon bottom-right; click expands a pill-style
-          size row over the same spot. Matches ProductCard's pattern. */}
-      {!showSizes && (
-        <button
-          aria-label={added ? "Added to bag" : "Quick add"}
-          onClick={(e) => { e.preventDefault(); if (!added) handleOpenSizes(); }}
-          className={`absolute bottom-2 right-2 size-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 opacity-100 ${
-            hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90"
-          } ${added ? "bg-secondary text-secondary-foreground" : "bg-foreground/95 text-background hover:bg-primary hover:text-primary-foreground"}`}
-        >
-          {added ? <Check className="size-3.5" /> : <ShoppingBag className="size-3.5" />}
-        </button>
-      )}
+      {/* Quick add — open centered modal */}
+      <button
+        aria-label="Quick add to cart"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickAdd(product); }}
+        className={`absolute bottom-2 right-2 size-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+          hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90 opacity-100"
+        } bg-black text-white hover:bg-black/80`}
+      >
+        <ShoppingBag className="size-3.5" />
+      </button>
 
       <div
         className={`absolute inset-x-0 bottom-0 transition-all duration-300 ${

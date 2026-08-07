@@ -5,6 +5,8 @@ import { getVariantStock, type Product, type VariantStock } from "@/lib/products
 import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 
+import { useQuickAdd } from "@/context/QuickAddContext";
+
 export function ProductCard({
   product,
   index = 0
@@ -13,12 +15,13 @@ export function ProductCard({
   index?: number;
 }) {
   const { add } = useCart();
+  const { openQuickAdd } = useQuickAdd();
   const { has, toggle } = useWishlist();
   const [hover, setHover] = useState(false);
+  const wished = has(product.slug);
   const [showSizes, setShowSizes] = useState(false);
   const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
   const [added, setAdded] = useState(false);
-  const wished = has(product.slug);
 
   // Mobile: swipeable photo strip (image, hover image, gallery) with dots.
   // Desktop keeps the hover crossfade below instead.
@@ -202,17 +205,15 @@ export function ProductCard({
               size row overlaying the same spot. Icon is always visible on mobile
               (no hover there), hover-gated on desktop. Cursor leaving the card
               (or tapping away, via the Link nav on outside taps) collapses it. */}
-          {!showSizes && (
-            <button
-              aria-label={added ? "Added to bag" : "Quick add"}
-              onClick={(e) => { e.preventDefault(); if (!added) handleOpenSizes(); }}
-              className={`absolute bottom-2.5 right-2.5 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 opacity-100 ${
-                hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90"
-              } ${added ? "bg-secondary text-secondary-foreground" : "bg-foreground/95 text-background hover:bg-primary hover:text-primary-foreground"}`}
-            >
-              {added ? <Check className="size-4" /> : <ShoppingBag className="size-4" />}
-            </button>
-          )}
+          <button
+            aria-label="Quick add to cart"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickAdd(product); }}
+            className={`absolute bottom-2.5 right-2.5 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+              hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90 opacity-100"
+            } bg-black text-white hover:bg-black/80`}
+          >
+            <ShoppingBag className="size-4" />
+          </button>
 
           <div
             className={`absolute inset-x-0 bottom-0 transition-all duration-300 ${
