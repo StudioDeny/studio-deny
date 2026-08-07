@@ -219,7 +219,7 @@ function Shop() {
       {allColors.length > 0 && (
         <div>
           <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-3">COLOR</div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5 p-0.5">
             {allColors.map((c) => {
               const on = selectedColors.includes(c.name);
               return (
@@ -227,9 +227,17 @@ function Shop() {
                   key={c.name}
                   onClick={() => toggleArr("colors", c.name)}
                   title={c.name}
-                  className={`size-7 rounded-full border-2 transition ${on ? "border-primary scale-110" : "border-border hover:border-foreground"}`}
-                  style={{ background: c.hex }}
-                />
+                  className={`size-7 shrink-0 rounded-none transition-all duration-200 flex items-center justify-center p-0.5 border-2 ${
+                    on
+                      ? "border-primary shadow-sm"
+                      : "border-border/60 hover:border-foreground/80"
+                  }`}
+                >
+                  <span
+                    className="w-full h-full block rounded-none"
+                    style={{ backgroundColor: c.hex }}
+                  />
+                </button>
               );
             })}
           </div>

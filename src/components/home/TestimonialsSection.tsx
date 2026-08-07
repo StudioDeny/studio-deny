@@ -74,7 +74,16 @@ export function TestimonialsSection() {
               <div key={idx} className="shrink-0 w-[320px] sm:w-[380px] border border-border bg-surface/30 p-6 sm:p-8 flex flex-col justify-between mr-5">
                 <div>
                   <div className="flex gap-1 mb-4">
-                    {Array.from({ length: t.rating }, (_, n) => <Star key={n} className="w-3.5 h-3.5 fill-foreground text-foreground opacity-80" />)}
+                    {Array.from({ length: 5 }, (_, n) => (
+                      <Star
+                        key={n}
+                        className={`w-3.5 h-3.5 ${
+                          n < t.rating
+                            ? "fill-black text-black"
+                            : "fill-transparent text-black/40 stroke-[1.5]"
+                        }`}
+                      />
+                    ))}
                   </div>
                   <p className="text-base sm:text-lg leading-relaxed opacity-90 text-display">"{t.quote}"</p>
                 </div>

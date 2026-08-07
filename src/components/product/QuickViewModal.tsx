@@ -147,7 +147,7 @@ export function QuickViewModal({ product, open, onClose }: Props) {
                 }`}
                 style={{ fontSize: "11px", letterSpacing: "0.2em" }}
               >
-                {added ? "✓ ADDED TO BAG" : size ? "ADD TO BAG" : "SELECT SIZE"}
+                {added ? "✓ ADDED TO BAG" : "ADD TO BAG"}
               </button>
               <button
                 onClick={() => toggle(product.slug)}
