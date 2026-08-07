@@ -1,5 +1,21 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
+import type { PreloaderSettings } from "@/types/database";
+
+const DEFAULTS: PreloaderSettings = {
+  id: "",
+  font_size_px: 14,
+  font_weight: 800,
+  font_family: "",
+  font_color: "#FFFFFF",
+  bg_type: "color",
+  bg_color: "#000000",
+  bg_image_url: null,
+  bg_video_url: null,
+  created_at: "",
+  updated_at: "",
+};
 
 export function Preloader() {
   const [loading, setLoading] = useState(true);
@@ -114,6 +130,38 @@ export function Preloader() {
                   }}
                 />
               )}
+            </div>
+
+            {/* Percentage Counter and Glitch Line */}
+            <div className="w-full max-w-xs sm:max-w-sm flex flex-col items-center gap-3 mt-4">
+              <div
+                className="flex items-center justify-between w-full tracking-[0.4em]"
+                style={{
+                  fontSize: `${cfg.font_size_px}px`,
+                  fontWeight: cfg.font_weight,
+                  fontFamily: cfg.font_family || undefined,
+                }}
+              >
+                <span className={isGlitched ? "text-[#ff0055]" : "uppercase"} style={isGlitched ? undefined : { color: cfg.font_color }}>
+                  {isGlitched ? "GLITCH // SYS" : "STUDIO DENY"}
+                </span>
+                <span className="tracking-[0.2em]" style={{ color: isGlitched ? "#00f0ff" : cfg.font_color }}>
+                  {count}%
+                </span>
+              </div>
+
+              {/* Progress Line with Glitch Color Shift */}
+              <div className="w-full h-[2px] bg-zinc-900 relative overflow-hidden rounded-full border border-zinc-800">
+                <motion.div
+                  className={`h-full transition-colors duration-30 ${
+                    isGlitched
+                      ? "bg-[#ff0055] shadow-[0_0_15px_#ff0055]"
+                      : "bg-white shadow-[0_0_15px_#ffffff]"
+                  }`}
+                  style={{ width: `${count}%` }}
+                  transition={{ ease: "linear" }}
+                />
+              </div>
             </div>
           </div>
         </motion.div>
