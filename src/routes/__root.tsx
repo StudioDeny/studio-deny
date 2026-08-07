@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRoute, useLocation } from "@tanstack/react-rout
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { QuickAddProvider } from "@/context/QuickAddContext";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
@@ -87,29 +88,31 @@ function RootContent() {
       <Preloader />
       <WishlistProvider>
         <CartProvider>
-          {!isAdmin && (
-            <div ref={topBarRef} className="fixed top-0 left-0 right-0 z-[100] flex flex-col">
-              <AnnouncementBar />
-              <Navbar />
-            </div>
-          )}
-          <main className={isAdmin ? "min-h-screen" : "min-h-[60vh] pt-[var(--topbar-h)]"}>
-            <Outlet />
-          </main>
-          {!isAdmin && (
-            <>
-              <Footer />
-              <CartDrawer />
-              {/* Scroll-to-top — visible on all viewports, appears after scrolling 400px */}
-              <button
-                onClick={scrollToTop}
-                aria-label="Scroll to top"
-                className={`flex fixed bottom-5 right-5 z-30 size-12 rounded-full border border-border bg-background/80 backdrop-blur-md text-foreground items-center justify-center hover:bg-foreground hover:text-background transition-all duration-300 ${scrolled ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4 pointer-events-none"}`}
-              >
-                <ChevronUp className="size-5" />
-              </button>
-            </>
-          )}
+          <QuickAddProvider>
+            {!isAdmin && (
+              <div ref={topBarRef} className="fixed top-0 left-0 right-0 z-[100] flex flex-col">
+                <AnnouncementBar />
+                <Navbar />
+              </div>
+            )}
+            <main className={isAdmin ? "min-h-screen" : "min-h-[60vh] pt-[var(--topbar-h)]"}>
+              <Outlet />
+            </main>
+            {!isAdmin && (
+              <>
+                <Footer />
+                <CartDrawer />
+                {/* Scroll-to-top — visible on all viewports, appears after scrolling 400px */}
+                <button
+                  onClick={scrollToTop}
+                  aria-label="Scroll to top"
+                  className={`flex fixed bottom-5 right-5 z-30 size-12 rounded-full border border-border bg-background/80 backdrop-blur-md text-foreground items-center justify-center hover:bg-foreground hover:text-background transition-all duration-300 ${scrolled ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4 pointer-events-none"}`}
+                >
+                  <ChevronUp className="size-5" />
+                </button>
+              </>
+            )}
+          </QuickAddProvider>
           <Toaster
             theme="system"
             position="top-right"
