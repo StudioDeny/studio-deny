@@ -304,12 +304,11 @@ function PDP() {
         )}
         {isFirst && product.badge && (
           <span
-            className={`absolute top-4 left-4 text-mono font-semibold px-3 py-1.5 shadow-lg ${
-              product.badge === "SALE" ? "bg-secondary text-secondary-foreground" :
-              product.badge === "LAST PIECE" ? "bg-primary text-primary-foreground glow-primary-sm" :
-              product.badge === "SOLD OUT" ? "bg-muted text-muted-foreground" :
-              "bg-primary text-primary-foreground"
-            }`}
+            className={`absolute top-4 left-4 text-mono font-semibold px-3 py-1.5 shadow-lg ${product.badge === "SALE" ? "bg-secondary text-secondary-foreground" :
+                product.badge === "LAST PIECE" ? "bg-primary text-primary-foreground glow-primary-sm" :
+                  product.badge === "SOLD OUT" ? "bg-muted text-muted-foreground" :
+                    "bg-primary text-primary-foreground"
+              }`}
             style={{ fontSize: "10px", letterSpacing: "0.25em" }}
           >
             {product.badge}
@@ -378,9 +377,8 @@ function PDP() {
                     type="button"
                     onClick={() => scrollMobileGalleryTo(i)}
                     aria-label={`View image ${i + 1}`}
-                    className={`relative shrink-0 size-14 overflow-hidden border-2 transition-colors ${
-                      mobileGalleryIndex === i ? "border-primary" : "border-border/60"
-                    }`}
+                    className={`relative shrink-0 size-14 overflow-hidden border-2 transition-colors ${mobileGalleryIndex === i ? "border-primary" : "border-border/60"
+                      }`}
                   >
                     {media.type === "video" ? (
                       <video src={media.url} className="w-full h-full object-cover" muted playsInline />
@@ -401,10 +399,37 @@ function PDP() {
             <span className="size-1 bg-primary rounded-full pulse-dot" />
             {product.category.toUpperCase()}
           </div>
-          
-          <h1 className="text-display mt-3 leading-[0.9]" style={{ fontSize: "clamp(42px, 6vw, 72px)" }}>
-            {product.name}
-          </h1>
+
+          <div className="flex items-start justify-between gap-4 mt-3">
+            <h1 className="text-display leading-[0.9] flex-1" style={{ fontSize: "clamp(42px, 6vw, 72px)" }}>
+              {product.name}
+            </h1>
+
+            {/* Mobile Wishlist & Share buttons beside product name right corner */}
+            <div className="flex sm:hidden items-center gap-2 shrink-0 pt-1">
+              <button
+                type="button"
+                aria-label="Wishlist"
+                onClick={() => toggle(product.slug)}
+                className={`size-9 border flex items-center justify-center transition-all ${
+                  wished ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-primary"
+                }`}
+              >
+                <Heart className={`size-4 ${wished ? "fill-primary" : ""}`} />
+              </button>
+
+              <button
+                type="button"
+                aria-label="Share product"
+                onClick={handleShare}
+                className={`size-9 border flex items-center justify-center transition-all ${
+                  shared ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-primary"
+                }`}
+              >
+                <Share2 className="size-4" />
+              </button>
+            </div>
+          </div>
 
           <div className="mt-5 flex items-baseline gap-4 text-mono">
             <span className="text-foreground" style={{ fontSize: "28px" }}>{formatINR(displayPrice)}</span>
@@ -430,20 +455,28 @@ function PDP() {
                   COLOR <span className="mx-2">·</span> <span className="text-foreground">{(colorOptions.find((c) => c.key === effectiveColorKey) ?? colorOptions[0]).name.toUpperCase()}</span>
                 </div>
               </div>
-              <div className="flex gap-3">
-                {colorOptions.map((c) => (
-                  <button
-                    key={c.key}
-                    type="button"
-                    onClick={() => setSelectedColor(c.key)}
-                    aria-pressed={effectiveColorKey === c.key}
-                    className={`size-10 aspect-square shrink-0 rounded-none border-2 ring-offset-2 ring-offset-background transition-all hover:scale-105 shadow-sm ${
-                      effectiveColorKey === c.key ? "border-primary ring-2 ring-primary" : "border-border ring-1 ring-foreground/20"
-                    }`}
-                    style={{ backgroundColor: c.hex }}
-                    aria-label={`Select color ${c.name}`}
-                  />
-                ))}
+              <div className="flex flex-wrap gap-3 p-0.5">
+                {colorOptions.map((c) => {
+                  const isSelected = effectiveColorKey === c.key;
+                  return (
+                    <button
+                      key={c.key}
+                      type="button"
+                      onClick={() => setSelectedColor(c.key)}
+                      aria-pressed={isSelected}
+                      className={`size-9 shrink-0 rounded-none transition-all duration-200 flex items-center justify-center p-0.5 border-2 ${isSelected
+                          ? "border-primary shadow-sm"
+                          : "border-border/60 hover:border-foreground/80"
+                        }`}
+                      aria-label={`Select color ${c.name}`}
+                    >
+                      <span
+                        className="w-full h-full block rounded-none"
+                        style={{ backgroundColor: c.hex }}
+                      />
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -464,13 +497,12 @@ function PDP() {
                     key={opt.variantId ?? opt.size}
                     onClick={() => handleSizeSelect(opt)}
                     disabled={!opt.inStock}
-                    className={`h-12 border text-mono transition-all duration-200 flex items-center justify-center relative ${
-                      isSelected
+                    className={`h-12 border text-mono transition-all duration-200 flex items-center justify-center relative ${isSelected
                         ? "bg-foreground text-background border-foreground font-bold shadow-[0_0_15px_rgba(128,128,128,0.2)]"
                         : opt.inStock
-                        ? "border-border text-muted-foreground hover:border-primary hover:text-primary bg-surface/50"
-                        : "border-border/30 text-muted-foreground/30 bg-surface/20 cursor-not-allowed line-through"
-                    }`}
+                          ? "border-border text-muted-foreground hover:border-primary hover:text-primary bg-surface/50"
+                          : "border-border/30 text-muted-foreground/30 bg-surface/20 cursor-not-allowed line-through"
+                      }`}
                     style={{ fontSize: "13px" }}
                   >
                     {opt.size}
@@ -499,7 +531,7 @@ function PDP() {
 
           {/* Actions */}
           <div className="mt-6 flex gap-3">
-            <div className="flex items-center border border-border bg-surface h-[60px] shrink-0">
+            <div className="hidden sm:flex items-center border border-border bg-surface h-[60px] shrink-0">
               <button
                 type="button"
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
@@ -524,13 +556,12 @@ function PDP() {
             <button
               onClick={handleAdd}
               disabled={!size || isOOS}
-              className={`flex-1 font-bold text-mono transition-all duration-300 flex items-center justify-center gap-3 ${
-                added
+              className={`w-full sm:flex-1 font-bold text-mono transition-all duration-300 flex items-center justify-center gap-3 ${added
                   ? "bg-secondary text-secondary-foreground glow-lime"
                   : size
-                  ? "bg-primary text-primary-foreground hover:glow-primary border-shimmer"
-                  : "bg-surface border border-border text-muted-foreground"
-              }`}
+                    ? "bg-primary text-primary-foreground hover:glow-primary border-shimmer"
+                    : "bg-surface border border-border text-muted-foreground"
+                }`}
               style={{
                 height: "60px",
                 fontSize: "12px",
@@ -539,16 +570,15 @@ function PDP() {
                 cursor: isOOS || (!size && !added) ? "not-allowed" : "pointer"
               }}
             >
-              {isOOS ? "SOLD OUT" : added ? "✓ ADDED TO BAG" : size ? "ADD TO BAG" : "SELECT SIZE"}
+              {isOOS ? "SOLD OUT" : added ? "✓ ADDED TO BAG" : "ADD TO BAG"}
               {size && !added && !isOOS && <ArrowRight className="size-4" />}
             </button>
-            
+
             <button
               aria-label="Wishlist"
               onClick={() => toggle(product.slug)}
-              className={`border w-[60px] flex items-center justify-center transition-all duration-300 ${
-                wished ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-primary"
-              }`}
+              className={`hidden sm:flex border w-[60px] items-center justify-center transition-all duration-300 ${wished ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-primary"
+                }`}
             >
               <Heart className={`size-5 ${wished ? "fill-primary" : ""}`} />
             </button>
@@ -556,9 +586,8 @@ function PDP() {
             <button
               aria-label="Share product"
               onClick={handleShare}
-              className={`border w-[60px] flex items-center justify-center transition-all duration-300 ${
-                shared ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-primary"
-              }`}
+              className={`hidden sm:flex border w-[60px] items-center justify-center transition-all duration-300 ${shared ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-primary"
+                }`}
             >
               <Share2 className="size-5" />
             </button>
@@ -619,9 +648,8 @@ function PDP() {
                   <span className="text-xl leading-none">{tab === t.id ? "−" : "+"}</span>
                 </button>
                 <div
-                  className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                    tab === t.id ? "max-h-40 opacity-100 pb-5" : "max-h-0 opacity-0"
-                  }`}
+                  className={`overflow-hidden transition-all duration-300 ease-in-out ${tab === t.id ? "max-h-40 opacity-100 pb-5" : "max-h-0 opacity-0"
+                    }`}
                 >
                   <p className="text-muted-foreground leading-relaxed" style={{ fontSize: "13.5px" }}>
                     {t.content}
