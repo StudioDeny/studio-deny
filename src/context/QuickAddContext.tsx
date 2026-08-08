@@ -323,7 +323,7 @@ function MobileFloatingCard({
                 ? "bg-emerald-700 text-white"
                 : !selectedSize
                 ? "bg-black/12 text-black/32 cursor-not-allowed"
-                : "bg-black text-white active:scale-[0.99]"
+                : "bg-black text-white active:scale-[0.99] btn-shimmer"
             }`}
             style={{ fontSize: 11 }}
           >
@@ -516,7 +516,7 @@ function DesktopModal({
                 ? "bg-emerald-700 text-white"
                 : !selectedSize
                 ? "bg-black/18 text-black/38 cursor-not-allowed"
-                : "bg-black text-white hover:bg-black/88 active:scale-[0.99]"
+                : "bg-black text-white hover:bg-black/88 active:scale-[0.99] btn-shimmer"
             }`}
           >
             {addedSuccess ? (

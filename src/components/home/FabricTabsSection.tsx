@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
 
 type FabricTab = { id: string; name: string; title: string; desc: string; img: string; img_type?: "image" | "video"; href?: string };
 type FabricTabsConfig = { tabs: FabricTab[] };
@@ -64,19 +65,22 @@ export function FabricTabsSection() {
   return (
     <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-y border-border bg-[#E2E2E4]">
       <div className="max-w-[1560px] mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-12 sm:mb-16">
-          <span className="inline-flex items-center px-3 py-1 border border-border text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-4">{productSpecsHeading.eyebrow}</span>
-          <h2
-            className="text-[clamp(3rem,8vw,6rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-4"
+        <div className="mb-12 sm:mb-16 flex flex-col">
+          {productSpecsHeading.eyebrow && (
+            <span className="inline-flex items-center px-3 py-1 border border-border text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-4 w-fit">{productSpecsHeading.eyebrow}</span>
+          )}
+          <EditorialHeading
+            className="text-[clamp(3rem,8vw,6rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-2"
             style={productSpecsHeading.color ? { color: productSpecsHeading.color } : undefined}
           >
             {productSpecsHeading.text}
-            <br />
-            <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(0,0,0,0.55)" }}>
+          </EditorialHeading>
+          {productSpecsHeading.subtitle && (
+            <EditorialSubheading className="text-xl sm:text-2xl font-mono text-foreground/70 uppercase tracking-wide" delay={0.2}>
               {productSpecsHeading.subtitle}
-            </span>
-          </h2>
-        </motion.div>
+            </EditorialSubheading>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
           <div className="order-1 w-full relative h-[45vh] sm:h-[60vh] lg:h-[80vh] overflow-hidden border border-border bg-surface">

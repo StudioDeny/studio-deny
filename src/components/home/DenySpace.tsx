@@ -209,9 +209,9 @@ export function DenySpace() {
         </motion.div>
 
         <motion.p
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
           viewport={{ once: true }}
           className="text-sm sm:text-base text-mono leading-relaxed max-w-lg mx-auto mt-1 mb-10 whitespace-pre-line"
           style={{ color: text, opacity: 0.7 }}

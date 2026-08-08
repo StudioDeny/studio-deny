@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { EditorialHeading } from "@/components/ui/EditorialHeading";
 
 type TestimonialItem = { name: string; city: string; quote: string; rating: number };
 
@@ -55,14 +56,14 @@ export function TestimonialsSection() {
   return (
     <section className="py-16 sm:py-24 overflow-hidden bg-[#E2E2E4]">
       <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10 sm:mb-14 text-center">
-          <h2
+        <div className="mb-10 sm:mb-14 text-center flex flex-col items-center">
+          <EditorialHeading
             className="text-[clamp(3rem,10vw,7rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display whitespace-pre-line"
             style={heading.color ? { color: heading.color } : undefined}
           >
             {heading.text}
-          </h2>
-        </motion.div>
+          </EditorialHeading>
+        </div>
       </div>
       <div className="flex overflow-hidden group py-4">
         <div className="flex shrink-0 items-stretch ticker-scroll group-hover:[animation-play-state:paused]" style={{ animationDuration: "60s" }}>

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { Newsletter } from "./Newsletter";
 import { Instagram, Youtube, MessageCircle } from "lucide-react";
@@ -6,6 +7,94 @@ import { supabase } from "@/lib/supabase";
 import type { NavMenuItem, BrandSettings } from "@/types/database";
 
 type FooterColumn = { h: string; l: NavMenuItem[] };
+
+function MagneticFooterLogo() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dragX = useMotionValue(0);
+  const dragY = useMotionValue(0);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const springConfig = { damping: 24, stiffness: 190, mass: 0.5 };
+
+  const hoverRotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [12, -12]), springConfig);
+  const hoverRotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-12, 12]), springConfig);
+  const hoverTranslateX = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), springConfig);
+  const hoverTranslateY = useSpring(useTransform(mouseY, [-0.5, 0.5], [-10, 10]), springConfig);
+
+  const dragRotateZ = useTransform(dragX, [-200, 200], [-20, 20]);
+  const dragRotateX = useTransform(dragY, [-150, 150], [15, -15]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current || isDragging) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const xPct = (e.clientX - rect.left) / rect.width - 0.5;
+    const yPct = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(xPct);
+    mouseY.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="relative select-none inline-block touch-none"
+    >
+      <motion.div
+        drag
+        dragSnapToOrigin
+        dragElastic={0.7}
+        dragTransition={{ bounceStiffness: 450, bounceDamping: 20 }}
+        style={{
+          x: isDragging ? dragX : hoverTranslateX,
+          y: isDragging ? dragY : hoverTranslateY,
+          rotateZ: isDragging ? dragRotateZ : 0,
+          rotateX: isDragging ? dragRotateX : hoverRotateX,
+          rotateY: isDragging ? 0 : hoverRotateY,
+          perspective: 1000,
+        }}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={() => {
+          setIsDragging(false);
+          mouseX.set(0);
+          mouseY.set(0);
+        }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 1.08 }}
+        whileDrag={{ scale: 1.1 }}
+        className="relative z-10 touch-none select-none cursor-grab active:cursor-grabbing inline-block"
+      >
+        <motion.div
+          animate={
+            isDragging
+              ? { y: 0, rotateZ: 0 }
+              : {
+                  y: [0, -4, 0],
+                  rotateZ: [-0.5, 0.5, -0.5],
+                }
+          }
+          transition={{
+            duration: 4.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="inline-block"
+        >
+          <Link to="/" className="text-display tracking-wider inline-block text-black" style={{ fontSize: "28px" }}>
+            STUDIO DENY
+          </Link>
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+}
 
 const DEFAULT_COLS: FooterColumn[] = [
   {
@@ -81,9 +170,7 @@ export function Footer() {
       <div className="px-4 md:px-8 py-12 md:py-16 flex flex-col md:flex-row gap-12 md:gap-16 lg:gap-24 max-w-[1560px] mx-auto">
         {/* Brand column */}
         <div className="md:w-[280px] lg:w-[340px] shrink-0">
-          <Link to="/" className="text-display tracking-wider inline-block" style={{ fontSize: "28px" }}>
-            STUDIO DENY
-          </Link>
+          <MagneticFooterLogo />
           <p className="mt-4 text-muted-foreground leading-relaxed whitespace-pre-line" style={{ fontSize: "13px", maxWidth: "240px" }}>
             {tagline}
           </p>

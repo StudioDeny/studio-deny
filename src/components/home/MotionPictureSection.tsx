@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { EditorialHeading, EditorialParagraph } from "@/components/ui/EditorialHeading";
 
 type MotionPictureConfig = { video_url: string; media_type?: "image" | "video"; subtext: string };
 
@@ -51,18 +52,18 @@ export function MotionPictureSection() {
         </video>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/70" />
-      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} viewport={{ once: true }}>
-          <h2
-            className="text-[clamp(4rem,12vw,10rem)] leading-[0.8] font-display uppercase tracking-[-0.04em] text-white whitespace-pre-line"
-            style={heading.color ? { color: heading.color } : undefined}
-          >
-            {heading.text}
-          </h2>
-          <p className="mt-8 text-lg md:text-xl text-white/80 text-mono tracking-[0.2em] max-w-2xl mx-auto leading-relaxed">
+      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto flex flex-col items-center">
+        <EditorialHeading
+          className="text-[clamp(4rem,12vw,10rem)] leading-[0.8] font-display uppercase tracking-[-0.04em] text-white whitespace-pre-line"
+          style={heading.color ? { color: heading.color } : undefined}
+        >
+          {heading.text}
+        </EditorialHeading>
+        {cfg.subtext && (
+          <EditorialParagraph className="mt-8 text-lg md:text-xl text-white/80 text-mono tracking-[0.2em] max-w-2xl mx-auto leading-relaxed" delay={0.25}>
             {cfg.subtext}
-          </p>
-        </motion.div>
+          </EditorialParagraph>
+        )}
       </div>
     </section>
   );

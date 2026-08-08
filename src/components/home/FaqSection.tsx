@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { Plus, Minus, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { EditorialHeading } from "@/components/ui/EditorialHeading";
 
 type FaqPreviewItem = { question: string; answer: string };
 type FaqConfig = { view_all_label?: string };
@@ -50,10 +51,14 @@ export function FaqSection() {
   return (
     <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border bg-[#E2E2E4]">
       <div className="max-w-3xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10">
-          <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {heading.eyebrow}</div>
-          <h2 className="text-[clamp(2.5rem,7vw,5rem)] leading-[0.95] tracking-[-0.03em] uppercase text-display" style={heading.color ? { color: heading.color } : undefined}>{heading.text}</h2>
-        </motion.div>
+        <div className="mb-10 flex flex-col">
+          {heading.eyebrow && (
+            <span className="text-mono text-primary mb-2 text-xs tracking-[0.35em]">◢ {heading.eyebrow}</span>
+          )}
+          <EditorialHeading className="text-[clamp(2.5rem,7vw,5rem)] leading-[0.95] tracking-[-0.03em] uppercase text-display" style={heading.color ? { color: heading.color } : undefined}>
+            {heading.text}
+          </EditorialHeading>
+        </div>
 
         <ul className="border-t border-border">
           {items.map((item, i) => {

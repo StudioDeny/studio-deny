@@ -9,6 +9,7 @@ import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Footer } from "@/components/layout/Footer";
 import { CartDrawer } from "@/components/layout/CartDrawer";
 import { ChevronUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 function NotFoundComponent() {
   return (
@@ -96,7 +97,17 @@ function RootContent() {
               </div>
             )}
             <main className={isAdmin ? "min-h-screen" : "min-h-[60vh] pt-[var(--topbar-h)]"}>
-              <Outlet />
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={location.pathname}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <Outlet />
+                </motion.div>
+              </AnimatePresence>
             </main>
             {!isAdmin && (
               <>
@@ -138,6 +149,13 @@ function RootContent() {
 }
 
 function RootComponent() {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin");
+
+  if (isAdmin) {
+    return <RootContent />;
+  }
+
   return (
     <SmoothScroll duration={1.2} lerp={0.1} wheelMultiplier={1.0} touchMultiplier={1.5}>
       <RootContent />

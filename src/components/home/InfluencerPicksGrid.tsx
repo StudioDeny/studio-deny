@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import type { InfluencerPick } from "@/types/database";
 import type { Product } from "@/lib/productsStore";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { EditorialHeading } from "@/components/ui/EditorialHeading";
 
 type PickWithTags = InfluencerPick & { products: Pick<Product, "slug" | "name" | "image">[] };
 type InfluencerPicksConfig = { explore_label?: string };
@@ -43,9 +44,9 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
       onClick={handleClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="shrink-0 w-[62vw] sm:w-[30vw] lg:w-[21vw] text-left group/tile"
+      className="shrink-0 w-[65vw] sm:w-[28vw] lg:w-[19vw] text-left group/tile"
     >
-      <div className="relative aspect-[3/4] overflow-hidden bg-surface border border-border">
+      <div className="relative aspect-[9/16] overflow-hidden bg-surface border border-border">
         {isUpload && hovered ? (
           <video
             src={pick.video_url!}
@@ -175,7 +176,7 @@ function Lightbox({
         <X className="size-5" />
       </button>
 
-      <div className="relative w-full max-w-[420px] h-[85vh] sm:h-[88vh] bg-black overflow-hidden">
+      <div className="relative w-full max-w-[440px] h-[88vh] sm:h-[92vh] bg-black overflow-hidden">
         {playbackSrc && !videoFailed ? (
           <video
             key={`${pick.id}-${playbackSrc}`}
@@ -337,15 +338,17 @@ export function InfluencerPicksGrid() {
   return (
     <section className="py-14 sm:py-20 overflow-hidden border-t border-border bg-[#E2E2E4]">
       <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-10 flex items-end justify-between">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
-          <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{heading.eyebrow}</span>
-          <h2
+        <div className="flex flex-col">
+          {heading.eyebrow && (
+            <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{heading.eyebrow}</span>
+          )}
+          <EditorialHeading
             className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display"
             style={heading.color ? { color: heading.color } : undefined}
           >
             {heading.text}
-          </h2>
-        </motion.div>
+          </EditorialHeading>
+        </div>
         <Link to="/shop" className="hidden sm:inline-flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-mono hover:text-primary transition-colors">
           {cfg.explore_label ?? "EXPLORE OUR COLLECTION"} <ArrowRight className="size-3.5" />
         </Link>
