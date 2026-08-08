@@ -126,25 +126,32 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
         <div className="max-w-[1320px] mx-auto w-full">
           <div className="space-y-4 sm:space-y-6">
             <h1 className="text-[clamp(2.25rem,8vw,6rem)] leading-[0.95] tracking-[-0.03em] uppercase max-w-5xl text-display text-white">
-              {lines.map((line, i) => (
-                <span key={`${slide.id}-line-${i}`} className="block overflow-hidden">
-                  <motion.span
-                    className="block"
-                    initial={{ y: "110%" }}
-                    animate={{ y: "0%" }}
-                    transition={{ duration: 0.9, ease: EASE, delay: 0.15 + i * 0.08 }}
-                  >
-                    {line}
-                  </motion.span>
+              {slide.title.split("\n").map((line, lineIdx) => (
+                <span key={`${slide.id}-line-${lineIdx}`} className="block overflow-hidden py-1">
+                  {line.split(" ").map((word, wordIdx) => (
+                    <motion.span
+                      key={`${word}-${wordIdx}`}
+                      className="inline-block mr-[0.25em]"
+                      initial={{ opacity: 0, y: "120%" }}
+                      animate={{ opacity: 1, y: "0%" }}
+                      transition={{
+                        duration: 0.8,
+                        ease: [0.16, 1, 0.3, 1],
+                        delay: 0.1 + (lineIdx * 4 + wordIdx) * 0.06,
+                      }}
+                    >
+                      {word}
+                    </motion.span>
+                  ))}
                 </span>
               ))}
             </h1>
 
             <motion.p
               key={`${slide.id}-sub`}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: EASE, delay: 0.45 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.45 }}
               className="text-base sm:text-lg leading-relaxed max-w-xl text-mono text-white/80"
             >
               {slide.subtitle}

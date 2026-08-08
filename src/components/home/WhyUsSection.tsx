@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Package, Zap, Shield, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
 
 type Feature = { label: string; desc: string };
 type WhyUsConfig = {
@@ -47,24 +48,22 @@ export function WhyUsSection() {
   return (
     <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border/30 bg-[#E2E2E4]">
       <div className="max-w-[1320px] mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="mb-12"
-        >
-          <div className="text-mono text-primary mb-3" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>
-            ◢ {heading.eyebrow}
-          </div>
-          <h2 className="text-display leading-none" style={heading.color ? { fontSize: "clamp(36px, 7vw, 80px)", color: heading.color } : { fontSize: "clamp(36px, 7vw, 80px)" }}>
+        <div className="mb-12 flex flex-col">
+          {heading.eyebrow && (
+            <span className="text-mono text-primary mb-3 text-xs tracking-[0.35em]">◢ {heading.eyebrow}</span>
+          )}
+          <EditorialHeading
+            className="text-display leading-none"
+            style={heading.color ? { fontSize: "clamp(36px, 7vw, 80px)", color: heading.color } : { fontSize: "clamp(36px, 7vw, 80px)" }}
+          >
             {heading.text}
-            <br />
-            <span className="text-transparent" style={{ WebkitTextStroke: "2px rgba(0,0,0,0.55)" }}>
+          </EditorialHeading>
+          {heading.subtitle && (
+            <EditorialSubheading className="mt-2 text-mono text-xl sm:text-2xl font-bold tracking-tight text-foreground/75" delay={0.2}>
               {heading.subtitle}
-            </span>
-          </h2>
-        </motion.div>
+            </EditorialSubheading>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {cfg.features.slice(0, 4).map((feature, idx) => {
@@ -74,7 +73,7 @@ export function WhyUsSection() {
                 key={idx}
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: idx * 0.1 }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: idx * 0.08 }}
                 viewport={{ once: true }}
                 className="border border-border/50 bg-surface/20 p-6 group hover:border-primary/40 hover:bg-surface/40 transition-all duration-300"
               >

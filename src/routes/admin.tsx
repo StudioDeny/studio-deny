@@ -123,7 +123,7 @@ function AdminLayout() {
       {/* Full-screen mobile nav — opens over the entire viewport so admin can
           navigate to any screen without scrolling past a stacked sidebar. */}
       {mobileNavOpen && (
-        <div className="md:hidden fixed inset-0 z-[120] bg-background overflow-y-auto">
+        <div className="md:hidden fixed inset-0 z-[120] bg-background overflow-y-auto overscroll-contain" data-lenis-prevent>
           <div className="flex items-center justify-between px-4 h-14 border-b border-border">
             <Link to="/" className="text-display text-lg tracking-wider" onClick={() => setMobileNavOpen(false)}>STUDIO DENY</Link>
             <button onClick={() => setMobileNavOpen(false)} aria-label="Close menu" className="text-foreground">
@@ -140,7 +140,7 @@ function AdminLayout() {
         </div>
       )}
 
-      <aside className="hidden md:block border-r border-border bg-surface p-5 md:sticky md:top-0 md:h-screen overflow-y-auto">
+      <aside className="hidden md:block border-r border-border bg-surface p-5 md:sticky md:top-0 md:h-screen md:max-h-screen overflow-y-auto overscroll-contain custom-scrollbar" data-lenis-prevent>
         <div className="flex items-center justify-between mb-6 relative" ref={notifRef}>
           <div className="text-mono text-[10px] tracking-[0.3em] text-primary">◢ ADMIN</div>
           <button
@@ -158,7 +158,7 @@ function AdminLayout() {
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 top-8 z-50 w-[300px] max-h-[400px] overflow-y-auto bg-background border border-border shadow-2xl">
+            <div className="absolute right-0 top-8 z-50 w-[300px] max-h-[400px] overflow-y-auto overscroll-contain bg-background border border-border shadow-2xl" data-lenis-prevent>
               <div className="flex items-center justify-between p-3 border-b border-border sticky top-0 bg-background">
                 <div className="text-mono text-[10px] tracking-widest text-primary">NOTIFICATIONS</div>
                 <button onClick={markAllSeen} className="text-mono text-[9px] tracking-widest text-muted-foreground hover:text-primary">MARK ALL SEEN</button>
@@ -206,7 +206,7 @@ function AdminLayout() {
           <Home className="size-3" /> BACK TO STORE
         </Link>
       </aside>
-      <div className="p-5 md:p-8">
+      <div className="p-5 md:p-8 min-w-0">
         <Outlet />
       </div>
     </div>

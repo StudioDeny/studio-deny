@@ -7,6 +7,7 @@ import { listProducts, getVariantStock, type Product, type VariantStock } from "
 import { useCart, formatINR } from "@/context/CartContext";
 import { useSectionHeading } from "@/lib/sectionHeadings";
 import { useQuickAdd } from "@/context/QuickAddContext";
+import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
 
 type PopularNowItem = { slug: string; tag?: string };
 type PopularNowConfig = { items: PopularNowItem[]; view_all_href?: string };
@@ -53,13 +54,13 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
         <video
           src={product.image}
           autoPlay loop muted playsInline
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
         />
       ) : (
         <img
           src={product.image}
           alt={product.name}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
         />
       )}
       {product.tag && (
@@ -159,23 +160,22 @@ export function PopularNowGrid() {
   return (
     <section className="py-16 sm:py-24 relative bg-[#E2E2E4]">
       <div className="px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 flex items-end justify-between flex-wrap gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
+        <div className="flex flex-col">
           {heading.eyebrow && (
-            <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {heading.eyebrow}</div>
+            <span className="text-mono text-primary mb-2 text-xs tracking-[0.35em]">◢ {heading.eyebrow}</span>
           )}
-          <h2
+          <EditorialHeading
             className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display"
             style={heading.color ? { color: heading.color } : undefined}
           >
             {heading.text}
-          </h2>
-          {heading.subtitle && <p className="mt-3 max-w-xl text-sm sm:text-base opacity-80 text-mono">{heading.subtitle}</p>}
-        </motion.div>
+          </EditorialHeading>
+          {heading.subtitle && (
+            <EditorialSubheading className="mt-3 max-w-xl text-sm sm:text-base opacity-80 text-mono" delay={0.2}>
+              {heading.subtitle}
+            </EditorialSubheading>
+          )}
+        </div>
         <Link
           to={cfg.view_all_href || "/shop"}
           className="group inline-flex items-center gap-2 text-mono text-xs sm:text-sm tracking-[0.2em] uppercase border-b border-foreground/40 pb-1 hover:border-primary hover:text-primary transition-colors"

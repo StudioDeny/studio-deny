@@ -7,6 +7,7 @@ import { getSettings } from "@/lib/settings";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { X, SlidersHorizontal, Search as SearchIcon, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Search = {
   cat?: string;
@@ -369,21 +370,36 @@ function Shop() {
         </div>
       </div>
 
-      {mobileFilters && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setMobileFilters(false)} />
-          <div className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-sm bg-surface border-l border-border p-5 overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <div className="text-display text-2xl">FILTERS</div>
-              <button onClick={() => setMobileFilters(false)} aria-label="Close"><X className="size-5" /></button>
-            </div>
-            {Filters}
-            <button onClick={() => setMobileFilters(false)} className="mt-6 w-full bg-primary text-primary-foreground h-12 text-mono text-xs tracking-widest hover:glow-primary">
-              SHOW {items.length} PIECES
-            </button>
+      <AnimatePresence>
+        {mobileFilters && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+              onClick={() => setMobileFilters(false)}
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-sm bg-surface border-l border-border p-5 overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <div className="text-display text-2xl">FILTERS</div>
+                <button onClick={() => setMobileFilters(false)} aria-label="Close"><X className="size-5" /></button>
+              </div>
+              {Filters}
+              <button onClick={() => setMobileFilters(false)} className="mt-6 w-full bg-primary text-primary-foreground h-12 text-mono text-xs tracking-widest hover:glow-primary btn-shimmer">
+                SHOW {items.length} PIECES
+              </button>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </section>
   );
 }

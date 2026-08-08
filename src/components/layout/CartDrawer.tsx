@@ -191,10 +191,10 @@ export function CartDrawer() {
               id="cart-checkout-btn"
               disabled={items.length === 0}
               onClick={() => { close(); navigate({ to: "/cart" }); }}
-              className="w-full bg-primary text-primary-foreground font-bold text-mono flex items-center justify-center gap-2 hover:glow-primary transition-shadow disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full bg-primary text-primary-foreground font-bold text-mono flex items-center justify-center gap-2 hover:glow-primary btn-shimmer group disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ height: "52px", fontSize: "11px", letterSpacing: "0.25em" }}
             >
-              CHECKOUT <ArrowRight className="size-4" />
+              CHECKOUT <ArrowRight className="size-4 btn-icon-nudge" />
             </button>
             <p className="text-mono text-muted-foreground text-center" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
               TAX & SHIPPING CALCULATED AT CHECKOUT

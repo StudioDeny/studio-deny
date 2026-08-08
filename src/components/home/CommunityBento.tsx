@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import type { CommunityPhoto } from "@/types/database";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
 
 const SUPPLEMENTARY_PHOTOS: CommunityPhoto[] = [
   {
@@ -77,16 +78,22 @@ export function CommunityBento() {
 
   return (
     <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 border-t border-border max-w-[1560px] mx-auto bg-[#E2E2E4]">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10">
-        <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{heading.eyebrow}</span>
-        <h2
+      <div className="mb-10 flex flex-col">
+        {heading.eyebrow && (
+          <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{heading.eyebrow}</span>
+        )}
+        <EditorialHeading
           className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display"
           style={heading.color ? { color: heading.color } : undefined}
         >
           {heading.text}
-        </h2>
-        <p className="mt-3 text-muted-foreground text-sm sm:text-base text-mono">{heading.subtitle}</p>
-      </motion.div>
+        </EditorialHeading>
+        {heading.subtitle && (
+          <EditorialSubheading className="mt-3 text-muted-foreground text-sm sm:text-base text-mono" delay={0.2}>
+            {heading.subtitle}
+          </EditorialSubheading>
+        )}
+      </div>
 
       {/* 100% Flush 4x3 Sharp-Edge Bento Box Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 auto-rows-[180px] sm:auto-rows-[210px] lg:auto-rows-[230px] gap-3 sm:gap-4 grid-flow-dense">
@@ -97,16 +104,16 @@ export function CommunityBento() {
           return (
             <motion.div
               key={photo.id}
-              initial={{ opacity: 0, scale: 0.96 }}
+              initial={{ opacity: 0, scale: 0.98 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: idx * 0.05 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: idx * 0.04 }}
               viewport={{ once: true }}
               className={`relative overflow-hidden rounded-none border border-border group ${spanClass}`}
             >
               {photo.media_type === "video" ? (
-                <video src={photo.image_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.06]" autoPlay loop muted playsInline />
+                <video src={photo.image_url} className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]" autoPlay loop muted playsInline />
               ) : (
-                <img src={photo.image_url} alt={photo.handle ?? "community"} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.06]" loading="lazy" />
+                <img src={photo.image_url} alt={photo.handle ?? "community"} className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]" loading="lazy" />
               )}
 
               {/* Hero Bento Badge */}

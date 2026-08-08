@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
 
 type NewsletterConfig = {
   cta_label: string;
@@ -53,7 +54,7 @@ function Form({ ctaLabel, successHeading, successBody }: { ctaLabel: string; suc
       <button
         type="submit"
         disabled={status === "submitting"}
-        className="h-12 px-6 bg-primary text-primary-foreground font-bold text-mono hover:glow-primary transition-all disabled:opacity-50 whitespace-nowrap"
+        className="h-12 px-6 bg-primary text-primary-foreground font-bold text-mono hover:glow-primary btn-shimmer disabled:opacity-50 whitespace-nowrap"
         style={{ fontSize: "11px", letterSpacing: "0.2em" }}
       >
         {status === "submitting" ? "…" : ctaLabel}
@@ -88,24 +89,22 @@ export function NewsletterSection() {
 
   return (
     <section id="cta-end" className="py-20 sm:py-28 border-t border-border/30 bg-[#E2E2E4]">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        viewport={{ once: true }}
-        className="max-w-[760px] mx-auto px-4 sm:px-8 text-center"
-      >
-        <div className="text-mono text-primary mb-3" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>
-          ◢ {heading.eyebrow}
-        </div>
-        <h2 className="text-display leading-[0.88]" style={heading.color ? { fontSize: "clamp(2.3rem,9vw,6rem)", color: heading.color } : { fontSize: "clamp(2.3rem,9vw,6rem)" }}>
+      <div className="max-w-[760px] mx-auto px-4 sm:px-8 text-center flex flex-col items-center">
+        {heading.eyebrow && (
+          <div className="text-mono text-primary mb-3 text-xs tracking-[0.35em]">
+            ◢ {heading.eyebrow}
+          </div>
+        )}
+        <EditorialHeading className="text-display leading-[0.88]" style={heading.color ? { fontSize: "clamp(2.3rem,9vw,6rem)", color: heading.color } : { fontSize: "clamp(2.3rem,9vw,6rem)" }}>
           {heading.text}
-        </h2>
-        <p className="mt-4 opacity-80 max-w-md mx-auto text-mono" style={{ fontSize: "14px" }}>
-          {heading.subtitle}
-        </p>
+        </EditorialHeading>
+        {heading.subtitle && (
+          <EditorialSubheading className="mt-4 opacity-80 max-w-md mx-auto text-mono text-sm sm:text-base" delay={0.2}>
+            {heading.subtitle}
+          </EditorialSubheading>
+        )}
         <Form ctaLabel={cfg.cta_label} successHeading={cfg.success_heading} successBody={cfg.success_body} />
-      </motion.div>
+      </div>
     </section>
   );
 }
