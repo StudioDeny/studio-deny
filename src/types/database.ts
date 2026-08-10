@@ -316,6 +316,12 @@ export interface Database {
         Update: Partial<Omit<PopupPromo, "id" | "created_at" | "updated_at">>;
         Relationships: [];
       };
+      preloader_settings: {
+        Row: PreloaderSettings;
+        Insert: Omit<PreloaderSettings, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<PreloaderSettings, "id" | "created_at" | "updated_at">>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -652,6 +658,19 @@ export type InfluencerPick = {
   is_active: boolean;
   position: number;
   created_at: string;
+};
+
+export type PreloaderSettings = {
+  id: string;
+  bg_type: "image" | "video";
+  bg_image_url: string | null;
+  bg_video_url: string | null;
+  content_type: "image" | "text";
+  content_image_url: string;
+  content_text: string;
+  text_color: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type PopupPromo = {

@@ -1,8 +1,24 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
+import type { PreloaderSettings } from "@/types/database";
+
+const DEFAULTS: PreloaderSettings = {
+  id: "",
+  bg_type: "image",
+  bg_image_url: null,
+  bg_video_url: null,
+  content_type: "image",
+  content_image_url: "/deny-space-preloader.png",
+  content_text: "STUDIO DENY",
+  text_color: "#000000",
+  created_at: "",
+  updated_at: "",
+};
 
 export function Preloader() {
   const [loading, setLoading] = useState(true);
+  const [cfg, setCfg] = useState<PreloaderSettings>(DEFAULTS);
   const [glitchState, setGlitchState] = useState<{
     isGlitched: boolean;
     offsetX: number;
@@ -18,6 +34,17 @@ export function Preloader() {
     sliceTop: 0,
     sliceBot: 0,
   });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.from("preloader_settings").select("*").limit(1).maybeSingle();
+        if (data) setCfg(data as PreloaderSettings);
+      } catch {
+        // keep DEFAULTS
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     // High-frequency dynamic red glitch bursts
@@ -84,35 +111,77 @@ export function Preloader() {
           transition={{ duration: 0.3, ease: "easeOut" }}
           className="fixed inset-0 z-[10000] bg-[#E2E2E4] flex flex-col items-center justify-center pointer-events-none select-none overflow-hidden"
         >
+          {/* Admin-configured backdrop */}
+          {cfg.bg_type === "image" && cfg.bg_image_url && (
+            <img src={cfg.bg_image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          )}
+          {cfg.bg_type === "video" && cfg.bg_video_url && (
+            <video
+              src={cfg.bg_video_url}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+
           {/* Main Content Container */}
           <div className="relative z-10 flex flex-col items-center justify-center px-6 max-w-3xl text-center">
-            {/* DENY SPACE Graphic Logo with High-Frequency Solid Red Glitch Invert */}
+            {/* Logo image OR text — whichever the admin picked — with the same
+                red-glitch treatment (offset/skew on the base, a sliced red-tinted
+                duplicate flashing on top). */}
             <div
               className="relative p-4 transition-transform duration-70 ease-out"
               style={{
                 transform: `translate3d(${glitchState.offsetX}px, 0, 0) skewX(${glitchState.skew}deg)`,
               }}
             >
-              {/* Base Solid Black Logo Graphic */}
-              <img
-                src="/deny-space-preloader.png"
-                alt="DENY SPACE"
-                className="w-[300px] sm:w-[460px] md:w-[580px] h-auto object-contain transition-transform duration-70 ease-out"
-              />
+              {cfg.content_type === "text" ? (
+                <>
+                  <span
+                    className="block text-display text-[clamp(2rem,7vw,4.5rem)] uppercase tracking-wide transition-transform duration-70 ease-out"
+                    style={{ color: cfg.text_color }}
+                  >
+                    {cfg.content_text}
+                  </span>
+                  {glitchState.isGlitched && (
+                    <span
+                      className="absolute inset-0 block text-display text-[clamp(2rem,7vw,4.5rem)] uppercase tracking-wide pointer-events-none transition-transform duration-50 ease-out z-20 text-[#ff1a1a]"
+                      style={{
+                        transform: `translate3d(${glitchState.redShiftX}px, 0, 0)`,
+                        clipPath: `inset(${glitchState.sliceTop}% 0 ${glitchState.sliceBot}% 0)`,
+                      }}
+                      aria-hidden
+                    >
+                      {cfg.content_text}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* Base Solid Black Logo Graphic */}
+                  <img
+                    src={cfg.content_image_url}
+                    alt="DENY SPACE"
+                    className="w-[300px] sm:w-[460px] md:w-[580px] h-auto object-contain transition-transform duration-70 ease-out"
+                  />
 
-              {/* Crisp Solid Red Flashing / Sliced Glitch Layer */}
-              {glitchState.isGlitched && (
-                <img
-                  src="/deny-space-preloader.png"
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-contain pointer-events-none transition-transform duration-50 ease-out z-20"
-                  style={{
-                    transform: `translate3d(${glitchState.redShiftX}px, 0, 0)`,
-                    filter:
-                      "invert(16%) sepia(99%) saturate(7400%) hue-rotate(352deg) brightness(95%) contrast(110%)",
-                    clipPath: `inset(${glitchState.sliceTop}% 0 ${glitchState.sliceBot}% 0)`,
-                  }}
-                />
+                  {/* Crisp Solid Red Flashing / Sliced Glitch Layer */}
+                  {glitchState.isGlitched && (
+                    <img
+                      src={cfg.content_image_url}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-contain pointer-events-none transition-transform duration-50 ease-out z-20"
+                      style={{
+                        transform: `translate3d(${glitchState.redShiftX}px, 0, 0)`,
+                        filter:
+                          "invert(16%) sepia(99%) saturate(7400%) hue-rotate(352deg) brightness(95%) contrast(110%)",
+                        clipPath: `inset(${glitchState.sliceTop}% 0 ${glitchState.sliceBot}% 0)`,
+                      }}
+                    />
+                  )}
+                </>
               )}
             </div>
           </div>
