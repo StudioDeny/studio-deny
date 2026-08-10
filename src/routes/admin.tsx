@@ -6,7 +6,6 @@ import {
   Undo2, BarChart3, Trophy, Bell, Settings, Tags, Download, FileEdit,
   Megaphone, Layout, Menu, HelpCircle, Star, Image, Globe, MessageSquare,
   UserCheck, AtSign, BookOpen, Users2, Heading, X, Ruler, PanelBottom, Sparkles,
-  Loader,
 } from "lucide-react";
 import { listOrders, type Order } from "@/lib/orders";
 import { getLastSeen, markSeen } from "@/lib/notifications";
@@ -83,7 +82,6 @@ function AdminLayout() {
     { to: "/admin/community-cms", label: "COMMUNITY", icon: Users2 },
     { to: "/admin/headings", label: "HEADINGS", icon: Heading },
     { to: "/admin/popup", label: "POPUP", icon: Sparkles },
-    { to: "/admin/preloader", label: "PRELOADER", icon: Loader },
     { to: "/admin/media", label: "MEDIA", icon: Image },
     { to: "/admin/seo", label: "SEO", icon: Globe },
     { to: "/admin/notifications", label: "WHATSAPP", icon: MessageSquare },
