@@ -1,16 +1,13 @@
-/* Storefront fonts (Archivo Black / Satoshi). Bebas Neue + Barlow are kept
-   loaded too — the admin panel (.admin-shell) still uses them, see below. */
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
-@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
 
-@import "tailwindcss" source(none);
+@import "tailwindcss";
 @source "../src";
 @import "tw-animate-css";
 
 @theme inline {
-  --font-display: 'Archivo Black', system-ui, sans-serif;
-  --font-body: 'Satoshi', system-ui, sans-serif;
-  --font-mono: 'Satoshi', system-ui, sans-serif;
+  --font-display: 'Anton', 'Bebas Neue', system-ui, sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-mono: 'Barlow', system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -31,13 +28,13 @@
 :root {
   color-scheme: light;
 
-  --background: #D9D9D7;
+  --background: #E2E2E4;
   --foreground: #111111;
-  --surface: #CDCDCB;
+  --surface: #D5D5D8;
 
   --primary: #111111;
-  --primary-foreground: #D9D9D7;
-  --secondary: #C2C2BE;
+  --primary-foreground: #E2E2E4;
+  --secondary: #D5D5D8;
   --secondary-foreground: #111111;
 
   --muted: #C7C7C3;
@@ -54,12 +51,22 @@
   :root { --topbar-h: 160px; }
 }
 
-/* Admin panel keeps the original fonts — excluded from the storefront's
-   Archivo Black / Satoshi switch. Applied on AdminLayout's root element. */
-.admin-shell {
-  --font-display: 'Bebas Neue', system-ui, sans-serif;
-  --font-body: 'Barlow', system-ui, sans-serif;
-  --font-mono: 'Barlow', system-ui, sans-serif;
+/* Lenis Smooth Scroll Base Rules */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  /* Prevent scroll lock on root */
+  touch-action: auto;
 }
 
 @layer base {
@@ -69,28 +76,22 @@
   }
   html {
     color-scheme: light;
-    scroll-behavior: smooth;
-    font-size: 16px;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
   }
   body {
-    background: linear-gradient(
-      150deg,
-      #E3E3E1 0%,
-      #D9D9D7 20%,
-      #CACAC6 50%,
-      #D2D2CE 75%,
-      #DEDEDC 100%
-    );
-    background-attachment: fixed;
-    background-color: #D9D9D7;
+    background-color: #E2E2E4;
+    background: #E2E2E4;
     color: var(--foreground);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+    font-weight: 400;
     letter-spacing: 0.01em;
   }
   ::selection {
@@ -111,27 +112,82 @@
     background: var(--primary);
   }
 
-  /* Every button gets a subtle hover/press animation site-wide, layered on
-     top of whatever color/border hover styles it already has. A vertical
-     lift (not scale) so it never overflows full-width buttons. */
-  button:not(:disabled) {
-    transition: transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+  /* Site-wide Premium Button Hover Animations */
+  button:not(:disabled),
+  a.btn-animated,
+  .btn-hover-effect {
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 180ms ease,
+                border-color 180ms ease,
+                color 180ms ease,
+                letter-spacing 200ms cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 180ms ease;
   }
-  button:not(:disabled):hover {
-    transform: translateY(-1px);
+  button:not(:disabled):hover,
+  a.btn-animated:hover,
+  .btn-hover-effect:hover {
+    letter-spacing: 0.22em;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px -6px rgba(0, 0, 0, 0.25);
   }
-  button:not(:disabled):active {
-    transform: translateY(0);
+  button:not(:disabled):active,
+  a.btn-animated:active,
+  .btn-hover-effect:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.12);
   }
+
+  /* Shimmer sheen overlay animation for action buttons */
+  .btn-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-shimmer::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 50%;
+    height: 200%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.28) 50%,
+      transparent 100%
+    );
+    transform: rotate(25deg);
+    transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+  .btn-shimmer:hover::after {
+    transform: rotate(25deg) translate(300%, 0);
+  }
+
+  /* Icon nudge animation inside buttons on hover */
+  button:hover svg.btn-icon-nudge,
+  a:hover svg.btn-icon-nudge,
+  .group:hover svg.btn-icon-nudge {
+    transform: translateX(3px);
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    button:not(:disabled):hover, button:not(:disabled):active {
+    button:not(:disabled):hover,
+    button:not(:disabled):active,
+    a.btn-animated:hover,
+    a.btn-animated:active {
       transform: none;
+      box-shadow: none;
+    }
+    .btn-shimmer::after {
+      display: none;
     }
   }
 }
 
 @layer utilities {
-  .text-display { font-family: var(--font-display); }
+  .text-display { font-family: var(--font-display); font-weight: 400; }
   .text-mono { font-family: var(--font-body); }
 
   /* Glow effects */
@@ -200,6 +256,11 @@
     to { stroke-dashoffset: 0; }
   }
 
+  @keyframes slide-bar-fill {
+    from { width: 0%; }
+    to { width: 100%; }
+  }
+
   /* Fill-sweep button: border/ghost button that fills solid on hover,
      with the label clip-swapping so text stays legible through the sweep. */
   .btn-fill {
@@ -251,7 +312,51 @@
   .btn-fill--dark .btn-fill-bg { background: var(--foreground); }
   .btn-fill--dark .btn-fill-back { color: var(--background); }
 
+  /* Editorial Navigation Link Underline Animation */
+  .editorial-nav-link {
+    position: relative;
+    transition: color 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .editorial-nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 1.5px;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .editorial-nav-link:hover::after,
+  .editorial-nav-link[data-status="active"]::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+
+  /* Editorial Image Reveal (Fade + Scale 1.05 -> 1) */
+  .img-editorial-reveal {
+    animation: img-editorial-reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    will-change: transform, opacity;
+  }
+  @keyframes img-editorial-reveal {
+    from {
+      opacity: 0;
+      transform: scale(1.05);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .btn-fill-bg, .btn-fill-front, .btn-fill-back { transition: none; }
+    .btn-fill-bg, .btn-fill-front, .btn-fill-back,
+    .editorial-nav-link::after,
+    .img-editorial-reveal {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 }

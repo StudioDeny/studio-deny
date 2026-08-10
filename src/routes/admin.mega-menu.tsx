@@ -284,7 +284,9 @@ function AdminMegaMenu() {
               ))}
             </div>
             {previewCategory ? (
-              <MegaMenuPanel category={previewCategory} onNavigate={() => {}} variant="desktop" />
+              <div className="h-[420px] overflow-hidden">
+                <MegaMenuPanel category={previewCategory} onNavigate={() => {}} variant="desktop" />
+              </div>
             ) : (
               <p className="p-6 text-sm text-muted-foreground">Add a tab to preview it.</p>
             )}

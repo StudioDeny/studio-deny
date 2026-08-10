@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { listProducts, getVariantStock, type Product, type VariantStock } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { useQuickAdd } from "@/context/QuickAddContext";
+import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
 
 type ArrivalsConfig = { cta_label: string; product_slugs: string[] };
 
@@ -23,6 +25,7 @@ const SIZE_CLASSES = [
 
 function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: string }) {
   const { add } = useCart();
+  const { openQuickAdd } = useQuickAdd();
   const [hover, setHover] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
   const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
@@ -53,13 +56,13 @@ function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: stri
         <video
           src={product.image}
           autoPlay loop muted playsInline
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
         />
       ) : (
         <img
           src={product.image}
           alt={product.name}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
         />
       )}
       {product.badge && (
@@ -73,19 +76,16 @@ function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: stri
         <p className="text-white/80 text-mono text-[11px]">{formatINR(product.price)}</p>
       </div>
 
-      {/* Quick add — small circular icon bottom-right; click expands a pill-style
-          size row over the same spot. Matches ProductCard's pattern. */}
-      {!showSizes && (
-        <button
-          aria-label={added ? "Added to bag" : "Quick add"}
-          onClick={(e) => { e.preventDefault(); if (!added) handleOpenSizes(); }}
-          className={`absolute bottom-2 right-2 size-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 opacity-100 ${
-            hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90"
-          } ${added ? "bg-secondary text-secondary-foreground" : "bg-foreground/95 text-background hover:bg-primary hover:text-primary-foreground"}`}
-        >
-          {added ? <Check className="size-3.5" /> : <ShoppingBag className="size-3.5" />}
-        </button>
-      )}
+      {/* Quick add — open centered modal */}
+      <button
+        aria-label="Quick add to cart"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickAdd(product); }}
+        className={`absolute bottom-2 right-2 size-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+          hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90 opacity-100"
+        } bg-black text-white hover:bg-black/80`}
+      >
+        <ShoppingBag className="size-3.5" />
+      </button>
 
       <div
         className={`absolute inset-x-0 bottom-0 transition-all duration-300 ${
@@ -158,23 +158,22 @@ export function NewArrivalsGrid() {
   return (
     <section className="py-16 sm:py-24 relative bg-[#E2E2E4]">
       <div className="px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 flex items-end justify-between flex-wrap gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
+        <div className="flex flex-col">
           {heading.eyebrow && (
-            <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {heading.eyebrow}</div>
+            <span className="text-mono text-primary mb-2 text-xs tracking-[0.35em]">◢ {heading.eyebrow}</span>
           )}
-          <h2
+          <EditorialHeading
             className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display"
             style={heading.color ? { color: heading.color } : undefined}
           >
             {heading.text}
-          </h2>
-          {heading.subtitle && <p className="mt-3 max-w-xl text-sm sm:text-base opacity-80 text-mono">{heading.subtitle}</p>}
-        </motion.div>
+          </EditorialHeading>
+          {heading.subtitle && (
+            <EditorialSubheading className="mt-3 max-w-xl text-sm sm:text-base opacity-80 text-mono" delay={0.2}>
+              {heading.subtitle}
+            </EditorialSubheading>
+          )}
+        </div>
         {cfg.cta_label && (
           <Link
             to="/shop"

@@ -5,6 +5,8 @@ import { getVariantStock, type Product, type VariantStock } from "@/lib/products
 import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 
+import { useQuickAdd } from "@/context/QuickAddContext";
+
 export function ProductCard({
   product,
   index = 0
@@ -13,12 +15,13 @@ export function ProductCard({
   index?: number;
 }) {
   const { add } = useCart();
+  const { openQuickAdd } = useQuickAdd();
   const { has, toggle } = useWishlist();
   const [hover, setHover] = useState(false);
+  const wished = has(product.slug);
   const [showSizes, setShowSizes] = useState(false);
   const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
   const [added, setAdded] = useState(false);
-  const wished = has(product.slug);
 
   // Mobile: swipeable photo strip (image, hover image, gallery) with dots.
   // Desktop keeps the hover crossfade below instead.
@@ -75,8 +78,8 @@ export function ProductCard({
               <video
                 src={product.image}
                 autoPlay loop muted playsInline
-                className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
-                style={{ opacity: hover ? 0 : 1, transform: hover ? "scale(1.06)" : "scale(1)" }}
+                className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out"
+                style={{ opacity: hover ? 0 : 1, transform: hover ? "scale(1.02)" : "scale(1)" }}
               />
             ) : (
               <img
@@ -85,10 +88,10 @@ export function ProductCard({
                 loading="lazy"
                 width={800}
                 height={1000}
-                className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
+                className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out"
                 style={{
                   opacity: hover ? 0 : 1,
-                  transform: hover ? "scale(1.06)" : "scale(1)",
+                  transform: hover ? "scale(1.02)" : "scale(1)",
                 }}
               />
             )}
@@ -96,8 +99,8 @@ export function ProductCard({
               <video
                 src={product.hoverImage}
                 autoPlay loop muted playsInline
-                className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
-                style={{ opacity: hover ? 1 : 0, transform: hover ? "scale(1)" : "scale(1.04)" }}
+                className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out"
+                style={{ opacity: hover ? 1 : 0, transform: hover ? "scale(1.02)" : "scale(1)" }}
               />
             ) : (
               <img
@@ -105,10 +108,10 @@ export function ProductCard({
                 alt=""
                 loading="lazy"
                 aria-hidden
-                className="absolute inset-0 w-full h-full object-cover transition-all duration-600"
+                className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out"
                 style={{
                   opacity: hover ? 1 : 0,
-                  transform: hover ? "scale(1)" : "scale(1.04)",
+                  transform: hover ? "scale(1.02)" : "scale(1)",
                 }}
               />
             )}
@@ -117,7 +120,7 @@ export function ProductCard({
               className="absolute inset-0 transition-opacity duration-400"
               style={{
                 opacity: hover ? 1 : 0,
-                background: "linear-gradient(to top, rgba(9,9,9,0.6) 0%, transparent 60%)",
+                background: "linear-gradient(to top, rgba(9,9,9,0.5) 0%, transparent 60%)",
               }}
             />
           </div>
@@ -191,31 +194,26 @@ export function ProductCard({
           <button
             aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
             onClick={(e) => { e.preventDefault(); toggle(product.slug); }}
-            className={`absolute top-2.5 right-2.5 p-1.5 transition-all duration-200 ${
-              wished ? "text-primary" : "text-white/70 hover:text-primary"
+            className={`absolute top-2.5 right-2.5 p-1.5 transition-all duration-300 ease-out ${
+              wished ? "text-primary opacity-100" : "text-white/70 hover:text-primary opacity-90 hover:opacity-100"
             }`}
           >
             <Heart className={`size-4 drop-shadow ${wished ? "fill-primary" : ""}`} />
           </button>
 
-          {/* Quick add — small circular icon bottom-right; click expands a pill-style
-              size row overlaying the same spot. Icon is always visible on mobile
-              (no hover there), hover-gated on desktop. Cursor leaving the card
-              (or tapping away, via the Link nav on outside taps) collapses it. */}
-          {!showSizes && (
-            <button
-              aria-label={added ? "Added to bag" : "Quick add"}
-              onClick={(e) => { e.preventDefault(); if (!added) handleOpenSizes(); }}
-              className={`absolute bottom-2.5 right-2.5 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 opacity-100 ${
-                hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90"
-              } ${added ? "bg-secondary text-secondary-foreground" : "bg-foreground/95 text-background hover:bg-primary hover:text-primary-foreground"}`}
-            >
-              {added ? <Check className="size-4" /> : <ShoppingBag className="size-4" />}
-            </button>
-          )}
+          {/* Quick add button */}
+          <button
+            aria-label="Quick add to cart"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickAdd(product); }}
+            className={`absolute bottom-2.5 right-2.5 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ease-out ${
+              hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-95 opacity-100"
+            } bg-black text-white hover:bg-black/85`}
+          >
+            <ShoppingBag className="size-4" />
+          </button>
 
           <div
-            className={`absolute inset-x-0 bottom-0 transition-all duration-300 ${
+            className={`absolute inset-x-0 bottom-0 transition-all duration-300 ease-out ${
               showSizes ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
             }`}
           >
@@ -242,12 +240,12 @@ export function ProductCard({
         {/* Product info */}
         <div className="mt-3 px-0.5">
           <h3
-            className="font-semibold leading-snug group-hover:text-primary transition-colors duration-200 uppercase tracking-[0.15em]"
+            className="font-semibold leading-snug group-hover:text-primary group-hover:-translate-y-1.5 transition-transform duration-200 cubic-bezier(0.16, 1, 0.3, 1) uppercase tracking-[0.15em]"
             style={{ fontSize: "14px" }}
           >
             {product.name}
           </h3>
-          <div className="mt-1 flex items-baseline gap-2 text-mono">
+          <div className="mt-1 flex items-baseline gap-2 text-mono group-hover:opacity-60 transition-opacity duration-200">
             <span style={{ fontSize: "13px" }}>{formatINR(product.price)}</span>
             {hasDiscount && (
               <span className="text-muted-foreground line-through" style={{ fontSize: "11px" }}>

@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { EditorialHeading } from "@/components/ui/EditorialHeading";
 
 type SplitCard = {
   media_type: "image" | "video";
@@ -54,34 +55,34 @@ export function GenderSplit() {
   if (!visible) return null;
 
   return (
-    <section className={`bg-[#E3E3E1] grid grid-cols-1 ${GRID_COLS[cfg.cards.length] ?? "sm:grid-cols-3"} h-screen`}>
+    <section className={`bg-[#E2E2E4] grid grid-cols-1 ${GRID_COLS[cfg.cards.length] ?? "sm:grid-cols-3"} h-screen`}>
       {cfg.cards.map((card, idx) => (
         <motion.div
           key={idx}
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: idx * 0.15 }}
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: idx * 0.12 }}
           viewport={{ once: true }}
           className="relative group overflow-hidden"
         >
           <Link to={card.cta_href} className="absolute inset-0 z-10" aria-label={card.label} />
           {card.media_type === "video" ? (
             <video autoPlay loop muted playsInline preload="metadata"
-              className="absolute inset-0 w-full h-full object-cover">
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]">
               <source src={card.src} type="video/mp4" />
             </video>
           ) : (
             <img
               src={card.src}
               alt={card.label}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
           <div className="absolute bottom-8 sm:bottom-12 left-6 sm:left-10 z-[1]">
-            <h3 className="text-white text-[clamp(1.75rem,4vw,3rem)] text-display uppercase tracking-wider mb-4">
+            <EditorialHeading as="h3" className="text-white text-[clamp(1.75rem,4vw,3rem)] text-display uppercase tracking-wider mb-4" delay={idx * 0.1}>
               {card.label}
-            </h3>
+            </EditorialHeading>
             <span className="inline-flex items-center gap-2 px-6 py-2.5 border border-white text-white text-xs tracking-[0.14em] uppercase text-mono">
               {cfg.explore_label ?? "EXPLORE"} <ArrowRight className="size-3.5" />
             </span>

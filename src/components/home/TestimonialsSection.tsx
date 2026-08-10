@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { EditorialHeading } from "@/components/ui/EditorialHeading";
 
 type TestimonialItem = { name: string; city: string; quote: string; rating: number };
 
@@ -53,16 +54,16 @@ export function TestimonialsSection() {
   if (!visible) return null;
 
   return (
-    <section className="py-16 sm:py-24 overflow-hidden bg-[#CDCDCB]">
+    <section className="py-16 sm:py-24 overflow-hidden bg-[#E2E2E4]">
       <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-10 sm:mb-14 text-center">
-          <h2
+        <div className="mb-10 sm:mb-14 text-center flex flex-col items-center">
+          <EditorialHeading
             className="text-[clamp(3rem,10vw,7rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display whitespace-pre-line"
             style={heading.color ? { color: heading.color } : undefined}
           >
             {heading.text}
-          </h2>
-        </motion.div>
+          </EditorialHeading>
+        </div>
       </div>
       <div className="flex overflow-hidden group py-4">
         <div className="flex shrink-0 items-stretch ticker-scroll group-hover:[animation-play-state:paused]" style={{ animationDuration: "60s" }}>
@@ -74,7 +75,16 @@ export function TestimonialsSection() {
               <div key={idx} className="shrink-0 w-[320px] sm:w-[380px] border border-border bg-surface/30 p-6 sm:p-8 flex flex-col justify-between mr-5">
                 <div>
                   <div className="flex gap-1 mb-4">
-                    {Array.from({ length: t.rating }, (_, n) => <Star key={n} className="w-3.5 h-3.5 fill-foreground text-foreground opacity-80" />)}
+                    {Array.from({ length: 5 }, (_, n) => (
+                      <Star
+                        key={n}
+                        className={`w-3.5 h-3.5 ${
+                          n < t.rating
+                            ? "fill-black text-black"
+                            : "fill-transparent text-black/40 stroke-[1.5]"
+                        }`}
+                      />
+                    ))}
                   </div>
                   <p className="text-base sm:text-lg leading-relaxed opacity-90 text-display">"{t.quote}"</p>
                 </div>

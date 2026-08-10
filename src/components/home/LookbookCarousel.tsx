@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
 import { SlideDots } from "@/components/ui/SlideDots";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const AUTOPLAY_MS = 6000;
@@ -40,7 +41,7 @@ export function LookbookCarousel() {
   };
 
   const Frame = (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full h-[65vh] sm:h-[75vh] max-h-[750px] min-h-[420px] overflow-hidden">
       <AnimatePresence mode="sync">
         <motion.div
           key={slide.id}
@@ -96,20 +97,24 @@ export function LookbookCarousel() {
   );
 
   return (
-    <section className="py-14 sm:py-20 bg-[#CDCDCB] overflow-hidden border-t border-border">
-      <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-10">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
-          <h2
+    <section className="pt-4 sm:pt-6 pb-0 bg-[#E2E2E4] overflow-hidden border-t border-border">
+      <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-3 sm:mb-4">
+        <div className="flex flex-col">
+          <EditorialHeading
             className="text-[clamp(3rem,10vw,6rem)] leading-none tracking-[-0.03em] uppercase text-display"
             style={heading.color ? { color: heading.color } : undefined}
           >
             {heading.text}
-          </h2>
-          <p className="text-base sm:text-lg mt-3 opacity-80 max-w-xl text-mono">{heading.subtitle}</p>
-        </motion.div>
+          </EditorialHeading>
+          {heading.subtitle && (
+            <EditorialSubheading className="text-base sm:text-lg mt-1.5 opacity-80 max-w-xl text-mono" delay={0.2}>
+              {heading.subtitle}
+            </EditorialSubheading>
+          )}
+        </div>
       </div>
       {slide.link_href ? (
-        <Link to={slide.link_href} className="block">{Frame}</Link>
+        <Link to={slide.link_href} className="block leading-none">{Frame}</Link>
       ) : (
         Frame
       )}
