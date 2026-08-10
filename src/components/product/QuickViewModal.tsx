@@ -16,11 +16,12 @@ export function QuickViewModal({ product, open, onClose }: Props) {
   const { add } = useCart();
   const { has, toggle } = useWishlist();
   const [size, setSize] = useState<string | null>(null);
+  const [color, setColor] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
   const wished = has(product.slug);
 
   useEffect(() => {
-    if (open) { setSize(null); setAdded(false); }
+    if (open) { setSize(null); setColor(null); setAdded(false); }
   }, [open, product.slug]);
 
   useEffect(() => {
@@ -110,8 +111,35 @@ export function QuickViewModal({ product, open, onClose }: Props) {
               {product.description}
             </p>
 
+            {/* Colors */}
+            {product.colors && product.colors.length > 0 && (
+              <div className="mt-5">
+                <div className="text-mono text-muted-foreground mb-2" style={{ fontSize: "10px", letterSpacing: "0.25em" }}>
+                  COLOR · {color ? (product.colors.find((c) => c.name === color)?.name ?? product.colors[0].name).toUpperCase() : product.colors[0].name.toUpperCase()}
+                </div>
+                <div className="flex gap-2">
+                  {product.colors.map((c) => {
+                    const isSel = color ? color === c.name : c.name === product.colors[0].name;
+                    return (
+                      <button
+                        key={c.name}
+                        type="button"
+                        onClick={() => setColor(c.name)}
+                        title={c.name}
+                        className={`size-7 rounded-none transition-all flex items-center justify-center p-0.5 border-2 ${
+                          isSel ? "border-foreground shadow-sm" : "border-border hover:border-foreground/80"
+                        }`}
+                      >
+                        <span className="w-full h-full block rounded-none" style={{ backgroundColor: c.hex }} />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Sizes */}
-            <div className="mt-6">
+            <div className="mt-5">
               <div className="text-mono text-muted-foreground mb-3" style={{ fontSize: "10px", letterSpacing: "0.25em" }}>
                 SELECT SIZE
               </div>
