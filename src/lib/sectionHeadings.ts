@@ -42,11 +42,14 @@ export function useSectionHeading(
       if (cancelled) return;
       const row = headings?.[key];
       if (row) {
+        const text = row.heading_text && row.heading_text.trim() !== "" ? row.heading_text : fallbackText;
+        const eyebrow = row.eyebrow_text && row.eyebrow_text.trim() !== "" ? row.eyebrow_text : fallbacks?.eyebrow;
+        const subtitle = row.subtitle_text && row.subtitle_text.trim() !== "" ? row.subtitle_text : fallbacks?.subtitle;
         setValue({
-          text: row.heading_text || fallbackText,
+          text,
           color: row.text_color ?? undefined,
-          eyebrow: row.eyebrow_text ?? fallbacks?.eyebrow,
-          subtitle: row.subtitle_text ?? fallbacks?.subtitle,
+          eyebrow,
+          subtitle,
         });
       }
     });
