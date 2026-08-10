@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
-import { SlideDots } from "@/components/ui/SlideDots";
 import { useSectionHeading } from "@/lib/sectionHeadings";
 import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
-const AUTOPLAY_MS = 6000;
+type MiniProduct = { slug: string; name: string; price: number };
+
+// How much each card shrinks the further it sits from the center card —
+// 0 = all cards the same size, 1 = edge cards would collapse to nothing.
+const SHRINK = 0.45;
 
 export function LookbookCarousel() {
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
-  const [active, setActive] = useState(0);
-  const heading = useSectionHeading("lookbook", "LOOKBOOK", { subtitle: "Swipe through curated fits built for daily movement." });
+  const [products, setProducts] = useState<Record<string, MiniProduct>>({});
+  const heading = useSectionHeading("lookbook", "LOOKBOOK", { subtitle: "Curated fits — tap a card to shop it." });
 
   useEffect(() => {
     supabase
@@ -22,83 +24,28 @@ export function LookbookCarousel() {
       .select("*")
       .eq("is_active", true)
       .order("position")
-      .then(({ data }) => { if (data) setSlides(data); });
+      .then(async ({ data }) => {
+        if (!data) return;
+        setSlides(data);
+        const slugs = data.map((s) => s.product_slug).filter((s): s is string => !!s);
+        if (slugs.length === 0) return;
+        const { data: prods } = await supabase.from("products").select("slug,name,price").in("slug", slugs);
+        if (prods) {
+          const map: Record<string, MiniProduct> = {};
+          (prods as MiniProduct[]).forEach((p) => { map[p.slug] = p; });
+          setProducts(map);
+        }
+      });
   }, []);
-
-  useEffect(() => {
-    if (slides.length <= 1) return;
-    const t = setInterval(() => setActive((a) => (a + 1) % slides.length), AUTOPLAY_MS);
-    return () => clearInterval(t);
-  }, [slides.length]);
 
   if (slides.length === 0) return null;
 
-  const slide = slides[active];
-  const go = (e: React.MouseEvent, dir: -1 | 1) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setActive((a) => (a + dir + slides.length) % slides.length);
-  };
-
-  const Frame = (
-    <div className="relative w-full h-[65vh] sm:h-[75vh] max-h-[750px] min-h-[420px] overflow-hidden">
-      <AnimatePresence mode="sync">
-        <motion.div
-          key={slide.id}
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1, transition: { duration: 0.7, ease: EASE } }}
-          exit={{ opacity: 0, transition: { duration: 0.4, ease: EASE } }}
-          className="absolute inset-0"
-        >
-          {slide.media_type === "video" ? (
-            <video
-              src={slide.image_url}
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          ) : (
-            <img src={slide.image_url} alt={slide.caption ?? ""} className="absolute inset-0 w-full h-full object-cover" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-          {slide.caption && (
-            <div className="absolute bottom-8 left-6 sm:bottom-12 sm:left-10 z-[1]">
-              <p className="text-[clamp(2rem,7vw,4.5rem)] leading-none tracking-[-0.04em] uppercase text-display whitespace-pre-line text-white">
-                {slide.caption}
-              </p>
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
-
-      {slides.length > 1 && (
-        <>
-          <button type="button" aria-label="Previous" onClick={(e) => go(e, -1)}
-            className="absolute z-[2] left-3 sm:left-6 top-1/2 -translate-y-1/2 size-10 sm:size-12 flex items-center justify-center bg-white/10 hover:bg-white/25 backdrop-blur-sm border border-white/30 text-white transition-colors">
-            <ChevronLeft className="size-5" />
-          </button>
-          <button type="button" aria-label="Next" onClick={(e) => go(e, 1)}
-            className="absolute z-[2] right-3 sm:right-6 top-1/2 -translate-y-1/2 size-10 sm:size-12 flex items-center justify-center bg-white/10 hover:bg-white/25 backdrop-blur-sm border border-white/30 text-white transition-colors">
-            <ChevronRight className="size-5" />
-          </button>
-
-          <SlideDots
-            count={slides.length}
-            active={active}
-            onSelect={setActive}
-            durationMs={AUTOPLAY_MS}
-            className="absolute z-[2] bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2"
-          />
-        </>
-      )}
-    </div>
-  );
+  const center = (slides.length - 1) / 2;
+  const maxDist = Math.max(center, 1);
 
   return (
-    <section className="pt-4 sm:pt-6 pb-0 bg-[#E2E2E4] overflow-hidden border-t border-border">
-      <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-3 sm:mb-4">
+    <section className="py-14 sm:py-20 bg-[#E2E2E4] overflow-hidden border-t border-border">
+      <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12">
         <div className="flex flex-col">
           <EditorialHeading
             className="text-[clamp(3rem,10vw,6rem)] leading-none tracking-[-0.03em] uppercase text-display"
@@ -113,11 +60,49 @@ export function LookbookCarousel() {
           )}
         </div>
       </div>
-      {slide.link_href ? (
-        <Link to={slide.link_href} className="block leading-none">{Frame}</Link>
-      ) : (
-        Frame
-      )}
+
+      <div className="overflow-x-auto">
+        <div className="flex items-center justify-center gap-3 sm:gap-4 px-4 sm:px-8 lg:px-16 py-6 w-fit mx-auto">
+          {slides.map((slide, i) => {
+            const factor = 1 - (Math.abs(i - center) / maxDist) * SHRINK;
+            const product = slide.product_slug ? products[slide.product_slug] : undefined;
+            return (
+              <motion.div
+                key={slide.id}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: i * 0.05 }}
+                viewport={{ once: true }}
+                className="relative shrink-0 overflow-hidden rounded-2xl bg-surface"
+                style={{
+                  width: `clamp(${Math.round(100 * factor)}px, ${(12 * factor).toFixed(1)}vw, ${Math.round(220 * factor)}px)`,
+                  aspectRatio: "3 / 4",
+                }}
+              >
+                {slide.media_type === "video" ? (
+                  <video src={slide.image_url} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <img src={slide.image_url} alt={product?.name ?? ""} className="absolute inset-0 w-full h-full object-cover" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                {product && (
+                  <div className="absolute inset-x-0 bottom-0 p-2 sm:p-3 flex items-end justify-between gap-2">
+                    <p className="text-white text-[11px] sm:text-sm font-semibold leading-tight truncate">{product.name}</p>
+                    <Link
+                      to="/product/$slug"
+                      params={{ slug: product.slug }}
+                      aria-label={`Shop ${product.name}`}
+                      className="shrink-0 size-7 sm:size-9 rounded-full bg-white text-black flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+                    >
+                      <ArrowUpRight className="size-3.5 sm:size-4" />
+                    </Link>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 }

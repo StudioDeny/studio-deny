@@ -663,6 +663,7 @@ export type LookbookSlide = {
   media_type: "image" | "video";
   caption: string | null;
   link_href: string | null;
+  product_slug: string | null;
   is_active: boolean;
   position: number;
   created_at: string;
