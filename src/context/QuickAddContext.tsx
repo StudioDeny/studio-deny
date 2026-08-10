@@ -142,19 +142,23 @@ function MobileFloatingCard({
   product,
   sizeOptions,
   selectedSize,
+  selectedColor,
   loadingSizes,
   addedSuccess,
   onClose,
   onSelectSize,
+  onSelectColor,
   onAddToCart,
 }: {
   product: Product;
   sizeOptions: VariantStock[];
   selectedSize: string | null;
+  selectedColor?: string | null;
   loadingSizes: boolean;
   addedSuccess: boolean;
   onClose: () => void;
   onSelectSize: (s: string) => void;
+  onSelectColor?: (c: string) => void;
   onAddToCart: () => void;
 }) {
   const [showSizeGuide, setShowSizeGuide] = useState(false);
@@ -257,17 +261,28 @@ function MobileFloatingCard({
                 className="font-mono text-black/50 uppercase tracking-widest block mb-1.5"
                 style={{ fontSize: 9 }}
               >
-                COLOR · {product.colors[0].name}
+                COLOR · {selectedColor ? (product.colors.find((c) => c.name === selectedColor)?.name ?? product.colors[0].name) : product.colors[0].name}
               </span>
               <div className="flex gap-1.5">
-                {product.colors.map((c) => (
-                  <span
-                    key={c.name}
-                    title={c.name}
-                    className="inline-block size-6 rounded-full border-[2px] border-black/15 shadow-sm"
-                    style={{ background: c.hex }}
-                  />
-                ))}
+                {product.colors.map((c) => {
+                  const isSel = selectedColor ? selectedColor === c.name : c.name === product.colors[0].name;
+                  return (
+                    <button
+                      type="button"
+                      key={c.name}
+                      title={c.name}
+                      onClick={() => onSelectColor?.(c.name)}
+                      className={`size-6 shrink-0 rounded-none transition-all flex items-center justify-center p-0.5 border-2 ${
+                        isSel ? "border-black shadow-sm" : "border-black/20 hover:border-black/60"
+                      }`}
+                    >
+                      <span
+                        className="w-full h-full block rounded-none"
+                        style={{ backgroundColor: c.hex }}
+                      />
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -365,21 +380,25 @@ function DesktopModal({
   product,
   sizeOptions,
   selectedSize,
+  selectedColor,
   loadingSizes,
   addedSuccess,
   isTablet,
   onClose,
   onSelectSize,
+  onSelectColor,
   onAddToCart,
 }: {
   product: Product;
   sizeOptions: VariantStock[];
   selectedSize: string | null;
+  selectedColor?: string | null;
   loadingSizes: boolean;
   addedSuccess: boolean;
   isTablet: boolean;
   onClose: () => void;
   onSelectSize: (s: string) => void;
+  onSelectColor?: (c: string) => void;
   onAddToCart: () => void;
 }) {
   const [showSizeGuide, setShowSizeGuide] = useState(false);
@@ -461,17 +480,28 @@ function DesktopModal({
             {product.colors && product.colors.length > 0 && (
               <div className="mb-5">
                 <span className="text-[10px] font-mono tracking-widest text-black/50 uppercase block mb-2">
-                  COLOR · {product.colors[0].name}
+                  COLOR · {selectedColor ? (product.colors.find((c) => c.name === selectedColor)?.name ?? product.colors[0].name) : product.colors[0].name}
                 </span>
                 <div className="flex gap-2">
-                  {product.colors.map((c) => (
-                    <span
-                      key={c.name}
-                      title={c.name}
-                      className="inline-block size-7 rounded-full border-2 border-black/20 shadow-sm"
-                      style={{ background: c.hex }}
-                    />
-                  ))}
+                  {product.colors.map((c) => {
+                    const isSel = selectedColor ? selectedColor === c.name : c.name === product.colors[0].name;
+                    return (
+                      <button
+                        type="button"
+                        key={c.name}
+                        title={c.name}
+                        onClick={() => onSelectColor?.(c.name)}
+                        className={`size-7 shrink-0 rounded-none transition-all flex items-center justify-center p-0.5 border-2 ${
+                          isSel ? "border-black shadow-sm" : "border-black/20 hover:border-black/60"
+                        }`}
+                      >
+                        <span
+                          className="w-full h-full block rounded-none"
+                          style={{ backgroundColor: c.hex }}
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -556,6 +586,7 @@ export function QuickAddProvider({ children }: { children: React.ReactNode }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [loadingSizes, setLoadingSizes] = useState(false);
   const [addedSuccess, setAddedSuccess] = useState(false);
 
@@ -568,6 +599,7 @@ export function QuickAddProvider({ children }: { children: React.ReactNode }) {
   const openQuickAdd = useCallback((p: Product) => {
     setProduct(p);
     setSelectedSize(null);
+    setSelectedColor(p.colors?.[0]?.name ?? null);
     setAddedSuccess(false);
     setLoadingSizes(true);
     getVariantStock(p.slug, p.sizes).then((opts) => {
@@ -581,6 +613,7 @@ export function QuickAddProvider({ children }: { children: React.ReactNode }) {
   const closeQuickAdd = useCallback(() => {
     setProduct(null);
     setSelectedSize(null);
+    setSelectedColor(null);
     setAddedSuccess(false);
     setSizeOptions([]);
   }, []);
@@ -611,10 +644,12 @@ export function QuickAddProvider({ children }: { children: React.ReactNode }) {
     product: product!,
     sizeOptions,
     selectedSize,
+    selectedColor,
     loadingSizes,
     addedSuccess,
     onClose: closeQuickAdd,
     onSelectSize: setSelectedSize,
+    onSelectColor: setSelectedColor,
     onAddToCart: handleAddToCart,
   };
 
