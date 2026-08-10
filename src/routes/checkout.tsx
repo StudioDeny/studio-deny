@@ -122,6 +122,7 @@ function Checkout() {
           prefill: { name: data.name, email: data.email, contact: data.phone },
           notes: { city: data.city, pincode: data.pincode, payment_type: "cod_advance" },
           onDismiss: () => { setPaying(false); toast.error("Payment cancelled"); },
+          onVerifyFailed: (message) => { setPaying(false); toast.error(message); },
           onSuccess: (paymentId) => {
             const order = createOrder({
               email: data.email, items, shipping: ship, address, paymentId,
@@ -149,6 +150,7 @@ function Checkout() {
           prefill: { name: data.name, email: data.email, contact: data.phone },
           notes: { city: data.city, pincode: data.pincode },
           onDismiss: () => { setPaying(false); toast.error("Payment cancelled"); },
+          onVerifyFailed: (message) => { setPaying(false); toast.error(message); },
           onSuccess: (paymentId) => {
             const order = createOrder({
               email: data.email, items, shipping: ship, address, paymentId,
