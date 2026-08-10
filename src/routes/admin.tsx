@@ -32,9 +32,10 @@ function AdminLayout() {
   }, [user, loading, navigate]);
 
   useEffect(() => {
-    const tick = () => {
+    const tick = async () => {
       const last = getLastSeen();
-      setUnseenOrders(listOrders().filter((o) => o.createdAt > last));
+      const all = await listOrders();
+      setUnseenOrders(all.filter((o) => o.createdAt > last));
     };
     tick();
     const id = setInterval(tick, 5000);

@@ -30,7 +30,7 @@ function Rewards() {
   const settings = getSettings();
 
   useEffect(() => {
-    if (user) setOrders(ordersFor(user.email));
+    if (user) ordersFor(user.email).then(setOrders);
   }, [user]);
 
   const { entryThreshold, rupeesPerEarnedPoint, rupeesPerPoint } = settings;

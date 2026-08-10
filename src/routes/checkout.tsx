@@ -7,7 +7,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCart, formatINR } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { createOrder, listOrders } from "@/lib/orders";
+import { createOrder, ordersFor, type Order } from "@/lib/orders";
 import { openRazorpay } from "@/lib/razorpay";
 import { getSettings } from "@/lib/settings";
 import { pointsFromOrders, tierFor } from "@/lib/loyalty";
@@ -65,7 +65,10 @@ function Checkout() {
   const [codSettings, setCodSettings] = useState<CodSettings>({ cod_enabled: true, cod_advance_percent: 20, cod_min_order: 0 });
 
   const settings = getSettings();
-  const userOrders = user ? listOrders().filter((o) => o.userEmail === user.email) : [];
+  const [userOrders, setUserOrders] = useState<Order[]>([]);
+  useEffect(() => {
+    if (user) ordersFor(user.email).then(setUserOrders);
+  }, [user]);
   const points = pointsFromOrders(userOrders);
   const tier = tierFor(points);
   const discountPct = settings.discount[tier.name as keyof typeof settings.discount] ?? 0;
@@ -123,18 +126,23 @@ function Checkout() {
           notes: { city: data.city, pincode: data.pincode, payment_type: "cod_advance" },
           onDismiss: () => { setPaying(false); toast.error("Payment cancelled"); },
           onVerifyFailed: (message) => { setPaying(false); toast.error(message); },
-          onSuccess: (paymentId) => {
-            const order = createOrder({
-              email: data.email, items, shipping: ship, address, paymentId,
-              discount,
-              payment_method: "cod",
-              cod_advance_paid: true,
-              cod_advance_amount: codAdvance,
-            });
-            recordAttempt("checkout", 5, 30 * 60 * 1000, 30 * 60 * 1000);
-            toast.success("COD order placed! Advance paid.");
-            clear();
-            navigate({ to: "/order/$id", params: { id: order.id } });
+          onSuccess: async (paymentId) => {
+            try {
+              const order = await createOrder({
+                email: data.email, userId: user?.id, items, shipping: ship, address, paymentId,
+                discount,
+                payment_method: "cod",
+                cod_advance_paid: true,
+                cod_advance_amount: codAdvance,
+              });
+              recordAttempt("checkout", 5, 30 * 60 * 1000, 30 * 60 * 1000);
+              toast.success("COD order placed! Advance paid.");
+              clear();
+              navigate({ to: "/order/$id", params: { id: order.id } });
+            } catch {
+              setPaying(false);
+              toast.error(`Payment succeeded (${paymentId}) but saving the order failed. Contact support.`);
+            }
           },
         });
       } catch (e: any) {
@@ -151,16 +159,21 @@ function Checkout() {
           notes: { city: data.city, pincode: data.pincode },
           onDismiss: () => { setPaying(false); toast.error("Payment cancelled"); },
           onVerifyFailed: (message) => { setPaying(false); toast.error(message); },
-          onSuccess: (paymentId) => {
-            const order = createOrder({
-              email: data.email, items, shipping: ship, address, paymentId,
-              discount,
-              payment_method: "razorpay",
-            });
-            recordAttempt("checkout", 5, 30 * 60 * 1000, 30 * 60 * 1000);
-            toast.success("Payment successful");
-            clear();
-            navigate({ to: "/order/$id", params: { id: order.id } });
+          onSuccess: async (paymentId) => {
+            try {
+              const order = await createOrder({
+                email: data.email, userId: user?.id, items, shipping: ship, address, paymentId,
+                discount,
+                payment_method: "razorpay",
+              });
+              recordAttempt("checkout", 5, 30 * 60 * 1000, 30 * 60 * 1000);
+              toast.success("Payment successful");
+              clear();
+              navigate({ to: "/order/$id", params: { id: order.id } });
+            } catch {
+              setPaying(false);
+              toast.error(`Payment succeeded (${paymentId}) but saving the order failed. Contact support.`);
+            }
           },
         });
       } catch (e: any) {

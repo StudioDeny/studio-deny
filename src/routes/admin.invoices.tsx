@@ -9,7 +9,7 @@ export const Route = createFileRoute("/admin/invoices")({
 
 function Invoices() {
   const [orders, setOrders] = useState<Order[]>([]);
-  useEffect(() => setOrders(listOrders()), []);
+  useEffect(() => { listOrders().then(setOrders); }, []);
 
   return (
     <div>

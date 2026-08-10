@@ -24,7 +24,7 @@ function LoyaltyDash() {
   const [useSupabase, setUseSupabase] = useState(false);
 
   useEffect(() => {
-    setOrders(listOrders());
+    listOrders().then(setOrders);
     supabase
       .from("loyalty_balances")
       .select("user_id, points, lifetime_spent, tier")

@@ -1,6 +1,5 @@
-// One-shot dummy data seeder for analytics demo. Idempotent via flag key.
+// One-shot dummy product seeder for demo purposes. Idempotent via flag key.
 import type { Product } from "./products";
-import type { Order, OrderStatus } from "./orders";
 
 const FLAG = "sd_seeded_v3";
 
@@ -26,56 +25,6 @@ const DUMMY_PRODUCTS: Product[] = [
   { slug: "field-belt", name: "Field Web Belt", category: "Accessories", brand: "studio-deny", price: 899, image: IMG("photo-1624222247344-550fb60583dc"), hoverImage: IMG("photo-1553062407-98eeb64c6a62"), sizes: ["One Size"], colors: [{ name: "Black", hex: "#0a0a0a" }], description: "Webbing belt with metal G-clip.", material: "Heavy nylon webbing.", stock: 35 },
 ];
 
-const NAMES = ["Aarav","Diya","Kabir","Mira","Ishaan","Riya","Vihaan","Anika","Arjun","Zara","Reyansh","Aanya","Kian","Saanvi","Aditya","Avani","Dev","Ira","Krish","Tara"];
-const CITIES: [string, string, string][] = [
-  ["Mumbai", "Maharashtra", "400001"],
-  ["Bengaluru", "Karnataka", "560001"],
-  ["Delhi", "Delhi", "110001"],
-  ["Pune", "Maharashtra", "411001"],
-  ["Hyderabad", "Telangana", "500001"],
-  ["Chennai", "Tamil Nadu", "600001"],
-  ["Kolkata", "West Bengal", "700001"],
-  ["Jaipur", "Rajasthan", "302001"],
-];
-const STATUSES: OrderStatus[] = ["DELIVERED","DELIVERED","DELIVERED","SHIPPED","PACKED","PLACED","CANCELLED","REFUNDED"];
-
-function rand<T>(arr: T[]) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-function buildOrders(allProducts: Product[]): Order[] {
-  const orders: Order[] = [];
-  const now = Date.now();
-  const DAY = 86400000;
-  for (let i = 0; i < 42; i++) {
-    const daysAgo = Math.floor(Math.random() * 60);
-    const created = now - daysAgo * DAY - Math.floor(Math.random() * DAY);
-    const itemCount = 1 + Math.floor(Math.random() * 3);
-    const items = Array.from({ length: itemCount }, () => {
-      const p = rand(allProducts);
-      return { slug: p.slug, name: p.name, image: p.image, size: rand(p.sizes), qty: 1 + Math.floor(Math.random() * 2), price: p.price };
-    });
-    const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
-    const shipping = subtotal > 2499 ? 0 : 99;
-    const taxRate = 5;
-    const tax = Math.round((subtotal * taxRate) / 100);
-    const total = subtotal + shipping + tax;
-    const name = rand(NAMES);
-    const [city, state, pin] = rand(CITIES);
-    const id = "SD" + (created.toString(36).toUpperCase()) + i;
-    const status = rand(STATUSES);
-    orders.push({
-      id, order_number: id, invoiceNo: "INV-" + id, userEmail: `${name.toLowerCase()}${i}@example.com`,
-      items, subtotal, shipping, taxRate, tax, discount: 0, extraLines: [], total,
-      status,
-      address: { name, phone: "+91 98" + Math.floor(10000000 + Math.random() * 89999999), line1: `${Math.floor(Math.random() * 200) + 1} Studio Lane`, city, state, pincode: pin },
-      paymentId: "pay_" + Math.random().toString(36).slice(2, 14),
-      createdAt: created,
-      ...(status === "REFUNDED" ? { refundAmount: total, refundedAt: created + DAY } : {}),
-      ...(status === "CANCELLED" ? { cancelledAt: created + 3600_000 } : {}),
-    });
-  }
-  return orders.sort((a, b) => b.createdAt - a.createdAt);
-}
-
 export function seedIfEmpty() {
   if (typeof window === "undefined") return;
   if (localStorage.getItem(FLAG)) return;
@@ -91,14 +40,6 @@ export function seedIfEmpty() {
     const existingSlugs = new Set(migrated.map((p: Product) => p.slug));
     const merged = [...migrated, ...DUMMY_PRODUCTS.filter((p) => !existingSlugs.has(p.slug))];
     localStorage.setItem("sd_products_custom", JSON.stringify(merged));
-
-    // Seed orders only if none exist.
-    const existingOrders = JSON.parse(localStorage.getItem("sd_orders") || "[]");
-    if (existingOrders.length === 0) {
-      // Need to pull all products inc base — but to avoid circular import we just use dummy list.
-      const orders = buildOrders(DUMMY_PRODUCTS);
-      localStorage.setItem("sd_orders", JSON.stringify(orders));
-    }
 
     localStorage.setItem(FLAG, "1");
   } catch (e) {

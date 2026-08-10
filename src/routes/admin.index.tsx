@@ -22,7 +22,7 @@ function Dashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [productCount, setProductCount] = useState(0);
   useEffect(() => {
-    setOrders(listOrders());
+    listOrders().then(setOrders);
     listAllAdminProducts().then((p) => setProductCount(p.length));
   }, []);
 

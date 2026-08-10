@@ -39,7 +39,7 @@ export type RzpOpts = {
   description: string;
   prefill: { name: string; email: string; contact: string };
   notes?: Record<string, string>;
-  onSuccess: (paymentId: string) => void;
+  onSuccess: (paymentId: string) => void | Promise<void>;
   onDismiss: () => void;
   onVerifyFailed: (message: string) => void;
 };
@@ -73,7 +73,7 @@ export async function openRazorpay(opts: RzpOpts) {
         opts.onVerifyFailed(error?.message ?? "Payment could not be verified. Contact support if you were charged.");
         return;
       }
-      opts.onSuccess(resp.razorpay_payment_id);
+      await opts.onSuccess(resp.razorpay_payment_id);
     },
     modal: { ondismiss: opts.onDismiss, backdropclose: false, escape: true },
   });

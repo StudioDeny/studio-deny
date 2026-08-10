@@ -1,5 +1,6 @@
 import type { CartItem } from "@/context/CartContext";
 import { supabase } from "@/lib/supabase";
+import type { DBOrder } from "@/types/database";
 
 export type OrderStatus =
   | "PLACED"
@@ -37,40 +38,73 @@ export type Order = {
   createdAt: number;
 };
 
-const KEY = "sd_orders";
-
-// Orders contain shipping addresses and payment IDs — store in sessionStorage
-// so data is cleared when the browser/tab closes and isn't accessible cross-session.
-function ssGet(key: string): string | null {
-  try { return typeof window !== "undefined" ? window.sessionStorage.getItem(key) : null; }
-  catch { return null; }
+function mapRow(row: DBOrder): Order {
+  return {
+    id: row.id,
+    order_number: row.order_number,
+    invoiceNo: row.invoice_no ?? "INV-" + row.order_number,
+    userEmail: row.user_email,
+    items: (row.items as unknown as Order["items"]) ?? [],
+    subtotal: Number(row.subtotal),
+    shipping: Number(row.shipping),
+    taxRate: Number(row.tax_rate),
+    tax: Number(row.tax),
+    discount: Number(row.discount),
+    extraLines: (row.extra_lines as unknown as InvoiceLine[]) ?? [],
+    total: Number(row.total),
+    status: row.status,
+    address: row.address as unknown as Order["address"],
+    paymentId: row.payment_id ?? "",
+    payment_method: row.payment_method,
+    cod_advance_paid: row.cod_advance_paid,
+    cod_advance_amount: row.cod_advance_amount != null ? Number(row.cod_advance_amount) : undefined,
+    notes: row.notes ?? undefined,
+    refundAmount: row.refund_amount != null ? Number(row.refund_amount) : undefined,
+    refundedAt: row.refunded_at ? new Date(row.refunded_at).getTime() : undefined,
+    cancelledAt: row.cancelled_at ? new Date(row.cancelled_at).getTime() : undefined,
+    createdAt: new Date(row.created_at).getTime(),
+  };
 }
-function ssSet(key: string, value: string): void {
-  try { if (typeof window !== "undefined") window.sessionStorage.setItem(key, value); }
-  catch { /* sessionStorage unavailable (private mode quota, etc.) — fail silently */ }
+
+// Partial patch (from admin's invoice editor, which edits a local copy of
+// the whole Order then saves it in one shot) → the DB columns it touches.
+function patchToRow(patch: Partial<Order>): Record<string, unknown> {
+  const row: Record<string, unknown> = {};
+  if (patch.invoiceNo !== undefined) row.invoice_no = patch.invoiceNo;
+  if (patch.status !== undefined) row.status = patch.status;
+  if (patch.subtotal !== undefined) row.subtotal = patch.subtotal;
+  if (patch.shipping !== undefined) row.shipping = patch.shipping;
+  if (patch.taxRate !== undefined) row.tax_rate = patch.taxRate;
+  if (patch.tax !== undefined) row.tax = patch.tax;
+  if (patch.discount !== undefined) row.discount = patch.discount;
+  if (patch.extraLines !== undefined) row.extra_lines = patch.extraLines;
+  if (patch.total !== undefined) row.total = patch.total;
+  if (patch.notes !== undefined) row.notes = patch.notes;
+  if (patch.refundAmount !== undefined) row.refund_amount = patch.refundAmount;
+  return row;
 }
 
-const read = (): Order[] => {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw: any[] = JSON.parse(ssGet(KEY) || "[]");
-    return raw.map((o) => ({
-      invoiceNo: o.invoiceNo ?? "INV-" + o.id,
-      order_number: o.order_number ?? o.id,
-      taxRate: o.taxRate ?? 0,
-      tax: o.tax ?? 0,
-      discount: o.discount ?? 0,
-      extraLines: o.extraLines ?? [],
-      payment_method: o.payment_method ?? "razorpay",
-      ...o,
-    }));
-  } catch { return []; }
-};
-const write = (orders: Order[]) => ssSet(KEY, JSON.stringify(orders));
+export async function listOrders(): Promise<Order[]> {
+  const { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
+  if (error) { console.warn("listOrders:", error.message); return []; }
+  return (data ?? []).map(mapRow);
+}
 
-export const listOrders = read;
-export const ordersFor = (email: string) => read().filter((o) => o.userEmail === email);
-export const getOrder = (id: string) => read().find((o) => o.id === id);
+export async function ordersFor(email: string): Promise<Order[]> {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("user_email", email)
+    .order("created_at", { ascending: false });
+  if (error) { console.warn("ordersFor:", error.message); return []; }
+  return (data ?? []).map(mapRow);
+}
+
+export async function getOrder(id: string): Promise<Order | undefined> {
+  const { data, error } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
+  if (error || !data) return undefined;
+  return mapRow(data);
+}
 
 export const recomputeTotal = (o: Order): number => {
   const tax = Math.round((o.subtotal * (o.taxRate || 0)) / 100);
@@ -78,16 +112,9 @@ export const recomputeTotal = (o: Order): number => {
   return Math.max(0, o.subtotal + o.shipping + tax + extras - (o.discount || 0));
 };
 
-function generateOrderNumber(): string {
-  const hex = Math.floor(Math.random() * 0xffffffff)
-    .toString(16)
-    .toUpperCase()
-    .padStart(8, "0");
-  return `SD-${hex}`;
-}
-
-export const createOrder = (params: {
+export async function createOrder(params: {
   email: string;
+  userId?: string;
   items: CartItem[];
   shipping: number;
   address: Order["address"];
@@ -96,40 +123,44 @@ export const createOrder = (params: {
   payment_method?: Order["payment_method"];
   cod_advance_paid?: boolean;
   cod_advance_amount?: number;
-}): Order => {
+}): Promise<Order> {
   const subtotal = params.items.reduce((s, i) => s + i.qty * i.product.price, 0);
   const id = "SD" + Date.now().toString(36).toUpperCase();
-  const order_number = generateOrderNumber();
   const discount = params.discount ?? 0;
-  const order: Order = {
-    id,
-    order_number,
-    invoiceNo: "INV-" + order_number,
-    userEmail: params.email,
-    items: params.items.map((i) => ({
-      slug: i.product.slug, name: i.product.name, image: i.product.image,
-      size: i.size, qty: i.qty, price: i.product.price,
-      variantId: i.variantId,
-    })),
-    subtotal,
-    shipping: params.shipping,
-    taxRate: 0,
-    tax: 0,
-    discount,
-    extraLines: [],
-    total: Math.max(0, subtotal - discount + params.shipping),
-    status: "PLACED",
-    address: params.address,
-    paymentId: params.paymentId,
-    payment_method: params.payment_method ?? "razorpay",
-    cod_advance_paid: params.cod_advance_paid,
-    cod_advance_amount: params.cod_advance_amount,
-    createdAt: Date.now(),
-  };
-  write([order, ...read()]);
+  const items = params.items.map((i) => ({
+    slug: i.product.slug, name: i.product.name, image: i.product.image,
+    size: i.size, qty: i.qty, price: i.product.price,
+    variantId: i.variantId,
+  }));
 
-  // Fire-and-forget write to Supabase order_items
-  supabase.from("order_items").insert(
+  const { data, error } = await supabase
+    .from("orders")
+    .insert({
+      id,
+      user_id: params.userId ?? null,
+      user_email: params.email,
+      items,
+      subtotal,
+      shipping: params.shipping,
+      tax_rate: 0,
+      tax: 0,
+      discount,
+      extra_lines: [],
+      total: Math.max(0, subtotal - discount + params.shipping),
+      status: "PLACED",
+      address: params.address,
+      payment_id: params.paymentId,
+      payment_method: params.payment_method ?? "razorpay",
+      cod_advance_paid: params.cod_advance_paid ?? false,
+      cod_advance_amount: params.cod_advance_amount ?? null,
+    })
+    .select()
+    .single();
+
+  if (error || !data) throw new Error(error?.message ?? "Could not save order");
+  const order = mapRow(data);
+
+  const { error: itemsError } = await supabase.from("order_items").insert(
     params.items.map((i) => ({
       order_id: order.id,
       product_slug: i.product.slug,
@@ -140,34 +171,39 @@ export const createOrder = (params: {
       qty: i.qty,
       unit_price: i.product.price,
     }))
-  ).then(({ error }) => {
-    if (error) console.warn("order_items sync:", error.message);
-  });
+  );
+  if (itemsError) console.warn("order_items sync:", itemsError.message);
 
   return order;
-};
+}
 
-export const updateOrderStatus = (id: string, status: OrderStatus) => {
-  write(read().map((o) => (o.id === id ? { ...o, status } : o)));
-};
+export async function updateOrderStatus(id: string, status: OrderStatus): Promise<void> {
+  const { error } = await supabase.from("orders").update({ status }).eq("id", id);
+  if (error) throw new Error(error.message);
+}
 
-export const cancelOrder = (id: string) => {
-  write(read().map((o) => (o.id === id ? { ...o, status: "CANCELLED" as OrderStatus, cancelledAt: Date.now() } : o)));
-};
+export async function cancelOrder(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("orders")
+    .update({ status: "CANCELLED", cancelled_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
 
-export const refundOrder = (id: string, amount?: number) => {
-  write(read().map((o) => {
-    if (o.id !== id) return o;
-    return { ...o, status: "REFUNDED" as OrderStatus, refundAmount: amount ?? o.total, refundedAt: Date.now() };
-  }));
-};
+export async function refundOrder(id: string, amount?: number): Promise<void> {
+  let refundAmount = amount;
+  if (refundAmount === undefined) {
+    const o = await getOrder(id);
+    refundAmount = o?.total ?? 0;
+  }
+  const { error } = await supabase
+    .from("orders")
+    .update({ status: "REFUNDED", refund_amount: refundAmount, refunded_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
 
-export const updateInvoice = (id: string, patch: Partial<Order>) => {
-  write(read().map((o) => {
-    if (o.id !== id) return o;
-    const next = { ...o, ...patch };
-    next.tax = Math.round((next.subtotal * (next.taxRate || 0)) / 100);
-    next.total = recomputeTotal(next);
-    return next;
-  }));
-};
+export async function updateInvoice(id: string, patch: Partial<Order>): Promise<void> {
+  const { error } = await supabase.from("orders").update(patchToRow(patch)).eq("id", id);
+  if (error) throw new Error(error.message);
+}

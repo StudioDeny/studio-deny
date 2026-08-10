@@ -11,7 +11,7 @@ export const Route = createFileRoute("/admin/analytics")({
 function Analytics() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [inv, setInv] = useState<Product[]>([]);
-  useEffect(() => { setOrders(listOrders()); listAllAdminProducts().then(setInv); }, []);
+  useEffect(() => { listOrders().then(setOrders); listAllAdminProducts().then(setInv); }, []);
 
   const m = useMemo(() => {
     const valid = orders.filter((o) => o.status !== "CANCELLED" && o.status !== "REFUNDED");

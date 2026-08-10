@@ -12,7 +12,7 @@ export const Route = createFileRoute("/admin/invoice/$id")({
 function EditInvoice() {
   const { id } = Route.useParams();
   const [o, setO] = useState<Order | null>(null);
-  useEffect(() => { setO(getOrder(id) ?? null); }, [id]);
+  useEffect(() => { getOrder(id).then((order) => setO(order ?? null)); }, [id]);
 
   if (!o) return <div className="text-mono text-xs">LOADING…</div>;
 
@@ -30,8 +30,8 @@ function EditInvoice() {
   const addLine = () => set("extraLines", [...o.extraLines, { label: "Line item", amount: 0 }]);
   const removeLine = (i: number) => set("extraLines", o.extraLines.filter((_, x) => x !== i));
 
-  const save = () => {
-    updateInvoice(o.id, o);
+  const save = async () => {
+    await updateInvoice(o.id, o);
     toast.success("Invoice updated");
   };
 

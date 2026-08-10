@@ -12,18 +12,18 @@ const STATUSES: OrderStatus[] = ["PLACED", "PACKED", "SHIPPED", "DELIVERED", "CA
 
 function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
-  useEffect(() => setOrders(listOrders()), []);
+  useEffect(() => { listOrders().then(setOrders); }, []);
 
-  const change = (id: string, status: OrderStatus) => {
-    updateOrderStatus(id, status);
-    setOrders(listOrders());
+  const change = async (id: string, status: OrderStatus) => {
+    await updateOrderStatus(id, status);
+    setOrders(await listOrders());
     toast.success(`Order ${id} → ${status}`);
   };
 
-  const refund = (id: string, amount: number) => {
+  const refund = async (id: string, amount: number) => {
     if (!confirm(`Refund ${formatINR(amount)}?`)) return;
-    refundOrder(id, amount);
-    setOrders(listOrders());
+    await refundOrder(id, amount);
+    setOrders(await listOrders());
     toast.success("Refund processed");
   };
 
