@@ -626,6 +626,7 @@ export type InfluencerVideoSource = "upload" | "link";
 export type LookbookSlide = {
   id: string;
   image_url: string;
+  media_type: "image" | "video";
   caption: string | null;
   link_href: string | null;
   is_active: boolean;

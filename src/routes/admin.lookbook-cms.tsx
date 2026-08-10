@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
-import { uploadToCloudinary } from "@/lib/cloudinary";
-import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Upload } from "lucide-react";
+import { MediaField } from "@/components/admin/MediaField";
+import { Plus, Pencil, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/lookbook-cms")({
@@ -13,6 +13,7 @@ export const Route = createFileRoute("/admin/lookbook-cms")({
 
 const EMPTY: Omit<LookbookSlide, "id" | "created_at"> = {
   image_url: "",
+  media_type: "image",
   caption: null,
   link_href: null,
   is_active: true,
@@ -24,8 +25,6 @@ function LookbookCmsAdmin() {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<Partial<LookbookSlide> | null>(null);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const { data, error } = await supabase.from("lookbook_slides").select("*").order("position");
@@ -60,26 +59,13 @@ function LookbookCmsAdmin() {
     toast.success("Deleted");
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const result = await uploadToCloudinary(file);
-      setModal((m) => (m ? { ...m, image_url: result.secure_url } : m));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const save = async () => {
     if (!modal) return;
     if (!modal.image_url?.trim()) return toast.error("Image is required");
     setSaving(true);
     const payload = {
       image_url: modal.image_url,
+      media_type: modal.media_type ?? "image",
       caption: modal.caption || null,
       link_href: modal.link_href || null,
       is_active: modal.is_active ?? true,
@@ -137,7 +123,11 @@ function LookbookCmsAdmin() {
                 </td>
                 <td className="p-3">
                   <div className="flex items-center gap-3">
-                    <img src={r.image_url} alt={r.caption ?? ""} className="w-14 h-16 object-cover flex-shrink-0 border border-border" />
+                    {r.media_type === "video" ? (
+                      <video src={r.image_url} muted playsInline className="w-14 h-16 object-cover flex-shrink-0 border border-border" />
+                    ) : (
+                      <img src={r.image_url} alt={r.caption ?? ""} className="w-14 h-16 object-cover flex-shrink-0 border border-border" />
+                    )}
                     <div>
                       <div className="font-semibold whitespace-pre-line">{r.caption || "—"}</div>
                       {r.link_href && <div className="text-muted-foreground text-xs">{r.link_href}</div>}
@@ -176,19 +166,11 @@ function LookbookCmsAdmin() {
               <button onClick={() => setModal(null)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
             </div>
             <div className="p-5 space-y-4">
-              <F label="IMAGE *">
-                <div className="flex items-center gap-3">
-                  {modal.image_url && <img src={modal.image_url} alt="" className="w-16 h-20 object-cover border border-border" />}
-                  <div className="flex flex-col gap-2 flex-1">
-                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
-                    <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-                      className="border border-border h-9 px-3 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary disabled:opacity-50">
-                      <Upload className="size-3" /> {uploading ? "UPLOADING…" : "UPLOAD"}
-                    </button>
-                    <input value={modal.image_url ?? ""} onChange={(e) => setModal({ ...modal, image_url: e.target.value })} placeholder="or paste URL" className="inp" style={{ height: 36 }} />
-                  </div>
-                </div>
-              </F>
+              <MediaField
+                label="PHOTO / VIDEO *"
+                value={{ url: modal.image_url ?? "", type: modal.media_type ?? "image" }}
+                onChange={(v) => setModal({ ...modal, image_url: v.url, media_type: v.type })}
+              />
               <F label="CAPTION (use a new line for a line break)">
                 <textarea rows={2} value={modal.caption ?? ""} onChange={(e) => setModal({ ...modal, caption: e.target.value })} className="inp" placeholder={"SS26\nCOLLECTION"} />
               </F>

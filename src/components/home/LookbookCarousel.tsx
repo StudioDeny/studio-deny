@@ -49,7 +49,18 @@ export function LookbookCarousel() {
           exit={{ opacity: 0, transition: { duration: 0.4, ease: EASE } }}
           className="absolute inset-0"
         >
-          <img src={slide.image_url} alt={slide.caption ?? ""} className="absolute inset-0 w-full h-full object-cover" />
+          {slide.media_type === "video" ? (
+            <video
+              src={slide.image_url}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <img src={slide.image_url} alt={slide.caption ?? ""} className="absolute inset-0 w-full h-full object-cover" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           {slide.caption && (
             <div className="absolute bottom-8 left-6 sm:bottom-12 sm:left-10 z-[1]">
