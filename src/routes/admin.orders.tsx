@@ -5,6 +5,7 @@ import { formatINR } from "@/context/CartContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Truck, Loader2 } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export const Route = createFileRoute("/admin/orders")({
   component: AdminOrders,
@@ -15,6 +16,7 @@ const STATUSES: OrderStatus[] = ["PLACED", "PACKED", "SHIPPED", "DELIVERED", "CA
 function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [shipping, setShipping] = useState<string | null>(null);
+  const [refundTarget, setRefundTarget] = useState<{ id: string; amount: number } | null>(null);
 
   useEffect(() => {
     listOrders().then(setOrders);
@@ -36,9 +38,9 @@ function AdminOrders() {
     toast.success(`Order ${id} → ${status}`);
   };
 
-  const refund = async (id: string, amount: number) => {
-    if (!confirm(`Refund ${formatINR(amount)}?`)) return;
-    await refundOrder(id, amount);
+  const confirmRefund = async () => {
+    if (!refundTarget) return;
+    await refundOrder(refundTarget.id, refundTarget.amount);
     setOrders(await listOrders());
     toast.success("Refund processed");
   };
@@ -118,7 +120,7 @@ function AdminOrders() {
                     <div className="inline-flex gap-2">
                       <Link to="/admin/invoice/$id" params={{ id: o.id }} className="text-mono text-[10px] tracking-widest text-primary hover:underline">INVOICE</Link>
                       {o.status !== "REFUNDED" && (
-                        <button onClick={() => refund(o.id, o.total)} className="text-mono text-[10px] tracking-widest text-red-500 hover:underline">REFUND</button>
+                        <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="text-mono text-[10px] tracking-widest text-red-500 hover:underline">REFUND</button>
                       )}
                     </div>
                   </td>
@@ -128,6 +130,16 @@ function AdminOrders() {
           </table>
         </div>
       )}
+
+      <ConfirmDialog
+        open={refundTarget !== null}
+        onOpenChange={(open) => !open && setRefundTarget(null)}
+        title="ISSUE THIS REFUND?"
+        description={refundTarget ? `Refund ${formatINR(refundTarget.amount)}?` : undefined}
+        confirmLabel="REFUND"
+        destructive
+        onConfirm={confirmRefund}
+      />
     </div>
   );
 }

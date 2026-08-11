@@ -8,6 +8,7 @@ import { listProducts, type Product } from "@/lib/productsStore";
 import { LogOut, ShieldCheck, FileText, X, Heart, MapPin, Truck, RefreshCw, Plus, Trash2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Loading } from "@/components/ui/loading";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export const Route = createFileRoute("/account")({
   component: Account,
@@ -31,6 +32,7 @@ function Account() {
   const navigate = useNavigate();
   const { slugs, toggle } = useWishlist();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [cancelTarget, setCancelTarget] = useState<string | null>(null);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addingAddr, setAddingAddr] = useState(false);
@@ -70,6 +72,17 @@ function Account() {
     const next = addresses.map((a) => ({ ...a, isDefault: a.id === id }));
     setAddresses(next);
     saveAddresses(next);
+  };
+
+  const confirmCancelOrder = async () => {
+    if (!cancelTarget || !user) return;
+    const { shiprocketCancelled, rtoInitiated } = await cancelOrder(cancelTarget);
+    setOrders(await ordersFor(user.email));
+    toast.success(
+      rtoInitiated ? "Order cancelled — parcel already picked up, return-to-origin requested"
+        : shiprocketCancelled ? "Order cancelled — shipment cancelled with courier"
+        : "Order cancelled"
+    );
   };
 
   if (loading) return <Loading className="min-h-[60vh]" />;
@@ -156,16 +169,7 @@ function Account() {
                   )}
                   <Link to="/invoice/$id" params={{ id: o.id }} title="Invoice" className="text-muted-foreground hover:text-primary"><FileText className="size-4" /></Link>
                   {(o.status === "PLACED" || o.status === "PACKED" || o.status === "SHIPPED") && (
-                    <button title="Cancel" onClick={async () => {
-                      if (!confirm("Cancel this order?")) return;
-                      const { shiprocketCancelled, rtoInitiated } = await cancelOrder(o.id);
-                      setOrders(await ordersFor(user.email));
-                      toast.success(
-                        rtoInitiated ? "Order cancelled — parcel already picked up, return-to-origin requested"
-                          : shiprocketCancelled ? "Order cancelled — shipment cancelled with courier"
-                          : "Order cancelled"
-                      );
-                    }} className="text-muted-foreground hover:text-primary"><X className="size-4" /></button>
+                    <button title="Cancel" onClick={() => setCancelTarget(o.id)} className="text-muted-foreground hover:text-primary"><X className="size-4" /></button>
                   )}
                   <Link to="/order/$id" params={{ id: o.id }} className="text-mono text-[11px] tracking-widest text-primary hover:underline">VIEW →</Link>
                 </div>
@@ -294,6 +298,15 @@ function Account() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={cancelTarget !== null}
+        onOpenChange={(open) => !open && setCancelTarget(null)}
+        title="CANCEL THIS ORDER?"
+        confirmLabel="CANCEL ORDER"
+        destructive
+        onConfirm={confirmCancelOrder}
+      />
     </section>
   );
 }

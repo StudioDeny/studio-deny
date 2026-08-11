@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { listOrders, refundOrder, type Order } from "@/lib/orders";
 import { formatINR } from "@/context/CartContext";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export const Route = createFileRoute("/admin/refunds")({
   component: Refunds,
@@ -10,11 +11,12 @@ export const Route = createFileRoute("/admin/refunds")({
 
 function Refunds() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [refundTarget, setRefundTarget] = useState<{ id: string; amount: number } | null>(null);
   useEffect(() => { listOrders().then(setOrders); }, []);
 
-  const refund = async (id: string, amount: number) => {
-    if (!confirm(`Refund ${formatINR(amount)}?`)) return;
-    await refundOrder(id, amount);
+  const confirmRefund = async () => {
+    if (!refundTarget) return;
+    await refundOrder(refundTarget.id, refundTarget.amount);
     setOrders(await listOrders());
     toast.success("Refund processed");
   };
@@ -41,7 +43,7 @@ function Refunds() {
             cells: [
               o.order_number ?? o.id, o.userEmail, new Date(o.createdAt).toLocaleDateString(), formatINR(o.total), o.status,
             ],
-            actions: <button onClick={() => refund(o.id, o.total)} className="border border-primary text-primary px-3 h-8 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground">REFUND</button>,
+            actions: <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="border border-primary text-primary px-3 h-8 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground">REFUND</button>,
           }))} />
         )}
       </Section>
@@ -66,10 +68,20 @@ function Refunds() {
               o.cancelledAt ? new Date(o.cancelledAt).toLocaleDateString() : "—",
               formatINR(o.total), "CANCELLED",
             ],
-            actions: <button onClick={() => refund(o.id, o.total)} className="border border-primary text-primary px-3 h-8 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground">REFUND</button>,
+            actions: <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="border border-primary text-primary px-3 h-8 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground">REFUND</button>,
           }))} />
         )}
       </Section>
+
+      <ConfirmDialog
+        open={refundTarget !== null}
+        onOpenChange={(open) => !open && setRefundTarget(null)}
+        title="ISSUE THIS REFUND?"
+        description={refundTarget ? `Refund ${formatINR(refundTarget.amount)}?` : undefined}
+        confirmLabel="REFUND"
+        destructive
+        onConfirm={confirmRefund}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { formatINR } from "@/context/CartContext";
 import { Check, FileText, X, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { Loading } from "@/components/ui/loading";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export const Route = createFileRoute("/order/$id")({
   component: OrderPage,
@@ -15,6 +16,7 @@ function OrderPage() {
   const { id } = Route.useParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
   useEffect(() => {
     getOrder(id).then((o) => {
@@ -35,7 +37,6 @@ function OrderPage() {
 
   const canCancel = order.status === "PLACED" || order.status === "PACKED" || order.status === "SHIPPED";
   const onCancel = async () => {
-    if (!confirm("Cancel this order? A refund will be processed.")) return;
     const { shiprocketCancelled, rtoInitiated } = await cancelOrder(order.id);
     setOrder(await getOrder(id) ?? null);
     toast.success(
@@ -118,7 +119,7 @@ function OrderPage() {
           <FileText className="size-4" /> INVOICE
         </Link>
         {canCancel ? (
-          <button onClick={onCancel} className="border border-border h-12 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">
+          <button onClick={() => setConfirmCancel(true)} className="border border-border h-12 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">
             <X className="size-4" /> CANCEL ORDER
           </button>
         ) : (
@@ -126,6 +127,16 @@ function OrderPage() {
         )}
         <Link to="/shop" className="text-center bg-foreground text-background h-12 inline-flex items-center justify-center text-mono text-xs tracking-widest hover:bg-primary hover:text-primary-foreground">KEEP SHOPPING</Link>
       </div>
+
+      <ConfirmDialog
+        open={confirmCancel}
+        onOpenChange={setConfirmCancel}
+        title="CANCEL THIS ORDER?"
+        description="A refund will be processed."
+        confirmLabel="CANCEL ORDER"
+        destructive
+        onConfirm={onCancel}
+      />
     </section>
   );
 }
