@@ -102,14 +102,12 @@ export function CategoryCarousel() {
             {slide.subtitle && (
               <p className="text-white/85 text-mono text-sm sm:text-base mt-3 max-w-md">{slide.subtitle}</p>
             )}
-            {slide.cta_label && (
-              <Link
-                to={slide.href}
-                className="pointer-events-auto mt-6 inline-flex items-center gap-2 px-6 py-2.5 border border-white text-white text-xs tracking-[0.14em] uppercase text-mono hover:bg-white hover:text-black transition-colors"
-              >
-                {slide.cta_label}
-              </Link>
-            )}
+            <Link
+              to={slide.href}
+              className="pointer-events-auto mt-6 inline-flex items-center gap-2 px-8 py-3 border-2 border-white text-white text-xs sm:text-sm font-mono font-bold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all shadow-xl active:scale-95"
+            >
+              {slide.cta_label || "SHOP COLLECTION →"}
+            </Link>
           </motion.div>
         </AnimatePresence>
       </div>

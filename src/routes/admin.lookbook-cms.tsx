@@ -139,6 +139,8 @@ function LookbookCmsAdmin() {
       image_url: modal.image_url,
       media_type: modal.media_type ?? "image",
       product_slug: modal.product_slug,
+      caption: modal.caption ?? null,
+      link_href: modal.link_href ?? null,
       is_active: modal.is_active ?? true,
       position: modal.position ?? 0,
     };

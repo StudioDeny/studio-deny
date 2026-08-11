@@ -130,7 +130,7 @@ export async function createOrder(params: {
   const items = params.items.map((i) => ({
     slug: i.product.slug, name: i.product.name, image: i.product.image,
     size: i.size, qty: i.qty, price: i.product.price,
-    variantId: i.variantId,
+    variantId: i.variantId ?? null,
   }));
 
   const { data, error } = await supabase
@@ -139,7 +139,7 @@ export async function createOrder(params: {
       id,
       user_id: params.userId ?? null,
       user_email: params.email,
-      items,
+      items: items as unknown as DBOrder["items"],
       subtotal,
       shipping: params.shipping,
       tax_rate: 0,
@@ -153,7 +153,7 @@ export async function createOrder(params: {
       payment_method: params.payment_method ?? "razorpay",
       cod_advance_paid: params.cod_advance_paid ?? false,
       cod_advance_amount: params.cod_advance_amount ?? null,
-    })
+    } as any)
     .select()
     .single();
 
@@ -178,14 +178,14 @@ export async function createOrder(params: {
 }
 
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<void> {
-  const { error } = await supabase.from("orders").update({ status }).eq("id", id);
+  const { error } = await supabase.from("orders").update({ status } as any).eq("id", id);
   if (error) throw new Error(error.message);
 }
 
 export async function cancelOrder(id: string): Promise<void> {
   const { error } = await supabase
     .from("orders")
-    .update({ status: "CANCELLED", cancelled_at: new Date().toISOString() })
+    .update({ status: "CANCELLED", cancelled_at: new Date().toISOString() } as any)
     .eq("id", id);
   if (error) throw new Error(error.message);
 }
@@ -198,12 +198,12 @@ export async function refundOrder(id: string, amount?: number): Promise<void> {
   }
   const { error } = await supabase
     .from("orders")
-    .update({ status: "REFUNDED", refund_amount: refundAmount, refunded_at: new Date().toISOString() })
+    .update({ status: "REFUNDED", refund_amount: refundAmount, refunded_at: new Date().toISOString() } as any)
     .eq("id", id);
   if (error) throw new Error(error.message);
 }
 
 export async function updateInvoice(id: string, patch: Partial<Order>): Promise<void> {
-  const { error } = await supabase.from("orders").update(patchToRow(patch)).eq("id", id);
+  const { error } = await supabase.from("orders").update(patchToRow(patch) as any).eq("id", id);
   if (error) throw new Error(error.message);
 }
