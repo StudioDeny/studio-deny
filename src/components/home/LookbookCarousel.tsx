@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Link } from "@tanstack/react-router";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
 
@@ -117,50 +117,6 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     link_href: null,
     created_at: "",
   },
-  {
-    id: "fb-11",
-    image_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 10,
-    product_slug: "denim-jacket",
-    caption: "HIGH-STREET COAT FIT",
-    link_href: null,
-    created_at: "",
-  },
-  {
-    id: "fb-12",
-    image_url: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 11,
-    product_slug: "oversized-hoodie",
-    caption: "TEXTURED KNITWEAR SHOT",
-    link_href: null,
-    created_at: "",
-  },
-  {
-    id: "fb-13",
-    image_url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 12,
-    product_slug: "cargo-pants",
-    caption: "EDITORIAL STREET CUT",
-    link_href: null,
-    created_at: "",
-  },
-  {
-    id: "fb-14",
-    image_url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 13,
-    product_slug: "graphic-tee",
-    caption: "MINIMAL GRAPHIC SILHOUETTE",
-    link_href: null,
-    created_at: "",
-  },
 ];
 
 const FALLBACK_PRODUCTS: Record<string, MiniProduct> = {
@@ -172,9 +128,10 @@ const FALLBACK_PRODUCTS: Record<string, MiniProduct> = {
 };
 
 export function LookbookCarousel() {
+  const navigate = useNavigate();
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [products, setProducts] = useState<Record<string, MiniProduct>>({});
-  const [activeIndex, setActiveIndex] = useState(3);
+  const [activeIndex, setActiveIndex] = useState(2);
   const [isSectionHovered, setIsSectionHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
@@ -224,24 +181,24 @@ export function LookbookCarousel() {
   const mergedProducts = { ...FALLBACK_PRODUCTS, ...products };
   const total = rawSlides.length;
 
-  const handlePrev = useCallback(() => {
-    setActiveIndex((prev) => (prev - 1 + total) % total);
-  }, [total]);
-
   const handleNext = useCallback(() => {
     setActiveIndex((prev) => (prev + 1) % total);
   }, [total]);
 
-  // Autoplay
+  const handlePrev = useCallback(() => {
+    setActiveIndex((prev) => (prev - 1 + total) % total);
+  }, [total]);
+
+  // Infinite right-to-left automatic card stream progression
   useEffect(() => {
     if (isSectionHovered || isDragging || total === 0) return;
     const timer = setInterval(() => {
       handleNext();
-    }, 4000);
+    }, 3200);
     return () => clearInterval(timer);
   }, [isSectionHovered, isDragging, total, handleNext]);
 
-  // Wheel scroll
+  // Wheel scroll handler
   const lastWheelTime = useRef<number>(0);
   const handleWheel = (e: React.WheelEvent) => {
     const now = Date.now();
@@ -288,17 +245,26 @@ export function LookbookCarousel() {
 
   const isMobile = windowWidth < 768;
 
+  // Handle card click: if it's the center-left active card, navigate to product, otherwise move it to center-left
+  const handleCardClick = (idx: number, slide: LookbookSlide) => {
+    if (idx === activeIndex) {
+      const slug = slide.product_slug ?? "denim-jacket";
+      navigate({ to: "/product/$slug", params: { slug } });
+    } else {
+      setActiveIndex(idx);
+    }
+  };
+
   return (
     <section
       ref={containerRef}
-      className="relative w-full py-16 sm:py-24 bg-[#F6F5F2] text-neutral-900 select-none border-t border-border"
+      className="relative w-full py-16 sm:py-24 bg-[#F6F5F2] text-neutral-900 select-none border-t border-border overflow-hidden"
       onMouseEnter={() => setIsSectionHovered(true)}
       onMouseLeave={() => setIsSectionHovered(false)}
     >
-      {/* Full-width Section Content */}
       <div className="max-w-[1560px] mx-auto px-4 sm:px-8">
         
-        {/* Header Row: lookbook© logo on left + GALLERY SHOP CONTACT on right */}
+        {/* Top Header Row */}
         <div className="flex items-center justify-between pb-8 sm:pb-12 border-b border-black/10">
           <h2 className="font-sans text-5xl sm:text-7xl md:text-8xl font-black lowercase tracking-tighter text-black leading-none flex items-center">
             lookbook<span className="text-2xl sm:text-4xl font-mono align-super ml-1">©</span>
@@ -311,53 +277,71 @@ export function LookbookCarousel() {
         </div>
 
         {/* Gallery Stage */}
-        <div className="relative pt-10 sm:pt-14 w-full flex flex-col items-center">
+        <div className="relative pt-8 sm:pt-12 w-full flex flex-col items-center">
           
-          {/* Micro-Metadata block positioned directly above the featured active card */}
-          <div className="w-full max-w-[200px] sm:max-w-[260px] mb-4 text-center sm:text-left font-mono text-[10px] sm:text-[11px] leading-tight text-neutral-700 tracking-wider">
-            <p className="font-bold text-black text-xs sm:text-sm mb-1">({activeNum})</p>
-            <p className="font-bold text-black uppercase truncate">{activeProduct ? activeProduct.name : activeSlide.caption || "2 TONE EMBROIDERY CAP"}</p>
-            <p className="text-neutral-500 uppercase text-[9px] sm:text-[10px] mt-0.5">STUDIO DENY — DROP 014</p>
+          {/* Metadata Block Aligned Directly Above the Center-Left Spotlight Card */}
+          <div className="w-full flex justify-center mb-4">
+            <div className="w-full max-w-[220px] sm:max-w-[300px] text-left font-mono text-[10px] sm:text-[11px] leading-tight text-neutral-800 tracking-wider">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeIndex}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 4 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <p className="font-bold text-black text-xs sm:text-sm mb-1">({activeNum})</p>
+                  <p className="font-bold uppercase tracking-widest text-black truncate">
+                    {activeProduct ? activeProduct.name : activeSlide.caption || "EDITORIAL FIT"}
+                  </p>
+                  <p className="text-neutral-500 uppercase text-[9px] sm:text-[10px] mt-0.5">
+                    STUDIO DENY — DROP 014
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
 
-          {/* Flat Multi-Card Horizontal Row */}
+          {/* Right-to-Left Continuous Scrolling Horizontal Cards Row */}
           <div
             onWheel={handleWheel}
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
-            className="w-full flex items-center justify-start sm:justify-center gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar py-4 cursor-grab active:cursor-grabbing"
+            className="w-full flex items-center justify-start sm:justify-center gap-3 sm:gap-5 overflow-x-auto no-scrollbar py-4 cursor-grab active:cursor-grabbing"
           >
             {rawSlides.map((slide, idx) => {
-              const isCenter = idx === activeIndex;
-              const product = slide.product_slug ? mergedProducts[slide.product_slug] : undefined;
+              // Check if card is at the center-left spotlight position
+              const isSpotlight = idx === activeIndex;
 
               return (
                 <motion.div
                   key={`${slide.id}-${idx}`}
-                  onClick={() => setActiveIndex(idx)}
+                  onClick={() => handleCardClick(idx, slide)}
                   animate={{
-                    height: isCenter ? (isMobile ? "280px" : "420px") : (isMobile ? "160px" : "240px"),
-                    width: isCenter ? (isMobile ? "200px" : "300px") : (isMobile ? "110px" : "170px"),
-                    opacity: isCenter ? 1 : 0.85,
+                    height: isSpotlight ? (isMobile ? "300px" : "440px") : (isMobile ? "160px" : "240px"),
+                    width: isSpotlight ? (isMobile ? "210px" : "310px") : (isMobile ? "110px" : "170px"),
+                    opacity: isSpotlight ? 1 : 0.82,
                   }}
-                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                  className="shrink-0 relative overflow-hidden bg-neutral-200 border border-black/10 cursor-pointer rounded-none group"
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className={`shrink-0 relative overflow-hidden border cursor-pointer rounded-none group transition-shadow duration-300 ${
+                    isSpotlight
+                      ? "border-black shadow-xl ring-2 ring-black/10"
+                      : "border-black/10 bg-neutral-200"
+                  }`}
                 >
                   {slide.media_type === "video" ? (
                     <video src={slide.image_url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
                   ) : (
                     <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
                   )}
-                  {isCenter && (
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                      <Link
-                        to="/product/$slug"
-                        params={{ slug: product?.slug ?? "denim-jacket" }}
-                        className="text-white font-mono text-[10px] sm:text-[11px] font-bold tracking-widest uppercase hover:text-primary transition-colors"
-                      >
-                        SHOP THIS LOOK →
-                      </Link>
+
+                  {/* Spotlight Card Hover Tag */}
+                  {isSpotlight && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                      <span className="text-white font-mono text-[10px] sm:text-[11px] font-bold tracking-widest uppercase flex items-center gap-1.5">
+                        OPEN PRODUCT <span className="text-primary font-bold">→</span>
+                      </span>
                     </div>
                   )}
                 </motion.div>
