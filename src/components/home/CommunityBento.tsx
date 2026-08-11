@@ -111,9 +111,9 @@ export function CommunityBento() {
               className={`relative overflow-hidden rounded-none border border-border group ${spanClass}`}
             >
               {photo.media_type === "video" ? (
-                <video src={photo.image_url} className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]" autoPlay loop muted playsInline />
+                <video src={photo.image_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
               ) : (
-                <img src={photo.image_url} alt={photo.handle ?? "community"} className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]" loading="lazy" />
+                <img src={photo.image_url} alt={photo.handle ?? "community"} className="w-full h-full object-cover" loading="lazy" />
               )}
 
               {/* Hero Bento Badge */}

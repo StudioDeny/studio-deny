@@ -78,8 +78,8 @@ export function ProductCard({
               <video
                 src={product.image}
                 autoPlay loop muted playsInline
-                className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out"
-                style={{ opacity: hover ? 0 : 1, transform: hover ? "scale(1.02)" : "scale(1)" }}
+                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
+                style={{ opacity: hover ? 0 : 1 }}
               />
             ) : (
               <img
@@ -88,19 +88,16 @@ export function ProductCard({
                 loading="lazy"
                 width={800}
                 height={1000}
-                className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out"
-                style={{
-                  opacity: hover ? 0 : 1,
-                  transform: hover ? "scale(1.02)" : "scale(1)",
-                }}
+                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
+                style={{ opacity: hover ? 0 : 1 }}
               />
             )}
             {product.hoverImageType === "video" ? (
               <video
                 src={product.hoverImage}
                 autoPlay loop muted playsInline
-                className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out"
-                style={{ opacity: hover ? 1 : 0, transform: hover ? "scale(1.02)" : "scale(1)" }}
+                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
+                style={{ opacity: hover ? 1 : 0 }}
               />
             ) : (
               <img
@@ -108,21 +105,10 @@ export function ProductCard({
                 alt=""
                 loading="lazy"
                 aria-hidden
-                className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out"
-                style={{
-                  opacity: hover ? 1 : 0,
-                  transform: hover ? "scale(1.02)" : "scale(1)",
-                }}
+                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
+                style={{ opacity: hover ? 1 : 0 }}
               />
             )}
-            {/* Gradient on hover */}
-            <div
-              className="absolute inset-0 transition-opacity duration-400"
-              style={{
-                opacity: hover ? 1 : 0,
-                background: "linear-gradient(to top, rgba(9,9,9,0.5) 0%, transparent 60%)",
-              }}
-            />
           </div>
 
           {/* Mobile: swipeable photo strip + dot pagination (no hover on touch) */}
