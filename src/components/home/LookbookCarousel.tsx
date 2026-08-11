@@ -14,7 +14,7 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     is_active: true,
     position: 0,
     product_slug: "denim-jacket",
-    caption: "PROFESSIONAL PORTRAIT",
+    caption: "2 TONE EMBROIDERY CAP",
     link_href: null,
     created_at: "",
   },
@@ -25,7 +25,7 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     is_active: true,
     position: 1,
     product_slug: "oversized-hoodie",
-    caption: "STUDIO EDITORIAL FIT",
+    caption: "OVERSIZED HOODIE",
     link_href: null,
     created_at: "",
   },
@@ -36,7 +36,7 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     is_active: true,
     position: 2,
     product_slug: "cargo-pants",
-    caption: "TACTICAL SILHOUETTE",
+    caption: "TACTICAL CARGO PANTS",
     link_href: null,
     created_at: "",
   },
@@ -47,7 +47,7 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     is_active: true,
     position: 3,
     product_slug: "graphic-tee",
-    caption: "HEAVYWEIGHT GRAPHIC",
+    caption: "HEAVYWEIGHT GRAPHIC TEE",
     link_href: null,
     created_at: "",
   },
@@ -97,7 +97,7 @@ const FALLBACK_PRODUCTS: Record<string, MiniProduct> = {
 export function LookbookCarousel() {
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [products, setProducts] = useState<Record<string, MiniProduct>>({});
-  const [activeIndex, setActiveIndex] = useState(2);
+  const [activeIndex, setActiveIndex] = useState(3);
   const [isSectionHovered, setIsSectionHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
@@ -206,108 +206,89 @@ export function LookbookCarousel() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full py-12 sm:py-24 overflow-hidden bg-neutral-950 text-neutral-900 select-none"
+      className="relative w-full py-16 sm:py-24 bg-[#F6F5F2] text-neutral-900 select-none border-t border-border"
       onMouseEnter={() => setIsSectionHovered(true)}
       onMouseLeave={() => setIsSectionHovered(false)}
     >
-      {/* Editorial Suit Background Photo (matching aspect© reference image) */}
-      <img
-        src="https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1800&auto=format&fit=crop"
-        alt="Aspect Editorial Background"
-        className="absolute inset-0 w-full h-full object-cover opacity-50 filter grayscale contrast-125"
-      />
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-
-      {/* Main Container */}
-      <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-8 flex flex-col items-center">
+      {/* Full-width Section Content */}
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8">
         
-        {/* Floating White Editorial Card Overlay */}
-        <div className="w-full bg-[#F6F5F2] text-neutral-900 shadow-2xl p-6 sm:p-12 md:p-16 rounded-none border border-black/10">
-          
-          {/* Header Row: aspect© logo on left + GALERY ABOUT CONTACT on right */}
-          <div className="flex items-center justify-between pb-6 sm:pb-10 border-b border-black/10">
-            <h2 className="font-sans text-4xl sm:text-6xl md:text-7xl font-black lowercase tracking-tighter text-black leading-none flex items-center">
-              aspect<span className="text-2xl sm:text-4xl font-mono align-super ml-0.5">©</span>
-            </h2>
-            <div className="flex items-center gap-4 sm:gap-8 font-mono text-[10px] sm:text-xs font-bold tracking-[0.25em] text-neutral-800 uppercase">
-              <Link to="/lookbook" className="hover:text-black transition-colors">GALERY</Link>
-              <Link to="/about" className="hover:text-black transition-colors">ABOUT</Link>
-              <Link to="/contact" className="hover:text-black transition-colors">CONTACT</Link>
-            </div>
-          </div>
-
-          {/* Gallery Stage */}
-          <div className="relative my-6 sm:my-10 w-full flex flex-col items-center">
-            
-            {/* Micro-Metadata block positioned directly above the featured active card */}
-            <div className="w-full max-w-[180px] sm:max-w-[240px] mb-3 text-left font-mono text-[9px] sm:text-[10px] leading-tight text-neutral-700 tracking-wider">
-              <p className="font-bold text-black mb-0.5">({activeNum})</p>
-              <p className="font-bold text-black uppercase truncate">{activeProduct ? activeProduct.name : activeSlide.caption || "PROFESSIONAL PORTRAIT"}</p>
-              <p className="text-neutral-500 uppercase text-[8px] sm:text-[9px]">FOR JASMINE KELLER</p>
-              <p className="text-neutral-500 uppercase text-[8px] sm:text-[9px]">FROM NORTH & SAGE</p>
-            </div>
-
-            {/* Flat 7-Card Horizontal Row (matching aspect© exact card layout) */}
-            <div
-              onWheel={handleWheel}
-              onPointerDown={handlePointerDown}
-              onPointerUp={handlePointerUp}
-              onPointerCancel={handlePointerCancel}
-              className="w-full flex items-center justify-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar py-2 cursor-grab active:cursor-grabbing"
-            >
-              {rawSlides.map((slide, idx) => {
-                const isCenter = idx === activeIndex;
-                const product = slide.product_slug ? mergedProducts[slide.product_slug] : undefined;
-
-                return (
-                  <motion.div
-                    key={`${slide.id}-${idx}`}
-                    onClick={() => setActiveIndex(idx)}
-                    animate={{
-                      height: isCenter ? (isMobile ? "240px" : "340px") : (isMobile ? "140px" : "200px"),
-                      width: isCenter ? (isMobile ? "170px" : "240px") : (isMobile ? "95px" : "140px"),
-                      opacity: isCenter ? 1 : 0.82,
-                    }}
-                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                    className="shrink-0 relative overflow-hidden bg-neutral-200 border border-black/10 cursor-pointer rounded-none group"
-                  >
-                    {slide.media_type === "video" ? (
-                      <video src={slide.image_url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-                    ) : (
-                      <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
-                    )}
-                    {isCenter && (
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
-                        <Link
-                          to="/product/$slug"
-                          params={{ slug: product?.slug ?? "denim-jacket" }}
-                          className="text-white font-mono text-[9px] sm:text-[10px] font-bold tracking-widest uppercase hover:text-primary transition-colors"
-                        >
-                          SHOP LOOK →
-                        </Link>
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              })}
-            </div>
-
-            {/* Bottom (MORE) button */}
-            <div className="mt-8 sm:mt-12 text-center">
-              <Link
-                to="/lookbook"
-                className="font-mono text-xs sm:text-sm font-bold tracking-[0.25em] text-neutral-800 hover:text-black uppercase underline underline-offset-8 transition-colors"
-              >
-                (MORE)
-              </Link>
-            </div>
+        {/* Header Row: lookbook© logo on left + GALLERY SHOP CONTACT on right */}
+        <div className="flex items-center justify-between pb-8 sm:pb-12 border-b border-black/10">
+          <h2 className="font-sans text-5xl sm:text-7xl md:text-8xl font-black lowercase tracking-tighter text-black leading-none flex items-center">
+            lookbook<span className="text-2xl sm:text-4xl font-mono align-super ml-1">©</span>
+          </h2>
+          <div className="flex items-center gap-6 sm:gap-10 font-mono text-xs sm:text-sm font-bold tracking-[0.25em] text-neutral-800 uppercase">
+            <Link to="/lookbook" className="hover:text-black transition-colors">GALLERY</Link>
+            <Link to="/shop" className="hover:text-black transition-colors">SHOP</Link>
+            <Link to="/contact" className="hover:text-black transition-colors">CONTACT</Link>
           </div>
         </div>
 
-        {/* Outer Bottom Footer Text */}
-        <div className="mt-8 text-center font-mono text-[10px] sm:text-xs font-bold tracking-[0.25em] text-white/90 uppercase space-y-1">
-          <p>@ASPECTSTUDIO</p>
-          <p className="text-white/60">BUSINESS PHOTOGRAPHY</p>
+        {/* Gallery Stage */}
+        <div className="relative pt-10 sm:pt-14 w-full flex flex-col items-center">
+          
+          {/* Micro-Metadata block positioned directly above the featured active card */}
+          <div className="w-full max-w-[200px] sm:max-w-[260px] mb-4 text-center sm:text-left font-mono text-[10px] sm:text-[11px] leading-tight text-neutral-700 tracking-wider">
+            <p className="font-bold text-black text-xs sm:text-sm mb-1">({activeNum})</p>
+            <p className="font-bold text-black uppercase truncate">{activeProduct ? activeProduct.name : activeSlide.caption || "2 TONE EMBROIDERY CAP"}</p>
+            <p className="text-neutral-500 uppercase text-[9px] sm:text-[10px] mt-0.5">STUDIO DENY — DROP 014</p>
+          </div>
+
+          {/* Flat 7-Card Horizontal Row */}
+          <div
+            onWheel={handleWheel}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
+            className="w-full flex items-center justify-center gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar py-4 cursor-grab active:cursor-grabbing"
+          >
+            {rawSlides.map((slide, idx) => {
+              const isCenter = idx === activeIndex;
+              const product = slide.product_slug ? mergedProducts[slide.product_slug] : undefined;
+
+              return (
+                <motion.div
+                  key={`${slide.id}-${idx}`}
+                  onClick={() => setActiveIndex(idx)}
+                  animate={{
+                    height: isCenter ? (isMobile ? "280px" : "420px") : (isMobile ? "160px" : "240px"),
+                    width: isCenter ? (isMobile ? "200px" : "300px") : (isMobile ? "110px" : "170px"),
+                    opacity: isCenter ? 1 : 0.85,
+                  }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  className="shrink-0 relative overflow-hidden bg-neutral-200 border border-black/10 cursor-pointer rounded-none group"
+                >
+                  {slide.media_type === "video" ? (
+                    <video src={slide.image_url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                  ) : (
+                    <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
+                  )}
+                  {isCenter && (
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                      <Link
+                        to="/product/$slug"
+                        params={{ slug: product?.slug ?? "denim-jacket" }}
+                        className="text-white font-mono text-[10px] sm:text-[11px] font-bold tracking-widest uppercase hover:text-primary transition-colors"
+                      >
+                        SHOP THIS LOOK →
+                      </Link>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Bottom (MORE) button */}
+          <div className="mt-10 sm:mt-14 text-center">
+            <Link
+              to="/lookbook"
+              className="font-mono text-xs sm:text-sm font-bold tracking-[0.25em] text-neutral-800 hover:text-black uppercase underline underline-offset-8 transition-colors"
+            >
+              (MORE)
+            </Link>
+          </div>
         </div>
 
       </div>
