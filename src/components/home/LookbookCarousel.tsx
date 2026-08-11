@@ -119,7 +119,7 @@ export function LookbookCarousel() {
     }
   };
 
-  // Touch / Mouse Drag event handlers for real-time fluid swiping
+  // Touch / Mouse Drag event handlers for real-time fluid gesture swiping
   const handlePointerDown = (e: React.PointerEvent) => {
     pointerStartX.current = e.clientX;
     setIsDragging(true);
@@ -331,7 +331,7 @@ export function LookbookCarousel() {
         )}
       </div>
 
-      {/* Full-Bleed 3D Stage with Ground Shadows & Sharp Cards */}
+      {/* Full-Bleed 3D Stage with Ground Shadows & Real-time Gesture Swiping */}
       <div
         className="relative z-10 w-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-pan-y overflow-visible"
         style={{
@@ -468,13 +468,13 @@ export function LookbookCarousel() {
                     muted
                     loop
                     playsInline
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 ) : (
                   <img
                     src={slide.image_url}
                     alt={product?.name ?? ""}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 )}
 
