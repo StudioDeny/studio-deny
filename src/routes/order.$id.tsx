@@ -26,6 +26,7 @@ function OrderPage() {
   const [loading, setLoading] = useState(true);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmReturn, setConfirmReturn] = useState(false);
+  const [returnReason, setReturnReason] = useState("");
 
   useEffect(() => {
     getOrder(id).then((o) => {
@@ -59,7 +60,8 @@ function OrderPage() {
   };
 
   const onRequestReturn = async () => {
-    const { pickupScheduled, pickupError } = await requestReturn(order.id);
+    const { pickupScheduled, pickupError } = await requestReturn(order.id, returnReason.trim() || undefined);
+    setReturnReason("");
     setOrder(await getOrder(id) ?? null);
     toast.success(pickupScheduled ? "Return requested — pickup scheduled" : `Return requested — pickup not scheduled (${pickupError ?? "unknown reason"}), we'll follow up`);
   };
@@ -181,12 +183,20 @@ function OrderPage() {
       />
       <ConfirmDialog
         open={confirmReturn}
-        onOpenChange={setConfirmReturn}
+        onOpenChange={(open) => { setConfirmReturn(open); if (!open) setReturnReason(""); }}
         title="REQUEST A RETURN?"
         description="A courier pickup will be scheduled automatically from your address."
         confirmLabel="REQUEST RETURN"
         onConfirm={onRequestReturn}
-      />
+      >
+        <textarea
+          value={returnReason}
+          onChange={(e) => setReturnReason(e.target.value)}
+          placeholder="Reason for return (optional)"
+          rows={3}
+          className="w-full border border-border bg-background p-3 text-sm resize-none focus:outline-none focus:border-primary"
+        />
+      </ConfirmDialog>
     </section>
   );
 }

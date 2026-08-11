@@ -17,9 +17,10 @@ type ConfirmDialogProps = {
   confirmLabel?: string;
   onConfirm: () => void;
   destructive?: boolean;
+  children?: React.ReactNode;
 };
 
-export function ConfirmDialog({ open, onOpenChange, title, description, confirmLabel = "CONFIRM", onConfirm, destructive }: ConfirmDialogProps) {
+export function ConfirmDialog({ open, onOpenChange, title, description, confirmLabel = "CONFIRM", onConfirm, destructive, children }: ConfirmDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="bg-surface border-border rounded-none">
@@ -27,6 +28,7 @@ export function ConfirmDialog({ open, onOpenChange, title, description, confirmL
           <AlertDialogTitle className="text-display text-2xl">{title}</AlertDialogTitle>
           {description && <AlertDialogDescription className="text-muted-foreground">{description}</AlertDialogDescription>}
         </AlertDialogHeader>
+        {children}
         <AlertDialogFooter>
           <AlertDialogCancel className="rounded-none border-border text-mono text-[11px] tracking-widest">CANCEL</AlertDialogCancel>
           <AlertDialogAction

@@ -42,6 +42,7 @@ function Account() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
   const [returnTarget, setReturnTarget] = useState<string | null>(null);
+  const [returnReason, setReturnReason] = useState("");
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addingAddr, setAddingAddr] = useState(false);
@@ -96,7 +97,8 @@ function Account() {
 
   const confirmReturnRequest = async () => {
     if (!returnTarget || !user) return;
-    const { pickupScheduled, pickupError } = await requestReturn(returnTarget);
+    const { pickupScheduled, pickupError } = await requestReturn(returnTarget, returnReason.trim() || undefined);
+    setReturnReason("");
     setOrders(await ordersFor(user.email));
     toast.success(pickupScheduled ? "Return requested — pickup scheduled" : `Return requested — pickup not scheduled (${pickupError ?? "unknown reason"}), we'll follow up`);
   };
@@ -338,12 +340,20 @@ function Account() {
       />
       <ConfirmDialog
         open={returnTarget !== null}
-        onOpenChange={(open) => !open && setReturnTarget(null)}
+        onOpenChange={(open) => { if (!open) { setReturnTarget(null); setReturnReason(""); } }}
         title="REQUEST A RETURN?"
         description="A courier pickup will be scheduled automatically from your address."
         confirmLabel="REQUEST RETURN"
         onConfirm={confirmReturnRequest}
-      />
+      >
+        <textarea
+          value={returnReason}
+          onChange={(e) => setReturnReason(e.target.value)}
+          placeholder="Reason for return (optional)"
+          rows={3}
+          className="w-full border border-border bg-background p-3 text-sm resize-none focus:outline-none focus:border-primary"
+        />
+      </ConfirmDialog>
     </section>
   );
 }

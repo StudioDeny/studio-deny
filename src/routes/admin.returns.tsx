@@ -49,6 +49,7 @@ function Returns() {
             cells: [
               o.order_number ?? o.id, o.userEmail, formatINR(o.total),
               o.returnAwbNumber ?? "—", RETURN_STATUS_LABEL[o.returnStatus!] ?? o.returnStatus!,
+              o.returnReason ?? "—",
             ],
             actions: <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="border border-primary text-primary px-3 h-8 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground">REFUND</button>,
           }))} />
@@ -61,6 +62,7 @@ function Returns() {
             cells: [
               o.order_number ?? o.id, o.userEmail, formatINR(o.total),
               o.returnAwbNumber ?? "—", RETURN_STATUS_LABEL[o.returnStatus!] ?? o.returnStatus!,
+              o.returnReason ?? "—",
             ],
             actions: o.returnTrackingUrl ? (
               <a href={o.returnTrackingUrl} target="_blank" rel="noopener noreferrer" className="text-mono text-[10px] tracking-widest text-primary hover:underline">TRACK →</a>
