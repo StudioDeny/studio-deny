@@ -131,7 +131,7 @@ export function LookbookCarousel() {
   const navigate = useNavigate();
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [products, setProducts] = useState<Record<string, MiniProduct>>({});
-  const [activeIndex, setActiveIndex] = useState(2);
+  const [activeIndex, setActiveIndex] = useState(3);
   const [isSectionHovered, setIsSectionHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
@@ -189,12 +189,12 @@ export function LookbookCarousel() {
     setActiveIndex((prev) => (prev - 1 + total) % total);
   }, [total]);
 
-  // Infinite right-to-left automatic card stream progression
+  // Seamless right-to-left continuous card stream progression
   useEffect(() => {
     if (isSectionHovered || isDragging || total === 0) return;
     const timer = setInterval(() => {
       handleNext();
-    }, 3200);
+    }, 3000);
     return () => clearInterval(timer);
   }, [isSectionHovered, isDragging, total, handleNext]);
 
@@ -239,19 +239,21 @@ export function LookbookCarousel() {
 
   if (total === 0) return null;
 
-  const activeSlide = rawSlides[activeIndex % total];
-  const activeProduct = activeSlide?.product_slug ? mergedProducts[activeSlide.product_slug] : undefined;
-  const activeNum = String((activeIndex % total) + 1).padStart(2, "0");
+  // The immediate next left card to the center is (activeIndex - 1 + total) % total
+  const spotlightIndex = (activeIndex - 1 + total) % total;
+  const spotlightSlide = rawSlides[spotlightIndex];
+  const spotlightProduct = spotlightSlide?.product_slug ? mergedProducts[spotlightSlide.product_slug] : undefined;
+  const spotlightNum = String((spotlightIndex % total) + 1).padStart(2, "0");
 
   const isMobile = windowWidth < 768;
 
-  // Handle card click: if it's the center-left active card, navigate to product, otherwise move it to center-left
   const handleCardClick = (idx: number, slide: LookbookSlide) => {
-    if (idx === activeIndex) {
+    if (idx === spotlightIndex) {
       const slug = slide.product_slug ?? "denim-jacket";
       navigate({ to: "/product/$slug", params: { slug } });
     } else {
-      setActiveIndex(idx);
+      // Set activeIndex so this card moves into the immediate-left spotlight position
+      setActiveIndex((idx + 1) % total);
     }
   };
 
@@ -279,20 +281,20 @@ export function LookbookCarousel() {
         {/* Gallery Stage */}
         <div className="relative pt-8 sm:pt-12 w-full flex flex-col items-center">
           
-          {/* Metadata Block Aligned Directly Above the Center-Left Spotlight Card */}
+          {/* Metadata Block Aligned Directly Above the Immediate Next-Left Spotlight Position */}
           <div className="w-full flex justify-center mb-4">
             <div className="w-full max-w-[220px] sm:max-w-[300px] text-left font-mono text-[10px] sm:text-[11px] leading-tight text-neutral-800 tracking-wider">
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={activeIndex}
+                  key={spotlightIndex}
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 4 }}
                   transition={{ duration: 0.25 }}
                 >
-                  <p className="font-bold text-black text-xs sm:text-sm mb-1">({activeNum})</p>
+                  <p className="font-bold text-black text-xs sm:text-sm mb-1">({spotlightNum})</p>
                   <p className="font-bold uppercase tracking-widest text-black truncate">
-                    {activeProduct ? activeProduct.name : activeSlide.caption || "EDITORIAL FIT"}
+                    {spotlightProduct ? spotlightProduct.name : spotlightSlide?.caption || "EDITORIAL FIT"}
                   </p>
                   <p className="text-neutral-500 uppercase text-[9px] sm:text-[10px] mt-0.5">
                     STUDIO DENY — DROP 014
@@ -302,7 +304,7 @@ export function LookbookCarousel() {
             </div>
           </div>
 
-          {/* Right-to-Left Continuous Scrolling Horizontal Cards Row */}
+          {/* Seamless Horizontal Stream Row */}
           <div
             onWheel={handleWheel}
             onPointerDown={handlePointerDown}
@@ -311,8 +313,8 @@ export function LookbookCarousel() {
             className="w-full flex items-center justify-start sm:justify-center gap-3 sm:gap-5 overflow-x-auto no-scrollbar py-4 cursor-grab active:cursor-grabbing"
           >
             {rawSlides.map((slide, idx) => {
-              // Check if card is at the center-left spotlight position
-              const isSpotlight = idx === activeIndex;
+              // The card at spotlightIndex (immediate next-left to center) ALWAYS expands and hovers
+              const isSpotlight = idx === spotlightIndex;
 
               return (
                 <motion.div
@@ -321,12 +323,12 @@ export function LookbookCarousel() {
                   animate={{
                     height: isSpotlight ? (isMobile ? "300px" : "440px") : (isMobile ? "160px" : "240px"),
                     width: isSpotlight ? (isMobile ? "210px" : "310px") : (isMobile ? "110px" : "170px"),
-                    opacity: isSpotlight ? 1 : 0.82,
+                    opacity: isSpotlight ? 1 : 0.80,
                   }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  className={`shrink-0 relative overflow-hidden border cursor-pointer rounded-none group transition-shadow duration-300 ${
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                  className={`shrink-0 relative overflow-hidden border cursor-pointer rounded-none group transition-all duration-300 ${
                     isSpotlight
-                      ? "border-black shadow-xl ring-2 ring-black/10"
+                      ? "border-black shadow-2xl ring-2 ring-black/15 scale-[1.02]"
                       : "border-black/10 bg-neutral-200"
                   }`}
                 >
@@ -336,9 +338,9 @@ export function LookbookCarousel() {
                     <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
                   )}
 
-                  {/* Spotlight Card Hover Tag */}
+                  {/* Spotlight Hover Tag on the Immediate-Left Active Card */}
                   {isSpotlight && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                       <span className="text-white font-mono text-[10px] sm:text-[11px] font-bold tracking-widest uppercase flex items-center gap-1.5">
                         OPEN PRODUCT <span className="text-primary font-bold">→</span>
                       </span>
