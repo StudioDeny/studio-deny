@@ -32,9 +32,13 @@ function AdminOrders() {
   const ship = async (id: string) => {
     setShipping(id);
     try {
-      await createShipment(id);
+      const { pickupScheduled, pickupError } = await createShipment(id);
       setOrders(await listOrders());
-      toast.success("Shipment created — AWB assigned");
+      if (pickupScheduled) {
+        toast.success("Shipment created — AWB assigned, pickup scheduled");
+      } else {
+        toast.success(`Shipment created — AWB assigned. Pickup not scheduled (${pickupError ?? "unknown reason"}) — schedule it manually in Shiprocket.`);
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not create shipment");
     } finally {

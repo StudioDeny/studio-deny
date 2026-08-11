@@ -224,10 +224,10 @@ export async function updateInvoice(id: string, patch: Partial<Order>): Promise<
   if (error) throw new Error(error.message);
 }
 
-/** Creates the shipment on Shiprocket, assigns an AWB, and marks the order
- * SHIPPED — all server-side (the edge function holds the Shiprocket
- * credentials, never the browser). Returns the updated order. */
-export async function createShipment(id: string): Promise<Order> {
+/** Creates the shipment on Shiprocket, assigns an AWB, asks the courier to
+ * pick it up, and marks the order SHIPPED — all server-side (the edge
+ * function holds the Shiprocket credentials, never the browser). */
+export async function createShipment(id: string): Promise<{ order: Order; pickupScheduled: boolean; pickupError?: string }> {
   const { data, error } = await supabase.functions.invoke("shiprocket-sync", { body: { order_id: id } });
   if (error) {
     // On a non-2xx response, supabase-js hands back a generic
@@ -249,5 +249,5 @@ export async function createShipment(id: string): Promise<Order> {
   }
   const order = await getOrder(id);
   if (!order) throw new Error("Shipment created, but the order couldn't be reloaded");
-  return order;
+  return { order, pickupScheduled: !!data.pickup_scheduled, pickupError: data.pickup_error ?? undefined };
 }

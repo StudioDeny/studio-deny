@@ -149,6 +149,30 @@ serve(async (req) => {
 
     const trackingUrl = `https://shiprocket.co/tracking/${awbCode}`;
 
+    // Ask the courier to actually come collect the parcel — without this,
+    // the AWB exists but nothing physically happens. Best-effort: a pickup
+    // slot not being available today shouldn't undo the shipment we already
+    // created, so failures here are logged and surfaced but non-fatal.
+    let pickupScheduled = false;
+    let pickupError: string | undefined;
+    try {
+      const pickupRes = await fetch(`${SR_BASE}/courier/generate/pickup`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ shipment_id: [shipmentId] }),
+      });
+      const pickupJson = await pickupRes.json();
+      if (pickupRes.ok && pickupJson.pickup_status !== 0) {
+        pickupScheduled = true;
+      } else {
+        pickupError = pickupJson.message ?? `HTTP ${pickupRes.status}`;
+        console.error("Pickup generation failed:", pickupRes.status, JSON.stringify(pickupJson));
+      }
+    } catch (e) {
+      pickupError = e instanceof Error ? e.message : String(e);
+      console.error("Pickup generation threw:", pickupError);
+    }
+
     await supabase
       .from("orders")
       .update({
@@ -184,7 +208,14 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ ok: true, awb: awbCode, courier_name: courierName, tracking_url: trackingUrl }),
+      JSON.stringify({
+        ok: true,
+        awb: awbCode,
+        courier_name: courierName,
+        tracking_url: trackingUrl,
+        pickup_scheduled: pickupScheduled,
+        pickup_error: pickupError,
+      }),
       { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
     );
   } catch (err) {
