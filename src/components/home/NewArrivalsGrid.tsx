@@ -177,7 +177,7 @@ export function NewArrivalsGrid() {
         {cfg.cta_label && (
           <Link
             to="/shop"
-            className="group inline-flex items-center gap-2 text-mono text-xs sm:text-sm tracking-[0.2em] uppercase border-b border-foreground/40 pb-1 hover:border-primary hover:text-primary transition-colors"
+            className="group inline-flex items-center gap-2 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase border-b-2 border-foreground pb-1 hover:border-primary hover:text-primary transition-colors"
           >
             {cfg.cta_label}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

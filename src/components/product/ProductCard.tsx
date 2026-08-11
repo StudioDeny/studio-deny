@@ -223,22 +223,45 @@ export function ProductCard({
           </div>
         </div>
 
-        {/* Product info */}
-        <div className="mt-3 px-0.5">
-          <h3
-            className="font-semibold leading-snug group-hover:text-primary group-hover:-translate-y-1.5 transition-transform duration-200 cubic-bezier(0.16, 1, 0.3, 1) uppercase tracking-[0.15em]"
-            style={{ fontSize: "14px" }}
-          >
-            {product.name}
-          </h3>
-          <div className="mt-1 flex items-baseline gap-2 text-mono group-hover:opacity-60 transition-opacity duration-200">
-            <span style={{ fontSize: "13px" }}>{formatINR(product.price)}</span>
+        {/* Product info — Increased size for legibility */}
+        <div className="mt-3 px-0.5 flex flex-col gap-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <h3
+              className="font-medium text-xs sm:text-sm leading-tight text-foreground/90 group-hover:text-primary transition-colors tracking-wide truncate"
+            >
+              {product.name}
+            </h3>
+            <button
+              aria-label="Quick add to cart"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickAdd(product); }}
+              className="text-foreground/80 hover:text-primary transition-colors shrink-0 p-0.5"
+            >
+              <ShoppingBag className="size-4 sm:size-5" />
+            </button>
+          </div>
+
+          <div className="flex items-baseline gap-2 text-mono">
+            <span className="font-bold text-sm sm:text-base text-foreground">{formatINR(product.price)}</span>
             {hasDiscount && (
-              <span className="text-muted-foreground line-through" style={{ fontSize: "11px" }}>
+              <span className="text-muted-foreground line-through text-xs sm:text-sm">
                 {formatINR(product.compareAt!)}
               </span>
             )}
           </div>
+
+          {/* Color Swatch Dots */}
+          {product.colors && product.colors.length > 0 && (
+            <div className="flex items-center gap-1.5 mt-1">
+              {product.colors.map((c) => (
+                <span
+                  key={c.name}
+                  title={c.name}
+                  className="size-3 sm:size-3.5 border border-foreground/40 block shrink-0"
+                  style={{ backgroundColor: c.hex }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </Link>
     </div>

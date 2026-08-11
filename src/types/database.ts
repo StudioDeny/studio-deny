@@ -238,6 +238,12 @@ export interface Database {
         Update: Partial<Omit<OrderItem, "id" | "created_at">>;
         Relationships: [];
       };
+      orders: {
+        Row: DBOrder;
+        Insert: Omit<DBOrder, "order_number" | "created_at" | "updated_at"> & Partial<Pick<DBOrder, "order_number">>;
+        Update: Partial<Omit<DBOrder, "id" | "created_at">>;
+        Relationships: [];
+      };
       carts: {
         Row: Cart;
         Insert: Omit<Cart, "id" | "created_at" | "updated_at">;
@@ -565,6 +571,34 @@ export type OrderItem = {
   created_at: string;
 };
 
+export type DBOrder = {
+  id: string;
+  order_number: string;
+  invoice_no: string | null;
+  user_id: string | null;
+  user_email: string;
+  items: Json;
+  subtotal: number;
+  shipping: number;
+  tax_rate: number;
+  tax: number;
+  discount: number;
+  extra_lines: Json;
+  total: number;
+  status: "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED";
+  address: Json;
+  payment_id: string | null;
+  payment_method: "razorpay" | "cod";
+  cod_advance_paid: boolean;
+  cod_advance_amount: number | null;
+  notes: string | null;
+  refund_amount: number | null;
+  refunded_at: string | null;
+  cancelled_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Cart = {
   id: string;
   user_id: string;
@@ -626,8 +660,10 @@ export type InfluencerVideoSource = "upload" | "link";
 export type LookbookSlide = {
   id: string;
   image_url: string;
+  media_type: "image" | "video";
   caption: string | null;
   link_href: string | null;
+  product_slug: string | null;
   is_active: boolean;
   position: number;
   created_at: string;
@@ -663,14 +699,13 @@ export type InfluencerPick = {
 
 export type PreloaderSettings = {
   id: string;
-  font_size_px: number;
-  font_weight: number;
-  font_family: string;
-  font_color: string;
-  bg_type: "color" | "image" | "video";
-  bg_color: string;
+  bg_type: "image" | "video";
   bg_image_url: string | null;
   bg_video_url: string | null;
+  content_type: "image" | "text";
+  content_image_url: string;
+  content_text: string;
+  text_color: string;
   created_at: string;
   updated_at: string;
 };

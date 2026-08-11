@@ -10,7 +10,7 @@ export const Route = createFileRoute("/admin/customers")({
 
 function Customers() {
   const [orders, setOrders] = useState<Order[]>([]);
-  useEffect(() => setOrders(listOrders()), []);
+  useEffect(() => { listOrders().then(setOrders); }, []);
 
   const rows = useMemo(() => {
     const map: Record<string, Order[]> = {};

@@ -40,7 +40,7 @@ function Account() {
     if (loading) return;
     if (!user) navigate({ to: "/login" });
     else {
-      setOrders(ordersFor(user.email));
+      ordersFor(user.email).then(setOrders);
       setAddresses(getAddresses());
       listProducts().then(setAllProducts);
     }
@@ -153,10 +153,10 @@ function Account() {
                 <div className="flex gap-3 items-center">
                   <Link to="/invoice/$id" params={{ id: o.id }} title="Invoice" className="text-muted-foreground hover:text-primary"><FileText className="size-4" /></Link>
                   {(o.status === "PLACED" || o.status === "PACKED") && (
-                    <button title="Cancel" onClick={() => {
+                    <button title="Cancel" onClick={async () => {
                       if (!confirm("Cancel this order?")) return;
-                      cancelOrder(o.id);
-                      setOrders(ordersFor(user.email));
+                      await cancelOrder(o.id);
+                      setOrders(await ordersFor(user.email));
                       toast.success("Order cancelled");
                     }} className="text-muted-foreground hover:text-primary"><X className="size-4" /></button>
                   )}

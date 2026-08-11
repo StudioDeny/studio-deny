@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { listOrders, cancelOrder, type Order } from "@/lib/orders";
+import { getOrder, cancelOrder, type Order } from "@/lib/orders";
 import { formatINR } from "@/context/CartContext";
 import { Check, FileText, X } from "lucide-react";
 import { toast } from "sonner";
@@ -17,8 +17,10 @@ function OrderPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setOrder(listOrders().find((o) => o.id === id) ?? null);
-    setLoading(false);
+    getOrder(id).then((o) => {
+      setOrder(o ?? null);
+      setLoading(false);
+    });
   }, [id]);
 
   if (loading) return <Loading className="py-24" />;
@@ -32,10 +34,10 @@ function OrderPage() {
   }
 
   const canCancel = order.status === "PLACED" || order.status === "PACKED";
-  const onCancel = () => {
+  const onCancel = async () => {
     if (!confirm("Cancel this order? A refund will be processed.")) return;
-    cancelOrder(order.id);
-    setOrder(listOrders().find((o) => o.id === id) ?? null);
+    await cancelOrder(order.id);
+    setOrder(await getOrder(id) ?? null);
     toast.success("Order cancelled");
   };
 

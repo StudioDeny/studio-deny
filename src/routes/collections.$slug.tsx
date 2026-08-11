@@ -38,7 +38,8 @@ function CollectionPage() {
   const { slug } = Route.useParams();
   const [items, setItems] = useState<Product[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [mobileFilters, setMobileFilters] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [gridCols, setGridCols] = useState<2 | 4>(4);
   const [sort, setSort] = useState<Sort>("new");
   const [maxPrice, setMaxPrice] = useState<number | "">("");
   const [onSale, setOnSale] = useState(false);
@@ -48,7 +49,7 @@ function CollectionPage() {
   useEffect(() => {
     setLoaded(false);
     productsInCategory(slug).then((r) => { setItems(r); setLoaded(true); });
-    setSelSizes([]); setMaxPrice(""); setOnSale(false); setInStock(false); setSort("new");
+    setSelSizes([]); setMaxPrice(""); setOnSale(false); setInStock(false); setSort("new"); setFilterOpen(false);
   }, [slug]);
 
   const [cat, setCat] = useState<Category | undefined>(undefined);
@@ -77,55 +78,92 @@ function CollectionPage() {
   const clearAll = () => { setSelSizes([]); setOnSale(false); setInStock(false); setMaxPrice(""); };
 
   const Filters = (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <div>
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-3">SORT</div>
-        <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}
-          className="bg-background border border-border h-10 px-3 w-full text-mono text-xs">
-          <option value="new">NEWEST</option>
+        <div className="text-mono text-[11px] font-bold tracking-[0.25em] text-primary mb-3">SORT</div>
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as Sort)}
+          className="bg-background border border-border h-10 px-3 w-full text-mono text-xs font-semibold focus:outline-none focus:border-primary"
+        >
+          <option value="new">RECOMMENDED / NEWEST</option>
           <option value="low">PRICE: LOW → HIGH</option>
           <option value="high">PRICE: HIGH → LOW</option>
           <option value="name">NAME: A → Z</option>
         </select>
       </div>
+
       <div>
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-3">MAX PRICE (₹)</div>
-        <input type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : "")}
-          placeholder="Any" className="bg-background border border-border h-10 px-3 w-full text-mono text-xs" />
+        <div className="text-mono text-[11px] font-bold tracking-[0.25em] text-primary mb-3">MAX PRICE (₹)</div>
+        <input
+          type="number"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : "")}
+          placeholder="Any price"
+          className="bg-background border border-border h-10 px-3 w-full text-mono text-xs font-semibold focus:outline-none focus:border-primary"
+        />
       </div>
+
       {allSizes.length > 0 && (
         <div>
-          <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-3">SIZE</div>
+          <div className="text-mono text-[11px] font-bold tracking-[0.25em] text-primary mb-3">SIZE</div>
           <div className="flex flex-wrap gap-1.5">
             {allSizes.map((s) => (
-              <button key={s} onClick={() => toggleSize(s)}
-                className={`min-w-9 h-9 px-2 border text-mono text-xs ${selSizes.includes(s) ? "bg-foreground text-background border-foreground" : "border-border hover:border-primary"}`}>
+              <button
+                key={s}
+                onClick={() => toggleSize(s)}
+                className={`min-w-9 h-9 px-2 border text-mono text-xs font-bold transition-all ${
+                  selSizes.includes(s)
+                    ? "bg-foreground text-background border-foreground"
+                    : "border-border hover:border-primary"
+                }`}
+              >
                 {s}
               </button>
             ))}
           </div>
         </div>
       )}
-      <div>
-        <label className="flex items-center gap-2 mb-2 cursor-pointer">
-          <input type="checkbox" checked={onSale} onChange={(e) => setOnSale(e.target.checked)} className="accent-primary" />
-          <span className="text-mono text-xs tracking-widest">ON SALE</span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={inStock} onChange={(e) => setInStock(e.target.checked)} className="accent-primary" />
-          <span className="text-mono text-xs tracking-widest">IN STOCK</span>
-        </label>
+
+      <div className="flex flex-col justify-between">
+        <div>
+          <div className="text-mono text-[11px] font-bold tracking-[0.25em] text-primary mb-3">STATUS</div>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={onSale}
+                onChange={(e) => setOnSale(e.target.checked)}
+                className="accent-primary"
+              />
+              <span className="text-mono text-xs font-bold tracking-widest">ON SALE</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={inStock}
+                onChange={(e) => setInStock(e.target.checked)}
+                className="accent-primary"
+              />
+              <span className="text-mono text-xs font-bold tracking-widest">IN STOCK</span>
+            </label>
+          </div>
+        </div>
+
+        {activeCount > 0 && (
+          <button
+            onClick={clearAll}
+            className="text-mono text-[11px] font-bold tracking-widest text-primary hover:underline flex items-center gap-1 mt-4"
+          >
+            <X className="size-3" /> CLEAR ALL ({activeCount})
+          </button>
+        )}
       </div>
-      {activeCount > 0 && (
-        <button onClick={clearAll} className="text-mono text-[11px] tracking-widest text-primary hover:underline flex items-center gap-1">
-          <X className="size-3" /> CLEAR ({activeCount})
-        </button>
-      )}
     </div>
   );
 
   return (
-    <section className="px-4 md:px-8 mt-4 md:mt-8 pb-16 max-w-7xl mx-auto">
+    <section className="px-4 md:px-8 mt-4 md:mt-8 pb-16 max-w-[1700px] mx-auto">
       <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
         <div>
           <div className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2">COLLECTION</div>
@@ -141,51 +179,112 @@ function CollectionPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-5 text-mono text-[11px] tracking-widest text-muted-foreground">
-        <span>{filtered.length} PIECES</span>
-        <button onClick={() => setMobileFilters(true)}
-          className="md:hidden inline-flex items-center gap-2 border border-border px-3 h-9 hover:border-primary">
-          <SlidersHorizontal className="size-3" /> FILTERS{activeCount ? ` (${activeCount})` : ""}
-        </button>
-      </div>
+      {/* ALMOST GODS STYLE TOOLBAR ROW */}
+      <div className="flex items-center justify-between mb-8 pb-4 border-b border-border text-mono text-xs">
+        <span className="text-muted-foreground font-semibold tracking-widest">
+          {filtered.length} PIECES
+        </span>
 
-      <div className="grid md:grid-cols-[220px_1fr] gap-8">
-        <aside className="hidden md:block sticky top-32 h-fit">{Filters}</aside>
-        <div>
-          {!loaded ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-[3/4] w-full" />
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-24 border border-border bg-surface">
-              <p className="text-muted-foreground text-sm">No products match.</p>
-              <Link to="/shop" className="inline-block mt-4 text-mono text-xs tracking-widest text-primary">VIEW ALL →</Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {filtered.map((p) => <ProductCard key={p.slug} product={p} />)}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {mobileFilters && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setMobileFilters(false)} />
-          <div className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-sm bg-surface border-l border-border p-5 overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <div className="text-display text-2xl">FILTERS</div>
-              <button onClick={() => setMobileFilters(false)} aria-label="Close"><X className="size-5" /></button>
-            </div>
-            {Filters}
-            <button onClick={() => setMobileFilters(false)} className="mt-6 w-full bg-primary text-primary-foreground h-12 text-mono text-xs tracking-widest hover:glow-primary">
-              SHOW {filtered.length} PIECES
+        <div className="flex items-center gap-3">
+          {/* Grid View Switcher (2-col vs 4-col) */}
+          <div className="hidden sm:flex items-center border border-border">
+            <button
+              type="button"
+              aria-label="2 columns view"
+              onClick={() => setGridCols(2)}
+              className={`px-2.5 py-1.5 transition-colors ${
+                gridCols === 2 ? "bg-foreground text-background" : "hover:text-primary"
+              }`}
+            >
+              <div className="w-4 h-4 border border-current flex justify-between p-[1px]">
+                <div className="w-[6px] h-full bg-current" />
+                <div className="w-[6px] h-full bg-current" />
+              </div>
+            </button>
+            <button
+              type="button"
+              aria-label="4 columns view"
+              onClick={() => setGridCols(4)}
+              className={`px-2.5 py-1.5 transition-colors border-l border-border ${
+                gridCols === 4 ? "bg-foreground text-background" : "hover:text-primary"
+              }`}
+            >
+              <div className="w-4 h-4 grid grid-cols-2 gap-[1px] p-[1px]">
+                <div className="bg-current" />
+                <div className="bg-current" />
+                <div className="bg-current" />
+                <div className="bg-current" />
+              </div>
             </button>
           </div>
+
+          {/* FILTER Button */}
+          <button
+            type="button"
+            onClick={() => setFilterOpen((prev) => !prev)}
+            className={`inline-flex items-center gap-2 border px-4 py-1.5 font-bold transition-all text-mono text-xs uppercase ${
+              filterOpen
+                ? "border-primary text-primary bg-primary/5"
+                : "border-border hover:border-primary hover:text-primary"
+            }`}
+          >
+            <SlidersHorizontal className="size-3.5" />
+            FILTER {activeCount > 0 ? `(${activeCount})` : ""}
+          </button>
+
+          {/* Sort By Dropdown */}
+          <div className="flex items-center gap-1.5 border border-border px-3 py-1.5 font-mono text-xs font-semibold">
+            <span className="text-muted-foreground whitespace-nowrap hidden sm:inline">Sort By:</span>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as Sort)}
+              className="bg-transparent text-foreground uppercase focus:outline-none cursor-pointer"
+            >
+              <option value="new">RECOMMENDED</option>
+              <option value="low">PRICE: LOW → HIGH</option>
+              <option value="high">PRICE: HIGH → LOW</option>
+              <option value="name">NAME: A → Z</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* COLLAPSIBLE FILTER PANEL — ONLY VISIBLE WHEN CLICKED */}
+      {filterOpen && (
+        <div className="mb-8 border border-border p-6 bg-surface/50 rounded-none shadow-sm animate-in fade-in slide-in-from-top-3 duration-300">
+          {Filters}
         </div>
       )}
+
+      {/* FULL-WIDTH PRODUCT GRID MATCHING ALMOST GODS */}
+      <div>
+        {!loaded ? (
+          <div className={`grid gap-4 sm:gap-6 ${
+            gridCols === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+          }`}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-[3/4] w-full" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-20 text-center border border-dashed border-border p-8">
+            <p className="text-mono text-sm text-muted-foreground uppercase tracking-widest mb-4">No products match.</p>
+            {activeCount > 0 && (
+              <button onClick={clearAll} className="text-mono text-xs font-bold tracking-widest text-primary hover:underline">
+                VIEW ALL →
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className={`grid gap-4 sm:gap-6 ${
+            gridCols === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+          }`}>
+            {filtered.map((p) => (
+              <ProductCard key={p.slug} product={p} />
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }

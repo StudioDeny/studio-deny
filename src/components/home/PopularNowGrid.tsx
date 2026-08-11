@@ -117,7 +117,10 @@ export function PopularNowGrid() {
   const [visible, setVisible] = useState(true);
   const [products, setProducts] = useState<(Product & { tag?: string })[]>([]);
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const heading = useSectionHeading("popular_now", "POPULAR NOW");
+  const heading = useSectionHeading("popular_now", "BEST SELLERS", {
+    eyebrow: "MOST WANTED FITS",
+    subtitle: "HEAVY ROTATION PIECES",
+  });
 
   useEffect(() => {
     supabase
@@ -178,7 +181,7 @@ export function PopularNowGrid() {
         </div>
         <Link
           to={cfg.view_all_href || "/shop"}
-          className="group inline-flex items-center gap-2 text-mono text-xs sm:text-sm tracking-[0.2em] uppercase border-b border-foreground/40 pb-1 hover:border-primary hover:text-primary transition-colors"
+          className="group inline-flex items-center gap-2 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase border-b-2 border-foreground pb-1 hover:border-primary hover:text-primary transition-colors"
         >
           EXPLORE COLLECTION
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

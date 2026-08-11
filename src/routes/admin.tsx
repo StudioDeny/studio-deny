@@ -32,9 +32,10 @@ function AdminLayout() {
   }, [user, loading, navigate]);
 
   useEffect(() => {
-    const tick = () => {
+    const tick = async () => {
       const last = getLastSeen();
-      setUnseenOrders(listOrders().filter((o) => o.createdAt > last));
+      const all = await listOrders();
+      setUnseenOrders(all.filter((o) => o.createdAt > last));
     };
     tick();
     const id = setInterval(tick, 5000);
@@ -82,8 +83,8 @@ function AdminLayout() {
     { to: "/admin/lookbook-cms", label: "LOOK BOOK", icon: BookOpen },
     { to: "/admin/community-cms", label: "COMMUNITY", icon: Users2 },
     { to: "/admin/headings", label: "HEADINGS", icon: Heading },
-    { to: "/admin/popup", label: "POPUP", icon: Sparkles },
     { to: "/admin/preloader", label: "PRELOADER", icon: Loader },
+    { to: "/admin/popup", label: "POPUP", icon: Sparkles },
     { to: "/admin/media", label: "MEDIA", icon: Image },
     { to: "/admin/seo", label: "SEO", icon: Globe },
     { to: "/admin/notifications", label: "WHATSAPP", icon: MessageSquare },

@@ -32,23 +32,25 @@ export function EditorialHeading({
   const shouldReduceMotion = useReducedMotion();
   const Tag = as;
 
-  if (wordStagger && typeof children === "string") {
+  if (wordStagger && typeof children === "string" && children.trim() !== "") {
     const words = children.split(" ");
 
     return (
       <Tag className={className} style={style}>
         {words.map((word, idx) => (
-          <span key={`${word}-${idx}`} className="inline-block overflow-hidden py-1 mr-[0.25em] align-top">
+          <span key={`${word}-${idx}`} className="inline-block overflow-hidden py-1 px-2 -mx-2 mr-[0.25em] align-top">
             <motion.span
-              className="inline-block"
+              key={`${word}-${idx}`}
+              className="inline-block pr-[0.05em]"
               initial={{ opacity: 0, y: shouldReduceMotion ? "0%" : "120%" }}
               whileInView={{ opacity: 1, y: "0%" }}
+              animate={{ opacity: 1, y: "0%" }}
               transition={{
                 duration: 0.7,
                 ease: STRONG_EASE,
                 delay: delay + idx * 0.06,
               }}
-              viewport={{ once: true, amount: 0.2 }}
+              viewport={{ amount: 0.1 }}
             >
               {word}
             </motion.span>
@@ -58,23 +60,25 @@ export function EditorialHeading({
     );
   }
 
-  if (typeof children === "string") {
+  if (typeof children === "string" && children.trim() !== "") {
     const lines = children.split("\n");
 
     return (
       <Tag className={className} style={style}>
         {lines.map((line, lineIdx) => (
-          <span key={lineIdx} className="block overflow-hidden py-1">
+          <span key={`${line}-${lineIdx}`} className="block overflow-hidden py-1 px-2 -mx-2">
             <motion.span
-              className="block"
+              key={`${line}-${lineIdx}`}
+              className="block pr-[0.05em]"
               initial={{ opacity: 0, y: shouldReduceMotion ? "0%" : "115%" }}
               whileInView={{ opacity: 1, y: "0%" }}
+              animate={{ opacity: 1, y: "0%" }}
               transition={{
                 duration: 0.85,
                 ease: STRONG_EASE,
                 delay: delay + lineIdx * 0.1,
               }}
-              viewport={{ once: true, amount: 0.2 }}
+              viewport={{ amount: 0.1 }}
             >
               {line}
             </motion.span>
@@ -86,13 +90,14 @@ export function EditorialHeading({
 
   return (
     <Tag className={className} style={style}>
-      <span className="block overflow-hidden py-1">
+      <span className="block overflow-hidden py-1 px-2 -mx-2">
         <motion.span
-          className="block"
+          className="block pr-[0.05em]"
           initial={{ opacity: 0, y: shouldReduceMotion ? "0%" : "115%" }}
           whileInView={{ opacity: 1, y: "0%" }}
+          animate={{ opacity: 1, y: "0%" }}
           transition={{ duration: 0.85, ease: STRONG_EASE, delay }}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ amount: 0.1 }}
         >
           {children}
         </motion.span>
@@ -125,13 +130,15 @@ export function EditorialSubheading({
 
   return (
     <Tag className={className} style={style}>
-      <span className="block overflow-hidden py-0.5">
+      <span className="block overflow-hidden py-0.5 px-2 -mx-2">
         <motion.span
-          className="block"
+          key={typeof children === "string" ? children : undefined}
+          className="block pr-[0.05em]"
           initial={{ opacity: 0, y: shouldReduceMotion ? "0%" : "110%" }}
           whileInView={{ opacity: 1, y: "0%" }}
+          animate={{ opacity: 1, y: "0%" }}
           transition={{ duration: 0.75, ease: STRONG_EASE, delay }}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ amount: 0.1 }}
         >
           {children}
         </motion.span>
@@ -156,13 +163,15 @@ export function EditorialParagraph({
 
   return (
     <Tag className={className} style={style}>
-      <span className="block overflow-hidden py-0.5">
+      <span className="block overflow-hidden py-0.5 px-2 -mx-2">
         <motion.span
-          className="block"
+          key={typeof children === "string" ? children : undefined}
+          className="block pr-[0.05em]"
           initial={{ opacity: 0, y: shouldReduceMotion ? "0%" : "105%" }}
           whileInView={{ opacity: 1, y: "0%" }}
+          animate={{ opacity: 1, y: "0%" }}
           transition={{ duration: 0.65, ease: STRONG_EASE, delay }}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ amount: 0.1 }}
         >
           {children}
         </motion.span>

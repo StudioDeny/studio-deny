@@ -15,7 +15,7 @@ function InvoicePage() {
   const [o, setO] = useState<Order | null>(null);
   const [tpl, setTpl] = useState<InvoiceTemplate | null>(null);
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => { setO(getOrder(id) ?? null); setTpl(getSettings().invoice); }, [id]);
+  useEffect(() => { getOrder(id).then((order) => setO(order ?? null)); setTpl(getSettings().invoice); }, [id]);
 
   if (!o || !tpl) return <section className="px-4 md:px-8 py-24 text-center"><h1 className="text-display text-5xl">INVOICE NOT FOUND</h1></section>;
 

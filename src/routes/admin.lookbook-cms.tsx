@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
-import { uploadToCloudinary } from "@/lib/cloudinary";
-import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Upload } from "lucide-react";
+import { MediaField } from "@/components/admin/MediaField";
+import { listAllAdminProducts, type Product } from "@/lib/productsStore";
+import { formatINR } from "@/context/CartContext";
+import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/lookbook-cms")({
@@ -13,19 +15,84 @@ export const Route = createFileRoute("/admin/lookbook-cms")({
 
 const EMPTY: Omit<LookbookSlide, "id" | "created_at"> = {
   image_url: "",
+  media_type: "image",
   caption: null,
   link_href: null,
+  product_slug: null,
   is_active: true,
   position: 0,
 };
 
+function ProductPicker({
+  value,
+  products,
+  onChange,
+}: {
+  value: string | null;
+  products: Product[];
+  onChange: (slug: string | null) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const picked = value ? products.find((p) => p.slug === value) : null;
+
+  if (picked) {
+    return (
+      <div className="flex items-center gap-3 border border-border p-2">
+        <img src={picked.image} alt="" className="size-10 object-cover shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold truncate">{picked.name}</div>
+          <div className="text-mono text-[10px] text-muted-foreground">{formatINR(picked.price)}</div>
+        </div>
+        <button type="button" onClick={() => onChange(null)} className="border border-border h-8 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary">
+          CHANGE
+        </button>
+      </div>
+    );
+  }
+
+  const matches = query.trim()
+    ? products.filter((p) => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 8)
+    : [];
+
+  return (
+    <div>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="inp pl-9"
+          placeholder="Search products by name…"
+        />
+      </div>
+      {matches.length > 0 && (
+        <div className="border border-border mt-2 divide-y divide-border max-h-48 overflow-y-auto">
+          {matches.map((p) => (
+            <button
+              key={p.slug}
+              type="button"
+              onClick={() => { onChange(p.slug); setQuery(""); }}
+              className="w-full flex items-center gap-3 p-2 hover:bg-muted/40 text-left"
+            >
+              <img src={p.image} alt="" className="size-8 object-cover shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm truncate">{p.name}</div>
+                <div className="text-mono text-[10px] text-muted-foreground">{formatINR(p.price)}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LookbookCmsAdmin() {
   const [rows, setRows] = useState<LookbookSlide[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<Partial<LookbookSlide> | null>(null);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const { data, error } = await supabase.from("lookbook_slides").select("*").order("position");
@@ -34,7 +101,10 @@ function LookbookCmsAdmin() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    listAllAdminProducts().then(setProducts);
+  }, []);
 
   const toggle = async (id: string, val: boolean) => {
     const { error } = await supabase.from("lookbook_slides").update({ is_active: val }).eq("id", id);
@@ -60,28 +130,17 @@ function LookbookCmsAdmin() {
     toast.success("Deleted");
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const result = await uploadToCloudinary(file);
-      setModal((m) => (m ? { ...m, image_url: result.secure_url } : m));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const save = async () => {
     if (!modal) return;
-    if (!modal.image_url?.trim()) return toast.error("Image is required");
+    if (!modal.image_url?.trim()) return toast.error("Photo/video is required");
+    if (!modal.product_slug) return toast.error("Pick a product");
     setSaving(true);
     const payload = {
       image_url: modal.image_url,
-      caption: modal.caption || null,
-      link_href: modal.link_href || null,
+      media_type: modal.media_type ?? "image",
+      product_slug: modal.product_slug,
+      caption: modal.caption ?? null,
+      link_href: modal.link_href ?? null,
       is_active: modal.is_active ?? true,
       position: modal.position ?? 0,
     };
@@ -98,6 +157,8 @@ function LookbookCmsAdmin() {
     load();
   };
 
+  const productName = (slug: string | null) => (slug ? products.find((p) => p.slug === slug)?.name : null);
+
   if (loading) return <div className="text-mono text-xs">LOADING…</div>;
 
   return (
@@ -105,10 +166,10 @@ function LookbookCmsAdmin() {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-display text-4xl md:text-5xl">LOOK BOOK.</h1>
-          <p className="text-muted-foreground text-sm mt-1">Manage the homepage lookbook carousel slides.</p>
+          <p className="text-muted-foreground text-sm mt-1">Manage the homepage lookbook — each card is a photo/video linked to one product.</p>
         </div>
         <button onClick={() => setModal({ ...EMPTY })} className="bg-primary text-primary-foreground px-4 h-10 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:glow-primary">
-          <Plus className="size-4" /> NEW SLIDE
+          <Plus className="size-4" /> NEW CARD
         </button>
       </div>
 
@@ -117,7 +178,7 @@ function LookbookCmsAdmin() {
           <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">ORDER</th>
-              <th className="text-left p-3">SLIDE</th>
+              <th className="text-left p-3">CARD</th>
               <th className="text-left p-3">STATUS</th>
               <th className="text-right p-3">ACTIONS</th>
             </tr>
@@ -137,10 +198,14 @@ function LookbookCmsAdmin() {
                 </td>
                 <td className="p-3">
                   <div className="flex items-center gap-3">
-                    <img src={r.image_url} alt={r.caption ?? ""} className="w-14 h-16 object-cover flex-shrink-0 border border-border" />
+                    {r.media_type === "video" ? (
+                      <video src={r.image_url} muted playsInline className="w-14 h-16 object-cover flex-shrink-0 border border-border" />
+                    ) : (
+                      <img src={r.image_url} alt="" className="w-14 h-16 object-cover flex-shrink-0 border border-border" />
+                    )}
                     <div>
-                      <div className="font-semibold whitespace-pre-line">{r.caption || "—"}</div>
-                      {r.link_href && <div className="text-muted-foreground text-xs">{r.link_href}</div>}
+                      <div className="font-semibold">{productName(r.product_slug) || "— no product picked —"}</div>
+                      {r.product_slug && <div className="text-muted-foreground text-xs">{r.product_slug}</div>}
                     </div>
                   </div>
                 </td>
@@ -162,7 +227,7 @@ function LookbookCmsAdmin() {
               </tr>
             ))}
             {rows.length === 0 && (
-              <tr><td colSpan={4} className="p-8 text-center text-muted-foreground text-sm">No lookbook slides yet.</td></tr>
+              <tr><td colSpan={4} className="p-8 text-center text-muted-foreground text-sm">No lookbook cards yet.</td></tr>
             )}
           </tbody>
         </table>
@@ -172,28 +237,21 @@ function LookbookCmsAdmin() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="bg-background border border-border w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-border">
-              <div className="text-mono text-[11px] tracking-[0.25em] text-primary">{modal.id ? "EDIT" : "NEW"} SLIDE</div>
-              <button onClick={() => setModal(null)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
+              <div className="text-mono text-[11px] tracking-[0.25em] text-primary">{modal.id ? "EDIT" : "NEW"} CARD</div>
+              <button onClick={() => setModal(null)} className="text-muted-foreground hover:text-foreground text-lg"><X className="size-4" /></button>
             </div>
             <div className="p-5 space-y-4">
-              <F label="IMAGE *">
-                <div className="flex items-center gap-3">
-                  {modal.image_url && <img src={modal.image_url} alt="" className="w-16 h-20 object-cover border border-border" />}
-                  <div className="flex flex-col gap-2 flex-1">
-                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
-                    <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-                      className="border border-border h-9 px-3 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary disabled:opacity-50">
-                      <Upload className="size-3" /> {uploading ? "UPLOADING…" : "UPLOAD"}
-                    </button>
-                    <input value={modal.image_url ?? ""} onChange={(e) => setModal({ ...modal, image_url: e.target.value })} placeholder="or paste URL" className="inp" style={{ height: 36 }} />
-                  </div>
-                </div>
-              </F>
-              <F label="CAPTION (use a new line for a line break)">
-                <textarea rows={2} value={modal.caption ?? ""} onChange={(e) => setModal({ ...modal, caption: e.target.value })} className="inp" placeholder={"SS26\nCOLLECTION"} />
-              </F>
-              <F label="LINK (optional)">
-                <input value={modal.link_href ?? ""} onChange={(e) => setModal({ ...modal, link_href: e.target.value })} className="inp" placeholder="/collections/women" />
+              <MediaField
+                label="PHOTO / VIDEO *"
+                value={{ url: modal.image_url ?? "", type: modal.media_type ?? "image" }}
+                onChange={(v) => setModal({ ...modal, image_url: v.url, media_type: v.type })}
+              />
+              <F label="PRODUCT * (the card's button links here)">
+                <ProductPicker
+                  value={modal.product_slug ?? null}
+                  products={products}
+                  onChange={(slug) => setModal({ ...modal, product_slug: slug })}
+                />
               </F>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={modal.is_active ?? true} onChange={(e) => setModal({ ...modal, is_active: e.target.checked })} className="w-4 h-4" />
