@@ -36,8 +36,8 @@ function Lookbook() {
             "md:col-span-6 aspect-[3/2]",
           ];
           return (
-            <div key={p.slug} className={`relative overflow-hidden bg-surface group ${spans[i % spans.length]}`}>
-              <img src={p.image} alt={p.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+            <div key={p.slug} className={`relative overflow-hidden rounded-none bg-surface group ${spans[i % spans.length]}`}>
+              <img src={p.image} alt={p.name} className="absolute inset-0 w-full h-full object-cover" />
               <div className="absolute bottom-3 left-3 text-display text-2xl text-background bg-foreground px-2 leading-tight">{p.name}</div>
             </div>
           );
