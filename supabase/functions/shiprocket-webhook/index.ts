@@ -36,7 +36,12 @@ serve(async (req) => {
       });
     }
 
-    const { data: order } = await supabase.from("orders").select("*").eq("awb_number", awb).maybeSingle();
+    // Could be a forward shipment (customer-bound) or a return shipment
+    // (warehouse-bound) — each has its own AWB column, so check both.
+    const { data: forwardOrder } = await supabase.from("orders").select("*").eq("awb_number", awb).maybeSingle();
+    const order = forwardOrder ?? (await supabase.from("orders").select("*").eq("return_awb_number", awb).maybeSingle()).data;
+    const isReturnLeg = !forwardOrder && !!order;
+
     if (!order) {
       return new Response(JSON.stringify({ ok: true, skipped: "no matching order for this awb" }), {
         status: 200,
@@ -45,15 +50,28 @@ serve(async (req) => {
     }
 
     const update: Record<string, unknown> = {};
-    if (body.courier_name && !order.courier_name) update.courier_name = body.courier_name;
 
-    if (statusText.includes("delivered") && !statusText.includes("rto")) {
-      update.status = "DELIVERED";
-      update.delivered_at = new Date().toISOString();
-    } else if (statusText.includes("rto")) {
-      update.rto_initiated_at = order.rto_initiated_at ?? new Date().toISOString();
-    } else if (statusText.includes("picked") || statusText.includes("transit") || statusText.includes("out for delivery")) {
-      if (order.status !== "DELIVERED") update.status = "SHIPPED";
+    if (isReturnLeg) {
+      if (body.courier_name && !order.return_courier_name) update.return_courier_name = body.courier_name;
+      // "Delivered" on the return leg means the parcel arrived back at our
+      // warehouse — that's what makes it ready for the admin to refund.
+      if (statusText.includes("delivered") && !statusText.includes("rto")) {
+        update.return_status = "RECEIVED";
+        update.return_received_at = new Date().toISOString();
+      } else if (statusText.includes("picked") || statusText.includes("transit")) {
+        if (order.return_status !== "RECEIVED") update.return_status = "PICKUP_SCHEDULED";
+      }
+    } else {
+      if (body.courier_name && !order.courier_name) update.courier_name = body.courier_name;
+
+      if (statusText.includes("delivered") && !statusText.includes("rto")) {
+        update.status = "DELIVERED";
+        update.delivered_at = new Date().toISOString();
+      } else if (statusText.includes("rto")) {
+        update.rto_initiated_at = order.rto_initiated_at ?? new Date().toISOString();
+      } else if (statusText.includes("picked") || statusText.includes("transit") || statusText.includes("out for delivery")) {
+        if (order.status !== "DELIVERED") update.status = "SHIPPED";
+      }
     }
 
     if (Object.keys(update).length > 0) {

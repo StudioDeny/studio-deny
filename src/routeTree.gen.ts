@@ -55,6 +55,7 @@ import { Route as AdminPopupRouteImport } from './routes/admin.popup'
 import { Route as AdminPreloaderRouteImport } from './routes/admin.preloader'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminRefundsRouteImport } from './routes/admin.refunds'
+import { Route as AdminReturnsRouteImport } from './routes/admin.returns'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminSizesRouteImport } from './routes/admin.sizes'
@@ -304,6 +305,11 @@ const AdminRefundsRoute = AdminRefundsRouteImport.update({
   path: '/refunds',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReturnsRoute = AdminReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSeoRoute = AdminSeoRouteImport.update({
   id: '/seo',
   path: '/seo',
@@ -442,6 +448,7 @@ export interface FileRoutesByFullPath {
   '/admin/preloader': typeof AdminPreloaderRoute
   '/admin/products': typeof AdminProductsRouteWithChildren
   '/admin/refunds': typeof AdminRefundsRoute
+  '/admin/returns': typeof AdminReturnsRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/sizes': typeof AdminSizesRoute
@@ -506,6 +513,7 @@ export interface FileRoutesByTo {
   '/admin/popup': typeof AdminPopupRoute
   '/admin/preloader': typeof AdminPreloaderRoute
   '/admin/refunds': typeof AdminRefundsRoute
+  '/admin/returns': typeof AdminReturnsRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/sizes': typeof AdminSizesRoute
@@ -573,6 +581,7 @@ export interface FileRoutesById {
   '/admin/preloader': typeof AdminPreloaderRoute
   '/admin/products': typeof AdminProductsRouteWithChildren
   '/admin/refunds': typeof AdminRefundsRoute
+  '/admin/returns': typeof AdminReturnsRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/sizes': typeof AdminSizesRoute
@@ -641,6 +650,7 @@ export interface FileRouteTypes {
     | '/admin/preloader'
     | '/admin/products'
     | '/admin/refunds'
+    | '/admin/returns'
     | '/admin/seo'
     | '/admin/settings'
     | '/admin/sizes'
@@ -705,6 +715,7 @@ export interface FileRouteTypes {
     | '/admin/popup'
     | '/admin/preloader'
     | '/admin/refunds'
+    | '/admin/returns'
     | '/admin/seo'
     | '/admin/settings'
     | '/admin/sizes'
@@ -771,6 +782,7 @@ export interface FileRouteTypes {
     | '/admin/preloader'
     | '/admin/products'
     | '/admin/refunds'
+    | '/admin/returns'
     | '/admin/seo'
     | '/admin/settings'
     | '/admin/sizes'
@@ -1146,6 +1158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRefundsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/returns': {
+      id: '/admin/returns'
+      path: '/returns'
+      fullPath: '/admin/returns'
+      preLoaderRoute: typeof AdminReturnsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/seo': {
       id: '/admin/seo'
       path: '/seo'
@@ -1314,6 +1333,7 @@ interface AdminRouteChildren {
   AdminPreloaderRoute: typeof AdminPreloaderRoute
   AdminProductsRoute: typeof AdminProductsRouteWithChildren
   AdminRefundsRoute: typeof AdminRefundsRoute
+  AdminReturnsRoute: typeof AdminReturnsRoute
   AdminSeoRoute: typeof AdminSeoRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSizesRoute: typeof AdminSizesRoute
@@ -1347,6 +1367,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPreloaderRoute: AdminPreloaderRoute,
   AdminProductsRoute: AdminProductsRouteWithChildren,
   AdminRefundsRoute: AdminRefundsRoute,
+  AdminReturnsRoute: AdminReturnsRoute,
   AdminSeoRoute: AdminSeoRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminSizesRoute: AdminSizesRoute,

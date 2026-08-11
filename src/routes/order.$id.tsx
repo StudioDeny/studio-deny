@@ -1,11 +1,19 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { getOrder, cancelOrder, type Order } from "@/lib/orders";
+import { getOrder, cancelOrder, requestReturn, type Order } from "@/lib/orders";
 import { formatINR } from "@/context/CartContext";
-import { Check, FileText, X, Truck } from "lucide-react";
+import { Check, FileText, X, Truck, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Loading } from "@/components/ui/loading";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+
+const RETURN_WINDOW_DAYS = 7;
+const RETURN_STATUS_LABEL: Record<string, string> = {
+  REQUESTED: "Return requested",
+  PICKUP_SCHEDULED: "Pickup scheduled",
+  PICKUP_FAILED: "Pickup pending — contact support",
+  RECEIVED: "Received at warehouse — refund pending",
+};
 
 export const Route = createFileRoute("/order/$id")({
   component: OrderPage,
@@ -17,6 +25,7 @@ function OrderPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [confirmReturn, setConfirmReturn] = useState(false);
 
   useEffect(() => {
     getOrder(id).then((o) => {
@@ -36,6 +45,9 @@ function OrderPage() {
   }
 
   const canCancel = order.status === "PLACED" || order.status === "PACKED" || order.status === "SHIPPED";
+  const daysSinceDelivery = order.deliveredAt ? (Date.now() - order.deliveredAt) / (1000 * 60 * 60 * 24) : Infinity;
+  const canReturn = order.status === "DELIVERED" && !order.returnStatus && daysSinceDelivery <= RETURN_WINDOW_DAYS;
+
   const onCancel = async () => {
     const { shiprocketCancelled, rtoInitiated } = await cancelOrder(order.id);
     setOrder(await getOrder(id) ?? null);
@@ -44,6 +56,12 @@ function OrderPage() {
         : shiprocketCancelled ? "Order cancelled — shipment cancelled with courier"
         : "Order cancelled"
     );
+  };
+
+  const onRequestReturn = async () => {
+    const { pickupScheduled, pickupError } = await requestReturn(order.id);
+    setOrder(await getOrder(id) ?? null);
+    toast.success(pickupScheduled ? "Return requested — pickup scheduled" : `Return requested — pickup not scheduled (${pickupError ?? "unknown reason"}), we'll follow up`);
   };
 
   return (
@@ -92,6 +110,26 @@ function OrderPage() {
         </div>
       )}
 
+      {order.returnStatus && (
+        <div className="mt-6 border border-border p-5 bg-surface flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><RotateCcw className="size-3.5" /> RETURN</div>
+            <div className="font-semibold">{RETURN_STATUS_LABEL[order.returnStatus] ?? order.returnStatus}</div>
+            {order.returnAwbNumber && <div className="text-sm text-muted-foreground text-mono">AWB {order.returnAwbNumber}</div>}
+          </div>
+          {order.returnTrackingUrl && (
+            <a
+              href={order.returnTrackingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border border-border h-11 px-6 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary"
+            >
+              TRACK RETURN
+            </a>
+          )}
+        </div>
+      )}
+
       <div className="mt-6 border border-border bg-surface">
         <ul className="divide-y divide-border">
           {order.items.map((it) => (
@@ -122,6 +160,10 @@ function OrderPage() {
           <button onClick={() => setConfirmCancel(true)} className="border border-border h-12 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">
             <X className="size-4" /> CANCEL ORDER
           </button>
+        ) : canReturn ? (
+          <button onClick={() => setConfirmReturn(true)} className="border border-border h-12 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">
+            <RotateCcw className="size-4" /> REQUEST RETURN
+          </button>
         ) : (
           <Link to="/account" className="text-center border border-border h-12 inline-flex items-center justify-center text-mono text-xs tracking-widest hover:border-primary hover:text-primary">VIEW ORDERS</Link>
         )}
@@ -136,6 +178,14 @@ function OrderPage() {
         confirmLabel="CANCEL ORDER"
         destructive
         onConfirm={onCancel}
+      />
+      <ConfirmDialog
+        open={confirmReturn}
+        onOpenChange={setConfirmReturn}
+        title="REQUEST A RETURN?"
+        description="A courier pickup will be scheduled automatically from your address."
+        confirmLabel="REQUEST RETURN"
+        onConfirm={onRequestReturn}
       />
     </section>
   );

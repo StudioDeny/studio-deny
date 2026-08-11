@@ -603,6 +603,15 @@ export type DBOrder = {
   shipped_at: string | null;
   delivered_at: string | null;
   rto_initiated_at: string | null;
+  return_status: "REQUESTED" | "PICKUP_SCHEDULED" | "PICKUP_FAILED" | "RECEIVED" | null;
+  return_reason: string | null;
+  return_requested_at: string | null;
+  shiprocket_return_order_id: string | null;
+  shiprocket_return_shipment_id: string | null;
+  return_awb_number: string | null;
+  return_courier_name: string | null;
+  return_tracking_url: string | null;
+  return_received_at: string | null;
   created_at: string;
   updated_at: string;
 };

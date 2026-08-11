@@ -43,6 +43,15 @@ export type Order = {
   shippedAt?: number;
   deliveredAt?: number;
   rtoInitiatedAt?: number;
+  returnStatus?: "REQUESTED" | "PICKUP_SCHEDULED" | "PICKUP_FAILED" | "RECEIVED";
+  returnReason?: string;
+  returnRequestedAt?: number;
+  shiprocketReturnOrderId?: string;
+  shiprocketReturnShipmentId?: string;
+  returnAwbNumber?: string;
+  returnCourierName?: string;
+  returnTrackingUrl?: string;
+  returnReceivedAt?: number;
   createdAt: number;
 };
 
@@ -78,6 +87,15 @@ function mapRow(row: DBOrder): Order {
     shippedAt: row.shipped_at ? new Date(row.shipped_at).getTime() : undefined,
     deliveredAt: row.delivered_at ? new Date(row.delivered_at).getTime() : undefined,
     rtoInitiatedAt: row.rto_initiated_at ? new Date(row.rto_initiated_at).getTime() : undefined,
+    returnStatus: row.return_status ?? undefined,
+    returnReason: row.return_reason ?? undefined,
+    returnRequestedAt: row.return_requested_at ? new Date(row.return_requested_at).getTime() : undefined,
+    shiprocketReturnOrderId: row.shiprocket_return_order_id ?? undefined,
+    shiprocketReturnShipmentId: row.shiprocket_return_shipment_id ?? undefined,
+    returnAwbNumber: row.return_awb_number ?? undefined,
+    returnCourierName: row.return_courier_name ?? undefined,
+    returnTrackingUrl: row.return_tracking_url ?? undefined,
+    returnReceivedAt: row.return_received_at ? new Date(row.return_received_at).getTime() : undefined,
     createdAt: new Date(row.created_at).getTime(),
   };
 }
@@ -261,5 +279,27 @@ export async function createShipment(id: string): Promise<{ order: Order; pickup
   }
   const order = await getOrder(id);
   if (!order) throw new Error("Shipment created, but the order couldn't be reloaded");
+  return { order, pickupScheduled: !!data.pickup_scheduled, pickupError: data.pickup_error ?? undefined };
+}
+
+/** Requests a return on a DELIVERED order — creates a reverse shipment on
+ * Shiprocket and schedules a pickup from the customer's address, same
+ * "no manual admin work" shape as createShipment/cancelOrder above. */
+export async function requestReturn(id: string, reason?: string): Promise<{ order: Order; pickupScheduled: boolean; pickupError?: string }> {
+  const { data, error } = await supabase.functions.invoke("shiprocket-return", { body: { order_id: id, reason } });
+  if (error) {
+    let message = error.message;
+    try {
+      const context = (error as unknown as { context?: Response }).context;
+      const body = await context?.clone().json();
+      if (body?.error) message = body.error;
+    } catch {
+      // fall back to the generic message
+    }
+    throw new Error(message);
+  }
+  if (!data?.ok) throw new Error(data?.error ?? "Could not request a return");
+  const order = await getOrder(id);
+  if (!order) throw new Error("Return requested, but the order couldn't be reloaded");
   return { order, pickupScheduled: !!data.pickup_scheduled, pickupError: data.pickup_error ?? undefined };
 }

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import {
   LayoutDashboard, Package, ShoppingBag, Home, Users, FileText,
-  Undo2, BarChart3, Trophy, Bell, Settings, Tags, Download, FileEdit,
+  Undo2, RotateCcw, BarChart3, Trophy, Bell, Settings, Tags, Download, FileEdit,
   Megaphone, Layout, Menu, HelpCircle, Star, Image, Globe, MessageSquare,
   UserCheck, AtSign, BookOpen, Users2, Heading, X, Ruler, PanelBottom, Sparkles,
   Loader,
@@ -82,6 +82,7 @@ function AdminLayout() {
     { to: "/admin/invoices" as const, label: "INVOICES", icon: FileText },
     { to: "/admin/invoice-template" as const, label: "INVOICE TEMPLATE", icon: FileEdit },
     { to: "/admin/refunds" as const, label: "REFUNDS", icon: Undo2 },
+    { to: "/admin/returns" as const, label: "RETURNS", icon: RotateCcw },
     { to: "/admin/customers" as const, label: "CUSTOMERS", icon: Users },
     { to: "/admin/loyalty" as const, label: "LOYALTY", icon: Trophy },
     { to: "/admin/export" as const, label: "EXPORT", icon: Download },
