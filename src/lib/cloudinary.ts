@@ -11,40 +11,52 @@ export type CloudinaryResult = {
   folder: string;
 };
 
-export async function uploadToCloudinary(file: File): Promise<CloudinaryResult> {
-  const form = new FormData();
-  form.append("file", file);
-  form.append("upload_preset", UPLOAD_PRESET);
+// fetch() can't report upload progress reliably across browsers — XHR's
+// upload.onprogress is the only consistent way to get a real percentage.
+function uploadViaXhr(
+  url: string,
+  form: FormData,
+  onProgress?: (pct: number) => void
+): Promise<CloudinaryResult> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
 
-  const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-    { method: "POST", body: form }
-  );
+    xhr.upload.onprogress = (e) => {
+      if (onProgress && e.lengthComputable) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as { error?: { message?: string } }).error?.message ?? "Upload failed");
-  }
+    xhr.onload = () => {
+      let body: unknown = {};
+      try { body = JSON.parse(xhr.responseText); } catch { /* leave as {} */ }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        onProgress?.(100);
+        resolve(body as CloudinaryResult);
+      } else {
+        const message = (body as { error?: { message?: string } })?.error?.message ?? "Upload failed";
+        reject(new Error(message));
+      }
+    };
 
-  return res.json() as Promise<CloudinaryResult>;
+    xhr.onerror = () => reject(new Error("Upload failed — check your connection"));
+    xhr.send(form);
+  });
 }
 
-export async function uploadVideoToCloudinary(file: File): Promise<CloudinaryResult> {
+export async function uploadToCloudinary(file: File, onProgress?: (pct: number) => void): Promise<CloudinaryResult> {
   const form = new FormData();
   form.append("file", file);
   form.append("upload_preset", UPLOAD_PRESET);
+  return uploadViaXhr(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, form, onProgress);
+}
 
-  const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`,
-    { method: "POST", body: form }
-  );
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as { error?: { message?: string } }).error?.message ?? "Video upload failed");
-  }
-
-  return res.json() as Promise<CloudinaryResult>;
+export async function uploadVideoToCloudinary(file: File, onProgress?: (pct: number) => void): Promise<CloudinaryResult> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("upload_preset", UPLOAD_PRESET);
+  return uploadViaXhr(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, form, onProgress);
 }
 
 export function cloudinaryUrl(publicId: string, opts: { w?: number; h?: number; q?: number } = {}) {

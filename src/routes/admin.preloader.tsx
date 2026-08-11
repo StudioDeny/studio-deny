@@ -13,18 +13,21 @@ export const Route = createFileRoute("/admin/preloader")({
 
 function ImageField({ value, onChange }: { value: string; onChange: (url: string) => void }) {
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
     setUploading(true);
+    setProgress(0);
     try {
-      const result = await uploadToCloudinary(file);
+      const result = await uploadToCloudinary(file, setProgress);
       onChange(result.secure_url);
       toast.success("Uploaded");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed");
     } finally {
       setUploading(false);
+      setProgress(0);
       if (fileRef.current) fileRef.current.value = "";
     }
   };
@@ -41,7 +44,7 @@ function ImageField({ value, onChange }: { value: string; onChange: (url: string
           className="border border-border h-10 px-4 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50 shrink-0"
         >
           {uploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
-          {uploading ? "UPLOADING…" : "UPLOAD"}
+          {uploading ? `UPLOADING… ${progress}%` : "UPLOAD"}
         </button>
       </div>
       {value && (

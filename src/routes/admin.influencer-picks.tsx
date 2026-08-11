@@ -32,6 +32,7 @@ function InfluencerPicksAdmin() {
   const [modal, setModal] = useState<Partial<InfluencerPick> | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
   const videoRef = useRef<HTMLInputElement>(null);
 
   // Product tagging state (only usable once the pick has an id)
@@ -89,14 +90,16 @@ function InfluencerPicksAdmin() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingVideo(true);
+    setVideoProgress(0);
     try {
-      const result = await uploadVideoToCloudinary(file);
+      const result = await uploadVideoToCloudinary(file, setVideoProgress);
       setModal((m) => (m ? { ...m, video_url: result.secure_url } : m));
       toast.success("Video uploaded");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Video upload failed");
     } finally {
       setUploadingVideo(false);
+      setVideoProgress(0);
       e.target.value = "";
     }
   };
@@ -265,7 +268,7 @@ function InfluencerPicksAdmin() {
                       <input ref={videoRef} type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} />
                       <button type="button" onClick={() => videoRef.current?.click()} disabled={uploadingVideo}
                         className="border border-border h-9 px-3 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary disabled:opacity-50">
-                        <Upload className="size-3" /> {uploadingVideo ? "UPLOADING…" : "UPLOAD VIDEO"}
+                        <Upload className="size-3" /> {uploadingVideo ? `UPLOADING… ${videoProgress}%` : "UPLOAD VIDEO"}
                       </button>
                     </div>
                   </div>
