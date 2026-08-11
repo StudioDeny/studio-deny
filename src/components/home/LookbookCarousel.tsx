@@ -227,10 +227,11 @@ export function LookbookCarousel() {
   const isMobile = windowWidth < 768;
   const isTablet = windowWidth >= 768 && windowWidth < 1024;
 
-  const cardBaseWidth = isMobile ? 150 : isTablet ? 190 : 230;
-  const cardBaseHeight = isMobile ? 220 : isTablet ? 280 : 330;
-  const cardGap = isMobile ? 14 : 22;
-  const centerShiftX = isMobile ? -75 : isTablet ? -110 : -140;
+  // INCREASED CARD WIDTH BY 10% (230px -> 255px desktop, 190px -> 210px tablet, 150px -> 165px mobile)
+  const cardBaseWidth = isMobile ? 165 : isTablet ? 210 : 255;
+  const cardBaseHeight = isMobile ? 242 : isTablet ? 308 : 365;
+  const cardGap = isMobile ? 14 : 24;
+  const centerShiftX = isMobile ? -85 : isTablet ? -120 : -155;
 
   // Visible slot offsets around the current globalIndex
   const visibleOffsets = isMobile
@@ -271,7 +272,7 @@ export function LookbookCarousel() {
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
-            className="w-full flex items-center justify-center overflow-visible py-4 cursor-grab active:cursor-grabbing relative h-[380px] sm:h-[480px]"
+            className="w-full flex items-center justify-center overflow-visible py-4 cursor-grab active:cursor-grabbing relative h-[400px] sm:h-[520px]"
             style={{ perspective: "1000px" }}
           >
             {visibleOffsets.map((offset) => {
@@ -294,7 +295,7 @@ export function LookbookCarousel() {
 
               return (
                 <motion.div
-                  key={`card-pos-${absIndex}`} // Continuous linear key: NO CARDS EVER FLY BACKWARDS!
+                  key={`card-pos-${absIndex}`}
                   onClick={() => {
                     if (isActive) {
                       const slug = slide.product_slug ?? "denim-jacket";
