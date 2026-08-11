@@ -4,12 +4,15 @@ import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { SlideDots } from "@/components/ui/SlideDots";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const AUTOPLAY_MS = 6000;
 
 type CarouselSlide = {
   media_type: "image" | "video";
   src: string;
+  mobile_src?: string;
+  mobile_media_type?: "image" | "video";
   label: string;
   href: string;
   subtitle?: string;
@@ -31,6 +34,7 @@ export function CategoryCarousel() {
   const [cfg, setCfg] = useState<CategoryCarouselConfig>(DEFAULTS);
   const [visible, setVisible] = useState(true);
   const [active, setActive] = useState(0);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     supabase
@@ -57,6 +61,8 @@ export function CategoryCarousel() {
   if (!visible || cfg.slides.length === 0) return null;
 
   const slide = cfg.slides[active];
+  const mediaSrc = isMobile && slide.mobile_src ? slide.mobile_src : slide.src;
+  const mediaType = isMobile && slide.mobile_src ? (slide.mobile_media_type ?? "image") : slide.media_type;
   const go = (dir: -1 | 1) => setActive((a) => (a + dir + cfg.slides.length) % cfg.slides.length);
 
   return (
@@ -70,12 +76,12 @@ export function CategoryCarousel() {
           className="absolute inset-0"
         >
           <Link to={slide.href} className="absolute inset-0 z-[1]" aria-label={slide.label} />
-          {slide.media_type === "video" ? (
+          {mediaType === "video" ? (
             <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 w-full h-full object-cover">
-              <source src={slide.src} type="video/mp4" />
+              <source src={mediaSrc} type="video/mp4" />
             </video>
           ) : (
-            <img src={slide.src} alt={slide.label} className="absolute inset-0 w-full h-full object-cover" />
+            <img src={mediaSrc} alt={slide.label} className="absolute inset-0 w-full h-full object-cover" />
           )}
           <div className="absolute inset-0 bg-black/30" />
         </motion.div>

@@ -19,6 +19,8 @@ type HeroSlide = {
   id: string;
   media_type: "video" | "image";
   src: string;
+  mobile_src?: string;
+  mobile_media_type?: "video" | "image";
   title: string;
   subtitle: string;
   cta_label: string;
@@ -36,7 +38,7 @@ type NewsletterConfig = { cta_label: string; success_heading?: string; success_b
 type FaqConfig = { view_all_label?: string };
 type SplitCard = { media_type: "image" | "video"; src: string; label: string; cta_href: string };
 type GenderSplitConfig = { cards: SplitCard[]; explore_label?: string };
-type CarouselSlide = { media_type: "image" | "video"; src: string; label: string; href: string; subtitle?: string; cta_label?: string };
+type CarouselSlide = { media_type: "image" | "video"; src: string; mobile_src?: string; mobile_media_type?: "image" | "video"; label: string; href: string; subtitle?: string; cta_label?: string };
 type CategoryCarouselConfig = { slides: CarouselSlide[] };
 type DenySpaceBenefit = { icon: string; label: string; desc: string };
 type DenySpaceConfig = { logo_url: string; logo_type?: "image" | "video"; description: string; benefits: DenySpaceBenefit[]; cta_label: string; cta_href: string; bg_color?: string; text_color?: string; bg_media_url?: string; bg_media_type?: "image" | "video" };
@@ -496,6 +498,21 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
                 onChange={(v) => updateSlide(i, { src: v.url, media_type: v.type })}
               />
 
+              <MediaField
+                label="MOBILE OVERRIDE (optional — falls back to the media above on phones if left blank)"
+                value={{ url: slide.mobile_src ?? "", type: slide.mobile_media_type ?? "image" }}
+                onChange={(v) => updateSlide(i, { mobile_src: v.url, mobile_media_type: v.type })}
+              />
+              {slide.mobile_src && (
+                <button
+                  type="button"
+                  onClick={() => updateSlide(i, { mobile_src: "", mobile_media_type: undefined })}
+                  className="text-mono text-[10px] tracking-widest text-red-500 hover:underline"
+                >
+                  CLEAR MOBILE OVERRIDE
+                </button>
+              )}
+
               <div className="grid grid-cols-2 gap-3">
                 <F label="BUTTON 1 LABEL"><input value={slide.cta_label} onChange={(e) => updateSlide(i, { cta_label: e.target.value })} className="inp" placeholder="SHOP THE DROP" /></F>
                 <F label="BUTTON 1 URL"><input value={slide.cta_href} onChange={(e) => updateSlide(i, { cta_href: e.target.value })} className="inp" placeholder="/shop" /></F>
@@ -885,6 +902,20 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
                 value={{ url: slide.src, type: slide.media_type }}
                 onChange={(v) => updateSlide(i, { src: v.url, media_type: v.type })}
               />
+              <MediaField
+                label="MOBILE OVERRIDE (optional — falls back to the media above on phones if left blank)"
+                value={{ url: slide.mobile_src ?? "", type: slide.mobile_media_type ?? "image" }}
+                onChange={(v) => updateSlide(i, { mobile_src: v.url, mobile_media_type: v.type })}
+              />
+              {slide.mobile_src && (
+                <button
+                  type="button"
+                  onClick={() => updateSlide(i, { mobile_src: "", mobile_media_type: undefined })}
+                  className="text-mono text-[10px] tracking-widest text-red-500 hover:underline"
+                >
+                  CLEAR MOBILE OVERRIDE
+                </button>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <F label="BUTTON LABEL (optional)"><input value={slide.cta_label ?? ""} onChange={(e) => updateSlide(i, { cta_label: e.target.value })} className="inp" placeholder="SHOP NOW" /></F>
                 <F label="LINK (collection / shop URL)"><input value={slide.href} onChange={(e) => updateSlide(i, { href: e.target.value })} className="inp" placeholder="/shop?sort=best" /></F>

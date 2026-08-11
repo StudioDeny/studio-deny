@@ -3,11 +3,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { FillLink } from "@/components/ui/FillLink";
 import { SlideDots } from "@/components/ui/SlideDots";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export type HeroSlide = {
   id: string;
   media_type: "image" | "video";
   src: string;
+  mobile_src?: string;
+  mobile_media_type?: "image" | "video";
   title: string; // use "\n" for line breaks
   subtitle: string;
   cta_label: string;
@@ -59,6 +62,7 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
   const data = slides && slides.length > 0 ? slides : DEFAULT_HERO_SLIDES;
   const [active, setActive] = useState(0);
   const [scrollY, setScrollY] = useState(0);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -73,6 +77,8 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
   }, [data.length]);
 
   const slide = data[Math.min(active, data.length - 1)];
+  const mediaSrc = isMobile && slide.mobile_src ? slide.mobile_src : slide.src;
+  const mediaType = isMobile && slide.mobile_src ? (slide.mobile_media_type ?? "image") : slide.media_type;
   const lines = slide.title.split("\n");
   const parallax = Math.min(scrollY * 0.25, 90);
 
@@ -91,7 +97,7 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
           className="absolute inset-0"
           style={{ transform: `translateY(${parallax}px)` }}
         >
-          {slide.media_type === "video" ? (
+          {mediaType === "video" ? (
             <video
               autoPlay
               loop
@@ -101,11 +107,11 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
               className="absolute inset-0 w-full h-full object-cover"
               style={{ filter: "brightness(0.55)" }}
             >
-              <source src={slide.src} type="video/mp4" />
+              <source src={mediaSrc} type="video/mp4" />
             </video>
           ) : (
             <img
-              src={slide.src}
+              src={mediaSrc}
               alt=""
               aria-hidden
               className="absolute inset-0 w-full h-full object-cover"
