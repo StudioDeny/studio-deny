@@ -14,7 +14,7 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     is_active: true,
     position: 0,
     product_slug: "denim-jacket",
-    caption: "2 TONE EMBROIDERY CAP",
+    caption: "RIPPED DENIM JACKET",
     link_href: null,
     created_at: "",
   },
@@ -47,7 +47,7 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     is_active: true,
     position: 3,
     product_slug: "graphic-tee",
-    caption: "HEAVYWEIGHT GRAPHIC TEE",
+    caption: "BASIC OVERSIZED GRAPHIC TEE",
     link_href: null,
     created_at: "",
   },
@@ -123,7 +123,7 @@ const FALLBACK_PRODUCTS: Record<string, MiniProduct> = {
   "denim-jacket": { slug: "denim-jacket", name: "RIPPED DENIM JACKET", price: 4999 },
   "oversized-hoodie": { slug: "oversized-hoodie", name: "OVERSIZED HOODIE", price: 3499 },
   "cargo-pants": { slug: "cargo-pants", name: "TACTICAL CARGO PANTS", price: 3999 },
-  "graphic-tee": { slug: "graphic-tee", name: "HEAVYWEIGHT GRAPHIC TEE", price: 2199 },
+  "graphic-tee": { slug: "graphic-tee", name: "BASIC OVERSIZED GRAPHIC TEE", price: 2199 },
   "leather-bomber": { slug: "leather-bomber", name: "VINTAGE LEATHER BOMBER", price: 7999 },
 };
 
@@ -131,7 +131,7 @@ export function LookbookCarousel() {
   const navigate = useNavigate();
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [products, setProducts] = useState<Record<string, MiniProduct>>({});
-  const [activeIndex, setActiveIndex] = useState(3);
+  const [trackIndex, setTrackIndex] = useState(3);
   const [isSectionHovered, setIsSectionHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
@@ -170,9 +170,11 @@ export function LookbookCarousel() {
   }, []);
 
   const baseSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
+  
+  // Multiply array for infinite continuous right-to-left scrolling loop
   const rawSlides = (() => {
     let list = [...baseSlides];
-    while (list.length < 14) {
+    while (list.length < 16) {
       list = [...list, ...baseSlides];
     }
     return list;
@@ -182,27 +184,27 @@ export function LookbookCarousel() {
   const total = rawSlides.length;
 
   const handleNext = useCallback(() => {
-    setActiveIndex((prev) => (prev + 1) % total);
+    setTrackIndex((prev) => (prev + 1) % total);
   }, [total]);
 
   const handlePrev = useCallback(() => {
-    setActiveIndex((prev) => (prev - 1 + total) % total);
+    setTrackIndex((prev) => (prev - 1 + total) % total);
   }, [total]);
 
-  // Seamless right-to-left continuous card stream progression
+  // Seamless continuous auto-scroll from right to left
   useEffect(() => {
     if (isSectionHovered || isDragging || total === 0) return;
     const timer = setInterval(() => {
       handleNext();
-    }, 3000);
+    }, 2800);
     return () => clearInterval(timer);
   }, [isSectionHovered, isDragging, total, handleNext]);
 
-  // Wheel scroll handler
+  // Mouse wheel listener
   const lastWheelTime = useRef<number>(0);
   const handleWheel = (e: React.WheelEvent) => {
     const now = Date.now();
-    if (now - lastWheelTime.current < 200) return;
+    if (now - lastWheelTime.current < 180) return;
     const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
     if (delta > 15) {
       handleNext();
@@ -239,21 +241,22 @@ export function LookbookCarousel() {
 
   if (total === 0) return null;
 
-  // The immediate next left card to the center is (activeIndex - 1 + total) % total
-  const spotlightIndex = (activeIndex - 1 + total) % total;
-  const spotlightSlide = rawSlides[spotlightIndex];
-  const spotlightProduct = spotlightSlide?.product_slug ? mergedProducts[spotlightSlide.product_slug] : undefined;
-  const spotlightNum = String((spotlightIndex % total) + 1).padStart(2, "0");
-
   const isMobile = windowWidth < 768;
+  const isTablet = windowWidth >= 768 && windowWidth < 1024;
+
+  // The STATIC SPOTLIGHT POSITION is fixed at index position 3 (the 4th card, immediate next-left to center)
+  // Whichever card index currently occupies trackIndex is inside the STATIC SPOTLIGHT SLOT!
+  const spotlightCardIndex = trackIndex % total;
+  const spotlightSlide = rawSlides[spotlightCardIndex];
+  const spotlightProduct = spotlightSlide?.product_slug ? mergedProducts[spotlightSlide.product_slug] : undefined;
+  const spotlightNum = String((spotlightCardIndex % baseSlides.length) + 1).padStart(2, "0");
 
   const handleCardClick = (idx: number, slide: LookbookSlide) => {
-    if (idx === spotlightIndex) {
+    if (idx === spotlightCardIndex) {
       const slug = slide.product_slug ?? "denim-jacket";
       navigate({ to: "/product/$slug", params: { slug } });
     } else {
-      // Set activeIndex so this card moves into the immediate-left spotlight position
-      setActiveIndex((idx + 1) % total);
+      setTrackIndex(idx);
     }
   };
 
@@ -281,20 +284,20 @@ export function LookbookCarousel() {
         {/* Gallery Stage */}
         <div className="relative pt-8 sm:pt-12 w-full flex flex-col items-center">
           
-          {/* Metadata Block Aligned Directly Above the Immediate Next-Left Spotlight Position */}
+          {/* STATIC METADATA BLOCK — Fixed directly above the Static Spotlight Slot */}
           <div className="w-full flex justify-center mb-4">
-            <div className="w-full max-w-[220px] sm:max-w-[300px] text-left font-mono text-[10px] sm:text-[11px] leading-tight text-neutral-800 tracking-wider">
+            <div className="w-full max-w-[220px] sm:max-w-[320px] text-center font-mono text-[10px] sm:text-[11px] leading-tight text-neutral-800 tracking-wider">
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={spotlightIndex}
+                  key={spotlightCardIndex}
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 4 }}
-                  transition={{ duration: 0.25 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <p className="font-bold text-black text-xs sm:text-sm mb-1">({spotlightNum})</p>
+                  <p className="font-bold text-black text-xs sm:text-sm mb-0.5">({spotlightNum})</p>
                   <p className="font-bold uppercase tracking-widest text-black truncate">
-                    {spotlightProduct ? spotlightProduct.name : spotlightSlide?.caption || "EDITORIAL FIT"}
+                    {spotlightProduct ? spotlightProduct.name : spotlightSlide?.caption || "BASIC OVERSIZED GRAPHIC TEE"}
                   </p>
                   <p className="text-neutral-500 uppercase text-[9px] sm:text-[10px] mt-0.5">
                     STUDIO DENY — DROP 014
@@ -304,31 +307,61 @@ export function LookbookCarousel() {
             </div>
           </div>
 
-          {/* Seamless Horizontal Stream Row */}
+          {/* CONTINUOUS SCROLLING TRACK: Cards move through the fixed static spotlight slot */}
           <div
             onWheel={handleWheel}
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
-            className="w-full flex items-center justify-start sm:justify-center gap-3 sm:gap-5 overflow-x-auto no-scrollbar py-4 cursor-grab active:cursor-grabbing"
+            className="w-full flex items-center justify-center gap-3 sm:gap-4 overflow-visible py-4 cursor-grab active:cursor-grabbing relative"
+            style={{
+              perspective: "1000px",
+            }}
           >
+            {/* Render cards array positioned relative to trackIndex */}
             {rawSlides.map((slide, idx) => {
-              // The card at spotlightIndex (immediate next-left to center) ALWAYS expands and hovers
-              const isSpotlight = idx === spotlightIndex;
+              // Signed offset relative to current spotlight index
+              let offset = (idx - spotlightCardIndex + total) % total;
+              if (offset > total / 2) offset -= total;
+              if (offset < -total / 2) offset += total;
+
+              // Only render visible surrounding cards (-3 to +3 or -4 to +4)
+              const maxVisibleOffset = isMobile ? 2 : isTablet ? 3 : 4;
+              if (Math.abs(offset) > maxVisibleOffset) return null;
+
+              // Is this card currently INSIDE the static spotlight slot?
+              const isSpotlightSlot = offset === 0;
+
+              // Horizontal translation X: Cards line up in a flat row relative to the spotlight slot at offset 0
+              const itemWidth = isMobile ? 120 : 170;
+              const gap = isMobile ? 12 : 16;
+              const spotlightWidth = isMobile ? 210 : 310;
+
+              let x = 0;
+              if (offset > 0) {
+                x = (spotlightWidth / 2) + (gap) + (itemWidth / 2) + (offset - 1) * (itemWidth + gap);
+              } else if (offset < 0) {
+                x = -((spotlightWidth / 2) + (gap) + (itemWidth / 2) + (Math.abs(offset) - 1) * (itemWidth + gap));
+              }
 
               return (
                 <motion.div
                   key={`${slide.id}-${idx}`}
                   onClick={() => handleCardClick(idx, slide)}
                   animate={{
-                    height: isSpotlight ? (isMobile ? "300px" : "440px") : (isMobile ? "160px" : "240px"),
-                    width: isSpotlight ? (isMobile ? "210px" : "310px") : (isMobile ? "110px" : "170px"),
-                    opacity: isSpotlight ? 1 : 0.80,
+                    x,
+                    height: isSpotlightSlot ? (isMobile ? "300px" : "440px") : (isMobile ? "160px" : "240px"),
+                    width: isSpotlightSlot ? (isMobile ? "210px" : "310px") : (isMobile ? "120px" : "170px"),
+                    opacity: isSpotlightSlot ? 1 : 0.82,
+                    zIndex: isSpotlightSlot ? 40 : 20 - Math.abs(offset),
                   }}
                   transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                  className={`shrink-0 relative overflow-hidden border cursor-pointer rounded-none group transition-all duration-300 ${
-                    isSpotlight
-                      ? "border-black shadow-2xl ring-2 ring-black/15 scale-[1.02]"
+                  style={{
+                    position: "absolute",
+                  }}
+                  className={`shrink-0 overflow-hidden border cursor-pointer rounded-none group transition-shadow duration-300 ${
+                    isSpotlightSlot
+                      ? "border-black shadow-2xl ring-2 ring-black/15"
                       : "border-black/10 bg-neutral-200"
                   }`}
                 >
@@ -338,8 +371,8 @@ export function LookbookCarousel() {
                     <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
                   )}
 
-                  {/* Spotlight Hover Tag on the Immediate-Left Active Card */}
-                  {isSpotlight && (
+                  {/* Spotlight Tag inside the static slot */}
+                  {isSpotlightSlot && (
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                       <span className="text-white font-mono text-[10px] sm:text-[11px] font-bold tracking-widest uppercase flex items-center gap-1.5">
                         OPEN PRODUCT <span className="text-primary font-bold">→</span>
@@ -349,10 +382,13 @@ export function LookbookCarousel() {
                 </motion.div>
               );
             })}
+
+            {/* Spacer to maintain vertical container height */}
+            <div className="h-[320px] sm:h-[460px] w-full pointer-events-none" />
           </div>
 
           {/* Bottom (MORE) button */}
-          <div className="mt-10 sm:mt-14 text-center">
+          <div className="mt-8 sm:mt-12 text-center">
             <Link
               to="/lookbook"
               className="font-mono text-xs sm:text-sm font-bold tracking-[0.25em] text-neutral-800 hover:text-black uppercase underline underline-offset-8 transition-colors"
