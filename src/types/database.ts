@@ -667,8 +667,6 @@ export type LookbookSlide = {
   is_active: boolean;
   position: number;
   created_at: string;
-  product_slug?: string | null;
-  media_type?: "image" | "video";
 };
 
 export type CommunityPhoto = {
