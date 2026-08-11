@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { listOrders, updateOrderStatus, refundOrder, createShipment, type Order, type OrderStatus } from "@/lib/orders";
 import { formatINR } from "@/context/CartContext";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Truck, Loader2 } from "lucide-react";
 
@@ -14,7 +15,20 @@ const STATUSES: OrderStatus[] = ["PLACED", "PACKED", "SHIPPED", "DELIVERED", "CA
 function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [shipping, setShipping] = useState<string | null>(null);
-  useEffect(() => { listOrders().then(setOrders); }, []);
+
+  useEffect(() => {
+    listOrders().then(setOrders);
+    // Shiprocket's webhook updates the orders row server-side as the parcel
+    // moves — without this, the admin only sees that change on a manual
+    // page refresh.
+    const channel = supabase
+      .channel("admin-orders")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
+        listOrders().then(setOrders);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const change = async (id: string, status: OrderStatus) => {
     await updateOrderStatus(id, status);

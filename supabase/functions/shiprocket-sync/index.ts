@@ -42,6 +42,24 @@ function formatOrderDate(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+// The pickup_location string the create-order API expects doesn't always
+// match the nickname shown in the dashboard UI (and can differ per API
+// user's granted access) — when Shiprocket rejects it, ask Shiprocket
+// itself what values it considers valid instead of guessing again.
+async function getPickupLocationNicknames(token: string): Promise<string[]> {
+  try {
+    const res = await fetch(`${SR_BASE}/settings/company/pickup`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const json = await res.json();
+    const list = json.data?.shipping_address ?? [];
+    return list.map((a: { pickup_location?: string }) => a.pickup_location).filter(Boolean);
+  } catch (e) {
+    console.error("Fetching pickup locations failed:", e);
+    return [];
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
@@ -121,7 +139,14 @@ serve(async (req) => {
 
     if (!createRes.ok || !shipmentId) {
       console.error("Shiprocket order creation failed:", createRes.status, JSON.stringify(createJson));
-      const message = createJson.message ?? JSON.stringify(createJson.errors ?? createJson);
+      let message = createJson.message ?? JSON.stringify(createJson.errors ?? createJson);
+      if (String(message).toLowerCase().includes("pickup location")) {
+        const validLocations = await getPickupLocationNicknames(token);
+        console.error("Pickup locations visible to this API user:", JSON.stringify(validLocations));
+        message += validLocations.length
+          ? ` — this API user can see these pickup_location values: ${JSON.stringify(validLocations)}. Update the SHIPROCKET_PICKUP_LOCATION secret to match one exactly.`
+          : " — this API user has no pickup addresses visible at all. In Shiprocket, edit the API user's permissions and grant it access to the pickup address, or re-check that the address is Verified + Active.";
+      }
       return new Response(JSON.stringify({ ok: false, error: `Shiprocket order creation failed (HTTP ${createRes.status}): ${message}` }), {
         status: 502,
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },

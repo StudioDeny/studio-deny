@@ -155,12 +155,12 @@ function Account() {
                     <a href={o.trackingUrl} target="_blank" rel="noopener noreferrer" title="Track shipment" className="text-muted-foreground hover:text-primary"><Truck className="size-4" /></a>
                   )}
                   <Link to="/invoice/$id" params={{ id: o.id }} title="Invoice" className="text-muted-foreground hover:text-primary"><FileText className="size-4" /></Link>
-                  {(o.status === "PLACED" || o.status === "PACKED") && (
+                  {(o.status === "PLACED" || o.status === "PACKED" || o.status === "SHIPPED") && (
                     <button title="Cancel" onClick={async () => {
                       if (!confirm("Cancel this order?")) return;
-                      await cancelOrder(o.id);
+                      const { shiprocketCancelled } = await cancelOrder(o.id);
                       setOrders(await ordersFor(user.email));
-                      toast.success("Order cancelled");
+                      toast.success(shiprocketCancelled ? "Order cancelled — shipment cancelled with courier" : "Order cancelled");
                     }} className="text-muted-foreground hover:text-primary"><X className="size-4" /></button>
                   )}
                   <Link to="/order/$id" params={{ id: o.id }} className="text-mono text-[11px] tracking-widest text-primary hover:underline">VIEW →</Link>

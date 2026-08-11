@@ -33,12 +33,12 @@ function OrderPage() {
     );
   }
 
-  const canCancel = order.status === "PLACED" || order.status === "PACKED";
+  const canCancel = order.status === "PLACED" || order.status === "PACKED" || order.status === "SHIPPED";
   const onCancel = async () => {
     if (!confirm("Cancel this order? A refund will be processed.")) return;
-    await cancelOrder(order.id);
+    const { shiprocketCancelled } = await cancelOrder(order.id);
     setOrder(await getOrder(id) ?? null);
-    toast.success("Order cancelled");
+    toast.success(shiprocketCancelled ? "Order cancelled — shipment cancelled with courier" : "Order cancelled");
   };
 
   return (

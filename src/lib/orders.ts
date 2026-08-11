@@ -198,12 +198,24 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
   if (error) throw new Error(error.message);
 }
 
-export async function cancelOrder(id: string): Promise<void> {
-  const { error } = await supabase
-    .from("orders")
-    .update({ status: "CANCELLED", cancelled_at: new Date().toISOString() } as any)
-    .eq("id", id);
-  if (error) throw new Error(error.message);
+/** Cancels the order and, if a Shiprocket shipment already exists for it,
+ * cancels that too — server-side, so no manual cleanup in Shiprocket's
+ * dashboard is ever needed. */
+export async function cancelOrder(id: string): Promise<{ shiprocketCancelled: boolean }> {
+  const { data, error } = await supabase.functions.invoke("shiprocket-cancel", { body: { order_id: id } });
+  if (error) {
+    let message = error.message;
+    try {
+      const context = (error as unknown as { context?: Response }).context;
+      const body = await context?.clone().json();
+      if (body?.error) message = body.error;
+    } catch {
+      // fall back to the generic message
+    }
+    throw new Error(message);
+  }
+  if (!data?.ok) throw new Error(data?.error ?? "Could not cancel order");
+  return { shiprocketCancelled: !!data.shiprocket_cancelled };
 }
 
 export async function refundOrder(id: string, amount?: number): Promise<void> {
