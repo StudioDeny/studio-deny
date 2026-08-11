@@ -84,6 +84,83 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     link_href: null,
     created_at: "",
   },
+  {
+    id: "fb-8",
+    image_url: "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=1000&auto=format&fit=crop",
+    media_type: "image",
+    is_active: true,
+    position: 7,
+    product_slug: "cargo-pants",
+    caption: "EDITORIAL TAILORED FIT",
+    link_href: null,
+    created_at: "",
+  },
+  {
+    id: "fb-9",
+    image_url: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=1000&auto=format&fit=crop",
+    media_type: "image",
+    is_active: true,
+    position: 8,
+    product_slug: "graphic-tee",
+    caption: "URBAN UTILITY SHOT",
+    link_href: null,
+    created_at: "",
+  },
+  {
+    id: "fb-10",
+    image_url: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1000&auto=format&fit=crop",
+    media_type: "image",
+    is_active: true,
+    position: 9,
+    product_slug: "leather-bomber",
+    caption: "STRUCTURED OUTERWEAR",
+    link_href: null,
+    created_at: "",
+  },
+  {
+    id: "fb-11",
+    image_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1000&auto=format&fit=crop",
+    media_type: "image",
+    is_active: true,
+    position: 10,
+    product_slug: "denim-jacket",
+    caption: "HIGH-STREET COAT FIT",
+    link_href: null,
+    created_at: "",
+  },
+  {
+    id: "fb-12",
+    image_url: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=1000&auto=format&fit=crop",
+    media_type: "image",
+    is_active: true,
+    position: 11,
+    product_slug: "oversized-hoodie",
+    caption: "TEXTURED KNITWEAR SHOT",
+    link_href: null,
+    created_at: "",
+  },
+  {
+    id: "fb-13",
+    image_url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=1000&auto=format&fit=crop",
+    media_type: "image",
+    is_active: true,
+    position: 12,
+    product_slug: "cargo-pants",
+    caption: "EDITORIAL STREET CUT",
+    link_href: null,
+    created_at: "",
+  },
+  {
+    id: "fb-14",
+    image_url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=1000&auto=format&fit=crop",
+    media_type: "image",
+    is_active: true,
+    position: 13,
+    product_slug: "graphic-tee",
+    caption: "MINIMAL GRAPHIC SILHOUETTE",
+    link_href: null,
+    created_at: "",
+  },
 ];
 
 const FALLBACK_PRODUCTS: Record<string, MiniProduct> = {
@@ -135,7 +212,15 @@ export function LookbookCarousel() {
       });
   }, []);
 
-  const rawSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
+  const baseSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
+  const rawSlides = (() => {
+    let list = [...baseSlides];
+    while (list.length < 14) {
+      list = [...list, ...baseSlides];
+    }
+    return list;
+  })();
+
   const mergedProducts = { ...FALLBACK_PRODUCTS, ...products };
   const total = rawSlides.length;
 
@@ -211,7 +296,7 @@ export function LookbookCarousel() {
       onMouseLeave={() => setIsSectionHovered(false)}
     >
       {/* Full-width Section Content */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8">
+      <div className="max-w-[1560px] mx-auto px-4 sm:px-8">
         
         {/* Header Row: lookbook© logo on left + GALLERY SHOP CONTACT on right */}
         <div className="flex items-center justify-between pb-8 sm:pb-12 border-b border-black/10">
@@ -235,13 +320,13 @@ export function LookbookCarousel() {
             <p className="text-neutral-500 uppercase text-[9px] sm:text-[10px] mt-0.5">STUDIO DENY — DROP 014</p>
           </div>
 
-          {/* Flat 7-Card Horizontal Row */}
+          {/* Flat Multi-Card Horizontal Row */}
           <div
             onWheel={handleWheel}
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
-            className="w-full flex items-center justify-center gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar py-4 cursor-grab active:cursor-grabbing"
+            className="w-full flex items-center justify-start sm:justify-center gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar py-4 cursor-grab active:cursor-grabbing"
           >
             {rawSlides.map((slide, idx) => {
               const isCenter = idx === activeIndex;
