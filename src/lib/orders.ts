@@ -35,6 +35,14 @@ export type Order = {
   refundAmount?: number;
   refundedAt?: number;
   cancelledAt?: number;
+  shiprocketOrderId?: string;
+  shiprocketShipmentId?: string;
+  awbNumber?: string;
+  courierName?: string;
+  trackingUrl?: string;
+  shippedAt?: number;
+  deliveredAt?: number;
+  rtoInitiatedAt?: number;
   createdAt: number;
 };
 
@@ -62,6 +70,14 @@ function mapRow(row: DBOrder): Order {
     refundAmount: row.refund_amount != null ? Number(row.refund_amount) : undefined,
     refundedAt: row.refunded_at ? new Date(row.refunded_at).getTime() : undefined,
     cancelledAt: row.cancelled_at ? new Date(row.cancelled_at).getTime() : undefined,
+    shiprocketOrderId: row.shiprocket_order_id ?? undefined,
+    shiprocketShipmentId: row.shiprocket_shipment_id ?? undefined,
+    awbNumber: row.awb_number ?? undefined,
+    courierName: row.courier_name ?? undefined,
+    trackingUrl: row.tracking_url ?? undefined,
+    shippedAt: row.shipped_at ? new Date(row.shipped_at).getTime() : undefined,
+    deliveredAt: row.delivered_at ? new Date(row.delivered_at).getTime() : undefined,
+    rtoInitiatedAt: row.rto_initiated_at ? new Date(row.rto_initiated_at).getTime() : undefined,
     createdAt: new Date(row.created_at).getTime(),
   };
 }
@@ -206,4 +222,17 @@ export async function refundOrder(id: string, amount?: number): Promise<void> {
 export async function updateInvoice(id: string, patch: Partial<Order>): Promise<void> {
   const { error } = await supabase.from("orders").update(patchToRow(patch) as any).eq("id", id);
   if (error) throw new Error(error.message);
+}
+
+/** Creates the shipment on Shiprocket, assigns an AWB, and marks the order
+ * SHIPPED — all server-side (the edge function holds the Shiprocket
+ * credentials, never the browser). Returns the updated order. */
+export async function createShipment(id: string): Promise<Order> {
+  const { data, error } = await supabase.functions.invoke("shiprocket-sync", { body: { order_id: id } });
+  if (error || !data?.ok) {
+    throw new Error(data?.error ?? error?.message ?? "Could not create shipment");
+  }
+  const order = await getOrder(id);
+  if (!order) throw new Error("Shipment created, but the order couldn't be reloaded");
+  return order;
 }

@@ -151,6 +151,9 @@ function Account() {
                   : "bg-red-100 text-red-800"
                 }`}>{o.status}</span>
                 <div className="flex gap-3 items-center">
+                  {o.trackingUrl && (
+                    <a href={o.trackingUrl} target="_blank" rel="noopener noreferrer" title="Track shipment" className="text-muted-foreground hover:text-primary"><Truck className="size-4" /></a>
+                  )}
                   <Link to="/invoice/$id" params={{ id: o.id }} title="Invoice" className="text-muted-foreground hover:text-primary"><FileText className="size-4" /></Link>
                   {(o.status === "PLACED" || o.status === "PACKED") && (
                     <button title="Cancel" onClick={async () => {

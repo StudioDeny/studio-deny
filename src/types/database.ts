@@ -595,6 +595,14 @@ export type DBOrder = {
   refund_amount: number | null;
   refunded_at: string | null;
   cancelled_at: string | null;
+  shiprocket_order_id: string | null;
+  shiprocket_shipment_id: string | null;
+  awb_number: string | null;
+  courier_name: string | null;
+  tracking_url: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
+  rto_initiated_at: string | null;
   created_at: string;
   updated_at: string;
 };
