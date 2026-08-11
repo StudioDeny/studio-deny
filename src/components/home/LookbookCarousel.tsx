@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
@@ -122,8 +122,8 @@ export function LookbookCarousel() {
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [products, setProducts] = useState<Record<string, MiniProduct>>({});
   
-  // Track Index dictates which card is currently positioned at POSITION 4 (CENTER - 1)
-  const [trackIndex, setTrackIndex] = useState(3);
+  // Continuous global sequence index — increases infinitely to move right to left
+  const [globalIndex, setGlobalIndex] = useState(1000);
   const [isSectionHovered, setIsSectionHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
@@ -163,28 +163,18 @@ export function LookbookCarousel() {
   }, []);
 
   const baseSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
-  
-  // Expand slide ring to ensure visible card positions can seamlessly cycle
-  const rawSlides = (() => {
-    let list = [...baseSlides];
-    while (list.length < 18) {
-      list = [...list, ...baseSlides];
-    }
-    return list;
-  })();
-
   const mergedProducts = { ...FALLBACK_PRODUCTS, ...products };
-  const total = rawSlides.length;
+  const total = baseSlides.length;
 
   const handleNext = useCallback(() => {
-    setTrackIndex((prev) => (prev + 1) % total);
-  }, [total]);
+    setGlobalIndex((prev) => prev + 1);
+  }, []);
 
   const handlePrev = useCallback(() => {
-    setTrackIndex((prev) => (prev - 1 + total) % total);
-  }, [total]);
+    setGlobalIndex((prev) => prev - 1);
+  }, []);
 
-  // Cinematic automatic card progression right to left through the fixed Position 4 active zone
+  // Cinematic continuous right-to-left progression through Position 4
   useEffect(() => {
     if (isSectionHovered || isDragging || total === 0) return;
     const timer = setInterval(() => {
@@ -237,26 +227,17 @@ export function LookbookCarousel() {
   const isMobile = windowWidth < 768;
   const isTablet = windowWidth >= 768 && windowWidth < 1024;
 
-  // STRICT SPEC RULE: POSITION 4 IS THE FIXED ACTIVE ZONE (CENTER - 1).
-  // The card at trackIndex % total is currently occupying POSITION 4!
-  const activeCardIndex = trackIndex % total;
-
-  const handleCardClick = (idx: number, slide: LookbookSlide) => {
-    if (idx === activeCardIndex) {
-      const slug = slide.product_slug ?? "denim-jacket";
-      navigate({ to: "/product/$slug", params: { slug } });
-    } else {
-      setTrackIndex(idx);
-    }
-  };
-
-  // CONSTANT CARD DIMENSIONS — prevents box-model distortion during transitions!
   const cardBaseWidth = isMobile ? 150 : isTablet ? 190 : 230;
   const cardBaseHeight = isMobile ? 220 : isTablet ? 280 : 330;
   const cardGap = isMobile ? 14 : 22;
-
-  // Position 4 shift (CENTER - 1)
   const centerShiftX = isMobile ? -75 : isTablet ? -110 : -140;
+
+  // Visible slot offsets around the current globalIndex
+  const visibleOffsets = isMobile
+    ? [-2, -1, 0, 1, 2]
+    : isTablet
+    ? [-3, -2, -1, 0, 1, 2, 3]
+    : [-4, -3, -2, -1, 0, 1, 2, 3, 4];
 
   return (
     <section
@@ -293,42 +274,46 @@ export function LookbookCarousel() {
             className="w-full flex items-center justify-center overflow-visible py-4 cursor-grab active:cursor-grabbing relative h-[380px] sm:h-[480px]"
             style={{ perspective: "1000px" }}
           >
-            {rawSlides.map((slide, idx) => {
-              // Signed offset relative to activeCardIndex (which sits at POSITION 4)
-              let offset = (idx - activeCardIndex + total) % total;
-              if (offset > total / 2) offset -= total;
-              if (offset < -total / 2) offset += total;
+            {visibleOffsets.map((offset) => {
+              const absIndex = globalIndex + offset;
+              const slideIndex = ((absIndex % total) + total) % total;
+              const slide = baseSlides[slideIndex];
 
-              // Render visible surrounding cards (-4 to +4)
-              const maxVisibleOffset = isMobile ? 2 : isTablet ? 3 : 4;
-              if (Math.abs(offset) > maxVisibleOffset) return null;
-
-              // POSITION 4 IS THE FIXED ACTIVE ZONE (offset === 0)
+              // STRICT SPEC RULE: POSITION 4 IS THE FIXED ACTIVE ZONE (offset === 0)
               const isActive = offset === 0;
 
               // Smooth scale interpolation: Active = 1.32x, Nearby = 0.85x - 0.78x
               const scale = isActive ? 1.32 : Math.max(0.78, 0.88 - Math.abs(offset) * 0.04);
               const opacity = isActive ? 1.0 : Math.max(0.70, 0.85 - Math.abs(offset) * 0.05);
 
-              // X position math: Constant step spacing with GPU transform
+              // X position math: Continuous forward spacing keyed by continuous absolute index
               const x = centerShiftX + offset * (cardBaseWidth + cardGap);
 
               const product = slide.product_slug ? mergedProducts[slide.product_slug] : undefined;
-              const slideNum = String((idx % baseSlides.length) + 1).padStart(2, "0");
+              const slideNum = String((slideIndex % total) + 1).padStart(2, "0");
 
               return (
                 <motion.div
-                  key={`${slide.id}-${idx}`}
-                  onClick={() => handleCardClick(idx, slide)}
+                  key={`card-pos-${absIndex}`} // Continuous linear key: NO CARDS EVER FLY BACKWARDS!
+                  onClick={() => {
+                    if (isActive) {
+                      const slug = slide.product_slug ?? "denim-jacket";
+                      navigate({ to: "/product/$slug", params: { slug } });
+                    } else {
+                      setGlobalIndex(absIndex);
+                    }
+                  }}
+                  initial={{ opacity: 0, scale: scale * 0.9, x: x + (offset > 0 ? 60 : -60) }}
                   animate={{
                     x,
                     scale,
                     opacity,
                     zIndex: isActive ? 50 : 20 - Math.abs(offset),
                   }}
+                  exit={{ opacity: 0, scale: 0.7 }}
                   transition={{
-                    duration: 0.6,
-                    ease: [0.22, 1, 0.36, 1], // Liquid ultra-smooth luxury easing
+                    duration: 0.55,
+                    ease: [0.22, 1, 0.36, 1], // Smooth luxury cubic-bezier easing
                   }}
                   style={{
                     position: "absolute",
