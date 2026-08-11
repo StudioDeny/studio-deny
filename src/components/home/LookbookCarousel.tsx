@@ -6,6 +6,7 @@ import type { LookbookSlide } from "@/types/database";
 
 type MiniProduct = { slug: string; name: string; price: number };
 
+// 9 Curated Editorial Lookbook Slides
 const FALLBACK_SLIDES: LookbookSlide[] = [
   {
     id: "fb-1",
@@ -14,7 +15,7 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     is_active: true,
     position: 0,
     product_slug: "denim-jacket",
-    caption: "RIPPED DENIM JACKET",
+    caption: "2 TONE EMBROIDERY CAP",
     link_href: null,
     created_at: "",
   },
@@ -106,17 +107,6 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     link_href: null,
     created_at: "",
   },
-  {
-    id: "fb-10",
-    image_url: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 9,
-    product_slug: "leather-bomber",
-    caption: "STRUCTURED OUTERWEAR",
-    link_href: null,
-    created_at: "",
-  },
 ];
 
 const FALLBACK_PRODUCTS: Record<string, MiniProduct> = {
@@ -131,6 +121,8 @@ export function LookbookCarousel() {
   const navigate = useNavigate();
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [products, setProducts] = useState<Record<string, MiniProduct>>({});
+  
+  // Track Index dictates which card is currently positioned at POSITION 4 (CENTER - 1)
   const [trackIndex, setTrackIndex] = useState(3);
   const [isSectionHovered, setIsSectionHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -145,6 +137,7 @@ export function LookbookCarousel() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Fetch Supabase data if available
   useEffect(() => {
     supabase
       .from("lookbook_slides")
@@ -171,10 +164,10 @@ export function LookbookCarousel() {
 
   const baseSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
   
-  // Multiply array for infinite continuous right-to-left scrolling loop
+  // Expand slide ring to ensure 9 visible card positions can seamlessly cycle
   const rawSlides = (() => {
     let list = [...baseSlides];
-    while (list.length < 16) {
+    while (list.length < 18) {
       list = [...list, ...baseSlides];
     }
     return list;
@@ -191,16 +184,16 @@ export function LookbookCarousel() {
     setTrackIndex((prev) => (prev - 1 + total) % total);
   }, [total]);
 
-  // Seamless continuous auto-scroll from right to left
+  // Cinematic automatic card progression right to left through the fixed Position 4 active zone
   useEffect(() => {
     if (isSectionHovered || isDragging || total === 0) return;
     const timer = setInterval(() => {
       handleNext();
-    }, 2800);
+    }, 3200);
     return () => clearInterval(timer);
   }, [isSectionHovered, isDragging, total, handleNext]);
 
-  // Mouse wheel listener
+  // Smooth mouse wheel / trackpad scroll
   const lastWheelTime = useRef<number>(0);
   const handleWheel = (e: React.WheelEvent) => {
     const now = Date.now();
@@ -244,15 +237,12 @@ export function LookbookCarousel() {
   const isMobile = windowWidth < 768;
   const isTablet = windowWidth >= 768 && windowWidth < 1024;
 
-  // The STATIC SPOTLIGHT POSITION is fixed at index position 3 (the 4th card, immediate next-left to center)
-  // Whichever card index currently occupies trackIndex is inside the STATIC SPOTLIGHT SLOT!
-  const spotlightCardIndex = trackIndex % total;
-  const spotlightSlide = rawSlides[spotlightCardIndex];
-  const spotlightProduct = spotlightSlide?.product_slug ? mergedProducts[spotlightSlide.product_slug] : undefined;
-  const spotlightNum = String((spotlightCardIndex % baseSlides.length) + 1).padStart(2, "0");
+  // STRICT SPEC RULE: POSITION 4 IS THE FIXED ACTIVE ZONE (CENTER - 1).
+  // The card at trackIndex % total is currently occupying POSITION 4!
+  const activeCardIndex = trackIndex % total;
 
   const handleCardClick = (idx: number, slide: LookbookSlide) => {
-    if (idx === spotlightCardIndex) {
+    if (idx === activeCardIndex) {
       const slug = slide.product_slug ?? "denim-jacket";
       navigate({ to: "/product/$slug", params: { slug } });
     } else {
@@ -263,139 +253,165 @@ export function LookbookCarousel() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full py-16 sm:py-24 bg-[#F6F5F2] text-neutral-900 select-none border-t border-border overflow-hidden"
+      className="relative w-full py-16 sm:py-28 bg-neutral-950 text-neutral-900 select-none overflow-hidden"
       onMouseEnter={() => setIsSectionHovered(true)}
       onMouseLeave={() => setIsSectionHovered(false)}
     >
-      <div className="max-w-[1560px] mx-auto px-4 sm:px-8">
-        
-        {/* Top Header Row */}
-        <div className="flex items-center justify-between pb-8 sm:pb-12 border-b border-black/10">
-          <h2 className="font-sans text-5xl sm:text-7xl md:text-8xl font-black lowercase tracking-tighter text-black leading-none flex items-center">
-            lookbook<span className="text-2xl sm:text-4xl font-mono align-super ml-1">©</span>
-          </h2>
-          <div className="flex items-center gap-6 sm:gap-10 font-mono text-xs sm:text-sm font-bold tracking-[0.25em] text-neutral-800 uppercase">
-            <Link to="/lookbook" className="hover:text-black transition-colors">GALLERY</Link>
-            <Link to="/shop" className="hover:text-black transition-colors">SHOP</Link>
-            <Link to="/contact" className="hover:text-black transition-colors">CONTACT</Link>
-          </div>
-        </div>
+      {/* 12. LARGE PHOTOGRAPHIC BACKGROUND (behind the ivory lookbook panel) */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <img
+          src="https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1800&auto=format&fit=crop"
+          alt="Editorial Backdrop"
+          className="w-full h-full object-cover filter grayscale contrast-125 opacity-40 transform scale-105"
+        />
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+      </div>
 
-        {/* Gallery Stage */}
-        <div className="relative pt-8 sm:pt-12 w-full flex flex-col items-center">
+      {/* 1. OVERALL LAYOUT CONTAINER */}
+      <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-8">
+        
+        {/* Ivory/Cream Floating Editorial Panel Sheet */}
+        <div className="w-full bg-[#F5F4F0] text-neutral-900 shadow-2xl p-6 sm:p-12 md:p-16 rounded-none border border-black/10 relative overflow-hidden">
           
-          {/* STATIC METADATA BLOCK — Fixed directly above the Static Spotlight Slot */}
-          <div className="w-full flex justify-center mb-4">
-            <div className="w-full max-w-[220px] sm:max-w-[320px] text-center font-mono text-[10px] sm:text-[11px] leading-tight text-neutral-800 tracking-wider">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={spotlightCardIndex}
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <p className="font-bold text-black text-xs sm:text-sm mb-0.5">({spotlightNum})</p>
-                  <p className="font-bold uppercase tracking-widest text-black truncate">
-                    {spotlightProduct ? spotlightProduct.name : spotlightSlide?.caption || "BASIC OVERSIZED GRAPHIC TEE"}
-                  </p>
-                  <p className="text-neutral-500 uppercase text-[9px] sm:text-[10px] mt-0.5">
-                    STUDIO DENY — DROP 014
-                  </p>
-                </motion.div>
-              </AnimatePresence>
+          {/* TOP HEADER: TOP LEFT Oversized Typography + TOP RIGHT Minimal Navigation */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-8 sm:pb-12 border-b border-black/10">
+            {/* TOP LEFT Oversized Title */}
+            <h2 className="font-sans text-5xl sm:text-7xl md:text-8xl font-black lowercase tracking-tighter text-black leading-none flex items-center">
+              lookbook<span className="text-2xl sm:text-4xl font-mono align-super ml-1">©</span>
+            </h2>
+
+            {/* TOP RIGHT Understated Navigation */}
+            <div className="flex items-center gap-6 sm:gap-10 font-mono text-[10px] sm:text-xs font-bold tracking-[0.25em] text-neutral-700 uppercase">
+              <Link to="/lookbook" className="hover:text-black transition-colors">GALLERY</Link>
+              <Link to="/about" className="hover:text-black transition-colors">ABOUT</Link>
+              <Link to="/contact" className="hover:text-black transition-colors">CONTACT</Link>
             </div>
           </div>
 
-          {/* CONTINUOUS SCROLLING TRACK: Cards move through the fixed static spotlight slot */}
-          <div
-            onWheel={handleWheel}
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerCancel}
-            className="w-full flex items-center justify-center gap-3 sm:gap-4 overflow-visible py-4 cursor-grab active:cursor-grabbing relative"
-            style={{
-              perspective: "1000px",
-            }}
-          >
-            {/* Render cards array positioned relative to trackIndex */}
-            {rawSlides.map((slide, idx) => {
-              // Signed offset relative to current spotlight index
-              let offset = (idx - spotlightCardIndex + total) % total;
-              if (offset > total / 2) offset -= total;
-              if (offset < -total / 2) offset += total;
+          {/* MIDDLE / LOWER INTERACTIVE LOOKBOOK STAGE */}
+          <div className="relative pt-10 sm:pt-16 w-full flex flex-col items-center">
 
-              // Only render visible surrounding cards (-3 to +3 or -4 to +4)
-              const maxVisibleOffset = isMobile ? 2 : isTablet ? 3 : 4;
-              if (Math.abs(offset) > maxVisibleOffset) return null;
-
-              // Is this card currently INSIDE the static spotlight slot?
-              const isSpotlightSlot = offset === 0;
-
-              // Horizontal translation X: Cards line up in a flat row relative to the spotlight slot at offset 0
-              const itemWidth = isMobile ? 120 : 170;
-              const gap = isMobile ? 12 : 16;
-              const spotlightWidth = isMobile ? 210 : 310;
-
-              let x = 0;
-              if (offset > 0) {
-                x = (spotlightWidth / 2) + (gap) + (itemWidth / 2) + (offset - 1) * (itemWidth + gap);
-              } else if (offset < 0) {
-                x = -((spotlightWidth / 2) + (gap) + (itemWidth / 2) + (Math.abs(offset) - 1) * (itemWidth + gap));
-              }
-
-              return (
-                <motion.div
-                  key={`${slide.id}-${idx}`}
-                  onClick={() => handleCardClick(idx, slide)}
-                  animate={{
-                    x,
-                    height: isSpotlightSlot ? (isMobile ? "300px" : "440px") : (isMobile ? "160px" : "240px"),
-                    width: isSpotlightSlot ? (isMobile ? "210px" : "310px") : (isMobile ? "120px" : "170px"),
-                    opacity: isSpotlightSlot ? 1 : 0.82,
-                    zIndex: isSpotlightSlot ? 40 : 20 - Math.abs(offset),
-                  }}
-                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                  style={{
-                    position: "absolute",
-                  }}
-                  className={`shrink-0 overflow-hidden border cursor-pointer rounded-none group transition-shadow duration-300 ${
-                    isSpotlightSlot
-                      ? "border-black shadow-2xl ring-2 ring-black/15"
-                      : "border-black/10 bg-neutral-200"
-                  }`}
-                >
-                  {slide.media_type === "video" ? (
-                    <video src={slide.image_url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-                  ) : (
-                    <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
-                  )}
-
-                  {/* Spotlight Tag inside the static slot */}
-                  {isSpotlightSlot && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                      <span className="text-white font-mono text-[10px] sm:text-[11px] font-bold tracking-widest uppercase flex items-center gap-1.5">
-                        OPEN PRODUCT <span className="text-primary font-bold">→</span>
-                      </span>
-                    </div>
-                  )}
-                </motion.div>
-              );
-            })}
-
-            {/* Spacer to maintain vertical container height */}
-            <div className="h-[320px] sm:h-[460px] w-full pointer-events-none" />
-          </div>
-
-          {/* Bottom (MORE) button */}
-          <div className="mt-8 sm:mt-12 text-center">
-            <Link
-              to="/lookbook"
-              className="font-mono text-xs sm:text-sm font-bold tracking-[0.25em] text-neutral-800 hover:text-black uppercase underline underline-offset-8 transition-colors"
+            {/* 9-CARD HORIZONTAL SEQUENCE WITH FIXED POSITION 4 (CENTER - 1) ACTIVE ZONE */}
+            <div
+              onWheel={handleWheel}
+              onPointerDown={handlePointerDown}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerCancel}
+              className="w-full flex items-center justify-center gap-3 sm:gap-4 overflow-visible py-4 cursor-grab active:cursor-grabbing relative h-[360px] sm:h-[480px]"
+              style={{ perspective: "1000px" }}
             >
-              (MORE)
-            </Link>
+              {rawSlides.map((slide, idx) => {
+                // Signed offset relative to activeCardIndex (which sits at POSITION 4)
+                let offset = (idx - activeCardIndex + total) % total;
+                if (offset > total / 2) offset -= total;
+                if (offset < -total / 2) offset += total;
+
+                // Render visible surrounding cards (-4 to +4)
+                const maxVisibleOffset = isMobile ? 2 : isTablet ? 3 : 4;
+                if (Math.abs(offset) > maxVisibleOffset) return null;
+
+                // STRICT RULE: POSITION 4 IS THE FIXED ACTIVE ZONE (offset === 0)
+                const isActive = offset === 0;
+
+                // Geometry math: Position 4 (isActive) sits at X = -offsetDelta to align at Position 4 (Center - 1)
+                const normalWidth = isMobile ? 115 : isTablet ? 140 : 165;
+                const activeWidth = isMobile ? 220 : isTablet ? 270 : 315;
+                const gap = isMobile ? 12 : 16;
+
+                // Calculate X translation relative to Position 4 (CENTER - 1)
+                let x = 0;
+                // Position 4 is offset slightly to the left of stage center (CENTER - 1)
+                const centerShiftX = isMobile ? -60 : -140;
+
+                if (offset === 0) {
+                  x = centerShiftX;
+                } else if (offset > 0) {
+                  x = centerShiftX + (activeWidth / 2) + gap + (normalWidth / 2) + (offset - 1) * (normalWidth + gap);
+                } else {
+                  x = centerShiftX - ((activeWidth / 2) + gap + (normalWidth / 2) + (Math.abs(offset) - 1) * (normalWidth + gap));
+                }
+
+                const product = slide.product_slug ? mergedProducts[slide.product_slug] : undefined;
+                const slideNum = String((idx % baseSlides.length) + 1).padStart(2, "0");
+
+                // Depth & Scale hierarchy (Section 10)
+                // Normal cards: scale ~0.78 - 0.85; Active card: scale 1.0
+                const cardScale = isActive ? 1.0 : Math.max(0.78, 1 - Math.abs(offset) * 0.06);
+
+                return (
+                  <motion.div
+                    key={`${slide.id}-${idx}`}
+                    onClick={() => handleCardClick(idx, slide)}
+                    animate={{
+                      x,
+                      scale: cardScale,
+                      height: isActive ? (isMobile ? "310px" : "440px") : (isMobile ? "160px" : "240px"),
+                      width: isActive ? (isMobile ? "220px" : "315px") : (isMobile ? "115px" : "165px"),
+                      opacity: isActive ? 1.0 : Math.max(0.75, 1 - Math.abs(offset) * 0.08),
+                      zIndex: isActive ? 50 : 20 - Math.abs(offset),
+                    }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ position: "absolute" }}
+                    className={`shrink-0 overflow-hidden rounded-none cursor-pointer group transition-all duration-300 border ${
+                      isActive
+                        ? "border-black shadow-2xl ring-1 ring-black/10"
+                        : "border-black/10 bg-neutral-200"
+                    }`}
+                  >
+                    {/* Portrait Photographic Image / Video */}
+                    {slide.media_type === "video" ? (
+                      <video src={slide.image_url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                    ) : (
+                      <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
+                    )}
+
+                    {/* 6. ACTIVE CARD INFORMATION UI — Integrated directly ON TOP of active photograph */}
+                    {isActive && (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent flex flex-col justify-end p-5 text-white pointer-events-auto">
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.35, delay: 0.05 }}
+                          className="font-mono space-y-1"
+                        >
+                          {/* 7. INFORMATION HIERARCHY */}
+                          <p className="text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
+                            ({slideNum}) / PORTRAIT
+                          </p>
+                          <h3 className="text-xs sm:text-sm font-bold tracking-wider uppercase text-white leading-tight font-sans truncate">
+                            {product ? product.name : slide.caption || "PROFESSIONAL PORTRAIT"}
+                          </h3>
+                          <p className="text-[9px] text-white/60 uppercase tracking-widest">
+                            STUDIO DENY — 2026
+                          </p>
+                          <div className="pt-2">
+                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-[0.2em] text-white uppercase hover:text-primary transition-colors">
+                              VIEW PROJECT <span className="text-primary font-bold">→</span>
+                            </span>
+                          </div>
+                        </motion.div>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* BOTTOM EDITORIAL METADATA & MORE LINK */}
+            <div className="mt-8 sm:mt-12 text-center flex flex-col items-center gap-2">
+              <Link
+                to="/lookbook"
+                className="font-mono text-xs sm:text-sm font-bold tracking-[0.25em] text-neutral-800 hover:text-black uppercase underline underline-offset-8 transition-colors"
+              >
+                (MORE)
+              </Link>
+              <p className="font-mono text-[9px] text-neutral-500 tracking-[0.2em] uppercase mt-1">
+                STUDIO DENY — STREETWEAR PHOTOGRAPHY — 2026
+              </p>
+            </div>
+
           </div>
+
         </div>
 
       </div>
