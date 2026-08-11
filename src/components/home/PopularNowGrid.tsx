@@ -54,13 +54,13 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
         <video
           src={product.image}
           autoPlay loop muted playsInline
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+          className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (
         <img
           src={product.image}
           alt={product.name}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+          className="absolute inset-0 w-full h-full object-cover"
         />
       )}
       {product.tag && (

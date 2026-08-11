@@ -68,14 +68,14 @@ export function GenderSplit() {
           <Link to={card.cta_href} className="absolute inset-0 z-10" aria-label={card.label} />
           {card.media_type === "video" ? (
             <video autoPlay loop muted playsInline preload="metadata"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]">
+              className="absolute inset-0 w-full h-full object-cover">
               <source src={card.src} type="video/mp4" />
             </video>
           ) : (
             <img
               src={card.src}
               alt={card.label}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+              className="absolute inset-0 w-full h-full object-cover"
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />

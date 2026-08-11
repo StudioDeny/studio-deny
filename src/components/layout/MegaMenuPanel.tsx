@@ -124,7 +124,7 @@ export function MegaMenuPanel({
                   <img
                     src={p.imageUrl}
                     alt={p.label}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                   {nameOverlay(p)}
                 </Link>
@@ -163,7 +163,7 @@ function MobileProductCard({ product, onNavigate }: { product: MegaMenuProduct; 
         <img
           src={product.imageUrl}
           alt={product.label}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+          className="absolute inset-0 w-full h-full object-cover"
         />
         {discountPct !== null && (
           <span className="absolute top-2 left-2 bg-black text-white font-bold px-1.5 py-0.5 rounded-xs" style={{ fontSize: "10px" }}>

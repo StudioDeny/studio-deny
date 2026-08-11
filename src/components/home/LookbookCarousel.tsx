@@ -16,6 +16,7 @@ export function LookbookCarousel() {
   const [isSectionHovered, setIsSectionHovered] = useState(false);
   const [isCardHovered, setIsCardHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [dragX, setDragX] = useState(0);
   const [isInView, setIsInView] = useState(true);
   const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
 
@@ -103,10 +104,32 @@ export function LookbookCarousel() {
     return () => clearInterval(timer);
   }, [isInView, isCardHovered, isDragging, total, handleNext]);
 
-  // Touch / Mouse Drag event handlers
+  // Trackpad / Mouse Wheel Scroll Handler
+  const lastWheelTime = useRef<number>(0);
+  const handleWheel = (e: React.WheelEvent) => {
+    const now = Date.now();
+    if (now - lastWheelTime.current < 200) return;
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    if (delta > 15) {
+      handleNext();
+      lastWheelTime.current = now;
+    } else if (delta < -15) {
+      handlePrev();
+      lastWheelTime.current = now;
+    }
+  };
+
+  // Touch / Mouse Drag event handlers for real-time fluid swiping
   const handlePointerDown = (e: React.PointerEvent) => {
     pointerStartX.current = e.clientX;
     setIsDragging(true);
+    setDragX(0);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (pointerStartX.current === null) return;
+    const deltaX = e.clientX - pointerStartX.current;
+    setDragX(deltaX);
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
@@ -119,11 +142,13 @@ export function LookbookCarousel() {
       }
     }
     pointerStartX.current = null;
+    setDragX(0);
     setTimeout(() => setIsDragging(false), 50);
   };
 
   const handlePointerCancel = () => {
     pointerStartX.current = null;
+    setDragX(0);
     setIsDragging(false);
   };
 
@@ -142,6 +167,7 @@ export function LookbookCarousel() {
   return (
     <section
       ref={containerRef}
+      onWheel={handleWheel}
       className="py-16 sm:py-24 bg-[#E2E2E4] overflow-hidden border-t border-border select-none relative"
       onMouseEnter={() => setIsSectionHovered(true)}
       onMouseLeave={() => {
@@ -305,7 +331,7 @@ export function LookbookCarousel() {
         )}
       </div>
 
-      {/* Full-Bleed 3D Stage with Ground Shadows & Smooth Rounded Cards */}
+      {/* Full-Bleed 3D Stage with Ground Shadows & Sharp Cards */}
       <div
         className="relative z-10 w-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-pan-y overflow-visible"
         style={{
@@ -314,6 +340,7 @@ export function LookbookCarousel() {
           height: isMobile ? "410px" : isTablet ? "510px" : "610px",
         }}
         onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
       >
@@ -355,7 +382,7 @@ export function LookbookCarousel() {
             return sign * (absOffset === 1 ? 260 : absOffset === 2 ? 485 : absOffset === 3 ? 680 : 850);
           };
 
-          const x = getX();
+          const x = getX() + dragX;
 
           // 3. Z-Depth (Elevation & spatial distance)
           const getZ = () => {
@@ -403,8 +430,8 @@ export function LookbookCarousel() {
                 opacity,
               }}
               transition={{
-                duration: 0.75,
-                ease: [0.16, 1, 0.3, 1],
+                duration: isDragging ? 0.05 : 0.75,
+                ease: isDragging ? "linear" : [0.16, 1, 0.3, 1],
               }}
               style={{
                 position: "absolute",
@@ -431,8 +458,8 @@ export function LookbookCarousel() {
                 }}
               />
 
-              {/* Card Container with Smooth Rounded Corners matching reference image */}
-              <div className="relative w-full h-full overflow-hidden rounded-xl sm:rounded-2xl bg-neutral-900 shadow-xl border border-black/10">
+              {/* Card Container with Sharp Edges */}
+              <div className="relative w-full h-full overflow-hidden rounded-none bg-neutral-900 shadow-xl border border-black/10">
                 {/* 100% Full-Bleed Image/Video */}
                 {slide.media_type === "video" ? (
                   <video
@@ -441,13 +468,13 @@ export function LookbookCarousel() {
                     muted
                     loop
                     playsInline
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                 ) : (
                   <img
                     src={slide.image_url}
                     alt={product?.name ?? ""}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                 )}
 
@@ -471,6 +498,23 @@ export function LookbookCarousel() {
                 )}
               </div>
             </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Manual Page Dot Indicators */}
+      <div className="relative z-20 flex justify-center items-center gap-2 mt-4 sm:mt-6">
+        {rawSlides.map((_, idx) => {
+          const isSelected = (activeIndex % rawSlides.length) === idx;
+          return (
+            <button
+              key={idx}
+              onClick={() => setActiveIndex(idx)}
+              aria-label={`Go to slide ${idx + 1}`}
+              className={`h-1.5 transition-all duration-300 rounded-full cursor-pointer ${
+                isSelected ? "w-7 bg-black" : "w-1.5 bg-black/25 hover:bg-black/60"
+              }`}
+            />
           );
         })}
       </div>
