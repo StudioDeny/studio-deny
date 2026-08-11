@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
+import { useSectionHeading } from "@/lib/sectionHeadings";
 
 type MiniProduct = { slug: string; name: string; price: number };
 
-// 9 Curated Editorial Lookbook Slides
+// Fallback slides in case database has fewer items, ensuring 9 cards can always be displayed
 const FALLBACK_SLIDES: LookbookSlide[] = [
   {
     id: "fb-1",
@@ -15,7 +16,7 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     is_active: true,
     position: 0,
     product_slug: "denim-jacket",
-    caption: "2 TONE EMBROIDERY CAP",
+    caption: null,
     link_href: null,
     created_at: "",
   },
@@ -26,7 +27,7 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     is_active: true,
     position: 1,
     product_slug: "oversized-hoodie",
-    caption: "OVERSIZED HOODIE",
+    caption: null,
     link_href: null,
     created_at: "",
   },
@@ -37,7 +38,7 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     is_active: true,
     position: 2,
     product_slug: "cargo-pants",
-    caption: "TACTICAL CARGO PANTS",
+    caption: null,
     link_href: null,
     created_at: "",
   },
@@ -48,7 +49,7 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     is_active: true,
     position: 3,
     product_slug: "graphic-tee",
-    caption: "BASIC OVERSIZED GRAPHIC TEE",
+    caption: null,
     link_href: null,
     created_at: "",
   },
@@ -59,51 +60,7 @@ const FALLBACK_SLIDES: LookbookSlide[] = [
     is_active: true,
     position: 4,
     product_slug: "leather-bomber",
-    caption: "VINTAGE LEATHER BOMBER",
-    link_href: null,
-    created_at: "",
-  },
-  {
-    id: "fb-6",
-    image_url: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 5,
-    product_slug: "denim-jacket",
-    caption: "RAW STREETWEAR SHOT",
-    link_href: null,
-    created_at: "",
-  },
-  {
-    id: "fb-7",
-    image_url: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 6,
-    product_slug: "oversized-hoodie",
-    caption: "MODERN MINIMALIST EDIT",
-    link_href: null,
-    created_at: "",
-  },
-  {
-    id: "fb-8",
-    image_url: "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 7,
-    product_slug: "cargo-pants",
-    caption: "EDITORIAL TAILORED FIT",
-    link_href: null,
-    created_at: "",
-  },
-  {
-    id: "fb-9",
-    image_url: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 8,
-    product_slug: "graphic-tee",
-    caption: "URBAN UTILITY SHOT",
+    caption: null,
     link_href: null,
     created_at: "",
   },
@@ -113,31 +70,33 @@ const FALLBACK_PRODUCTS: Record<string, MiniProduct> = {
   "denim-jacket": { slug: "denim-jacket", name: "RIPPED DENIM JACKET", price: 4999 },
   "oversized-hoodie": { slug: "oversized-hoodie", name: "OVERSIZED HOODIE", price: 3499 },
   "cargo-pants": { slug: "cargo-pants", name: "TACTICAL CARGO PANTS", price: 3999 },
-  "graphic-tee": { slug: "graphic-tee", name: "BASIC OVERSIZED GRAPHIC TEE", price: 2199 },
+  "graphic-tee": { slug: "graphic-tee", name: "HEAVYWEIGHT GRAPHIC TEE", price: 2199 },
   "leather-bomber": { slug: "leather-bomber", name: "VINTAGE LEATHER BOMBER", price: 7999 },
 };
 
 export function LookbookCarousel() {
-  const navigate = useNavigate();
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [products, setProducts] = useState<Record<string, MiniProduct>>({});
-  
-  // Continuous global sequence index — increases infinitely to move right to left
-  const [globalIndex, setGlobalIndex] = useState(1000);
+  const heading = useSectionHeading("lookbook", "LOOKBOOK", { subtitle: "Swipe through curated fits built for daily movement." });
+
+  const [activeIndex, setActiveIndex] = useState(0);
   const [isSectionHovered, setIsSectionHovered] = useState(false);
+  const [isCardHovered, setIsCardHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isInView, setIsInView] = useState(true);
   const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
 
-  const pointerStartX = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const pointerStartX = useRef<number | null>(null);
 
+  // Resize listener for responsive breakpoint calculations
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Fetch Supabase data if available
+  // Fetch Supabase data
   useEffect(() => {
     supabase
       .from("lookbook_slides")
@@ -162,43 +121,55 @@ export function LookbookCarousel() {
       });
   }, []);
 
-  const baseSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
+  // IntersectionObserver for viewport pause/resume
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Prepare source slides & ring array
+  const rawSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
   const mergedProducts = { ...FALLBACK_PRODUCTS, ...products };
-  const total = baseSlides.length;
+
+  // Expand slides so ring length is >= 12 for seamless infinite circular cycling
+  const ring = (() => {
+    if (rawSlides.length === 0) return [];
+    let list = [...rawSlides];
+    while (list.length < 12) {
+      list = [...list, ...rawSlides];
+    }
+    return list;
+  })();
+
+  const total = ring.length;
+
+  // Navigation handlers
+  const handlePrev = useCallback(() => {
+    setActiveIndex((prev) => (prev - 1 + total) % total);
+  }, [total]);
 
   const handleNext = useCallback(() => {
-    setGlobalIndex((prev) => prev + 1);
-  }, []);
+    setActiveIndex((prev) => (prev + 1) % total);
+  }, [total]);
 
-  const handlePrev = useCallback(() => {
-    setGlobalIndex((prev) => prev - 1);
-  }, []);
-
-  // Cinematic continuous right-to-left progression through Position 4
+  // Motion pauses ONLY when mouse goes directly onto a card (isCardHovered is true)
   useEffect(() => {
-    if (isSectionHovered || isDragging || total === 0) return;
+    if (!isInView || isCardHovered || isDragging || total === 0) return;
     const timer = setInterval(() => {
       handleNext();
-    }, 3200);
+    }, 4000);
     return () => clearInterval(timer);
-  }, [isSectionHovered, isDragging, total, handleNext]);
+  }, [isInView, isCardHovered, isDragging, total, handleNext]);
 
-  // Smooth mouse wheel / trackpad scroll
-  const lastWheelTime = useRef<number>(0);
-  const handleWheel = (e: React.WheelEvent) => {
-    const now = Date.now();
-    if (now - lastWheelTime.current < 180) return;
-    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    if (delta > 15) {
-      handleNext();
-      lastWheelTime.current = now;
-    } else if (delta < -15) {
-      handlePrev();
-      lastWheelTime.current = now;
-    }
-  };
-
-  // Pointer drag swiping
+  // Touch / Mouse Drag event handlers
   const handlePointerDown = (e: React.PointerEvent) => {
     pointerStartX.current = e.clientX;
     setIsDragging(true);
@@ -207,9 +178,9 @@ export function LookbookCarousel() {
   const handlePointerUp = (e: React.PointerEvent) => {
     if (pointerStartX.current !== null) {
       const deltaX = e.clientX - pointerStartX.current;
-      if (deltaX > 35) {
+      if (deltaX > 40) {
         handlePrev();
-      } else if (deltaX < -35) {
+      } else if (deltaX < -40) {
         handleNext();
       }
     }
@@ -224,162 +195,348 @@ export function LookbookCarousel() {
 
   if (total === 0) return null;
 
+  // Responsive Breakpoints:
+  // Desktop (>= 1024): 9 participating cards (maxOffset = 4)
+  // Tablet (768 - 1023): 7 participating cards (maxOffset = 3)
+  // Mobile (< 768): 5 participating cards (maxOffset = 2)
   const isMobile = windowWidth < 768;
   const isTablet = windowWidth >= 768 && windowWidth < 1024;
 
-  // INCREASED CARD WIDTH BY 10% (230px -> 255px desktop, 190px -> 210px tablet, 150px -> 165px mobile)
-  const cardBaseWidth = isMobile ? 165 : isTablet ? 210 : 255;
-  const cardBaseHeight = isMobile ? 242 : isTablet ? 308 : 365;
-  const cardGap = isMobile ? 14 : 24;
-  const centerShiftX = isMobile ? -85 : isTablet ? -120 : -155;
-
-  // Visible slot offsets around the current globalIndex
-  const visibleOffsets = isMobile
-    ? [-2, -1, 0, 1, 2]
-    : isTablet
-    ? [-3, -2, -1, 0, 1, 2, 3]
-    : [-4, -3, -2, -1, 0, 1, 2, 3, 4];
+  const maxOffset = isMobile ? 2 : isTablet ? 3 : 4;
+  const baseCardWidth = isMobile ? 160 : isTablet ? 200 : 240;
 
   return (
     <section
       ref={containerRef}
-      className="relative w-full py-16 sm:py-24 bg-[#F5F4F0] text-neutral-900 border-t border-border select-none overflow-hidden"
+      className="py-16 sm:py-24 bg-[#E2E2E4] overflow-hidden border-t border-border select-none relative"
       onMouseEnter={() => setIsSectionHovered(true)}
-      onMouseLeave={() => setIsSectionHovered(false)}
+      onMouseLeave={() => {
+        setIsSectionHovered(false);
+        setIsCardHovered(false);
+      }}
     >
-      {/* FULL-WIDTH EDITORIAL CONTAINER */}
-      <div className="max-w-[1560px] mx-auto px-4 sm:px-8">
-        
-        {/* TOP HEADER: TOP LEFT Oversized Typography + TOP RIGHT Minimal Navigation */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-8 sm:pb-12 border-b border-black/10">
-          <h2 className="font-sans text-5xl sm:text-7xl md:text-8xl font-black lowercase tracking-tighter text-black leading-none flex items-center">
-            lookbook<span className="text-2xl sm:text-4xl font-mono align-super ml-1">©</span>
-          </h2>
+      {/* BACKGROUND LAYER 1: Tactile Canvas Grain Texture Overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0 opacity-[0.05] mix-blend-multiply"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        }}
+      />
 
-          <div className="flex items-center gap-6 sm:gap-10 font-mono text-[10px] sm:text-xs font-bold tracking-[0.25em] text-neutral-700 uppercase">
-            <Link to="/lookbook" className="hover:text-black transition-colors">GALLERY</Link>
-            <Link to="/about" className="hover:text-black transition-colors">ABOUT</Link>
-            <Link to="/contact" className="hover:text-black transition-colors">CONTACT</Link>
+      {/* BACKGROUND LAYER 2: Soft Studio Floor Lighting Spotlight */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(255, 255, 255, 0.85) 0%, rgba(226, 226, 228, 0.45) 45%, transparent 80%)",
+        }}
+      />
+
+      {/* BACKGROUND LAYER 3: Architectural Layout Grid */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0 opacity-40 sm:opacity-50"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px)",
+          backgroundSize: isMobile ? "70px 70px" : isTablet ? "110px 110px" : "140px 140px",
+        }}
+      />
+
+      {/* BACKGROUND LAYER 4: Giant Ghost Typography ("STUDIO DENY") */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0 flex items-center justify-between px-4 sm:px-12 overflow-hidden select-none"
+        aria-hidden="true"
+      >
+        <span className="font-display text-[clamp(6rem,22vw,24rem)] leading-none uppercase tracking-tight text-black/[0.04] font-black transform -translate-y-2">
+          STUDIO
+        </span>
+        <span className="font-display text-[clamp(6rem,22vw,24rem)] leading-none uppercase tracking-tight text-black/[0.04] font-black transform -translate-y-2">
+          DENY
+        </span>
+      </div>
+
+      {/* BACKGROUND LAYER 5: Precision Architectural Crosshairs (+) */}
+      <div className="absolute inset-0 pointer-events-none z-0 select-none hidden sm:block">
+        {/* Top Center Crosshair */}
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 text-black/25">
+          <svg className="w-5 h-5" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1">
+            <line x1="10" y1="0" x2="10" y2="20" />
+            <line x1="0" y1="10" x2="20" y2="10" />
+          </svg>
+        </div>
+        {/* Left Side Crosshairs */}
+        <div className="absolute top-28 left-12 text-black/25">
+          <svg className="w-4 h-4" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1">
+            <line x1="8" y1="0" x2="8" y2="16" />
+            <line x1="0" y1="8" x2="16" y2="8" />
+          </svg>
+        </div>
+        <div className="absolute top-1/2 left-24 -translate-y-1/2 text-black/20">
+          <svg className="w-4 h-4" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1">
+            <line x1="8" y1="0" x2="8" y2="16" />
+            <line x1="0" y1="8" x2="16" y2="8" />
+          </svg>
+        </div>
+        {/* Right Side Crosshairs */}
+        <div className="absolute top-28 right-12 text-black/25">
+          <svg className="w-4 h-4" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1">
+            <line x1="8" y1="0" x2="8" y2="16" />
+            <line x1="0" y1="8" x2="16" y2="8" />
+          </svg>
+        </div>
+        <div className="absolute top-1/2 right-24 -translate-y-1/2 text-black/20">
+          <svg className="w-4 h-4" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1">
+            <line x1="8" y1="0" x2="8" y2="16" />
+            <line x1="0" y1="8" x2="16" y2="8" />
+          </svg>
+        </div>
+      </div>
+
+      {/* BACKGROUND LAYER 6: Micro Technical Metadata & Ruler Scale Annotations */}
+      <div className="absolute inset-x-6 sm:inset-x-12 top-6 bottom-6 pointer-events-none z-0 hidden sm:flex flex-col justify-between text-black/35 font-mono text-[9px] sm:text-[10px] tracking-[0.2em] uppercase select-none">
+        {/* Top Annotation Row */}
+        <div className="flex justify-between items-start">
+          <div className="leading-tight">
+            <p className="font-bold text-black/40">STUDIO DENY</p>
+            <p className="text-black/30">LOOKBOOK 01</p>
+          </div>
+          <div className="text-right leading-tight">
+            <p className="font-bold text-black/40">SS / FW</p>
+            <p className="text-black/30">24</p>
           </div>
         </div>
 
-        {/* MIDDLE / LOWER INTERACTIVE LOOKBOOK STAGE */}
-        <div className="relative pt-10 sm:pt-16 w-full flex flex-col items-center">
-
-          {/* 9-CARD HORIZONTAL SEQUENCE WITH FIXED POSITION 4 (CENTER - 1) ACTIVE ZONE */}
-          <div
-            onWheel={handleWheel}
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerCancel}
-            className="w-full flex items-center justify-center overflow-visible py-4 cursor-grab active:cursor-grabbing relative h-[400px] sm:h-[520px]"
-            style={{ perspective: "1000px" }}
-          >
-            {visibleOffsets.map((offset) => {
-              const absIndex = globalIndex + offset;
-              const slideIndex = ((absIndex % total) + total) % total;
-              const slide = baseSlides[slideIndex];
-
-              // STRICT SPEC RULE: POSITION 4 IS THE FIXED ACTIVE ZONE (offset === 0)
-              const isActive = offset === 0;
-
-              // Smooth scale interpolation: Active = 1.32x, Nearby = 0.85x - 0.78x
-              const scale = isActive ? 1.32 : Math.max(0.78, 0.88 - Math.abs(offset) * 0.04);
-              const opacity = isActive ? 1.0 : Math.max(0.70, 0.85 - Math.abs(offset) * 0.05);
-
-              // X position math: Continuous forward spacing keyed by continuous absolute index
-              const x = centerShiftX + offset * (cardBaseWidth + cardGap);
-
-              const product = slide.product_slug ? mergedProducts[slide.product_slug] : undefined;
-              const slideNum = String((slideIndex % total) + 1).padStart(2, "0");
-
-              return (
-                <motion.div
-                  key={`card-pos-${absIndex}`}
-                  onClick={() => {
-                    if (isActive) {
-                      const slug = slide.product_slug ?? "denim-jacket";
-                      navigate({ to: "/product/$slug", params: { slug } });
-                    } else {
-                      setGlobalIndex(absIndex);
-                    }
-                  }}
-                  initial={{ opacity: 0, scale: scale * 0.9, x: x + (offset > 0 ? 60 : -60) }}
-                  animate={{
-                    x,
-                    scale,
-                    opacity,
-                    zIndex: isActive ? 50 : 20 - Math.abs(offset),
-                  }}
-                  exit={{ opacity: 0, scale: 0.7 }}
-                  transition={{
-                    duration: 0.55,
-                    ease: [0.22, 1, 0.36, 1], // Smooth luxury cubic-bezier easing
-                  }}
-                  style={{
-                    position: "absolute",
-                    width: `${cardBaseWidth}px`,
-                    height: `${cardBaseHeight}px`,
-                  }}
-                  className={`shrink-0 overflow-hidden rounded-none cursor-pointer group border transition-shadow duration-500 ${
-                    isActive
-                      ? "border-black shadow-2xl ring-1 ring-black/10"
-                      : "border-black/10 bg-neutral-200"
-                  }`}
-                >
-                  {/* Portrait Photographic Image / Video */}
-                  {slide.media_type === "video" ? (
-                    <video src={slide.image_url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-                  ) : (
-                    <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
-                  )}
-
-                  {/* ACTIVE CARD INFORMATION UI — Integrated directly ON TOP of active photograph */}
-                  {isActive && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent flex flex-col justify-end p-4 sm:p-5 text-white pointer-events-auto">
-                      <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.35, delay: 0.08 }}
-                        className="font-mono space-y-1"
-                      >
-                        <p className="text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
-                          ({slideNum}) / PORTRAIT
-                        </p>
-                        <h3 className="text-xs sm:text-sm font-bold tracking-wider uppercase text-white leading-tight font-sans truncate">
-                          {product ? product.name : slide.caption || "PROFESSIONAL PORTRAIT"}
-                        </h3>
-                        <p className="text-[9px] text-white/60 uppercase tracking-widest">
-                          STUDIO DENY — 2026
-                        </p>
-                        <div className="pt-2">
-                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-[0.2em] text-white uppercase hover:text-primary transition-colors">
-                            VIEW PROJECT <span className="text-primary font-bold">→</span>
-                          </span>
-                        </div>
-                      </motion.div>
-                    </div>
-                  )}
-                </motion.div>
-              );
-            })}
+        {/* Bottom Annotation Row */}
+        <div className="flex justify-between items-end">
+          <div className="space-y-1.5">
+            <p className="text-[8px] text-black/30 tracking-[0.25em]">18.5204° N, 73.8567° E</p>
+            <div className="leading-tight">
+              <p className="font-bold text-black/40">CURATED FITS</p>
+              <p className="text-black/30">BUILT FOR DAILY MOVEMENT</p>
+            </div>
+            {/* Technical Ruler Scale */}
+            <div className="w-36 h-2 border-t border-black/20 flex justify-between pt-1">
+              <div className="w-px h-1.5 bg-black/40" />
+              <div className="w-px h-1 bg-black/20" />
+              <div className="w-px h-1 bg-black/20" />
+              <div className="w-px h-1 bg-black/20" />
+              <div className="w-px h-1.5 bg-black/40" />
+              <div className="w-px h-1 bg-black/20" />
+              <div className="w-px h-1 bg-black/20" />
+              <div className="w-px h-1 bg-black/20" />
+              <div className="w-px h-1.5 bg-black/40" />
+            </div>
           </div>
 
-          {/* BOTTOM EDITORIAL METADATA & MORE LINK */}
-          <div className="mt-8 sm:mt-12 text-center flex flex-col items-center gap-2">
-            <Link
-              to="/lookbook"
-              className="font-mono text-xs sm:text-sm font-bold tracking-[0.25em] text-neutral-800 hover:text-black uppercase underline underline-offset-8 transition-colors"
+          <div className="text-right space-y-1.5 flex flex-col items-end">
+            <div className="flex items-center gap-1.5 justify-end">
+              <div className="leading-tight">
+                <p className="font-bold text-black/40">MADE IN INDIA</p>
+                <p className="text-black/30">WORN WORLDWIDE</p>
+              </div>
+              <svg className="w-3.5 h-3.5 text-black/40 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                <path d="M2 12h20" />
+              </svg>
+            </div>
+            {/* Technical Ruler Scale */}
+            <div className="w-36 h-2 border-t border-black/20 flex justify-between pt-1">
+              <div className="w-px h-1.5 bg-black/40" />
+              <div className="w-px h-1 bg-black/20" />
+              <div className="w-px h-1 bg-black/20" />
+              <div className="w-px h-1 bg-black/20" />
+              <div className="w-px h-1.5 bg-black/40" />
+              <div className="w-px h-1 bg-black/20" />
+              <div className="w-px h-1 bg-black/20" />
+              <div className="w-px h-1 bg-black/20" />
+              <div className="w-px h-1.5 bg-black/40" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* FOREGROUND LAYER 7: Heading */}
+      <div className="relative z-10 max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 text-center">
+        <h2
+          className="text-[clamp(3.5rem,11vw,7rem)] leading-none tracking-[-0.04em] uppercase text-display font-black"
+          style={heading.color ? { color: heading.color } : undefined}
+        >
+          {heading.text}
+        </h2>
+        {heading.subtitle && (
+          <p className="text-base sm:text-lg mt-3 opacity-70 max-w-xl mx-auto text-mono font-medium">
+            {heading.subtitle}
+          </p>
+        )}
+      </div>
+
+      {/* Full-Bleed 3D Stage with Ground Shadows & Smooth Rounded Cards */}
+      <div
+        className="relative z-10 w-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-pan-y overflow-visible"
+        style={{
+          perspective: "1200px",
+          perspectiveOrigin: "50% 50%",
+          height: isMobile ? "410px" : isTablet ? "510px" : "610px",
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+      >
+        {ring.map((slide, i) => {
+          // Calculate relative signed offset in ring (-total/2 to +total/2)
+          let offset = (i - (activeIndex % total) + total) % total;
+          if (offset > total / 2) offset -= total;
+          if (offset < -total / 2) offset += total;
+
+          const absOffset = Math.abs(offset);
+          const isVisible = absOffset <= maxOffset;
+
+          if (!isVisible) return null;
+
+          const isCenter = offset === 0;
+          const sign = Math.sign(offset);
+
+          // 1. Scale relationship: Center Hero = 1.50x, Step 1 = 1.25x, Step 2 = 1.10x, Step 3 = 0.95x, Step 4 = 0.80x
+          const scale = isCenter
+            ? 1.50
+            : absOffset === 1
+            ? (isMobile ? 1.15 : isTablet ? 1.20 : 1.25)
+            : absOffset === 2
+            ? (isMobile ? 0.95 : isTablet ? 1.05 : 1.10)
+            : absOffset === 3
+            ? (isTablet ? 0.90 : 0.95)
+            : 0.80;
+
+          // 2. Horizontal Spread across full-bleed screen (medium ~10-20% controlled overlap)
+          const getX = () => {
+            if (absOffset === 0) return 0;
+            if (isMobile) {
+              return sign * (absOffset === 1 ? 145 : 265);
+            }
+            if (isTablet) {
+              return sign * (absOffset === 1 ? 215 : absOffset === 2 ? 395 : 550);
+            }
+            // Desktop: full-bleed wide spread
+            return sign * (absOffset === 1 ? 260 : absOffset === 2 ? 485 : absOffset === 3 ? 680 : 850);
+          };
+
+          const x = getX();
+
+          // 3. Z-Depth (Elevation & spatial distance)
+          const getZ = () => {
+            if (isCenter) return 0;
+            if (isMobile) return -absOffset * 35;
+            if (isTablet) return -absOffset * 45;
+            return -absOffset * 60;
+          };
+
+          const z = getZ();
+
+          // 4. Vertical alignment: ALL cards share the same primary vertical centerline
+          const y = 0;
+
+          // 5. Zero Card Tilt: perfectly upright
+          const rotateY = 0;
+
+          // 6. Opacity: Center 100%, Side cards 95-98% (all fully visible & readable)
+          const opacity = isCenter ? 1.0 : Math.max(0.95, 1 - absOffset * 0.012);
+
+          // 7. Z-Index: Hero on top, side cards layered behind
+          const zIndex = 100 - absOffset * 10;
+
+          const product = slide.product_slug ? mergedProducts[slide.product_slug] : undefined;
+
+          // Calculate vertical floor offset so all card contact shadows rest on the unified studio floor plane
+          const maxHeroRenderedHeight = baseCardWidth * (4 / 3) * 1.50;
+          const currentRenderedHeight = baseCardWidth * (4 / 3) * scale;
+          const shadowFloorOffsetPx = (maxHeroRenderedHeight - currentRenderedHeight) / 2;
+
+          return (
+            <motion.div
+              key={`${slide.id}-${i}`}
+              onClick={() => {
+                if (!isCenter) {
+                  setActiveIndex(i);
+                }
+              }}
+              animate={{
+                x,
+                y,
+                z,
+                rotateY,
+                scale,
+                opacity,
+              }}
+              transition={{
+                duration: 0.75,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              style={{
+                position: "absolute",
+                zIndex,
+                transformStyle: "preserve-3d",
+                width: `${baseCardWidth}px`,
+                aspectRatio: "3 / 4",
+              }}
+              onMouseEnter={() => {
+                setIsCardHovered(true);
+              }}
+              onMouseLeave={() => {
+                setIsCardHovered(false);
+              }}
+              className="group relative cursor-pointer"
             >
-              (MORE)
-            </Link>
-            <p className="font-mono text-[9px] text-neutral-500 tracking-[0.2em] uppercase mt-1">
-              STUDIO DENY — STREETWEAR PHOTOGRAPHY — 2026
-            </p>
-          </div>
+              {/* Realistic Ground Floor Contact Shadow aligned to unified floor baseline */}
+              <div
+                className="absolute left-1/2 w-[85%] h-6 bg-black/50 blur-lg rounded-[100%] pointer-events-none transition-all duration-700"
+                style={{
+                  bottom: `${-16 - shadowFloorOffsetPx / scale}px`,
+                  transform: `translateX(-50%) scaleY(0.35) scale(${isCenter ? 1.15 : 0.95})`,
+                  opacity: isCenter ? 0.65 : Math.max(0.2, 0.45 - absOffset * 0.08),
+                }}
+              />
 
-        </div>
+              {/* Card Container with Smooth Rounded Corners matching reference image */}
+              <div className="relative w-full h-full overflow-hidden rounded-xl sm:rounded-2xl bg-neutral-900 shadow-xl border border-black/10">
+                {/* 100% Full-Bleed Image/Video */}
+                {slide.media_type === "video" ? (
+                  <video
+                    src={slide.image_url}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                ) : (
+                  <img
+                    src={slide.image_url}
+                    alt={product?.name ?? ""}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                )}
 
+                {/* Black Gradient Overlay — Fades in ONLY when mouse hovers onto the card */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                {/* Bottom Text Overlay — Slides UP from bottom ONLY when mouse hovers onto the card */}
+                <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4 z-10 flex items-center justify-between gap-2 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto">
+                  <span className="font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-white truncate">
+                    {product ? product.name : "STUDIO DENY"}
+                  </span>
+                  <Link
+                    to="/product/$slug"
+                    params={{ slug: product?.slug ?? "denim-jacket" }}
+                    className="shrink-0 font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-white hover:text-primary transition-colors flex items-center gap-1"
+                  >
+                    SHOP THE LOOK <span className="text-primary font-bold">→</span>
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );
