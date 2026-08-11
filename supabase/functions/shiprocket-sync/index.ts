@@ -1,14 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const SR_EMAIL = Deno.env.get("SHIPROCKET_EMAIL")!;
-const SR_PASSWORD = Deno.env.get("SHIPROCKET_PASSWORD")!;
-const SR_PICKUP_LOCATION = Deno.env.get("SHIPROCKET_PICKUP_LOCATION")!;
 const SR_BASE = "https://apiv2.shiprocket.in/v1/external";
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -18,15 +11,28 @@ const CORS_HEADERS = {
 type OrderItemLine = { slug: string; name: string; qty: number; price: number };
 type OrderAddress = { name: string; phone: string; line1: string; city: string; state: string; pincode: string };
 
-async function getShiprocketToken(): Promise<string> {
+// Reading env vars and constructing the Supabase client used to happen at
+// module load time — if any secret was missing, createClient() throws
+// *before* the request handler (and its try/catch) ever runs, which Supabase
+// reports as an opaque EDGE_FUNCTION_ERROR with no useful detail. Doing it
+// all inside the handler means every possible failure is one we catch and
+// report clearly.
+function requireEnv(name: string): string {
+  const v = Deno.env.get(name);
+  if (!v) throw new Error(`Missing required secret: ${name}. Add it in Supabase → Edge Functions → Secrets.`);
+  return v;
+}
+
+async function getShiprocketToken(email: string, password: string): Promise<string> {
   const res = await fetch(`${SR_BASE}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: SR_EMAIL, password: SR_PASSWORD }),
+    body: JSON.stringify({ email, password }),
   });
   const json = await res.json();
   if (!res.ok || !json.token) {
-    throw new Error(json.message ?? "Shiprocket login failed — check SHIPROCKET_EMAIL/PASSWORD");
+    console.error("Shiprocket login failed:", res.status, JSON.stringify(json));
+    throw new Error(json.message ?? `Shiprocket login failed (HTTP ${res.status}) — check SHIPROCKET_EMAIL/PASSWORD`);
   }
   return json.token as string;
 }
@@ -40,6 +46,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
   try {
+    const supabaseUrl = requireEnv("SUPABASE_URL");
+    const supabaseServiceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+    const srEmail = requireEnv("SHIPROCKET_EMAIL");
+    const srPassword = requireEnv("SHIPROCKET_PASSWORD");
+    const srPickupLocation = requireEnv("SHIPROCKET_PICKUP_LOCATION");
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
     const { order_id } = await req.json();
     if (!order_id) {
       return new Response(JSON.stringify({ ok: false, error: "order_id is required" }), {
@@ -64,7 +77,7 @@ serve(async (req) => {
       );
     }
 
-    const token = await getShiprocketToken();
+    const token = await getShiprocketToken(srEmail, srPassword);
     const address = order.address as OrderAddress;
     const items = order.items as OrderItemLine[];
     const totalQty = items.reduce((s, i) => s + i.qty, 0);
@@ -76,7 +89,7 @@ serve(async (req) => {
       body: JSON.stringify({
         order_id: order.order_number,
         order_date: formatOrderDate(new Date()),
-        pickup_location: SR_PICKUP_LOCATION,
+        pickup_location: srPickupLocation,
         billing_customer_name: address.name,
         billing_last_name: "",
         billing_address: address.line1,
@@ -107,8 +120,9 @@ serve(async (req) => {
     const shiprocketOrderId = createJson.order_id ?? createJson.payload?.order_id;
 
     if (!createRes.ok || !shipmentId) {
+      console.error("Shiprocket order creation failed:", createRes.status, JSON.stringify(createJson));
       const message = createJson.message ?? JSON.stringify(createJson.errors ?? createJson);
-      return new Response(JSON.stringify({ ok: false, error: `Shiprocket order creation failed: ${message}` }), {
+      return new Response(JSON.stringify({ ok: false, error: `Shiprocket order creation failed (HTTP ${createRes.status}): ${message}` }), {
         status: 502,
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
@@ -125,8 +139,9 @@ serve(async (req) => {
     const courierName = awbData.courier_name;
 
     if (!awbRes.ok || !awbCode) {
+      console.error("AWB assignment failed:", awbRes.status, JSON.stringify(awbJson));
       const message = awbJson.message ?? JSON.stringify(awbJson);
-      return new Response(JSON.stringify({ ok: false, error: `AWB assignment failed: ${message}` }), {
+      return new Response(JSON.stringify({ ok: false, error: `AWB assignment failed (HTTP ${awbRes.status}): ${message}` }), {
         status: 502,
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
@@ -173,7 +188,9 @@ serve(async (req) => {
       { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    return new Response(JSON.stringify({ ok: false, error: String(err) }), {
+    console.error("shiprocket-sync uncaught error:", err);
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ ok: false, error: message }), {
       status: 500,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });

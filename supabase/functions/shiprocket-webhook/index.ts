@@ -1,15 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+function requireEnv(name: string): string {
+  const v = Deno.env.get(name);
+  if (!v) throw new Error(`Missing required secret: ${name}. Add it in Supabase → Edge Functions → Secrets.`);
+  return v;
+}
 
 // Shiprocket has no HMAC signing on this webhook (unlike Razorpay) — there's
 // nothing to cryptographically verify the sender with. We just process
@@ -18,6 +19,10 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
   try {
+    // Constructed inside the handler (not at module load) so a missing
+    // secret is a caught, readable error instead of an opaque
+    // EDGE_FUNCTION_ERROR from a crash before this try/catch even runs.
+    const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
     const body = await req.json();
     // Shiprocket's webhook field names have varied across their API versions —
     // read every alias we've seen documented.
@@ -83,7 +88,8 @@ serve(async (req) => {
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ ok: false, error: String(err) }), {
+    console.error("shiprocket-webhook uncaught error:", err);
+    return new Response(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }), {
       status: 500,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
