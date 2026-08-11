@@ -36,9 +36,13 @@ function OrderPage() {
   const canCancel = order.status === "PLACED" || order.status === "PACKED" || order.status === "SHIPPED";
   const onCancel = async () => {
     if (!confirm("Cancel this order? A refund will be processed.")) return;
-    const { shiprocketCancelled } = await cancelOrder(order.id);
+    const { shiprocketCancelled, rtoInitiated } = await cancelOrder(order.id);
     setOrder(await getOrder(id) ?? null);
-    toast.success(shiprocketCancelled ? "Order cancelled — shipment cancelled with courier" : "Order cancelled");
+    toast.success(
+      rtoInitiated ? "Order cancelled — parcel already picked up, return-to-origin requested"
+        : shiprocketCancelled ? "Order cancelled — shipment cancelled with courier"
+        : "Order cancelled"
+    );
   };
 
   return (

@@ -158,9 +158,13 @@ function Account() {
                   {(o.status === "PLACED" || o.status === "PACKED" || o.status === "SHIPPED") && (
                     <button title="Cancel" onClick={async () => {
                       if (!confirm("Cancel this order?")) return;
-                      const { shiprocketCancelled } = await cancelOrder(o.id);
+                      const { shiprocketCancelled, rtoInitiated } = await cancelOrder(o.id);
                       setOrders(await ordersFor(user.email));
-                      toast.success(shiprocketCancelled ? "Order cancelled — shipment cancelled with courier" : "Order cancelled");
+                      toast.success(
+                        rtoInitiated ? "Order cancelled — parcel already picked up, return-to-origin requested"
+                          : shiprocketCancelled ? "Order cancelled — shipment cancelled with courier"
+                          : "Order cancelled"
+                      );
                     }} className="text-muted-foreground hover:text-primary"><X className="size-4" /></button>
                   )}
                   <Link to="/order/$id" params={{ id: o.id }} className="text-mono text-[11px] tracking-widest text-primary hover:underline">VIEW →</Link>

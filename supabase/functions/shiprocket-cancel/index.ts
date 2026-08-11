@@ -84,6 +84,7 @@ serve(async (req) => {
 
     let shiprocketCancelled = false;
     let shiprocketCancelError: string | undefined;
+    let rtoInitiated = false;
 
     if (order.shiprocket_order_id) {
       try {
@@ -101,6 +102,28 @@ serve(async (req) => {
         } else {
           shiprocketCancelError = cancelJson.message ?? `HTTP ${cancelRes.status}`;
           console.error("Shiprocket order cancel failed:", cancelRes.status, JSON.stringify(cancelJson));
+
+          // The plain order-cancel only works pre-pickup. If the courier
+          // already has the parcel (AWB assigned), fall back to cancelling
+          // the shipment itself by AWB — Shiprocket's equivalent of pulling
+          // it back / RTO, instead of leaving this for the admin to sort
+          // out by hand in the Shiprocket dashboard.
+          if (order.awb_number) {
+            const awbCancelRes = await fetch(`${SR_BASE}/orders/cancel/shipment/awbs`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ awbs: [order.awb_number] }),
+            });
+            const awbCancelJson = await awbCancelRes.json();
+            if (awbCancelRes.ok) {
+              shiprocketCancelled = true;
+              rtoInitiated = true;
+              shiprocketCancelError = undefined;
+            } else {
+              shiprocketCancelError = awbCancelJson.message ?? shiprocketCancelError;
+              console.error("Shiprocket AWB cancel/RTO failed:", awbCancelRes.status, JSON.stringify(awbCancelJson));
+            }
+          }
         }
       } catch (e) {
         shiprocketCancelError = e instanceof Error ? e.message : String(e);
@@ -108,13 +131,17 @@ serve(async (req) => {
       }
     }
 
-    await supabase
-      .from("orders")
-      .update({ status: "CANCELLED", cancelled_at: new Date().toISOString() })
-      .eq("id", order_id);
+    const orderUpdate: Record<string, unknown> = { status: "CANCELLED", cancelled_at: new Date().toISOString() };
+    if (rtoInitiated) orderUpdate.rto_initiated_at = new Date().toISOString();
+    await supabase.from("orders").update(orderUpdate).eq("id", order_id);
 
     return new Response(
-      JSON.stringify({ ok: true, shiprocket_cancelled: shiprocketCancelled, shiprocket_cancel_error: shiprocketCancelError }),
+      JSON.stringify({
+        ok: true,
+        shiprocket_cancelled: shiprocketCancelled,
+        shiprocket_cancel_error: shiprocketCancelError,
+        rto_initiated: rtoInitiated,
+      }),
       { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
     );
   } catch (err) {
