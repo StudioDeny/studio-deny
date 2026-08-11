@@ -43,7 +43,7 @@ export type Order = {
   shippedAt?: number;
   deliveredAt?: number;
   rtoInitiatedAt?: number;
-  returnStatus?: "REQUESTED" | "PICKUP_SCHEDULED" | "PICKUP_FAILED" | "RECEIVED";
+  returnStatus?: "REQUESTED" | "PICKUP_SCHEDULED" | "PICKUP_FAILED" | "RECEIVED" | "REPLACED";
   returnReason?: string;
   returnRequestedAt?: number;
   shiprocketReturnOrderId?: string;
@@ -52,6 +52,7 @@ export type Order = {
   returnCourierName?: string;
   returnTrackingUrl?: string;
   returnReceivedAt?: number;
+  replacementOrderId?: string;
   createdAt: number;
 };
 
@@ -96,6 +97,7 @@ function mapRow(row: DBOrder): Order {
     returnCourierName: row.return_courier_name ?? undefined,
     returnTrackingUrl: row.return_tracking_url ?? undefined,
     returnReceivedAt: row.return_received_at ? new Date(row.return_received_at).getTime() : undefined,
+    replacementOrderId: row.replacement_order_id ?? undefined,
     createdAt: new Date(row.created_at).getTime(),
   };
 }
@@ -302,4 +304,64 @@ export async function requestReturn(id: string, reason?: string): Promise<{ orde
   const order = await getOrder(id);
   if (!order) throw new Error("Return requested, but the order couldn't be reloaded");
   return { order, pickupScheduled: !!data.pickup_scheduled, pickupError: data.pickup_error ?? undefined };
+}
+
+/** After inspecting a returned item, admin can send a like-for-like
+ * replacement instead of refunding — same items, same address, ₹0 net
+ * total (recorded as a full discount so the invoice shows it was free).
+ * Marks the original order's return as REPLACED and links to the new one.
+ * Does not create the shipment itself — call createShipment() on the
+ * returned order right after, same as any other PACKED order. */
+export async function createReplacementOrder(originalOrderId: string): Promise<Order> {
+  const { data: origRow, error: origErr } = await supabase.from("orders").select("*").eq("id", originalOrderId).single();
+  if (origErr || !origRow) throw new Error(origErr?.message ?? "Original order not found");
+  const original = mapRow(origRow);
+
+  const id = "SD" + Date.now().toString(36).toUpperCase();
+  const { data, error } = await supabase
+    .from("orders")
+    .insert({
+      id,
+      user_id: origRow.user_id,
+      user_email: original.userEmail,
+      items: original.items as unknown as DBOrder["items"],
+      subtotal: original.subtotal,
+      shipping: 0,
+      tax_rate: 0,
+      tax: 0,
+      discount: original.subtotal,
+      extra_lines: [],
+      total: 0,
+      status: "PACKED",
+      address: original.address,
+      payment_id: original.paymentId,
+      payment_method: original.payment_method ?? "razorpay",
+      notes: `Replacement for order ${original.order_number} (return)`,
+    } as any)
+    .select()
+    .single();
+  if (error || !data) throw new Error(error?.message ?? "Could not create replacement order");
+  const replacement = mapRow(data);
+
+  const { error: itemsError } = await supabase.from("order_items").insert(
+    original.items.map((i) => ({
+      order_id: replacement.id,
+      product_slug: i.slug,
+      product_name: i.name,
+      variant_id: i.variantId ?? null,
+      size: i.size,
+      color: null,
+      qty: i.qty,
+      unit_price: i.price,
+    }))
+  );
+  if (itemsError) console.warn("order_items sync:", itemsError.message);
+
+  const { error: linkErr } = await supabase
+    .from("orders")
+    .update({ return_status: "REPLACED", replacement_order_id: replacement.id } as any)
+    .eq("id", originalOrderId);
+  if (linkErr) console.warn("linking replacement to original order:", linkErr.message);
+
+  return replacement;
 }

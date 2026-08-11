@@ -16,6 +16,7 @@ const RETURN_STATUS_LABEL: Record<string, string> = {
   PICKUP_SCHEDULED: "RETURN PICKUP SCHEDULED",
   PICKUP_FAILED: "RETURN PICKUP PENDING",
   RECEIVED: "RETURN RECEIVED",
+  REPLACED: "REPLACEMENT SENT",
 };
 
 export const Route = createFileRoute("/account")({

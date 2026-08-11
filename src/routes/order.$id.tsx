@@ -13,6 +13,7 @@ const RETURN_STATUS_LABEL: Record<string, string> = {
   PICKUP_SCHEDULED: "Pickup scheduled",
   PICKUP_FAILED: "Pickup pending — contact support",
   RECEIVED: "Received at warehouse — refund pending",
+  REPLACED: "Replacement sent",
 };
 
 export const Route = createFileRoute("/order/$id")({
@@ -119,7 +120,15 @@ function OrderPage() {
             <div className="font-semibold">{RETURN_STATUS_LABEL[order.returnStatus] ?? order.returnStatus}</div>
             {order.returnAwbNumber && <div className="text-sm text-muted-foreground text-mono">AWB {order.returnAwbNumber}</div>}
           </div>
-          {order.returnTrackingUrl && (
+          {order.returnStatus === "REPLACED" && order.replacementOrderId ? (
+            <Link
+              to="/order/$id"
+              params={{ id: order.replacementOrderId }}
+              className="border border-border h-11 px-6 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary"
+            >
+              VIEW REPLACEMENT
+            </Link>
+          ) : order.returnTrackingUrl && (
             <a
               href={order.returnTrackingUrl}
               target="_blank"
