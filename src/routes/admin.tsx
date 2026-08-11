@@ -22,7 +22,7 @@ function AdminLayout() {
   const navigate = useNavigate();
   const [unseenOrders, setUnseenOrders] = useState<Order[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifPos, setNotifPos] = useState<{ top: number; right: number }>({ top: 60, right: 16 });
+  const [notifPos, setNotifPos] = useState<{ top: number; left: number }>({ top: 60, left: 16 });
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -55,9 +55,17 @@ function AdminLayout() {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
+  const NOTIF_WIDTH = 300;
   const openNotif = (e: React.MouseEvent<HTMLButtonElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
-    setNotifPos({ top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right) });
+    // Anchor from the bell's own left edge (not a "distance from the right"
+    // guess) -- the desktop bell sits near the top-LEFT of the screen
+    // (inside the narrow sidebar), so a right-offset anchor pushed the
+    // dropdown almost entirely past the left edge of the viewport.
+    let left = r.left;
+    if (left + NOTIF_WIDTH > window.innerWidth - 8) left = window.innerWidth - NOTIF_WIDTH - 8;
+    if (left < 8) left = 8;
+    setNotifPos({ top: r.bottom + 8, left });
     setNotifOpen((v) => !v);
   };
 
@@ -212,8 +220,8 @@ function AdminLayout() {
       {notifOpen && (
         <div
           ref={notifRef}
-          style={{ position: "fixed", top: notifPos.top, right: notifPos.right, zIndex: 130 }}
-          className="w-[300px] max-h-[400px] overflow-y-auto overscroll-contain bg-background border border-border shadow-2xl"
+          style={{ position: "fixed", top: notifPos.top, left: notifPos.left, width: NOTIF_WIDTH, zIndex: 130 }}
+          className="max-h-[400px] overflow-y-auto overscroll-contain bg-background border border-border shadow-2xl"
         >
           <div className="flex items-center justify-between p-3 border-b border-border sticky top-0 bg-background">
             <div className="text-mono text-[10px] tracking-widest text-primary">NOTIFICATIONS</div>
