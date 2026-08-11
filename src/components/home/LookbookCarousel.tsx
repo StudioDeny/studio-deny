@@ -524,8 +524,8 @@ export function LookbookCarousel() {
                 }}
               />
 
-              {/* Card Container */}
-              <div className="relative w-full h-full overflow-hidden rounded-xl sm:rounded-2xl bg-neutral-900 shadow-xl border border-black/10">
+              {/* Card Container with Sharp Edges */}
+              <div className="relative w-full h-full overflow-hidden rounded-none bg-neutral-900 shadow-xl border border-black/10">
                 {/* 100% Full-Bleed Image/Video */}
                 {slide.media_type === "video" ? (
                   <video
