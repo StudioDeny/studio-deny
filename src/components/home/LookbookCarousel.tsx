@@ -250,6 +250,14 @@ export function LookbookCarousel() {
     }
   };
 
+  // CONSTANT CARD DIMENSIONS — prevents box-model distortion during transitions!
+  const cardBaseWidth = isMobile ? 150 : isTablet ? 190 : 230;
+  const cardBaseHeight = isMobile ? 220 : isTablet ? 280 : 330;
+  const cardGap = isMobile ? 14 : 22;
+
+  // Position 4 shift (CENTER - 1)
+  const centerShiftX = isMobile ? -75 : isTablet ? -110 : -140;
+
   return (
     <section
       ref={containerRef}
@@ -262,12 +270,10 @@ export function LookbookCarousel() {
         
         {/* TOP HEADER: TOP LEFT Oversized Typography + TOP RIGHT Minimal Navigation */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-8 sm:pb-12 border-b border-black/10">
-          {/* TOP LEFT Oversized Title */}
           <h2 className="font-sans text-5xl sm:text-7xl md:text-8xl font-black lowercase tracking-tighter text-black leading-none flex items-center">
             lookbook<span className="text-2xl sm:text-4xl font-mono align-super ml-1">©</span>
           </h2>
 
-          {/* TOP RIGHT Understated Navigation */}
           <div className="flex items-center gap-6 sm:gap-10 font-mono text-[10px] sm:text-xs font-bold tracking-[0.25em] text-neutral-700 uppercase">
             <Link to="/lookbook" className="hover:text-black transition-colors">GALLERY</Link>
             <Link to="/about" className="hover:text-black transition-colors">ABOUT</Link>
@@ -284,7 +290,7 @@ export function LookbookCarousel() {
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
-            className="w-full flex items-center justify-center gap-3 sm:gap-4 overflow-visible py-4 cursor-grab active:cursor-grabbing relative h-[360px] sm:h-[480px]"
+            className="w-full flex items-center justify-center overflow-visible py-4 cursor-grab active:cursor-grabbing relative h-[380px] sm:h-[480px]"
             style={{ perspective: "1000px" }}
           >
             {rawSlides.map((slide, idx) => {
@@ -297,31 +303,18 @@ export function LookbookCarousel() {
               const maxVisibleOffset = isMobile ? 2 : isTablet ? 3 : 4;
               if (Math.abs(offset) > maxVisibleOffset) return null;
 
-              // STRICT RULE: POSITION 4 IS THE FIXED ACTIVE ZONE (offset === 0)
+              // POSITION 4 IS THE FIXED ACTIVE ZONE (offset === 0)
               const isActive = offset === 0;
 
-              // Geometry math: Position 4 (isActive) sits at X = -offsetDelta to align at Position 4 (Center - 1)
-              const normalWidth = isMobile ? 115 : isTablet ? 140 : 165;
-              const activeWidth = isMobile ? 220 : isTablet ? 270 : 315;
-              const gap = isMobile ? 12 : 16;
+              // Smooth scale interpolation: Active = 1.32x, Nearby = 0.85x - 0.78x
+              const scale = isActive ? 1.32 : Math.max(0.78, 0.88 - Math.abs(offset) * 0.04);
+              const opacity = isActive ? 1.0 : Math.max(0.70, 0.85 - Math.abs(offset) * 0.05);
 
-              // Calculate X translation relative to Position 4 (CENTER - 1)
-              let x = 0;
-              const centerShiftX = isMobile ? -60 : -140;
-
-              if (offset === 0) {
-                x = centerShiftX;
-              } else if (offset > 0) {
-                x = centerShiftX + (activeWidth / 2) + gap + (normalWidth / 2) + (offset - 1) * (normalWidth + gap);
-              } else {
-                x = centerShiftX - ((activeWidth / 2) + gap + (normalWidth / 2) + (Math.abs(offset) - 1) * (normalWidth + gap));
-              }
+              // X position math: Constant step spacing with GPU transform
+              const x = centerShiftX + offset * (cardBaseWidth + cardGap);
 
               const product = slide.product_slug ? mergedProducts[slide.product_slug] : undefined;
               const slideNum = String((idx % baseSlides.length) + 1).padStart(2, "0");
-
-              // Depth & Scale hierarchy: Normal cards scale ~0.78 - 0.85; Active card scale 1.0
-              const cardScale = isActive ? 1.0 : Math.max(0.78, 1 - Math.abs(offset) * 0.06);
 
               return (
                 <motion.div
@@ -329,15 +322,20 @@ export function LookbookCarousel() {
                   onClick={() => handleCardClick(idx, slide)}
                   animate={{
                     x,
-                    scale: cardScale,
-                    height: isActive ? (isMobile ? "310px" : "440px") : (isMobile ? "160px" : "240px"),
-                    width: isActive ? (isMobile ? "220px" : "315px") : (isMobile ? "115px" : "165px"),
-                    opacity: isActive ? 1.0 : Math.max(0.75, 1 - Math.abs(offset) * 0.08),
+                    scale,
+                    opacity,
                     zIndex: isActive ? 50 : 20 - Math.abs(offset),
                   }}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  style={{ position: "absolute" }}
-                  className={`shrink-0 overflow-hidden rounded-none cursor-pointer group transition-all duration-300 border ${
+                  transition={{
+                    duration: 0.6,
+                    ease: [0.22, 1, 0.36, 1], // Liquid ultra-smooth luxury easing
+                  }}
+                  style={{
+                    position: "absolute",
+                    width: `${cardBaseWidth}px`,
+                    height: `${cardBaseHeight}px`,
+                  }}
+                  className={`shrink-0 overflow-hidden rounded-none cursor-pointer group border transition-shadow duration-500 ${
                     isActive
                       ? "border-black shadow-2xl ring-1 ring-black/10"
                       : "border-black/10 bg-neutral-200"
@@ -352,14 +350,13 @@ export function LookbookCarousel() {
 
                   {/* ACTIVE CARD INFORMATION UI — Integrated directly ON TOP of active photograph */}
                   {isActive && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent flex flex-col justify-end p-5 text-white pointer-events-auto">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent flex flex-col justify-end p-4 sm:p-5 text-white pointer-events-auto">
                       <motion.div
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.35, delay: 0.05 }}
+                        transition={{ duration: 0.35, delay: 0.08 }}
                         className="font-mono space-y-1"
                       >
-                        {/* INFORMATION HIERARCHY */}
                         <p className="text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
                           ({slideNum}) / PORTRAIT
                         </p>
