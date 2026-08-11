@@ -229,8 +229,23 @@ export async function updateInvoice(id: string, patch: Partial<Order>): Promise<
  * credentials, never the browser). Returns the updated order. */
 export async function createShipment(id: string): Promise<Order> {
   const { data, error } = await supabase.functions.invoke("shiprocket-sync", { body: { order_id: id } });
-  if (error || !data?.ok) {
-    throw new Error(data?.error ?? error?.message ?? "Could not create shipment");
+  if (error) {
+    // On a non-2xx response, supabase-js hands back a generic
+    // "Edge Function returned a non-2xx status code" and leaves the actual
+    // JSON body (where our real error message lives) sitting unparsed on
+    // error.context — dig it out so the toast shows something useful.
+    let message = error.message;
+    try {
+      const context = (error as unknown as { context?: Response }).context;
+      const body = await context?.clone().json();
+      if (body?.error) message = body.error;
+    } catch {
+      // fall back to the generic message
+    }
+    throw new Error(message);
+  }
+  if (!data?.ok) {
+    throw new Error(data?.error ?? "Could not create shipment");
   }
   const order = await getOrder(id);
   if (!order) throw new Error("Shipment created, but the order couldn't be reloaded");
