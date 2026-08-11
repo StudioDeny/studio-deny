@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
@@ -164,7 +164,7 @@ export function LookbookCarousel() {
 
   const baseSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
   
-  // Expand slide ring to ensure 9 visible card positions can seamlessly cycle
+  // Expand slide ring to ensure visible card positions can seamlessly cycle
   const rawSlides = (() => {
     let list = [...baseSlides];
     while (list.length < 18) {
@@ -253,163 +253,146 @@ export function LookbookCarousel() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full py-16 sm:py-28 bg-neutral-950 text-neutral-900 select-none overflow-hidden"
+      className="relative w-full py-16 sm:py-24 bg-[#F5F4F0] text-neutral-900 border-t border-border select-none overflow-hidden"
       onMouseEnter={() => setIsSectionHovered(true)}
       onMouseLeave={() => setIsSectionHovered(false)}
     >
-      {/* 12. LARGE PHOTOGRAPHIC BACKGROUND (behind the ivory lookbook panel) */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <img
-          src="https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1800&auto=format&fit=crop"
-          alt="Editorial Backdrop"
-          className="w-full h-full object-cover filter grayscale contrast-125 opacity-40 transform scale-105"
-        />
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
-      </div>
-
-      {/* 1. OVERALL LAYOUT CONTAINER */}
-      <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-8">
+      {/* FULL-WIDTH EDITORIAL CONTAINER */}
+      <div className="max-w-[1560px] mx-auto px-4 sm:px-8">
         
-        {/* Ivory/Cream Floating Editorial Panel Sheet */}
-        <div className="w-full bg-[#F5F4F0] text-neutral-900 shadow-2xl p-6 sm:p-12 md:p-16 rounded-none border border-black/10 relative overflow-hidden">
-          
-          {/* TOP HEADER: TOP LEFT Oversized Typography + TOP RIGHT Minimal Navigation */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-8 sm:pb-12 border-b border-black/10">
-            {/* TOP LEFT Oversized Title */}
-            <h2 className="font-sans text-5xl sm:text-7xl md:text-8xl font-black lowercase tracking-tighter text-black leading-none flex items-center">
-              lookbook<span className="text-2xl sm:text-4xl font-mono align-super ml-1">©</span>
-            </h2>
+        {/* TOP HEADER: TOP LEFT Oversized Typography + TOP RIGHT Minimal Navigation */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-8 sm:pb-12 border-b border-black/10">
+          {/* TOP LEFT Oversized Title */}
+          <h2 className="font-sans text-5xl sm:text-7xl md:text-8xl font-black lowercase tracking-tighter text-black leading-none flex items-center">
+            lookbook<span className="text-2xl sm:text-4xl font-mono align-super ml-1">©</span>
+          </h2>
 
-            {/* TOP RIGHT Understated Navigation */}
-            <div className="flex items-center gap-6 sm:gap-10 font-mono text-[10px] sm:text-xs font-bold tracking-[0.25em] text-neutral-700 uppercase">
-              <Link to="/lookbook" className="hover:text-black transition-colors">GALLERY</Link>
-              <Link to="/about" className="hover:text-black transition-colors">ABOUT</Link>
-              <Link to="/contact" className="hover:text-black transition-colors">CONTACT</Link>
-            </div>
+          {/* TOP RIGHT Understated Navigation */}
+          <div className="flex items-center gap-6 sm:gap-10 font-mono text-[10px] sm:text-xs font-bold tracking-[0.25em] text-neutral-700 uppercase">
+            <Link to="/lookbook" className="hover:text-black transition-colors">GALLERY</Link>
+            <Link to="/about" className="hover:text-black transition-colors">ABOUT</Link>
+            <Link to="/contact" className="hover:text-black transition-colors">CONTACT</Link>
+          </div>
+        </div>
+
+        {/* MIDDLE / LOWER INTERACTIVE LOOKBOOK STAGE */}
+        <div className="relative pt-10 sm:pt-16 w-full flex flex-col items-center">
+
+          {/* 9-CARD HORIZONTAL SEQUENCE WITH FIXED POSITION 4 (CENTER - 1) ACTIVE ZONE */}
+          <div
+            onWheel={handleWheel}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
+            className="w-full flex items-center justify-center gap-3 sm:gap-4 overflow-visible py-4 cursor-grab active:cursor-grabbing relative h-[360px] sm:h-[480px]"
+            style={{ perspective: "1000px" }}
+          >
+            {rawSlides.map((slide, idx) => {
+              // Signed offset relative to activeCardIndex (which sits at POSITION 4)
+              let offset = (idx - activeCardIndex + total) % total;
+              if (offset > total / 2) offset -= total;
+              if (offset < -total / 2) offset += total;
+
+              // Render visible surrounding cards (-4 to +4)
+              const maxVisibleOffset = isMobile ? 2 : isTablet ? 3 : 4;
+              if (Math.abs(offset) > maxVisibleOffset) return null;
+
+              // STRICT RULE: POSITION 4 IS THE FIXED ACTIVE ZONE (offset === 0)
+              const isActive = offset === 0;
+
+              // Geometry math: Position 4 (isActive) sits at X = -offsetDelta to align at Position 4 (Center - 1)
+              const normalWidth = isMobile ? 115 : isTablet ? 140 : 165;
+              const activeWidth = isMobile ? 220 : isTablet ? 270 : 315;
+              const gap = isMobile ? 12 : 16;
+
+              // Calculate X translation relative to Position 4 (CENTER - 1)
+              let x = 0;
+              const centerShiftX = isMobile ? -60 : -140;
+
+              if (offset === 0) {
+                x = centerShiftX;
+              } else if (offset > 0) {
+                x = centerShiftX + (activeWidth / 2) + gap + (normalWidth / 2) + (offset - 1) * (normalWidth + gap);
+              } else {
+                x = centerShiftX - ((activeWidth / 2) + gap + (normalWidth / 2) + (Math.abs(offset) - 1) * (normalWidth + gap));
+              }
+
+              const product = slide.product_slug ? mergedProducts[slide.product_slug] : undefined;
+              const slideNum = String((idx % baseSlides.length) + 1).padStart(2, "0");
+
+              // Depth & Scale hierarchy: Normal cards scale ~0.78 - 0.85; Active card scale 1.0
+              const cardScale = isActive ? 1.0 : Math.max(0.78, 1 - Math.abs(offset) * 0.06);
+
+              return (
+                <motion.div
+                  key={`${slide.id}-${idx}`}
+                  onClick={() => handleCardClick(idx, slide)}
+                  animate={{
+                    x,
+                    scale: cardScale,
+                    height: isActive ? (isMobile ? "310px" : "440px") : (isMobile ? "160px" : "240px"),
+                    width: isActive ? (isMobile ? "220px" : "315px") : (isMobile ? "115px" : "165px"),
+                    opacity: isActive ? 1.0 : Math.max(0.75, 1 - Math.abs(offset) * 0.08),
+                    zIndex: isActive ? 50 : 20 - Math.abs(offset),
+                  }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ position: "absolute" }}
+                  className={`shrink-0 overflow-hidden rounded-none cursor-pointer group transition-all duration-300 border ${
+                    isActive
+                      ? "border-black shadow-2xl ring-1 ring-black/10"
+                      : "border-black/10 bg-neutral-200"
+                  }`}
+                >
+                  {/* Portrait Photographic Image / Video */}
+                  {slide.media_type === "video" ? (
+                    <video src={slide.image_url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                  ) : (
+                    <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
+                  )}
+
+                  {/* ACTIVE CARD INFORMATION UI — Integrated directly ON TOP of active photograph */}
+                  {isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent flex flex-col justify-end p-5 text-white pointer-events-auto">
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.35, delay: 0.05 }}
+                        className="font-mono space-y-1"
+                      >
+                        {/* INFORMATION HIERARCHY */}
+                        <p className="text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
+                          ({slideNum}) / PORTRAIT
+                        </p>
+                        <h3 className="text-xs sm:text-sm font-bold tracking-wider uppercase text-white leading-tight font-sans truncate">
+                          {product ? product.name : slide.caption || "PROFESSIONAL PORTRAIT"}
+                        </h3>
+                        <p className="text-[9px] text-white/60 uppercase tracking-widest">
+                          STUDIO DENY — 2026
+                        </p>
+                        <div className="pt-2">
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-[0.2em] text-white uppercase hover:text-primary transition-colors">
+                            VIEW PROJECT <span className="text-primary font-bold">→</span>
+                          </span>
+                        </div>
+                      </motion.div>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
 
-          {/* MIDDLE / LOWER INTERACTIVE LOOKBOOK STAGE */}
-          <div className="relative pt-10 sm:pt-16 w-full flex flex-col items-center">
-
-            {/* 9-CARD HORIZONTAL SEQUENCE WITH FIXED POSITION 4 (CENTER - 1) ACTIVE ZONE */}
-            <div
-              onWheel={handleWheel}
-              onPointerDown={handlePointerDown}
-              onPointerUp={handlePointerUp}
-              onPointerCancel={handlePointerCancel}
-              className="w-full flex items-center justify-center gap-3 sm:gap-4 overflow-visible py-4 cursor-grab active:cursor-grabbing relative h-[360px] sm:h-[480px]"
-              style={{ perspective: "1000px" }}
+          {/* BOTTOM EDITORIAL METADATA & MORE LINK */}
+          <div className="mt-8 sm:mt-12 text-center flex flex-col items-center gap-2">
+            <Link
+              to="/lookbook"
+              className="font-mono text-xs sm:text-sm font-bold tracking-[0.25em] text-neutral-800 hover:text-black uppercase underline underline-offset-8 transition-colors"
             >
-              {rawSlides.map((slide, idx) => {
-                // Signed offset relative to activeCardIndex (which sits at POSITION 4)
-                let offset = (idx - activeCardIndex + total) % total;
-                if (offset > total / 2) offset -= total;
-                if (offset < -total / 2) offset += total;
-
-                // Render visible surrounding cards (-4 to +4)
-                const maxVisibleOffset = isMobile ? 2 : isTablet ? 3 : 4;
-                if (Math.abs(offset) > maxVisibleOffset) return null;
-
-                // STRICT RULE: POSITION 4 IS THE FIXED ACTIVE ZONE (offset === 0)
-                const isActive = offset === 0;
-
-                // Geometry math: Position 4 (isActive) sits at X = -offsetDelta to align at Position 4 (Center - 1)
-                const normalWidth = isMobile ? 115 : isTablet ? 140 : 165;
-                const activeWidth = isMobile ? 220 : isTablet ? 270 : 315;
-                const gap = isMobile ? 12 : 16;
-
-                // Calculate X translation relative to Position 4 (CENTER - 1)
-                let x = 0;
-                // Position 4 is offset slightly to the left of stage center (CENTER - 1)
-                const centerShiftX = isMobile ? -60 : -140;
-
-                if (offset === 0) {
-                  x = centerShiftX;
-                } else if (offset > 0) {
-                  x = centerShiftX + (activeWidth / 2) + gap + (normalWidth / 2) + (offset - 1) * (normalWidth + gap);
-                } else {
-                  x = centerShiftX - ((activeWidth / 2) + gap + (normalWidth / 2) + (Math.abs(offset) - 1) * (normalWidth + gap));
-                }
-
-                const product = slide.product_slug ? mergedProducts[slide.product_slug] : undefined;
-                const slideNum = String((idx % baseSlides.length) + 1).padStart(2, "0");
-
-                // Depth & Scale hierarchy (Section 10)
-                // Normal cards: scale ~0.78 - 0.85; Active card: scale 1.0
-                const cardScale = isActive ? 1.0 : Math.max(0.78, 1 - Math.abs(offset) * 0.06);
-
-                return (
-                  <motion.div
-                    key={`${slide.id}-${idx}`}
-                    onClick={() => handleCardClick(idx, slide)}
-                    animate={{
-                      x,
-                      scale: cardScale,
-                      height: isActive ? (isMobile ? "310px" : "440px") : (isMobile ? "160px" : "240px"),
-                      width: isActive ? (isMobile ? "220px" : "315px") : (isMobile ? "115px" : "165px"),
-                      opacity: isActive ? 1.0 : Math.max(0.75, 1 - Math.abs(offset) * 0.08),
-                      zIndex: isActive ? 50 : 20 - Math.abs(offset),
-                    }}
-                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    style={{ position: "absolute" }}
-                    className={`shrink-0 overflow-hidden rounded-none cursor-pointer group transition-all duration-300 border ${
-                      isActive
-                        ? "border-black shadow-2xl ring-1 ring-black/10"
-                        : "border-black/10 bg-neutral-200"
-                    }`}
-                  >
-                    {/* Portrait Photographic Image / Video */}
-                    {slide.media_type === "video" ? (
-                      <video src={slide.image_url} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-                    ) : (
-                      <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
-                    )}
-
-                    {/* 6. ACTIVE CARD INFORMATION UI — Integrated directly ON TOP of active photograph */}
-                    {isActive && (
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent flex flex-col justify-end p-5 text-white pointer-events-auto">
-                        <motion.div
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.35, delay: 0.05 }}
-                          className="font-mono space-y-1"
-                        >
-                          {/* 7. INFORMATION HIERARCHY */}
-                          <p className="text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
-                            ({slideNum}) / PORTRAIT
-                          </p>
-                          <h3 className="text-xs sm:text-sm font-bold tracking-wider uppercase text-white leading-tight font-sans truncate">
-                            {product ? product.name : slide.caption || "PROFESSIONAL PORTRAIT"}
-                          </h3>
-                          <p className="text-[9px] text-white/60 uppercase tracking-widest">
-                            STUDIO DENY — 2026
-                          </p>
-                          <div className="pt-2">
-                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-[0.2em] text-white uppercase hover:text-primary transition-colors">
-                              VIEW PROJECT <span className="text-primary font-bold">→</span>
-                            </span>
-                          </div>
-                        </motion.div>
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              })}
-            </div>
-
-            {/* BOTTOM EDITORIAL METADATA & MORE LINK */}
-            <div className="mt-8 sm:mt-12 text-center flex flex-col items-center gap-2">
-              <Link
-                to="/lookbook"
-                className="font-mono text-xs sm:text-sm font-bold tracking-[0.25em] text-neutral-800 hover:text-black uppercase underline underline-offset-8 transition-colors"
-              >
-                (MORE)
-              </Link>
-              <p className="font-mono text-[9px] text-neutral-500 tracking-[0.2em] uppercase mt-1">
-                STUDIO DENY — STREETWEAR PHOTOGRAPHY — 2026
-              </p>
-            </div>
-
+              (MORE)
+            </Link>
+            <p className="font-mono text-[9px] text-neutral-500 tracking-[0.2em] uppercase mt-1">
+              STUDIO DENY — STREETWEAR PHOTOGRAPHY — 2026
+            </p>
           </div>
 
         </div>
