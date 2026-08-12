@@ -43,3 +43,6 @@ env
 *.njsproj
 *.sln
 *.sw?
+
+# Supabase CLI local cache (project ref, pooler URL — no secrets, but no reason to track it)
+supabase/.temp/
