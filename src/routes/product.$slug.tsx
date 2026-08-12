@@ -6,6 +6,7 @@ import { useCart, formatINR } from "@/context/CartContext";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reviews } from "@/components/product/Reviews";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
 import { Heart, Truck, RotateCcw, ShieldCheck, ArrowRight, Zap, Share2, Minus, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -78,9 +79,11 @@ function PDP() {
   const { product } = Route.useLoaderData();
   const { add } = useCart();
   const { has, toggle } = useWishlist();
+  const { user } = useAuth();
   const wished = has(product.slug);
   const [size, setSize] = useState<string | null>(null);
   const [variantId, setVariantId] = useState<string | undefined>();
+  const [notifyRequested, setNotifyRequested] = useState(false);
   const [tab, setTab] = useState<"desc" | "mat" | "care" | "delivery" | "">("desc");
   const [added, setAdded] = useState(false);
   const [variants, setVariants] = useState<VariantRow[]>([]);
@@ -251,6 +254,20 @@ function PDP() {
     setQty((q) => Math.min(Math.max(1, q), maxQty));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [variantId, size, maxQty]);
+
+  useEffect(() => {
+    if (!user) { setNotifyRequested(false); return; }
+    supabase.from("stock_notify_requests").select("id").eq("user_id", user.id).eq("product_slug", product.slug).maybeSingle()
+      .then(({ data }) => setNotifyRequested(!!data));
+  }, [user, product.slug]);
+
+  const handleNotifyMe = async () => {
+    if (!user) { toast.error("Log in to get notified"); return; }
+    const { error } = await supabase.from("stock_notify_requests").upsert({ user_id: user.id, product_slug: product.slug }, { onConflict: "user_id,product_slug" });
+    if (error) { toast.error(error.message); return; }
+    setNotifyRequested(true);
+    toast.success("We'll WhatsApp you when it's back");
+  };
 
   const handleAdd = () => {
     if (!size) return;
@@ -553,26 +570,36 @@ function PDP() {
               </button>
             </div>
 
-            <button
-              onClick={handleAdd}
-              disabled={!size || isOOS}
-              className={`w-full sm:flex-1 font-bold text-mono transition-all duration-300 flex items-center justify-center gap-3 ${added
-                  ? "bg-secondary text-secondary-foreground glow-lime"
-                  : size
-                    ? "bg-primary text-primary-foreground hover:glow-primary border-shimmer"
-                    : "bg-surface border border-border text-muted-foreground"
-                }`}
-              style={{
-                height: "60px",
-                fontSize: "12px",
-                letterSpacing: "0.25em",
-                opacity: isOOS ? 0.5 : 1,
-                cursor: isOOS || (!size && !added) ? "not-allowed" : "pointer"
-              }}
-            >
-              {isOOS ? "SOLD OUT" : added ? "✓ ADDED TO BAG" : "ADD TO BAG"}
-              {size && !added && !isOOS && <ArrowRight className="size-4" />}
-            </button>
+            {isOOS ? (
+              <button
+                onClick={handleNotifyMe}
+                disabled={notifyRequested}
+                className="w-full sm:flex-1 font-bold text-mono transition-all duration-300 flex items-center justify-center gap-3 border border-primary text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ height: "60px", fontSize: "12px", letterSpacing: "0.25em" }}
+              >
+                {notifyRequested ? "✓ WE'LL LET YOU KNOW" : "NOTIFY ME WHEN BACK"}
+              </button>
+            ) : (
+              <button
+                onClick={handleAdd}
+                disabled={!size}
+                className={`w-full sm:flex-1 font-bold text-mono transition-all duration-300 flex items-center justify-center gap-3 ${added
+                    ? "bg-secondary text-secondary-foreground glow-lime"
+                    : size
+                      ? "bg-primary text-primary-foreground hover:glow-primary border-shimmer"
+                      : "bg-surface border border-border text-muted-foreground"
+                  }`}
+                style={{
+                  height: "60px",
+                  fontSize: "12px",
+                  letterSpacing: "0.25em",
+                  cursor: !size && !added ? "not-allowed" : "pointer"
+                }}
+              >
+                {added ? "✓ ADDED TO BAG" : "ADD TO BAG"}
+                {size && !added && <ArrowRight className="size-4" />}
+              </button>
+            )}
 
             <button
               aria-label="Wishlist"

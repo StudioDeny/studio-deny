@@ -7,15 +7,16 @@ const CORS_HEADERS = {
 };
 
 const HOUR = 60 * 60 * 1000;
-const STAGES: { stage: "1h" | "24h" | "48h"; afterMs: number }[] = [
+const STAGES: { stage: "1h" | "24h" | "48h" | "final"; afterMs: number }[] = [
+  { stage: "final", afterMs: 72 * HOUR },
   { stage: "48h", afterMs: 48 * HOUR },
   { stage: "24h", afterMs: 24 * HOUR },
   { stage: "1h", afterMs: 1 * HOUR },
 ];
 // A cart crosses stages in order as it ages — check from the oldest
-// threshold down so a cart that's been quiet for 3 days gets its 48h
-// message (not re-sent its 1h one), even if a cron run was missed.
-const STAGE_RANK: Record<string, number> = { "1h": 1, "24h": 2, "48h": 3 };
+// threshold down so a cart that's been quiet for 3 days gets its final
+// message (not re-sent an earlier one), even if a cron run was missed.
+const STAGE_RANK: Record<string, number> = { "1h": 1, "24h": 2, "48h": 3, final: 4 };
 
 function requireEnv(name: string): string {
   const v = Deno.env.get(name);
