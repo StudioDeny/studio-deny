@@ -11,7 +11,7 @@ Four edge functions, one DB migration chain, and full customer-facing cancel/ret
 | Create shipment + AWB + auto-pickup | Admin clicks "CREATE SHIPMENT" on a `PACKED` order (`/admin/orders`) | `shiprocket-sync` |
 | Cancel (forward or reverse, whichever applies) | Customer cancels an order that's `PLACED`/`PACKED`/`SHIPPED` (`/account` or `/order/$id`) | `shiprocket-cancel` |
 | Customer-initiated return | Customer requests a return on a `DELIVERED` order, within 7 days (`/account` or `/order/$id`) | `shiprocket-return` |
-| Live tracking status | Shiprocket calls this whenever a shipment's status changes | `shiprocket-webhook` |
+| Live tracking status | Shiprocket calls this whenever a shipment's status changes | `shipment-status-webhook` |
 | Send a replacement instead of refunding | Admin clicks "SEND REPLACEMENT" on a `RECEIVED` return (`/admin/returns`) | *(none — reuses `shiprocket-sync` via the normal create-shipment flow)* |
 
 ---
@@ -31,11 +31,12 @@ The resulting email+password go into `SHIPROCKET_EMAIL`/`SHIPROCKET_PASSWORD` �
 Once auth works, `/orders/create/adhoc` can still reject with `HTTP 200 {"message":"Wrong pickup location entered. Please choose one location from the data given"}` — a **200**, not an error status, so don't just check `res.ok`. The dashboard shows a pickup address nickname (e.g. "Primary") but that string is **not guaranteed to be what a specific API user's context actually expects** — it can differ per API user's granted access. `shiprocket-sync`'s `getPickupLocationNicknames()` helper handles this by calling `GET /settings/company/pickup` with the same token and surfacing exactly which `pickup_location` values this API user can actually see, appended right onto the error message — so if you ever hit this, **read the error message itself**, it tells you the fix (usually: update `SHIPROCKET_PICKUP_LOCATION` to match the real value returned, which in this project's account turned out to be `"Warehouse"`, not `"Primary"`).
 
 ### 2.3 Register the webhook
-Shiprocket dashboard → **Settings → API → Webhooks** → set the Webhook URL to:
-```
-https://ablejcrtuiohdrapgacb.supabase.co/functions/v1/shiprocket-webhook
-```
-Enable events: Shipment Picked Up, In Transit, Out for Delivery, Delivered, RTO Initiated, RTO Delivered.
+Shiprocket dashboard → **Settings → Additional Settings → Webhooks**. Three fields, not just a URL:
+- **URL**: `https://ablejcrtuiohdrapgacb.supabase.co/functions/v1/shipment-status-webhook` — the function is deliberately **not** named `shiprocket-webhook`. Shiprocket's own webhook form rejects (silently — "Please check your endpoint, unable to send request to mentioned api", with no other detail) any URL containing the substrings `shiprocket`, `kartrocket`, `sr`, or `kr` (the form's own help text says so). The obvious function name breaks this.
+- **Auth Token Type**: `x-api-key` (the default option — leave it).
+- **Token**: the value of the `SHIPROCKET_WEBHOOK_SECRET` edge function secret (§3). Shiprocket sends this back as an `x-api-key` request header on every webhook call, which the function checks with a constant-time compare before touching anything — added because this webhook has no HMAC signing of any kind (unlike Razorpay), so without it anyone who found the URL could flip any order to DELIVERED/SHIPPED/RTO and trigger real customer WhatsApp messages.
+
+Toggle **Webhook Connection** on, hit **Save**, then **Test Webhook** — you should get a real 200 once the function is deployed and the secret is set (§9). Enable events: Shipment Picked Up, In Transit, Out for Delivery, Delivered, RTO Initiated, RTO Delivered.
 
 ## 3. Secrets
 
@@ -44,6 +45,7 @@ Enable events: Shipment Picked Up, In Transit, Out for Delivery, Delivered, RTO 
 | `SHIPROCKET_EMAIL` | the **API user's** email (§2.1), not your main login |
 | `SHIPROCKET_PASSWORD` | the API user's password |
 | `SHIPROCKET_PICKUP_LOCATION` | the exact `pickup_location` string this API user sees (§2.2) — verify via the error-message self-diagnosis if unsure |
+| `SHIPROCKET_WEBHOOK_SECRET` | any random string — set the same value as the "Token" field in Shiprocket's webhook config (§2.3) |
 
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY` are **auto-injected into every edge function by Supabase** — never set these manually (attempting to add a secret with the `SUPABASE_` prefix is actively blocked by the Dashboard).
 
@@ -88,9 +90,9 @@ Payload shape: `pickup_*` fields = the **customer's** address (courier picks up 
 
 On success: `return_status` becomes `PICKUP_SCHEDULED` (if the pickup-generation step also succeeded) or `REQUESTED` (if not — same best-effort, non-fatal pattern as the forward flow), plus `return_awb_number`/`return_tracking_url`/etc. and — if the customer supplied one — `return_reason`.
 
-## 7. `shiprocket-webhook` — live status updates
+## 7. `shipment-status-webhook` — live status updates
 
-No auth check at all (Shiprocket has no HMAC signing on this webhook, unlike Razorpay) and, critically, **"Enforce JWT Verification" must be turned off** for this function in the Supabase Dashboard — Shiprocket's own call carries no Supabase auth header, so a function with JWT verification still on rejects every real webhook call with 401 before its code ever runs.
+Checks the `x-api-key` header against `SHIPROCKET_WEBHOOK_SECRET` before touching anything (§2.3) — Shiprocket has no HMAC signing on this webhook, unlike Razorpay, so this header check is the only thing standing between the internet and being able to flip any order's status. Separately, and just as critically, **"Enforce JWT Verification" must be turned off** for this function in the Supabase Dashboard — Shiprocket's own call carries no Supabase auth header (only the `x-api-key` one above), so a function with JWT verification still on rejects every real webhook call with a 401 from Supabase's own gateway before its code — including the `x-api-key` check — ever runs.
 
 Because a shipment's AWB and a return's AWB are stored in **different columns** (`awb_number` vs `return_awb_number`), the webhook looks up by `awb_number` first, and if nothing matches, tries `return_awb_number` — `isReturnLeg` tracks which one hit so the rest of the function branches correctly:
 - **Forward leg, status contains "delivered" (and not "rto")**: `status → DELIVERED`, stamps `delivered_at`. This is what makes the customer-facing "REQUEST RETURN" button possible in the first place (it gates on `status === "DELIVERED"`), and — since `20260812000005` — is also what makes a loyalty-points-earning transaction fire (see 02-DATABASE-SCHEMA.md's order trigger).
@@ -114,4 +116,4 @@ The customer sees this on their order page: once `return_status === 'REPLACED'`,
 
 ## 9. Deploying
 
-No CLI — every one of these four functions is deployed by pasting its full `index.ts` contents into the Supabase Dashboard's Edge Functions code editor for that function name and clicking Deploy. `shiprocket-webhook` additionally needs its JWT verification toggled off (§7); the other three keep JWT verification on (they're only ever called by your own logged-in browser session, via `supabase.functions.invoke(...)`, which forwards the session's auth header automatically).
+No CLI — every one of these four functions is deployed by pasting its full `index.ts` contents into the Supabase Dashboard's Edge Functions code editor for that function name and clicking Deploy. `shipment-status-webhook` additionally needs its JWT verification toggled off (§7); the other three keep JWT verification on (they're only ever called by your own logged-in browser session, via `supabase.functions.invoke(...)`, which forwards the session's auth header automatically).

@@ -101,7 +101,7 @@ Almost none of the trigger logic lives in these edge functions — they only *se
 - `queue_stock_notifications()` DB trigger on `product_variants` — `back_in_stock`, `low_stock_alert`.
 - `recalc_loyalty_tier()` DB trigger on `loyalty_balances` — `loyalty_tier_upgrade`.
 - `handle_new_user()` DB trigger on `auth.users` — `welcome_new_user`.
-- Direct inserts from `shiprocket-sync`/`shiprocket-webhook`/`shiprocket-return` — `order_shipped` (real shipment), `order_delivered`, `return_requested`.
+- Direct inserts from `shiprocket-sync`/`shipment-status-webhook`/`shiprocket-return` — `order_shipped` (real shipment), `order_delivered`, `return_requested`.
 
 This "queue via DB trigger with `SECURITY DEFINER`, send via a completely separate cron-driven function" split is deliberate: `notification_queue` has admin-only RLS (see 02-DATABASE-SCHEMA.md §4), so a plain customer-side insert (e.g. checkout creating an order with the anon key) could never write to it directly — only a `SECURITY DEFINER` trigger or the service-role key can.
 

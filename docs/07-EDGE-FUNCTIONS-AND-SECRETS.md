@@ -19,7 +19,7 @@ Every single edge function and every single database migration in this project's
 | `shiprocket-sync` | Creates a Shiprocket shipment + AWB + pickup for a `PACKED` order | Called only from the admin's own logged-in session | **On** | No |
 | `shiprocket-cancel` | Cancels an order (and its Shiprocket shipment if one exists) | Ownership-checked via the caller's own JWT against RLS (see 05-SHIPPING-SHIPROCKET.md §5) | **On** | No |
 | `shiprocket-return` | Creates a reverse shipment for a customer return | Same ownership-check pattern as `shiprocket-cancel` | **On** | No |
-| `shiprocket-webhook` | Receives live status updates from Shiprocket | None — Shiprocket has no HMAC signing on this webhook | **Off** (required — Shiprocket sends no Supabase auth header) | No (called by Shiprocket, not by us) |
+| `shipment-status-webhook` | Receives live status updates from Shiprocket | None — Shiprocket has no HMAC signing on this webhook | **Off** (required — Shiprocket sends no Supabase auth header) | No (called by Shiprocket, not by us) |
 | `send-whatsapp` | Flushes pending `notification_queue` rows to Meta's API | None — internal, cron-only | **Off** (required) | Every 5 min |
 | `abandoned-cart-scan` | Finds stale carts, queues 1h/24h/48h/final nudges | None — internal, cron-only | **Off** (required) | Every 15 min |
 | `sync-whatsapp-templates` | Pulls real template body/status from Meta | None — internal, cron/manual-button only | **Off** (required for the cron path — the manual "SYNC FROM META" button in `/admin/notifications` also works fine with it off, since it just calls the same function) | Daily at 3am |
@@ -43,7 +43,7 @@ Every single edge function and every single database migration in this project's
 | `WHATSAPP_PHONE_NUMBER_ID` | `send-whatsapp` | The real (production) phone number ID, not the Getting-Started test one, once you're past initial testing |
 | `WHATSAPP_BUSINESS_ACCOUNT_ID` | `sync-whatsapp-templates` | The WABA ID — see 06-WHATSAPP-META.md §1.4 |
 
-No secrets are needed for `shiprocket-webhook` or `queue-payment-failed` beyond the auto-injected Supabase ones.
+No secrets are needed for `shipment-status-webhook` or `queue-payment-failed` beyond the auto-injected Supabase ones.
 
 ## 4. The single most important lesson learned this session: read secrets INSIDE the request handler
 
@@ -71,7 +71,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const supabase = createClient(SUPABASE_URL, ...);
 serve(async (req) => { try { ... } catch { ... } });
 ```
-If a secret referenced at module scope is missing, the `!`-asserted `undefined` (or the `createClient()` call itself) throws **before `serve`'s handler — and therefore its `try/catch` — ever runs.** Supabase reports this as an opaque `EDGE_FUNCTION_ERROR` with a tiny, unhelpful response body, visible only via Invocations → Raw as `sb_error_code: "EDGE_FUNCTION_ERROR"` — no indication of *which* secret, or that it's a secrets problem at all. This exact bug was hit and fixed on `shiprocket-sync`, `shiprocket-webhook`, and `send-whatsapp` during this project's build. **`razorpay-create-order` and `razorpay-verify-payment` were never touched during that fix round and still have the module-scope pattern today** — they happen to work because their two secrets have always been present, but if either secret is ever accidentally deleted/renamed, expect this exact opaque failure mode, not a clear error.
+If a secret referenced at module scope is missing, the `!`-asserted `undefined` (or the `createClient()` call itself) throws **before `serve`'s handler — and therefore its `try/catch` — ever runs.** Supabase reports this as an opaque `EDGE_FUNCTION_ERROR` with a tiny, unhelpful response body, visible only via Invocations → Raw as `sb_error_code: "EDGE_FUNCTION_ERROR"` — no indication of *which* secret, or that it's a secrets problem at all. This exact bug was hit and fixed on `shiprocket-sync`, `shipment-status-webhook`, and `send-whatsapp` during this project's build. **`razorpay-create-order` and `razorpay-verify-payment` were never touched during that fix round and still have the module-scope pattern today** — they happen to work because their two secrets have always been present, but if either secret is ever accidentally deleted/renamed, expect this exact opaque failure mode, not a clear error.
 
 ## 5. `supabase.functions.invoke()`'s other gotcha: non-2xx responses hide the real error body
 

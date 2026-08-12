@@ -19,12 +19,15 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-// Shiprocket has no HMAC signing on this webhook (unlike Razorpay), so there
-// was nothing verifying the sender — anyone who found this URL could flip
-// any order to DELIVERED/SHIPPED/RTO by AWB and trigger real customer
-// WhatsApp messages. Shiprocket's dashboard (Settings → Webhooks) lets you
-// configure a token sent as a header — "Auth Token Type: x-api-key" is what
-// we check here; set the "Token" field there to SHIPROCKET_WEBHOOK_SECRET.
+// This function is Shiprocket's shipment-status webhook — it used to be
+// named shiprocket-webhook, but Shiprocket's own webhook URL field rejects
+// any URL containing "shiprocket" (their dashboard says so explicitly:
+// "refrain from using keywords like shiprocket, kartrocket, sr, or kr in
+// the webhook URL"), which silently broke Test Webhook. Renamed instead of
+// working around it. Has no HMAC signing (unlike Razorpay) — Shiprocket's
+// dashboard (Settings → Webhooks) lets you configure a token sent as a
+// header instead — "Auth Token Type: x-api-key" is what we check here; set
+// the "Token" field there to SHIPROCKET_WEBHOOK_SECRET.
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
@@ -125,7 +128,7 @@ serve(async (req) => {
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("shiprocket-webhook uncaught error:", err);
+    console.error("shipment-status-webhook uncaught error:", err);
     return new Response(JSON.stringify({ ok: false, error: "internal_error" }), {
       status: 500,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
