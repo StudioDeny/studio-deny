@@ -19,8 +19,8 @@ Every sellable item. **This table predates the migrations folder** — no `CREAT
 | `name` | text | |
 | `category` | text | Legacy flat category string (e.g. `"Bottoms"`). Still the fallback source for old products; see `categories`/`category_id` below for the real hierarchy. |
 | `category_id` | uuid, FK → `categories(id)` ON DELETE SET NULL | Added by `20250516000001` (assumed pre-existing `categories`; see the categories section for why this ALTER likely didn't actually apply until `categories` was created fresh in `20260719000001`). |
-| `brand` | text | Pre-existing. |
-| `brand_id` | uuid, references `brands(id)` | Added by `20250516000001`. **⚠️ No migration anywhere creates a `brands` table** — treat `brand_id` as unverified/possibly-nonfunctional until you confirm `brands` actually exists live (see Known Drift §7). |
+| `brand` | text | Pre-existing — plain text, matched against the `brands` table by name/slug at the application layer, not a real FK. |
+| `brand_id` | uuid, references `brands(id)` | Added by `20250516000001`, but that ALTER almost certainly no-op'd at the time (same atomic-statement failure as `category_id` — `categories` didn't exist yet either when it ran). **Not actually populated by any code path** — the admin product form writes to `products.brand` (text), never `brand_id`. Harmless orphaned column, not wired to anything. |
 | `price` | numeric | |
 | `compare_at` | numeric, nullable | Pre-existing (strike-through "was" price). |
 | `image`, `image_type` | text, text (`'image'\|'video'`, default `'image'`) | `image_type` added `20260730000001`. |
@@ -128,7 +128,16 @@ Normalized line items — supplements (does not replace) the `orders.items` json
 Seeded rows: Men, Women, Accessories (top-level); Rings, Chains, Socks (children of Accessories); Tops, Bottoms, Outerwear (top-level, matching legacy `products.category` strings). Existing products were re-pointed via `UPDATE products SET category_id = ... WHERE lower(category) = categories.slug`.
 
 #### `brands`
-**⚠️ No `CREATE TABLE brands` exists in any migration.** `20250516000001` only `ALTER`s it (assuming pre-existence) and `products.brand_id` references it. Given the identical pattern with `orders`/`categories` (assumed-existing tables that turned out not to exist), **do not assume `brands` is real without verifying live** (`SELECT * FROM brands LIMIT 1` in the SQL Editor).
+Created `20260812000006` — brands were `localStorage`-only (per-browser, never synced) until this migration; `src/lib/catalog.ts` now mirrors the `categories` pattern exactly.
+| Column | Type |
+|---|---|
+| `id` | uuid PK |
+| `name` | text NOT NULL |
+| `slug` | text NOT NULL UNIQUE |
+| `is_active` | boolean NOT NULL DEFAULT true |
+| `created_at` | timestamptz |
+
+Seeded row: Studio Deny (`studio-deny`). **Not FK-linked to `products`** — same as before, `products.brand` (plain text) is matched against this table by name at the application layer, not via `products.brand_id` (which remains an unused, unpopulated column — see the `products` entry above).
 
 #### `sizes`
 Category-scoped size lists (e.g. Tops → S/M/L/XL, Rings → 6/7/8/9) so the admin product form reads from a real list instead of free text. Created `20260730000004`.
@@ -494,6 +503,10 @@ The homepage loyalty popup, fully admin-editable. `id, enabled, delay_seconds (d
 **Went through a full create → drop → recreate cycle.** `20260731000003` created a version with font-size/weight/family/color fields (for a text-based preloader). `20260731000005` dropped it entirely — the Preloader component was redesigned to have no text, fixed backdrop. `20260731000006` recreated it with a **different, narrower shape** matching the new design — **this final version is the only one that matters**:
 `id, bg_type ('image'|'video', default 'image'), bg_image_url, bg_video_url, content_type ('image'|'text', default 'image'), content_image_url (default '/deny-space-preloader.png'), content_text (default 'STUDIO DENY'), text_color (default '#000000'), created_at, updated_at`.
 
+#### `invoice_settings` (singleton)
+Created `20260812000006`. Fixes a real cross-device bug: both the admin's Invoice Template editor and the customer-facing invoice page used to read/write the same `localStorage` key — since that's per-browser, a customer viewing their own invoice on their own device was always reading their **own blank** localStorage and silently falling back to hardcoded defaults, never the admin's actual configured brand info. Now a real Supabase singleton row, same pattern as `brand_settings`/`popup_promo`.
+`id, brand_name (default 'STUDIO DENY'), tagline, gstin, email, phone, address, accent (hex, default '#0a0a0a'), terms, footer, signatory, tax_label (default 'TAX INVOICE'), created_at, updated_at`. Public read (customers need it to render their own invoice), admin/staff write.
+
 ---
 
 ## 2. Custom types / enums
@@ -575,7 +588,7 @@ All three were added in the WhatsApp-automation work and follow the identical sh
 Treat this section as load-bearing — several of these will actively mislead you if you assume "a migration exists for X" means "X works live."
 
 1. **`20250516000001_alter_existing_tables.sql`'s `orders` and `categories` blocks almost certainly no-op'd entirely.** Both tables were confirmed, via direct verification months later, to **not exist live** at the times their dedicated creation migrations (`20260810000001` for orders, `20260719000001` for categories) actually ran — meaning this much earlier `ALTER TABLE` file's `EXCEPTION WHEN undefined_table THEN NULL` almost certainly fired and silently swallowed the whole block for each. Trust the dedicated creation migrations' schemas as authoritative for these two tables, not this file.
-2. **`brands` table: existence unverified.** No migration anywhere contains `CREATE TABLE brands`. `products.brand_id` references it. Given the identical "assumed pre-existing, actually wasn't" pattern that hit `orders` and `categories`, treat this as **unverified** until you personally confirm via `SELECT * FROM brands LIMIT 1` in the live database.
+2. **`brands` table** — real as of `20260812000006` (see §1). `products.brand_id` is still unpopulated/unused, though — the real link is `products.brand` (text) matched by name, not a FK.
 3. **`addresses` table and its trigger are fully built and RLS-protected but effectively dead code.** The real checkout flow and `/account` page store addresses in browser `localStorage` (`sd_addresses`) instead, never touching this table.
 4. **`admin_notifications` table is fully built but nothing ever inserts into it.** The admin bell notification feature is implemented entirely differently (comparing `orders.created_at` to a localStorage timestamp).
 5. **`marketing_campaigns` is decorative.** Creating a campaign in the admin UI writes a `draft` row and nothing more — there is no send pipeline.

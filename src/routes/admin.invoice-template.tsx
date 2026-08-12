@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { getSettings, saveSettings, type LoyaltySettings } from "@/lib/settings";
+import { getInvoiceTemplate, saveInvoiceTemplate, type InvoiceTemplate } from "@/lib/settings";
 import { toast } from "sonner";
 import { formatINR } from "@/context/CartContext";
 
@@ -9,13 +9,13 @@ export const Route = createFileRoute("/admin/invoice-template")({
 });
 
 function TemplateEditor() {
-  const [s, setS] = useState<LoyaltySettings | null>(null);
-  useEffect(() => setS(getSettings()), []);
-  if (!s) return <div className="text-mono text-xs">LOADING…</div>;
+  const [t, setT] = useState<InvoiceTemplate | null>(null);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { getInvoiceTemplate().then(setT); }, []);
+  if (!t) return <div className="text-mono text-xs">LOADING…</div>;
 
-  const t = s.invoice;
-  const set = <K extends keyof typeof t>(k: K, v: (typeof t)[K]) =>
-    setS({ ...s, invoice: { ...t, [k]: v } });
+  const set = <K extends keyof InvoiceTemplate>(k: K, v: InvoiceTemplate[K]) =>
+    setT({ ...t, [k]: v });
 
   return (
     <div>
@@ -45,9 +45,20 @@ function TemplateEditor() {
           <Field label="SIGNATORY"><input value={t.signatory} onChange={(e) => set("signatory", e.target.value)} className="inp" /></Field>
           <Field label="FOOTER"><input value={t.footer} onChange={(e) => set("footer", e.target.value)} className="inp" /></Field>
           <button
-            onClick={() => { saveSettings(s); toast.success("Template saved"); }}
-            className="bg-primary text-primary-foreground h-12 px-6 text-mono text-xs tracking-widest hover:glow-primary"
-          >SAVE TEMPLATE</button>
+            onClick={async () => {
+              setSaving(true);
+              try {
+                await saveInvoiceTemplate(t);
+                toast.success("Template saved");
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : "Could not save template");
+              } finally {
+                setSaving(false);
+              }
+            }}
+            disabled={saving}
+            className="bg-primary text-primary-foreground h-12 px-6 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50"
+          >{saving ? "SAVING…" : "SAVE TEMPLATE"}</button>
         </div>
 
         <div>

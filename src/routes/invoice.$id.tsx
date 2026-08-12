@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { getOrder, type Order } from "@/lib/orders";
-import { getSettings, type InvoiceTemplate } from "@/lib/settings";
+import { getInvoiceTemplate, type InvoiceTemplate } from "@/lib/settings";
 import { formatINR } from "@/context/CartContext";
 import { Printer } from "lucide-react";
 
@@ -15,7 +15,7 @@ function InvoicePage() {
   const [o, setO] = useState<Order | null>(null);
   const [tpl, setTpl] = useState<InvoiceTemplate | null>(null);
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => { getOrder(id).then((order) => setO(order ?? null)); setTpl(getSettings().invoice); }, [id]);
+  useEffect(() => { getOrder(id).then((order) => setO(order ?? null)); getInvoiceTemplate().then(setTpl); }, [id]);
 
   if (!o || !tpl) return <section className="px-4 md:px-8 py-24 text-center"><h1 className="text-display text-5xl">INVOICE NOT FOUND</h1></section>;
 
