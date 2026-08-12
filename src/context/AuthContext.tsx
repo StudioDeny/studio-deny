@@ -8,7 +8,7 @@ type AuthCtx = {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, phone: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -66,11 +66,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const { error } = await supabase.auth.signInWithPassword({ email, password });
           if (error) throw new Error(error.message);
         },
-        signup: async (email, password, name) => {
+        signup: async (email, password, name, phone) => {
           const { error } = await supabase.auth.signUp({
             email,
             password,
-            options: { data: { name } },
+            options: { data: { name, phone } },
           });
           if (error) throw new Error(error.message);
         },

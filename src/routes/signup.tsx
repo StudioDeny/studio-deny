@@ -15,6 +15,7 @@ export const Route = createFileRoute("/signup")({
 const schema = z.object({
   name: z.string().min(2).max(80),
   email: z.string().email(),
+  phone: z.string().regex(/^[0-9]{10}$/, "Enter a 10-digit phone number"),
   password: z.string().min(6),
 });
 type V = z.infer<typeof schema>;
@@ -87,7 +88,7 @@ function Signup() {
           }
           setLoading(true);
           try {
-            await signup(d.email, d.password, d.name);
+            await signup(d.email, d.password, d.name, d.phone);
             recordAttempt("signup", 5, 60 * 60 * 1000, 60 * 60 * 1000);
             toast.success("Account created! You can now log in.");
             navigate({ to: "/login" });
@@ -112,6 +113,11 @@ function Signup() {
           <label className="text-mono text-[10px] tracking-widest text-muted-foreground">EMAIL</label>
           <input {...register("email")} type="email" className="mt-1 w-full bg-surface border border-border h-11 px-3 focus:border-primary outline-none" />
           {errors.email && <p className="text-xs text-primary mt-1">{errors.email.message}</p>}
+        </div>
+        <div>
+          <label className="text-mono text-[10px] tracking-widest text-muted-foreground">PHONE</label>
+          <input {...register("phone")} type="tel" placeholder="10-digit mobile number" className="mt-1 w-full bg-surface border border-border h-11 px-3 focus:border-primary outline-none" />
+          {errors.phone && <p className="text-xs text-primary mt-1">{errors.phone.message}</p>}
         </div>
         <div>
           <label className="text-mono text-[10px] tracking-widest text-muted-foreground">PASSWORD</label>
