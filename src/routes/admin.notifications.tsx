@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type {
   NotificationTemplate,
@@ -60,11 +60,21 @@ function AdminNotifications() {
   );
 }
 
+const META_STATUS_COLORS: Record<string, string> = {
+  APPROVED: "bg-emerald-100 text-emerald-800",
+  PENDING: "bg-yellow-100 text-yellow-800",
+  IN_APPEAL: "bg-yellow-100 text-yellow-800",
+  REJECTED: "bg-red-100 text-red-800",
+  PAUSED: "bg-red-100 text-red-800",
+  DISABLED: "bg-red-100 text-red-800",
+  MISSING: "bg-red-100 text-red-800",
+};
+
 function TemplatesTab() {
   const [rows, setRows] = useState<NotificationTemplate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<NotificationTemplate | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   const load = async () => {
     const { data, error } = await supabase.from("notification_templates").select("*").order("name");
@@ -81,17 +91,12 @@ function TemplatesTab() {
     setRows((r) => r.map((x) => (x.id === id ? { ...x, is_active: val } : x)));
   };
 
-  const save = async () => {
-    if (!editing) return;
-    setSaving(true);
-    const { error } = await supabase
-      .from("notification_templates")
-      .update({ body_text: editing.body_text, variables: editing.variables, is_active: editing.is_active })
-      .eq("id", editing.id);
-    if (error) { toast.error(error.message); setSaving(false); return; }
-    toast.success("Template saved");
-    setSaving(false);
-    setEditing(null);
+  const sync = async () => {
+    setSyncing(true);
+    const { data, error } = await supabase.functions.invoke("sync-whatsapp-templates");
+    setSyncing(false);
+    if (error || !data?.ok) return toast.error(error?.message ?? data?.error ?? "Sync failed");
+    toast.success(`Synced ${data.synced} template(s) from Meta`);
     load();
   };
 
@@ -99,74 +104,68 @@ function TemplatesTab() {
 
   return (
     <div>
+      <div className="flex justify-between items-center mb-3">
+        <p className="text-xs text-muted-foreground max-w-md">
+          Body text and status are pulled directly from Meta — editing them here never affected what actually gets
+          sent, since Meta always uses its own approved copy. ACTIVE just controls whether we queue this template at all.
+        </p>
+        <button onClick={sync} disabled={syncing} className="shrink-0 ml-4 border border-primary text-primary h-9 px-4 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground disabled:opacity-50 inline-flex items-center gap-2">
+          <RefreshCw className={`size-3.5 ${syncing ? "animate-spin" : ""}`} /> {syncing ? "SYNCING…" : "SYNC FROM META"}
+        </button>
+      </div>
+
       <div className="border border-border bg-surface overflow-x-auto">
-        <table className="w-full text-sm min-w-[500px]">
+        <table className="w-full text-sm min-w-[600px]">
           <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">NAME</th>
               <th className="text-left p-3 hidden md:table-cell">TEMPLATE ID</th>
-              <th className="text-left p-3">STATUS</th>
+              <th className="text-left p-3">META STATUS</th>
+              <th className="text-left p-3">ACTIVE</th>
               <th className="text-right p-3">ACTIONS</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {rows.map((r) => (
-              <tr key={r.id} className="hover:bg-muted/40">
-                <td className="p-3 font-semibold">{r.name}</td>
-                <td className="p-3 text-mono text-[11px] text-muted-foreground hidden md:table-cell">{r.template_name}</td>
-                <td className="p-3">
-                  <button
-                    onClick={() => toggle(r.id, !r.is_active)}
-                    className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
-                  >
-                    {r.is_active ? "ACTIVE" : "INACTIVE"}
-                  </button>
-                </td>
-                <td className="p-3 text-right">
-                  <button onClick={() => setEditing(r)} className="border border-border h-8 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary">EDIT</button>
-                </td>
-              </tr>
+              <Fragment key={r.id}>
+                <tr className="hover:bg-muted/40">
+                  <td className="p-3 font-semibold">{r.name}</td>
+                  <td className="p-3 text-mono text-[11px] text-muted-foreground hidden md:table-cell">{r.template_name}</td>
+                  <td className="p-3">
+                    <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${META_STATUS_COLORS[r.meta_status ?? ""] ?? "bg-muted text-muted-foreground"}`}>
+                      {r.meta_status ?? "NOT SYNCED"}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <button
+                      onClick={() => toggle(r.id, !r.is_active)}
+                      className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
+                    >
+                      {r.is_active ? "ACTIVE" : "INACTIVE"}
+                    </button>
+                  </td>
+                  <td className="p-3 text-right">
+                    <button onClick={() => setExpanded(expanded === r.id ? null : r.id)} className="border border-border h-8 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary">
+                      {expanded === r.id ? "HIDE" : "VIEW BODY"}
+                    </button>
+                  </td>
+                </tr>
+                {expanded === r.id && (
+                  <tr>
+                    <td colSpan={5} className="p-4 bg-muted/30 text-sm">
+                      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">BODY TEXT (from Meta)</div>
+                      <p className="font-mono whitespace-pre-wrap">{r.body_text || "—"}</p>
+                      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mt-3 mb-1">VARIABLES (in order)</div>
+                      <p className="font-mono text-xs">{r.variables.join(", ") || "—"}</p>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
-            {rows.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-muted-foreground text-sm">No templates configured.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground text-sm">No templates configured.</td></tr>}
           </tbody>
         </table>
       </div>
-
-      {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-background border border-border w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-5 border-b border-border">
-              <div className="text-mono text-[11px] tracking-[0.25em] text-primary">EDIT TEMPLATE</div>
-              <button onClick={() => setEditing(null)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
-            </div>
-            <div className="p-5 space-y-4">
-              <div>
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">BODY TEXT</div>
-                <textarea rows={6} value={editing.body_text} onChange={(e) => setEditing({ ...editing, body_text: e.target.value })}
-                  className="w-full bg-background border border-border p-3 font-mono text-sm" />
-              </div>
-              <div>
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">VARIABLES (comma-separated)</div>
-                <input
-                  value={editing.variables.join(", ")}
-                  onChange={(e) => setEditing({ ...editing, variables: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
-                  className="w-full bg-background border border-border h-10 px-3 font-mono text-sm"
-                />
-              </div>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={editing.is_active} onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} className="w-4 h-4" />
-                <span className="text-mono text-[11px] tracking-widest">ACTIVE</span>
-              </label>
-            </div>
-            <div className="flex gap-3 p-5 border-t border-border">
-              <button onClick={save} disabled={saving} className="bg-primary text-primary-foreground h-10 px-6 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50">
-                {saving ? "SAVING…" : "SAVE"}
-              </button>
-              <button onClick={() => setEditing(null)} className="border border-border h-10 px-4 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">CANCEL</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

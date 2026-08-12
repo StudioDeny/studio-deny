@@ -474,6 +474,7 @@ export type NotificationTemplate = {
   body_text: string;
   variables: string[];
   is_active: boolean;
+  meta_status: string | null;
   created_at: string;
 };
 
