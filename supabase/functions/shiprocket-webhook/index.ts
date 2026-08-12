@@ -22,15 +22,15 @@ function timingSafeEqual(a: string, b: string): boolean {
 // Shiprocket has no HMAC signing on this webhook (unlike Razorpay), so there
 // was nothing verifying the sender — anyone who found this URL could flip
 // any order to DELIVERED/SHIPPED/RTO by AWB and trigger real customer
-// WhatsApp messages. Configure the webhook URL in Shiprocket's dashboard as
-// `.../shiprocket-webhook?secret=<SHIPROCKET_WEBHOOK_SECRET>` — Shiprocket
-// doesn't support custom headers here, so the secret travels in the URL.
+// WhatsApp messages. Shiprocket's dashboard (Settings → Webhooks) lets you
+// configure a token sent as a header — "Auth Token Type: x-api-key" is what
+// we check here; set the "Token" field there to SHIPROCKET_WEBHOOK_SECRET.
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
   try {
     const webhookSecret = requireEnv("SHIPROCKET_WEBHOOK_SECRET");
-    const suppliedSecret = new URL(req.url).searchParams.get("secret") ?? "";
+    const suppliedSecret = req.headers.get("x-api-key") ?? "";
     if (!timingSafeEqual(suppliedSecret, webhookSecret)) {
       return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
         status: 401,
