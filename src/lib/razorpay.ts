@@ -33,6 +33,12 @@ async function createRazorpayOrder(amountPaise: number, notes?: Record<string, s
   return data.order_id as string;
 }
 
+// Best-effort — a payment-failed WhatsApp nudge is a nice-to-have, never a
+// reason to disrupt the checkout error flow the caller already shows.
+function queuePaymentFailedNotice(phone: string, name: string) {
+  supabase.functions.invoke("queue-payment-failed", { body: { phone, name } }).catch(() => {});
+}
+
 export type RzpOpts = {
   amountPaise: number;
   name: string;
@@ -70,6 +76,7 @@ export async function openRazorpay(opts: RzpOpts) {
         },
       });
       if (error || !data?.verified) {
+        queuePaymentFailedNotice(opts.prefill.contact, opts.prefill.name);
         opts.onVerifyFailed(error?.message ?? "Payment could not be verified. Contact support if you were charged.");
         return;
       }
@@ -80,6 +87,7 @@ export async function openRazorpay(opts: RzpOpts) {
   rzp.on("payment.failed", (resp: any) => {
     // surface but do not throw — checkout already closed
     console.error("Razorpay failure", resp?.error);
+    queuePaymentFailedNotice(opts.prefill.contact, opts.prefill.name);
   });
   rzp.open();
 }
