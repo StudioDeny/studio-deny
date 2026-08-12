@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { listAllAdminProducts, setProductActive, type Product } from "@/lib/productsStore";
+import { listAllAdminProducts, setProductActive, getVariantStockTotals, effectiveStock, type Product } from "@/lib/productsStore";
 import { listCategories, type Category } from "@/lib/catalog";
 import { formatINR } from "@/context/CartContext";
 import { Plus, Pencil, Eye, EyeOff, Settings2, Search } from "lucide-react";
@@ -12,9 +12,14 @@ export const Route = createFileRoute("/admin/products/")({
 
 function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [stockTotals, setStockTotals] = useState<Record<string, number>>({});
   const [active, setActive] = useState<string>("ALL");
   const [q, setQ] = useState("");
-  const refresh = async () => { const data = await listAllAdminProducts(); setProducts(data); };
+  const refresh = async () => {
+    const [data, totals] = await Promise.all([listAllAdminProducts(), getVariantStockTotals()]);
+    setProducts(data);
+    setStockTotals(totals);
+  };
   useEffect(() => { refresh(); }, []);
 
   const [cats, setCats] = useState<Category[]>([]);
@@ -81,7 +86,9 @@ function AdminProducts() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {filtered.map((p) => (
+            {filtered.map((p) => {
+              const stock = effectiveStock(p, stockTotals);
+              return (
               <tr key={p.slug} className="hover:bg-muted/40">
                 <td className="p-3">
                   <div className="flex items-center gap-3">
@@ -95,20 +102,20 @@ function AdminProducts() {
                 <td className="p-3 text-muted-foreground hidden sm:table-cell">{p.category}</td>
                 <td className="p-3 text-muted-foreground hidden md:table-cell">{p.brand ?? "—"}</td>
                 <td className="p-3 text-mono">{formatINR(p.price)}</td>
-                <td className="p-3 text-mono">{p.stock}</td>
+                <td className="p-3 text-mono">{stock}</td>
                 <td className="p-3 hidden sm:table-cell">
                   <div className="flex flex-col gap-1 items-start">
                     <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${(p.is_active ?? true) ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-700"}`}>
                       {(p.is_active ?? true) ? "LIVE ON SITE" : "HIDDEN"}
                     </span>
                     <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${
-                      p.stock > 5
+                      stock > 5
                         ? "bg-emerald-100 text-emerald-800"
-                        : p.stock > 0
+                        : stock > 0
                         ? "bg-amber-100 text-amber-800"
                         : "bg-red-100 text-red-700"
                     }`}>
-                      {p.stock > 5 ? "IN STOCK" : p.stock > 0 ? "LOW STOCK" : "SOLD OUT"}
+                      {stock > 5 ? "IN STOCK" : stock > 0 ? "LOW STOCK" : "SOLD OUT"}
                     </span>
                   </div>
                 </td>
@@ -125,7 +132,8 @@ function AdminProducts() {
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             {filtered.length === 0 && (
               <tr><td colSpan={7} className="p-8 text-center text-muted-foreground text-sm">No products in this category. <Link to="/admin/products/new" className="text-primary">Add one →</Link></td></tr>
             )}

@@ -42,6 +42,7 @@ import { Route as AdminExportRouteImport } from './routes/admin.export'
 import { Route as AdminFaqRouteImport } from './routes/admin.faq'
 import { Route as AdminHeadingsRouteImport } from './routes/admin.headings'
 import { Route as AdminInfluencerPicksRouteImport } from './routes/admin.influencer-picks'
+import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminInvoiceTemplateRouteImport } from './routes/admin.invoice-template'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
 import { Route as AdminLookbookCmsRouteImport } from './routes/admin.lookbook-cms'
@@ -240,6 +241,11 @@ const AdminInfluencerPicksRoute = AdminInfluencerPicksRouteImport.update({
   path: '/influencer-picks',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminInventoryRoute = AdminInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInvoiceTemplateRoute = AdminInvoiceTemplateRouteImport.update({
   id: '/invoice-template',
   path: '/invoice-template',
@@ -435,6 +441,7 @@ export interface FileRoutesByFullPath {
   '/admin/faq': typeof AdminFaqRoute
   '/admin/headings': typeof AdminHeadingsRoute
   '/admin/influencer-picks': typeof AdminInfluencerPicksRoute
+  '/admin/inventory': typeof AdminInventoryRoute
   '/admin/invoice-template': typeof AdminInvoiceTemplateRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/lookbook-cms': typeof AdminLookbookCmsRoute
@@ -501,6 +508,7 @@ export interface FileRoutesByTo {
   '/admin/faq': typeof AdminFaqRoute
   '/admin/headings': typeof AdminHeadingsRoute
   '/admin/influencer-picks': typeof AdminInfluencerPicksRoute
+  '/admin/inventory': typeof AdminInventoryRoute
   '/admin/invoice-template': typeof AdminInvoiceTemplateRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/lookbook-cms': typeof AdminLookbookCmsRoute
@@ -568,6 +576,7 @@ export interface FileRoutesById {
   '/admin/faq': typeof AdminFaqRoute
   '/admin/headings': typeof AdminHeadingsRoute
   '/admin/influencer-picks': typeof AdminInfluencerPicksRoute
+  '/admin/inventory': typeof AdminInventoryRoute
   '/admin/invoice-template': typeof AdminInvoiceTemplateRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/lookbook-cms': typeof AdminLookbookCmsRoute
@@ -637,6 +646,7 @@ export interface FileRouteTypes {
     | '/admin/faq'
     | '/admin/headings'
     | '/admin/influencer-picks'
+    | '/admin/inventory'
     | '/admin/invoice-template'
     | '/admin/invoices'
     | '/admin/lookbook-cms'
@@ -703,6 +713,7 @@ export interface FileRouteTypes {
     | '/admin/faq'
     | '/admin/headings'
     | '/admin/influencer-picks'
+    | '/admin/inventory'
     | '/admin/invoice-template'
     | '/admin/invoices'
     | '/admin/lookbook-cms'
@@ -769,6 +780,7 @@ export interface FileRouteTypes {
     | '/admin/faq'
     | '/admin/headings'
     | '/admin/influencer-picks'
+    | '/admin/inventory'
     | '/admin/invoice-template'
     | '/admin/invoices'
     | '/admin/lookbook-cms'
@@ -1067,6 +1079,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInfluencerPicksRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/inventory': {
+      id: '/admin/inventory'
+      path: '/inventory'
+      fullPath: '/admin/inventory'
+      preLoaderRoute: typeof AdminInventoryRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/invoice-template': {
       id: '/admin/invoice-template'
       path: '/invoice-template'
@@ -1320,6 +1339,7 @@ interface AdminRouteChildren {
   AdminFaqRoute: typeof AdminFaqRoute
   AdminHeadingsRoute: typeof AdminHeadingsRoute
   AdminInfluencerPicksRoute: typeof AdminInfluencerPicksRoute
+  AdminInventoryRoute: typeof AdminInventoryRoute
   AdminInvoiceTemplateRoute: typeof AdminInvoiceTemplateRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
   AdminLookbookCmsRoute: typeof AdminLookbookCmsRoute
@@ -1354,6 +1374,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFaqRoute: AdminFaqRoute,
   AdminHeadingsRoute: AdminHeadingsRoute,
   AdminInfluencerPicksRoute: AdminInfluencerPicksRoute,
+  AdminInventoryRoute: AdminInventoryRoute,
   AdminInvoiceTemplateRoute: AdminInvoiceTemplateRoute,
   AdminInvoicesRoute: AdminInvoicesRoute,
   AdminLookbookCmsRoute: AdminLookbookCmsRoute,

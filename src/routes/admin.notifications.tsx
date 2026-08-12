@@ -16,7 +16,7 @@ export const Route = createFileRoute("/admin/notifications")({
   component: AdminNotifications,
 });
 
-type Tab = "templates" | "queue" | "logs" | "campaigns";
+type Tab = "templates" | "queue" | "logs" | "campaigns" | "usage";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -41,7 +41,7 @@ function AdminNotifications() {
       </div>
 
       <div className="flex gap-1 mb-6">
-        {(["templates", "queue", "logs", "campaigns"] as Tab[]).map((t) => (
+        {(["templates", "queue", "logs", "campaigns", "usage"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -56,6 +56,7 @@ function AdminNotifications() {
       {tab === "queue" && <QueueTab />}
       {tab === "logs" && <LogsTab />}
       {tab === "campaigns" && <CampaignsTab />}
+      {tab === "usage" && <UsageTab />}
     </div>
   );
 }
@@ -446,6 +447,105 @@ function CampaignsTab() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+const RATE_KEY = "sd_wa_rate_per_message";
+
+function UsageTab() {
+  const [logs, setLogs] = useState<{ created_at: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [rate, setRate] = useState<string>(() => (typeof window !== "undefined" ? localStorage.getItem(RATE_KEY) ?? "" : ""));
+
+  useEffect(() => {
+    supabase.from("whatsapp_logs").select("created_at").eq("status", "sent").then(({ data, error }) => {
+      if (error) toast.error(error.message);
+      else setLogs(data ?? []);
+      setLoading(false);
+    });
+  }, []);
+
+  const setAndSaveRate = (v: string) => {
+    setRate(v);
+    if (typeof window !== "undefined") localStorage.setItem(RATE_KEY, v);
+  };
+
+  if (loading) return <div className="text-mono text-xs">LOADING…</div>;
+
+  const byMonth = new Map<string, number>();
+  for (const l of logs) {
+    const d = new Date(l.created_at);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    byMonth.set(key, (byMonth.get(key) ?? 0) + 1);
+  }
+  const months = Array.from(byMonth.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+  const now = new Date();
+  const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const thisMonthCount = byMonth.get(thisMonthKey) ?? 0;
+  const rateNum = parseFloat(rate);
+  const hasRate = !isNaN(rateNum) && rateNum > 0;
+
+  const monthLabel = (key: string) => {
+    const [y, m] = key.split("-").map(Number);
+    return new Date(y, m - 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  };
+
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground mb-4 max-w-lg">
+        Counts of actually-sent messages (confirmed via whatsapp_logs), not what Meta bills you — their real per-message
+        rate depends on your country and message category and changes over time, so it's not something to guess here.
+        Enter your own known rate below (from Meta's WhatsApp Manager → Analytics) to see an estimate.
+      </p>
+
+      <div className="grid sm:grid-cols-3 gap-4 mb-6">
+        <Card label="TOTAL SENT (ALL TIME)" v={logs.length} />
+        <Card label={`SENT — ${monthLabel(thisMonthKey)}`} v={thisMonthCount} />
+        <div className="border border-border bg-surface p-5">
+          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">YOUR RATE (₹ / MESSAGE)</div>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={rate}
+            onChange={(e) => setAndSaveRate(e.target.value)}
+            placeholder="e.g. 0.80"
+            className="w-full bg-background border border-border h-9 px-2 text-mono text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="border border-border bg-surface overflow-x-auto">
+        <table className="w-full text-sm min-w-[400px]">
+          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+            <tr>
+              <th className="text-left p-3">MONTH</th>
+              <th className="text-left p-3">MESSAGES SENT</th>
+              <th className="text-left p-3">{hasRate ? "ESTIMATED COST" : "ESTIMATED COST (enter a rate above)"}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {months.map(([key, count]) => (
+              <tr key={key} className="hover:bg-muted/40">
+                <td className="p-3 font-semibold">{monthLabel(key)}</td>
+                <td className="p-3 text-mono">{count}</td>
+                <td className="p-3 text-mono">{hasRate ? `₹${(count * rateNum).toFixed(2)}` : "—"}</td>
+              </tr>
+            ))}
+            {months.length === 0 && <tr><td colSpan={3} className="p-6 text-center text-muted-foreground text-sm">No messages sent yet.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function Card({ label, v }: { label: string; v: React.ReactNode }) {
+  return (
+    <div className="border border-border bg-surface p-5">
+      <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{label}</div>
+      <div className="text-display text-3xl mt-2">{v}</div>
     </div>
   );
 }

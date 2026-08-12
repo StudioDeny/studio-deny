@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { listOrders, type Order } from "@/lib/orders";
 import { formatINR } from "@/context/CartContext";
-import { listAllAdminProducts, type Product } from "@/lib/productsStore";
+import { listAllAdminProducts, getVariantStockTotals, effectiveStock, type Product } from "@/lib/productsStore";
 
 export const Route = createFileRoute("/admin/analytics")({
   component: Analytics,
@@ -11,7 +11,12 @@ export const Route = createFileRoute("/admin/analytics")({
 function Analytics() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [inv, setInv] = useState<Product[]>([]);
-  useEffect(() => { listOrders().then(setOrders); listAllAdminProducts().then(setInv); }, []);
+  const [stockTotals, setStockTotals] = useState<Record<string, number>>({});
+  useEffect(() => {
+    listOrders().then(setOrders);
+    listAllAdminProducts().then(setInv);
+    getVariantStockTotals().then(setStockTotals);
+  }, []);
 
   const m = useMemo(() => {
     const valid = orders.filter((o) => o.status !== "CANCELLED" && o.status !== "REFUNDED");
@@ -41,11 +46,12 @@ function Analytics() {
     }
     const max = Math.max(1, ...days.map((d) => d.rev));
 
-    const lowStock = inv.filter((p) => p.stock > 0 && p.stock <= 5).length;
-    const sold = inv.filter((p) => p.stock === 0).length;
+    const stocks = inv.map((p) => effectiveStock(p, stockTotals));
+    const lowStock = stocks.filter((s) => s > 0 && s <= 5).length;
+    const sold = stocks.filter((s) => s === 0).length;
 
     return { revenue, refunded, aov, customers: customers.size, repeat, top, days, max, lowStock, sold, totalOrders: orders.length };
-  }, [orders, inv]);
+  }, [orders, inv, stockTotals]);
 
   return (
     <div>
