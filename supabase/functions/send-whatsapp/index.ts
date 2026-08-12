@@ -13,6 +13,18 @@ function requireEnv(name: string): string {
   return v;
 }
 
+// Cron-only — nothing in the frontend calls this. It has to be reachable
+// without a user JWT (pg_net's http_post carries none), which used to mean
+// anyone on the internet could trigger a 50-message WhatsApp flush at will.
+// pg_cron now sends this shared secret as a header (20260812000007); reject
+// anything that doesn't match.
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 async function sendWhatsApp(
   to: string,
   templateName: string,
@@ -60,8 +72,13 @@ async function sendWhatsApp(
   return { ok: true, message_id: json.messages?.[0]?.id };
 }
 
-serve(async (_req) => {
+serve(async (req) => {
   try {
+    const cronSecret = requireEnv("CRON_SECRET");
+    if (!timingSafeEqual(req.headers.get("x-cron-secret") ?? "", cronSecret)) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
     const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
     const waToken = requireEnv("WHATSAPP_ACCESS_TOKEN");
     const waPhoneId = requireEnv("WHATSAPP_PHONE_NUMBER_ID");
@@ -134,7 +151,8 @@ serve(async (_req) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
+    console.error("send-whatsapp error:", err);
+    return new Response(JSON.stringify({ error: "internal_error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

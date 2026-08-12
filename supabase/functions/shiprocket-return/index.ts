@@ -4,10 +4,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SR_BASE = "https://apiv2.shiprocket.in/v1/external";
 const RETURN_WINDOW_DAYS = 7;
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://studiodeny.com", "https://www.studiodeny.com", "http://localhost:5173"];
+function corsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
+  };
+}
 
 type OrderItemLine = { slug: string; name: string; qty: number; price: number };
 type OrderAddress = { name: string; phone: string; line1: string; city: string; state: string; pincode: string };
@@ -64,7 +68,8 @@ function formatOrderDate(d: Date): string {
 // warehouse), assigns an AWB, and schedules the pickup — no manual step in
 // the Shiprocket dashboard, same shape as shiprocket-sync/shiprocket-cancel.
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
+  const cors = corsHeaders(req);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   try {
     const supabaseUrl = requireEnv("SUPABASE_URL");
@@ -79,7 +84,7 @@ serve(async (req) => {
     if (!order_id) {
       return new Response(JSON.stringify({ ok: false, error: "order_id is required" }), {
         status: 400,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -93,7 +98,7 @@ serve(async (req) => {
     if (!allowed) {
       return new Response(JSON.stringify({ ok: false, error: "Not authorized to request a return on this order" }), {
         status: 403,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -101,21 +106,21 @@ serve(async (req) => {
     if (orderErr || !order) {
       return new Response(JSON.stringify({ ok: false, error: "Order not found" }), {
         status: 404,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
     if (order.status !== "DELIVERED") {
       return new Response(JSON.stringify({ ok: false, error: `Order is ${order.status} — returns can only be requested once an order is DELIVERED` }), {
         status: 409,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
     if (order.return_status && order.return_status !== "PICKUP_FAILED") {
       return new Response(JSON.stringify({ ok: false, error: `A return is already ${order.return_status} for this order` }), {
         status: 409,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -124,7 +129,7 @@ serve(async (req) => {
       if (daysSinceDelivery > RETURN_WINDOW_DAYS) {
         return new Response(JSON.stringify({ ok: false, error: `The ${RETURN_WINDOW_DAYS}-day return window has passed for this order` }), {
           status: 409,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          headers: { ...cors, "Content-Type": "application/json" },
         });
       }
     }
@@ -134,7 +139,7 @@ serve(async (req) => {
     if (!warehouse) {
       return new Response(JSON.stringify({ ok: false, error: `Could not find the "${srPickupLocation}" pickup address on Shiprocket to use as the return destination` }), {
         status: 502,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -192,7 +197,7 @@ serve(async (req) => {
       const message = createJson.message ?? JSON.stringify(createJson.errors ?? createJson);
       return new Response(JSON.stringify({ ok: false, error: `Shiprocket return creation failed (HTTP ${createRes.status}): ${message}` }), {
         status: 502,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -211,7 +216,7 @@ serve(async (req) => {
       const message = awbJson.message ?? JSON.stringify(awbJson);
       return new Response(JSON.stringify({ ok: false, error: `Return AWB assignment failed (HTTP ${awbRes.status}): ${message}` }), {
         status: 502,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -282,14 +287,13 @@ serve(async (req) => {
         pickup_scheduled: pickupScheduled,
         pickup_error: pickupError,
       }),
-      { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...cors, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error("shiprocket-return uncaught error:", err);
-    const message = err instanceof Error ? err.message : String(err);
-    return new Response(JSON.stringify({ ok: false, error: message }), {
+    return new Response(JSON.stringify({ ok: false, error: "internal_error" }), {
       status: 500,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 });

@@ -12,13 +12,32 @@ function requireEnv(name: string): string {
   return v;
 }
 
-// Shiprocket has no HMAC signing on this webhook (unlike Razorpay) — there's
-// nothing to cryptographically verify the sender with. We just process
-// whatever arrives; a bad/unmatched AWB is a no-op below, not a security hole.
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+// Shiprocket has no HMAC signing on this webhook (unlike Razorpay), so there
+// was nothing verifying the sender — anyone who found this URL could flip
+// any order to DELIVERED/SHIPPED/RTO by AWB and trigger real customer
+// WhatsApp messages. Configure the webhook URL in Shiprocket's dashboard as
+// `.../shiprocket-webhook?secret=<SHIPROCKET_WEBHOOK_SECRET>` — Shiprocket
+// doesn't support custom headers here, so the secret travels in the URL.
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
   try {
+    const webhookSecret = requireEnv("SHIPROCKET_WEBHOOK_SECRET");
+    const suppliedSecret = new URL(req.url).searchParams.get("secret") ?? "";
+    if (!timingSafeEqual(suppliedSecret, webhookSecret)) {
+      return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    }
+
     // Constructed inside the handler (not at module load) so a missing
     // secret is a caught, readable error instead of an opaque
     // EDGE_FUNCTION_ERROR from a crash before this try/catch even runs.
@@ -107,7 +126,7 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error("shiprocket-webhook uncaught error:", err);
-    return new Response(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }), {
+    return new Response(JSON.stringify({ ok: false, error: "internal_error" }), {
       status: 500,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });

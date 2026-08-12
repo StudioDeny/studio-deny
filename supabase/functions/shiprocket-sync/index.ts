@@ -3,10 +3,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SR_BASE = "https://apiv2.shiprocket.in/v1/external";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://studiodeny.com", "https://www.studiodeny.com", "http://localhost:5173"];
+function corsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
+  };
+}
 
 type OrderItemLine = { slug: string; name: string; qty: number; price: number };
 type OrderAddress = { name: string; phone: string; line1: string; city: string; state: string; pincode: string };
@@ -61,11 +65,13 @@ async function getPickupLocationNicknames(token: string): Promise<string[]> {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
+  const cors = corsHeaders(req);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   try {
     const supabaseUrl = requireEnv("SUPABASE_URL");
     const supabaseServiceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseAnonKey = requireEnv("SUPABASE_ANON_KEY");
     const srEmail = requireEnv("SHIPROCKET_EMAIL");
     const srPassword = requireEnv("SHIPROCKET_PASSWORD");
     const srPickupLocation = requireEnv("SHIPROCKET_PICKUP_LOCATION");
@@ -75,7 +81,24 @@ serve(async (req) => {
     if (!order_id) {
       return new Response(JSON.stringify({ ok: false, error: "order_id is required" }), {
         status: 400,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+
+    // Shipment creation needs the service-role key (Shiprocket credentials +
+    // writing the row regardless of RLS), but that key can't tell us who's
+    // asking — this function used to trust order_id alone, letting anyone
+    // who guessed one force a real shipment on someone else's order. Ask
+    // again as the caller's own JWT: if RLS ("own rows" or "admins all")
+    // wouldn't let them see this order, they can't ship it either.
+    const authedClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
+    });
+    const { data: allowed } = await authedClient.from("orders").select("id").eq("id", order_id).maybeSingle();
+    if (!allowed) {
+      return new Response(JSON.stringify({ ok: false, error: "Not authorized to ship this order" }), {
+        status: 403,
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -83,7 +106,7 @@ serve(async (req) => {
     if (orderErr || !order) {
       return new Response(JSON.stringify({ ok: false, error: "Order not found" }), {
         status: 404,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -91,7 +114,7 @@ serve(async (req) => {
     if (order.awb_number) {
       return new Response(
         JSON.stringify({ ok: true, awb: order.awb_number, courier_name: order.courier_name, tracking_url: order.tracking_url }),
-        { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...cors, "Content-Type": "application/json" } }
       );
     }
 
@@ -149,7 +172,7 @@ serve(async (req) => {
       }
       return new Response(JSON.stringify({ ok: false, error: `Shiprocket order creation failed (HTTP ${createRes.status}): ${message}` }), {
         status: 502,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -168,7 +191,7 @@ serve(async (req) => {
       const message = awbJson.message ?? JSON.stringify(awbJson);
       return new Response(JSON.stringify({ ok: false, error: `AWB assignment failed (HTTP ${awbRes.status}): ${message}` }), {
         status: 502,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -241,14 +264,13 @@ serve(async (req) => {
         pickup_scheduled: pickupScheduled,
         pickup_error: pickupError,
       }),
-      { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...cors, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error("shiprocket-sync uncaught error:", err);
-    const message = err instanceof Error ? err.message : String(err);
-    return new Response(JSON.stringify({ ok: false, error: message }), {
+    return new Response(JSON.stringify({ ok: false, error: "internal_error" }), {
       status: 500,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 });

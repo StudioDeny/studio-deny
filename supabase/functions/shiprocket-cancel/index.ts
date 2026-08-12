@@ -3,10 +3,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SR_BASE = "https://apiv2.shiprocket.in/v1/external";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://studiodeny.com", "https://www.studiodeny.com", "http://localhost:5173"];
+function corsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
+  };
+}
 
 function requireEnv(name: string): string {
   const v = Deno.env.get(name);
@@ -32,7 +36,8 @@ async function getShiprocketToken(email: string, password: string): Promise<stri
 // it) and marks it CANCELLED in our DB — one call from the customer-facing
 // "Cancel order" button, no manual cleanup in the Shiprocket dashboard.
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
+  const cors = corsHeaders(req);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   try {
     const supabaseUrl = requireEnv("SUPABASE_URL");
@@ -44,7 +49,7 @@ serve(async (req) => {
     if (!order_id) {
       return new Response(JSON.stringify({ ok: false, error: "order_id is required" }), {
         status: 400,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -59,7 +64,7 @@ serve(async (req) => {
     if (!allowed) {
       return new Response(JSON.stringify({ ok: false, error: "Not authorized to cancel this order" }), {
         status: 403,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -67,7 +72,7 @@ serve(async (req) => {
     if (orderErr || !order) {
       return new Response(JSON.stringify({ ok: false, error: "Order not found" }), {
         status: 404,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -78,7 +83,7 @@ serve(async (req) => {
     if (!["PLACED", "PACKED", "SHIPPED"].includes(order.status)) {
       return new Response(JSON.stringify({ ok: false, error: `Order is ${order.status} and can no longer be cancelled` }), {
         status: 409,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -142,14 +147,13 @@ serve(async (req) => {
         shiprocket_cancel_error: shiprocketCancelError,
         rto_initiated: rtoInitiated,
       }),
-      { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...cors, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error("shiprocket-cancel uncaught error:", err);
-    const message = err instanceof Error ? err.message : String(err);
-    return new Response(JSON.stringify({ ok: false, error: message }), {
+    return new Response(JSON.stringify({ ok: false, error: "internal_error" }), {
       status: 500,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 });

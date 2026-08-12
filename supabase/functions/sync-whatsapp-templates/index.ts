@@ -1,15 +1,41 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://studiodeny.com", "https://www.studiodeny.com", "http://localhost:5173"];
+function corsFor(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
+  };
+}
 
 function requireEnv(name: string): string {
   const v = Deno.env.get(name);
   if (!v) throw new Error(`Missing required secret: ${name}. Add it in Supabase → Edge Functions → Secrets.`);
   return v;
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+// Called two ways: pg_cron daily (carries the shared secret header, no user
+// JWT), and the admin's "Sync now" button in /admin/notifications (carries
+// the admin's own JWT, no secret header). Used to require neither — anyone
+// could trigger repeated Meta template-fetch calls on demand.
+async function isAuthorized(req: Request, supabaseUrl: string, supabaseAnonKey: string): Promise<boolean> {
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  if (cronSecret && timingSafeEqual(req.headers.get("x-cron-secret") ?? "", cronSecret)) return true;
+
+  const authedClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
+  });
+  const { data } = await authedClient.rpc("is_admin_or_staff");
+  return data === true;
 }
 
 type MetaTemplate = {
@@ -40,10 +66,20 @@ function titleCase(templateName: string): string {
 // still the admin's own on/off switch for whether we queue this template at
 // all, independent of Meta's approval state.
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
+  const cors = corsFor(req);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   try {
-    const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
+    const supabaseUrl = requireEnv("SUPABASE_URL");
+    const supabaseAnonKey = requireEnv("SUPABASE_ANON_KEY");
+    if (!(await isAuthorized(req, supabaseUrl, supabaseAnonKey))) {
+      return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
     const token = requireEnv("WHATSAPP_ACCESS_TOKEN");
     const wabaId = requireEnv("WHATSAPP_BUSINESS_ACCOUNT_ID");
 
@@ -110,13 +146,13 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ ok: true, synced }), {
       status: 200,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("sync-whatsapp-templates error:", err);
-    return new Response(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }), {
+    return new Response(JSON.stringify({ ok: false, error: "internal_error" }), {
       status: 500,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 });

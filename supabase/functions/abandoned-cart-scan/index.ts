@@ -24,6 +24,17 @@ function requireEnv(name: string): string {
   return v;
 }
 
+// Cron-only — pg_net's http_post carries no user JWT, so this used to be
+// callable by anyone on the internet, able to force real WhatsApp sends and
+// abandoned_carts writes on demand. pg_cron now sends this shared secret as
+// a header (20260812000007); reject anything that doesn't match.
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 // Runs on a cron (every 15 min) — finds carts that have sat untouched past
 // 1h/24h/48h and haven't already had that stage's nudge sent, looks up a
 // phone number (profile first, else their last order's), and queues the
@@ -33,6 +44,14 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
   try {
+    const cronSecret = requireEnv("CRON_SECRET");
+    if (!timingSafeEqual(req.headers.get("x-cron-secret") ?? "", cronSecret)) {
+      return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    }
+
     const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
 
     const { data: carts, error } = await supabase
@@ -121,7 +140,7 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error("abandoned-cart-scan error:", err);
-    return new Response(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }), {
+    return new Response(JSON.stringify({ ok: false, error: "internal_error" }), {
       status: 500,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
