@@ -1,18 +1,24 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const WA_TOKEN = Deno.env.get("WHATSAPP_TOKEN")!;
-const WA_PHONE_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")!;
-const WA_API = `https://graph.facebook.com/v19.0/${WA_PHONE_ID}/messages`;
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+// Reading secrets and constructing the Supabase client used to happen at
+// module load time — if a secret was missing, this would crash *before*
+// the request handler's try/catch ever ran, which Supabase reports as an
+// opaque EDGE_FUNCTION_ERROR with no useful detail (same failure mode we
+// hit and fixed on the Shiprocket functions). Doing it all inside the
+// handler means every possible failure is one we catch and report clearly.
+function requireEnv(name: string): string {
+  const v = Deno.env.get(name);
+  if (!v) throw new Error(`Missing required secret: ${name}. Add it in Supabase → Edge Functions → Secrets.`);
+  return v;
+}
 
 async function sendWhatsApp(
   to: string,
   templateName: string,
-  variables: Record<string, string>
+  variables: Record<string, string>,
+  waToken: string,
+  waApi: string
 ): Promise<{ ok: boolean; message_id?: string; error?: string }> {
   const components =
     Object.keys(variables).length > 0
@@ -38,10 +44,10 @@ async function sendWhatsApp(
     },
   };
 
-  const res = await fetch(WA_API, {
+  const res = await fetch(waApi, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${WA_TOKEN}`,
+      Authorization: `Bearer ${waToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
@@ -56,6 +62,11 @@ async function sendWhatsApp(
 
 serve(async (_req) => {
   try {
+    const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
+    const waToken = requireEnv("WHATSAPP_ACCESS_TOKEN");
+    const waPhoneId = requireEnv("WHATSAPP_PHONE_NUMBER_ID");
+    const waApi = `https://graph.facebook.com/v19.0/${waPhoneId}/messages`;
+
     // Pull up to 50 pending messages
     const { data: pending, error: fetchErr } = await supabase
       .from("notification_queue")
@@ -90,7 +101,9 @@ serve(async (_req) => {
       const result = await sendWhatsApp(
         msg.recipient_phone,
         templateName,
-        variables
+        variables,
+        waToken,
+        waApi
       );
 
       if (result.ok) {
