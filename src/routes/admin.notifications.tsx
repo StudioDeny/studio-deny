@@ -95,7 +95,20 @@ function TemplatesTab() {
     setSyncing(true);
     const { data, error } = await supabase.functions.invoke("sync-whatsapp-templates");
     setSyncing(false);
-    if (error || !data?.ok) return toast.error(error?.message ?? data?.error ?? "Sync failed");
+    if (error) {
+      // supabase-js hides the real error body behind a generic "non-2xx"
+      // message on non-2xx responses — dig the actual message out.
+      let message = error.message;
+      try {
+        const context = (error as unknown as { context?: Response }).context;
+        const body = await context?.clone().json();
+        if (body?.error) message = body.error;
+      } catch {
+        // fall back to the generic message
+      }
+      return toast.error(message);
+    }
+    if (!data?.ok) return toast.error(data?.error ?? "Sync failed");
     toast.success(`Synced ${data.synced} template(s) from Meta`);
     load();
   };
