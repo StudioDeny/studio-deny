@@ -1,7 +1,8 @@
 import { useCart, formatINR } from "@/context/CartContext";
-import { getSettings } from "@/lib/settings";
+import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 export function CartDrawer() {
   const { isOpen, close, items, remove, setQty, subtotal } = useCart();
@@ -9,7 +10,9 @@ export function CartDrawer() {
   // Same threshold checkout.tsx actually charges against (admin-configurable
   // at /admin/settings) — this used to hardcode ₹999 here, out of sync with
   // whatever checkout was really enforcing.
-  const FREE_SHIP = getSettings().freeShipping;
+  const [freeShip, setFreeShip] = useState(DEFAULT_LOYALTY_SETTINGS.freeShipping);
+  useEffect(() => { getLoyaltySettings().then((s) => setFreeShip(s.freeShipping)); }, []);
+  const FREE_SHIP = freeShip;
   const remaining = Math.max(0, FREE_SHIP - subtotal);
   const pct = Math.min(100, (subtotal / FREE_SHIP) * 100);
   const shipping = subtotal >= FREE_SHIP ? 0 : 99;

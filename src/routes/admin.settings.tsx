@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { getSettings, saveSettings, TIER_KEYS, type LoyaltySettings } from "@/lib/settings";
+import { getLoyaltySettings, saveLoyaltySettings, TIER_KEYS, type LoyaltySettings } from "@/lib/settings";
 import { supabase } from "@/lib/supabase";
 import type { BrandSettings, ThemeSettings, AppSettings } from "@/types/database";
 import { toast } from "sonner";
@@ -49,7 +49,8 @@ function AdminSettings() {
 ───────────────────────────────────────── */
 function LoyaltyTab() {
   const [s, setS] = useState<LoyaltySettings | null>(null);
-  useEffect(() => setS(getSettings()), []);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { getLoyaltySettings().then(setS); }, []);
   if (!s) return <div className="text-mono text-xs">LOADING…</div>;
 
   const setDiscount = (k: keyof LoyaltySettings["discount"], v: number) =>
@@ -128,10 +129,21 @@ function LoyaltyTab() {
       </section>
 
       <button
-        onClick={() => { saveSettings(s); toast.success("Loyalty settings saved"); }}
-        className="bg-primary text-primary-foreground h-12 px-6 text-mono text-xs tracking-widest hover:glow-primary"
+        onClick={async () => {
+          setSaving(true);
+          try {
+            await saveLoyaltySettings(s);
+            toast.success("Loyalty settings saved");
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Could not save loyalty settings");
+          } finally {
+            setSaving(false);
+          }
+        }}
+        disabled={saving}
+        className="bg-primary text-primary-foreground h-12 px-6 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50"
       >
-        SAVE SETTINGS
+        {saving ? "SAVING…" : "SAVE SETTINGS"}
       </button>
     </div>
   );
@@ -331,7 +343,8 @@ function ThemeTab() {
 ───────────────────────────────────── */
 function ShopTab() {
   const [s, setS] = useState<LoyaltySettings | null>(null);
-  useEffect(() => setS(getSettings()), []);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { getLoyaltySettings().then(setS); }, []);
   if (!s) return <div className="text-mono text-xs">LOADING…</div>;
 
   const colors = s.filterColors;
@@ -385,10 +398,21 @@ function ShopTab() {
       </section>
 
       <button
-        onClick={() => { saveSettings(s); toast.success("Shop settings saved"); }}
-        className="bg-primary text-primary-foreground h-12 px-6 text-mono text-xs tracking-widest hover:glow-primary"
+        onClick={async () => {
+          setSaving(true);
+          try {
+            await saveLoyaltySettings(s);
+            toast.success("Shop settings saved");
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Could not save shop settings");
+          } finally {
+            setSaving(false);
+          }
+        }}
+        disabled={saving}
+        className="bg-primary text-primary-foreground h-12 px-6 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50"
       >
-        SAVE SETTINGS
+        {saving ? "SAVING…" : "SAVE SETTINGS"}
       </button>
     </div>
   );

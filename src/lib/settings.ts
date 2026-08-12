@@ -1,7 +1,11 @@
-// Loyalty / discount + general admin settings (localStorage-backed).
+// Loyalty/discount + shop config, and the invoice template — both real
+// Supabase singletons (loyalty_settings, invoice_settings), not
+// localStorage. The loyalty discount % used to live only in the admin's
+// own browser (sd_settings_v1) — meaning there was no server-side source
+// of truth to check a checkout's claimed discount against, letting a
+// forged order pair a plausible discount with an inflated quantity and
+// still land on a real, paid total (see 20260812000009).
 import { supabase } from "./supabase";
-
-const KEY = "sd_settings_v1";
 
 export type LoyaltySettings = {
   discount: { ROOKIE: number; RUNNER: number; RIOT: number; LEGEND: number };
@@ -30,7 +34,7 @@ export type InvoiceTemplate = {
   taxLabel: string;
 };
 
-const DEFAULTS: LoyaltySettings = {
+export const DEFAULT_LOYALTY_SETTINGS: LoyaltySettings = {
   discount: { ROOKIE: 0, RUNNER: 5, RIOT: 10, LEGEND: 15 },
   entryThreshold: 5000,
   rupeesPerEarnedPoint: 50,
@@ -39,32 +43,51 @@ const DEFAULTS: LoyaltySettings = {
   filterColors: [],
 };
 
-export function getSettings(): LoyaltySettings {
-  if (typeof window === "undefined") return DEFAULTS;
-  try {
-    const raw = JSON.parse(localStorage.getItem(KEY) || "null") || {};
-    return {
-      ...DEFAULTS,
-      ...raw,
-      discount: { ...DEFAULTS.discount, ...(raw.discount || {}) },
-      filterColors: raw.filterColors ?? DEFAULTS.filterColors,
-      // Migrate legacy key: pointsPer100=10 meant 10pts/₹100 = 1pt/₹10.
-      // New field: rupeesPerEarnedPoint defaults to 50. Ignore old value
-      // unless admin has already saved the new field.
-      rupeesPerEarnedPoint: raw.rupeesPerEarnedPoint ?? DEFAULTS.rupeesPerEarnedPoint,
-      entryThreshold: raw.entryThreshold ?? DEFAULTS.entryThreshold,
-    };
-  } catch {
-    return DEFAULTS;
-  }
-}
-
-export function saveSettings(s: LoyaltySettings) {
-  if (typeof window !== "undefined") localStorage.setItem(KEY, JSON.stringify(s));
-}
-
 export const TIER_KEYS = ["ROOKIE", "RUNNER", "RIOT", "LEGEND"] as const;
 export type TierKey = (typeof TIER_KEYS)[number];
+
+type DBLoyaltySettings = {
+  id: string;
+  discount: LoyaltySettings["discount"];
+  entry_threshold: number;
+  rupees_per_earned_point: number;
+  rupees_per_point: number;
+  free_shipping: number;
+  filter_colors: LoyaltySettings["filterColors"];
+};
+
+export async function getLoyaltySettings(): Promise<LoyaltySettings> {
+  const { data, error } = await supabase.from("loyalty_settings").select("*").maybeSingle();
+  if (error || !data) {
+    if (error) console.error("getLoyaltySettings:", error.message);
+    return DEFAULT_LOYALTY_SETTINGS;
+  }
+  const row = data as DBLoyaltySettings;
+  return {
+    discount: row.discount,
+    entryThreshold: Number(row.entry_threshold),
+    rupeesPerEarnedPoint: Number(row.rupees_per_earned_point),
+    rupeesPerPoint: Number(row.rupees_per_point),
+    freeShipping: Number(row.free_shipping),
+    filterColors: row.filter_colors ?? [],
+  };
+}
+
+export async function saveLoyaltySettings(s: LoyaltySettings): Promise<void> {
+  const { data: existing } = await supabase.from("loyalty_settings").select("id").maybeSingle();
+  const row = {
+    discount: s.discount,
+    entry_threshold: s.entryThreshold,
+    rupees_per_earned_point: s.rupeesPerEarnedPoint,
+    rupees_per_point: s.rupeesPerPoint,
+    free_shipping: s.freeShipping,
+    filter_colors: s.filterColors,
+  };
+  const { error } = existing
+    ? await supabase.from("loyalty_settings").update(row).eq("id", existing.id)
+    : await supabase.from("loyalty_settings").insert(row);
+  if (error) throw new Error(error.message);
+}
 
 // Invoice template used to be stored alongside the settings above in
 // localStorage — but that's per-browser, so a customer viewing their own

@@ -325,7 +325,7 @@ function CampaignsTab() {
   const load = async () => {
     const [camps, tmpls] = await Promise.all([
       supabase.from("marketing_campaigns").select("*").order("created_at", { ascending: false }),
-      supabase.from("notification_templates").select("id,name,template_name,body_text,variables,is_active,created_at").eq("is_active", true),
+      supabase.from("notification_templates").select("id,name,template_name,body_text,variables,is_active,meta_status,created_at").eq("is_active", true),
     ]);
     if (camps.error) toast.error(camps.error.message);
     else setRows(camps.data ?? []);

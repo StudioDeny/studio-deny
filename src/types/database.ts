@@ -328,6 +328,30 @@ export interface Database {
         Update: Partial<Omit<PreloaderSettings, "id" | "created_at" | "updated_at">>;
         Relationships: [];
       };
+      brands: {
+        Row: BrandRow;
+        Insert: Omit<BrandRow, "id" | "created_at" | "is_active"> & Partial<Pick<BrandRow, "id" | "created_at" | "is_active">>;
+        Update: Partial<Omit<BrandRow, "id" | "created_at">>;
+        Relationships: [];
+      };
+      invoice_settings: {
+        Row: InvoiceSettingsRow;
+        Insert: Omit<InvoiceSettingsRow, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<InvoiceSettingsRow, "id" | "created_at" | "updated_at">>;
+        Relationships: [];
+      };
+      loyalty_settings: {
+        Row: LoyaltySettingsRow;
+        Insert: Omit<LoyaltySettingsRow, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<LoyaltySettingsRow, "id" | "created_at" | "updated_at">>;
+        Relationships: [];
+      };
+      stock_notify_requests: {
+        Row: StockNotifyRequest;
+        Insert: Omit<StockNotifyRequest, "id" | "created_at"> & Partial<Pick<StockNotifyRequest, "id" | "created_at">>;
+        Update: Partial<Omit<StockNotifyRequest, "id" | "created_at">>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -783,5 +807,49 @@ export type AdminNotification = {
   body: string | null;
   is_read: boolean;
   ref_id: string | null;
+  created_at: string;
+};
+
+export type BrandRow = {
+  id: string;
+  name: string;
+  slug: string;
+  is_active: boolean;
+  created_at: string;
+};
+
+export type InvoiceSettingsRow = {
+  id: string;
+  brand_name: string;
+  tagline: string;
+  gstin: string;
+  email: string;
+  phone: string;
+  address: string;
+  accent: string;
+  terms: string;
+  footer: string;
+  signatory: string;
+  tax_label: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LoyaltySettingsRow = {
+  id: string;
+  discount: { ROOKIE: number; RUNNER: number; RIOT: number; LEGEND: number };
+  entry_threshold: number;
+  rupees_per_earned_point: number;
+  rupees_per_point: number;
+  free_shipping: number;
+  filter_colors: { name: string; hex: string }[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type StockNotifyRequest = {
+  id: string;
+  user_id: string;
+  product_slug: string;
   created_at: string;
 };
