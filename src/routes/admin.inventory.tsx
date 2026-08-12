@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { listAllAdminProducts, type Product } from "@/lib/productsStore";
+import { listCategories, type Category } from "@/lib/catalog";
 import { Search, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
@@ -15,6 +16,7 @@ type Row = {
   productSlug: string;
   productName: string;
   productImage: string;
+  productCategory: string;
   variantId?: string; // present = editing product_variants.stock; absent = editing products.stock
   label: string; // size/color, or "—" for a no-variant product
   stock: number;
@@ -25,18 +27,22 @@ const FILTERS = ["ALL", "LOW STOCK", "OUT OF STOCK"] as const;
 function Inventory() {
   const [products, setProducts] = useState<Product[]>([]);
   const [variants, setVariants] = useState<VariantRow[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<typeof FILTERS[number]>("ALL");
+  const [category, setCategory] = useState<string>("ALL");
   const [saving, setSaving] = useState<string | null>(null);
 
   const load = async () => {
-    const [productsData, { data: variantData }] = await Promise.all([
+    const [productsData, { data: variantData }, cats] = await Promise.all([
       listAllAdminProducts(),
       supabase.from("product_variants").select("id, product_id, size, color, stock").order("size"),
+      listCategories(),
     ]);
     setProducts(productsData);
     setVariants((variantData as VariantRow[]) ?? []);
+    setCategories(cats);
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
@@ -57,13 +63,14 @@ function Inventory() {
             productSlug: p.slug,
             productName: p.name,
             productImage: p.image,
+            productCategory: p.category,
             variantId: v.id,
             label: [v.size, v.color].filter(Boolean).join(" / ") || "—",
             stock: v.stock,
           });
         }
       } else {
-        out.push({ key: p.slug, productSlug: p.slug, productName: p.name, productImage: p.image, label: "—", stock: p.stock });
+        out.push({ key: p.slug, productSlug: p.slug, productName: p.name, productImage: p.image, productCategory: p.category, label: "—", stock: p.stock });
       }
     }
     return out.sort((a, b) => a.stock - b.stock);
@@ -71,7 +78,8 @@ function Inventory() {
 
   const filtered = rows
     .filter((r) => !q || r.productName.toLowerCase().includes(q.toLowerCase()))
-    .filter((r) => filter === "ALL" || (filter === "LOW STOCK" ? r.stock > 0 && r.stock <= 5 : r.stock === 0));
+    .filter((r) => filter === "ALL" || (filter === "LOW STOCK" ? r.stock > 0 && r.stock <= 5 : r.stock === 0))
+    .filter((r) => category === "ALL" || r.productCategory === category);
 
   const counts = useMemo(() => ({
     ALL: rows.length,
@@ -114,10 +122,22 @@ function Inventory() {
         ))}
       </div>
 
-      <div className="relative mb-4 max-w-sm">
-        <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…"
-          className="bg-background border border-border h-10 pl-9 pr-3 w-full text-sm" />
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="relative max-w-sm flex-1">
+          <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…"
+            className="bg-background border border-border h-10 pl-9 pr-3 w-full text-sm" />
+        </div>
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="bg-background border border-border h-10 px-3 text-sm text-mono"
+        >
+          <option value="ALL">ALL CATEGORIES</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.name}>{c.name.toUpperCase()}</option>
+          ))}
+        </select>
       </div>
 
       <div className="border border-border bg-surface overflow-x-auto">
