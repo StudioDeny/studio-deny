@@ -41,12 +41,15 @@ export function MarqueeTicker() {
   if (!visible) return null;
   const items = cfg.items.length > 0 ? cfg.items : DEFAULTS.items;
 
-  // Fast, seamless infinite scrolling (10s - 14s duration for crisp high-speed motion)
+  // Fast, seamless infinite scrolling
   const durationSeconds = Math.max(6, Math.min(14, 1200 / (cfg.speed || 100)));
 
   return (
-    <section className="border-y border-border bg-[#E2E2E4] overflow-hidden py-4 sm:py-5 group">
-      <div className="flex overflow-hidden select-none">
+    <section className="relative bg-[#FFE600] text-black overflow-hidden py-3 sm:py-4 select-none border-y-2 border-black group shadow-md">
+      {/* Top Hazard Diagonal Stripe Tape Border */}
+      <div className="absolute top-0 inset-x-0 h-2 bg-[repeating-linear-gradient(-45deg,#000,#000_10px,#FFE600_10px,#FFE600_20px)] border-b border-black/20 z-10 pointer-events-none" />
+
+      <div className="flex overflow-hidden my-1">
         {[0, 1, 2, 3].map((dup) => (
           <div
             key={dup}
@@ -57,17 +60,26 @@ export function MarqueeTicker() {
             {items.map((item, i) => (
               <span key={`${dup}-${i}`} className="flex items-center shrink-0 whitespace-nowrap">
                 <span
-                  className="text-display uppercase tracking-[-0.01em] px-6 sm:px-8 font-bold"
-                  style={{ fontSize: "clamp(1.4rem, 3.2vw, 2.2rem)" }}
+                  className="font-display font-black uppercase tracking-wider px-6 sm:px-8 text-black"
+                  style={{ fontSize: "clamp(1.3rem, 3vw, 2.1rem)" }}
                 >
                   {item}
                 </span>
-                <span className="size-2 rounded-full bg-primary shrink-0 opacity-80" />
+                
+                {/* Industrial Hazard Caution Badge Separators */}
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-[#FFE600] font-mono text-xs font-extrabold tracking-widest uppercase shrink-0 shadow-sm">
+                  <span className="opacity-70">///</span>
+                  <span>{i % 4 === 0 ? "CAUTION" : i % 4 === 1 ? "DO NOT CROSS" : i % 4 === 2 ? "WARNING" : "DANGER"}</span>
+                  <span className="opacity-70">///</span>
+                </span>
               </span>
             ))}
           </div>
         ))}
       </div>
+
+      {/* Bottom Hazard Diagonal Stripe Tape Border */}
+      <div className="absolute bottom-0 inset-x-0 h-2 bg-[repeating-linear-gradient(45deg,#000,#000_10px,#FFE600_10px,#FFE600_20px)] border-t border-black/20 z-10 pointer-events-none" />
     </section>
   );
 }

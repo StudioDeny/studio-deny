@@ -228,7 +228,7 @@ export function LookbookCarousel() {
   const isTablet = windowWidth >= 768 && windowWidth < 1024;
 
   const maxOffset = isMobile ? 2 : isTablet ? 3 : 4;
-  const baseCardWidth = isMobile ? 160 : isTablet ? 200 : 240;
+  const baseCardWidth = isMobile ? 175 : isTablet ? 220 : 260;
 
   return (
     <section
@@ -241,146 +241,22 @@ export function LookbookCarousel() {
         setIsCardHovered(false);
       }}
     >
-      {/* BACKGROUND LAYER 1: Tactile Canvas Grain Texture Overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none z-0 opacity-[0.05] mix-blend-multiply"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-        }}
-      />
 
-      {/* BACKGROUND LAYER 2: Soft Studio Floor Lighting Spotlight */}
-      <div
-        className="absolute inset-0 pointer-events-none z-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(255, 255, 255, 0.85) 0%, rgba(226, 226, 228, 0.45) 45%, transparent 80%)",
-        }}
-      />
 
-      {/* BACKGROUND LAYER 3: Architectural Layout Grid */}
-      <div
-        className="absolute inset-0 pointer-events-none z-0 opacity-40 sm:opacity-50"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px)",
-          backgroundSize: isMobile ? "70px 70px" : isTablet ? "110px 110px" : "140px 140px",
-        }}
-      />
-
-      {/* BACKGROUND LAYER 4: Giant Ghost Typography ("STUDIO DENY") */}
+      {/* BACKGROUND LAYER: Giant Ghost Typography ("STUDIO DENY") */}
       <div
         className="absolute inset-0 pointer-events-none z-0 flex items-center justify-between px-4 sm:px-12 overflow-hidden select-none"
         aria-hidden="true"
       >
-        <span className="font-display text-[clamp(6rem,22vw,24rem)] leading-none uppercase tracking-tight text-black/[0.04] font-black transform -translate-y-2">
+        <span className="font-display text-[clamp(6rem,22vw,24rem)] leading-none uppercase tracking-[0.2em] text-black/[0.04] font-black transform -translate-y-2">
           STUDIO
         </span>
-        <span className="font-display text-[clamp(6rem,22vw,24rem)] leading-none uppercase tracking-tight text-black/[0.04] font-black transform -translate-y-2">
+        <span className="font-display text-[clamp(6rem,22vw,24rem)] leading-none uppercase tracking-[0.2em] text-black/[0.04] font-black transform -translate-y-2">
           DENY
         </span>
       </div>
 
-      {/* BACKGROUND LAYER 5: Precision Architectural Crosshairs (+) */}
-      <div className="absolute inset-0 pointer-events-none z-0 select-none hidden sm:block">
-        {/* Top Center Crosshair */}
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 text-black/25">
-          <svg className="w-5 h-5" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1">
-            <line x1="10" y1="0" x2="10" y2="20" />
-            <line x1="0" y1="10" x2="20" y2="10" />
-          </svg>
-        </div>
-        {/* Left Side Crosshairs */}
-        <div className="absolute top-28 left-12 text-black/25">
-          <svg className="w-4 h-4" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1">
-            <line x1="8" y1="0" x2="8" y2="16" />
-            <line x1="0" y1="8" x2="16" y2="8" />
-          </svg>
-        </div>
-        <div className="absolute top-1/2 left-24 -translate-y-1/2 text-black/20">
-          <svg className="w-4 h-4" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1">
-            <line x1="8" y1="0" x2="8" y2="16" />
-            <line x1="0" y1="8" x2="16" y2="8" />
-          </svg>
-        </div>
-        {/* Right Side Crosshairs */}
-        <div className="absolute top-28 right-12 text-black/25">
-          <svg className="w-4 h-4" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1">
-            <line x1="8" y1="0" x2="8" y2="16" />
-            <line x1="0" y1="8" x2="16" y2="8" />
-          </svg>
-        </div>
-        <div className="absolute top-1/2 right-24 -translate-y-1/2 text-black/20">
-          <svg className="w-4 h-4" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1">
-            <line x1="8" y1="0" x2="8" y2="16" />
-            <line x1="0" y1="8" x2="16" y2="8" />
-          </svg>
-        </div>
-      </div>
 
-      {/* BACKGROUND LAYER 6: Micro Technical Metadata & Ruler Scale Annotations */}
-      <div className="absolute inset-x-6 sm:inset-x-12 top-6 bottom-6 pointer-events-none z-0 hidden sm:flex flex-col justify-between text-black/35 font-mono text-[9px] sm:text-[10px] tracking-[0.2em] uppercase select-none">
-        {/* Top Annotation Row */}
-        <div className="flex justify-between items-start">
-          <div className="leading-tight">
-            <p className="font-bold text-black/40">STUDIO DENY</p>
-            <p className="text-black/30">LOOKBOOK 01</p>
-          </div>
-          <div className="text-right leading-tight">
-            <p className="font-bold text-black/40">SS / FW</p>
-            <p className="text-black/30">24</p>
-          </div>
-        </div>
-
-        {/* Bottom Annotation Row */}
-        <div className="flex justify-between items-end">
-          <div className="space-y-1.5">
-            <p className="text-[8px] text-black/30 tracking-[0.25em]">18.5204° N, 73.8567° E</p>
-            <div className="leading-tight">
-              <p className="font-bold text-black/40">CURATED FITS</p>
-              <p className="text-black/30">BUILT FOR DAILY MOVEMENT</p>
-            </div>
-            {/* Technical Ruler Scale */}
-            <div className="w-36 h-2 border-t border-black/20 flex justify-between pt-1">
-              <div className="w-px h-1.5 bg-black/40" />
-              <div className="w-px h-1 bg-black/20" />
-              <div className="w-px h-1 bg-black/20" />
-              <div className="w-px h-1 bg-black/20" />
-              <div className="w-px h-1.5 bg-black/40" />
-              <div className="w-px h-1 bg-black/20" />
-              <div className="w-px h-1 bg-black/20" />
-              <div className="w-px h-1 bg-black/20" />
-              <div className="w-px h-1.5 bg-black/40" />
-            </div>
-          </div>
-
-          <div className="text-right space-y-1.5 flex flex-col items-end">
-            <div className="flex items-center gap-1.5 justify-end">
-              <div className="leading-tight">
-                <p className="font-bold text-black/40">MADE IN INDIA</p>
-                <p className="text-black/30">WORN WORLDWIDE</p>
-              </div>
-              <svg className="w-3.5 h-3.5 text-black/40 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                <path d="M2 12h20" />
-              </svg>
-            </div>
-            {/* Technical Ruler Scale */}
-            <div className="w-36 h-2 border-t border-black/20 flex justify-between pt-1">
-              <div className="w-px h-1.5 bg-black/40" />
-              <div className="w-px h-1 bg-black/20" />
-              <div className="w-px h-1 bg-black/20" />
-              <div className="w-px h-1 bg-black/20" />
-              <div className="w-px h-1.5 bg-black/40" />
-              <div className="w-px h-1 bg-black/20" />
-              <div className="w-px h-1 bg-black/20" />
-              <div className="w-px h-1 bg-black/20" />
-              <div className="w-px h-1.5 bg-black/40" />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* FOREGROUND LAYER 7: Heading */}
       <div className="relative z-10 max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 text-center">
@@ -403,7 +279,7 @@ export function LookbookCarousel() {
         style={{
           perspective: "1200px",
           perspectiveOrigin: "50% 50%",
-          height: isMobile ? "410px" : isTablet ? "510px" : "610px",
+          height: isMobile ? "490px" : isTablet ? "610px" : "730px",
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -475,8 +351,9 @@ export function LookbookCarousel() {
           const product = slide.product_slug ? mergedProducts[slide.product_slug] : undefined;
 
           // Calculate vertical floor offset so all card contact shadows rest on the unified studio floor plane
-          const maxHeroRenderedHeight = baseCardWidth * (4 / 3) * 1.50;
-          const currentRenderedHeight = baseCardWidth * (4 / 3) * scale;
+          const cardRatio = 1.45;
+          const maxHeroRenderedHeight = baseCardWidth * cardRatio * 1.50;
+          const currentRenderedHeight = baseCardWidth * cardRatio * scale;
           const shadowFloorOffsetPx = (maxHeroRenderedHeight - currentRenderedHeight) / 2;
 
           return (
@@ -504,7 +381,7 @@ export function LookbookCarousel() {
                 zIndex,
                 transformStyle: "preserve-3d",
                 width: `${baseCardWidth}px`,
-                aspectRatio: "3 / 4",
+                aspectRatio: "3 / 4.35",
               }}
               onMouseEnter={() => {
                 setIsCardHovered(true);

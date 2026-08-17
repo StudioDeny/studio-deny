@@ -96,15 +96,26 @@ export function CategoryCarousel() {
             {slide.subtitle && (
               <p className="text-white/85 text-mono text-sm sm:text-base mt-3 max-w-md">{slide.subtitle}</p>
             )}
-            <Link
-              to={slide.href}
-              className="pointer-events-auto mt-6 inline-flex items-center gap-2 px-8 py-3 border-2 border-white text-white text-xs sm:text-sm font-mono font-bold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all shadow-xl active:scale-95"
-            >
-              {slide.cta_label || "SHOP COLLECTION →"}
-            </Link>
           </motion.div>
         </AnimatePresence>
       </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`btn-${active}`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE, delay: 0.25 } }}
+          exit={{ opacity: 0, y: 10, transition: { duration: 0.3 } }}
+          className="absolute z-[3] bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 pointer-events-auto"
+        >
+          <Link
+            to={slide.href}
+            className="inline-flex items-center gap-2 px-8 py-3 border-2 border-white bg-black/30 backdrop-blur-md text-white text-xs sm:text-sm font-mono font-bold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all shadow-xl active:scale-95"
+          >
+            {slide.cta_label || "SHOP COLLECTION →"}
+          </Link>
+        </motion.div>
+      </AnimatePresence>
 
       {cfg.slides.length > 1 && (
         <>
