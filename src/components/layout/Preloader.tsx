@@ -8,6 +8,7 @@ const DEFAULTS: PreloaderSettings = {
   bg_type: "image",
   bg_image_url: null,
   bg_video_url: null,
+  bg_color: "#0a0a0a",
   content_type: "image",
   content_image_url: "/deny-space-preloader.png",
   content_text: "STUDIO DENY",
@@ -69,6 +70,9 @@ export function Preloader() {
                   playsInline
                   className="absolute inset-0 w-full h-full object-cover"
                 />
+              )}
+              {cfg.bg_type === "color" && (
+                <div className="absolute inset-0 w-full h-full" style={{ background: cfg.bg_color }} />
               )}
 
               {/* Main Content Container — Sleek Luxury Brand Reveal */}

@@ -98,17 +98,44 @@ function AdminPreloader() {
 
       <div className="max-w-2xl space-y-6">
         <div className="border border-border bg-surface p-4 space-y-3">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">BACKDROP (IMAGE OR VIDEO)</div>
-          <MediaField
-            value={bgMedia}
-            onChange={(next) =>
-              update({
-                bg_type: next.type,
-                bg_image_url: next.type === "image" ? next.url : row.bg_image_url,
-                bg_video_url: next.type === "video" ? next.url : row.bg_video_url,
-              })
-            }
-          />
+          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">BACKDROP</div>
+          <div className="inline-flex border border-border rounded overflow-hidden mb-3">
+            {(["image", "video", "color"] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => update({ bg_type: t })}
+                className={`px-3 h-7 text-[10px] font-semibold tracking-widest uppercase transition-colors ${
+                  row.bg_type === t ? "bg-foreground text-background" : "bg-background text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t === "color" ? "COLOUR" : t}
+              </button>
+            ))}
+          </div>
+
+          {row.bg_type === "color" ? (
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={row.bg_color}
+                onChange={(e) => update({ bg_color: e.target.value })}
+                className="h-10 w-16 bg-background border border-border p-1"
+              />
+              <input value={row.bg_color} onChange={(e) => update({ bg_color: e.target.value })} className="inp max-w-[160px]" />
+            </div>
+          ) : (
+            <MediaField
+              value={bgMedia}
+              onChange={(next) =>
+                update({
+                  bg_type: next.type,
+                  bg_image_url: next.type === "image" ? next.url : row.bg_image_url,
+                  bg_video_url: next.type === "video" ? next.url : row.bg_video_url,
+                })
+              }
+            />
+          )}
         </div>
 
         <div className="border border-border bg-surface p-4 space-y-3">

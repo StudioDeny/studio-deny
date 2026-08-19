@@ -740,9 +740,10 @@ export type InfluencerPick = {
 
 export type PreloaderSettings = {
   id: string;
-  bg_type: "image" | "video";
+  bg_type: "image" | "video" | "color";
   bg_image_url: string | null;
   bg_video_url: string | null;
+  bg_color: string;
   content_type: "image" | "text";
   content_image_url: string;
   content_text: string;
