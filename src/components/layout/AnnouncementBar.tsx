@@ -21,7 +21,10 @@ function isActive(bar: AnnouncementBar): boolean {
 }
 
 export function AnnouncementBar() {
-  const [bars, setBars] = useState<AnnouncementBar[]>(FALLBACK);
+  // null = "haven't checked yet" — starting from FALLBACK directly meant a
+  // real, configured announcement would still flash the placeholder text
+  // for a beat on every load, before the fetch resolved and replaced it.
+  const [bars, setBars] = useState<AnnouncementBar[] | null>(null);
 
   useEffect(() => {
     supabase
@@ -30,16 +33,18 @@ export function AnnouncementBar() {
       .eq("is_active", true)
       .order("position")
       .then(({ data }) => {
-        if (data && data.length > 0) {
-          const live = data.filter(isActive);
-          if (live.length > 0) setBars(live);
-        }
+        const live = (data ?? []).filter(isActive);
+        setBars(live.length > 0 ? live : FALLBACK);
       });
   }, []);
 
-  // The bar itself is always black/white by design — per-row bg_color/text_color
-  // from the CMS is intentionally ignored here so one mis-colored row can't paint
-  // the whole ticker a different color.
+  if (!bars) return null;
+
+  // The track itself stays a neutral black base — but each message now
+  // actually renders in its own configured bg_color/text_color as a pill,
+  // instead of every row being forced to black/white regardless of what
+  // the CMS says. Per-message (not per-bar) so one loud color choice
+  // doesn't take over the whole strip, just its own chip.
   return (
     <div
       className="overflow-hidden relative flex"
@@ -50,17 +55,22 @@ export function AnnouncementBar() {
           {bars.map((bar, i) => (
             <span
               key={`${bar.id}-${dup}-${i}`}
-              className="mx-8 flex items-center gap-8 font-semibold tracking-[0.22em] uppercase whitespace-nowrap"
+              className="mx-3 flex items-center gap-8 font-semibold tracking-[0.22em] uppercase whitespace-nowrap"
               style={{ fontSize: "10px", fontFamily: "var(--font-mono, monospace)" }}
             >
-              {bar.cta_href ? (
-                <a href={bar.cta_href} className="hover:underline">
-                  {bar.message}
-                  {bar.cta_label && <span className="ml-2 opacity-70">— {bar.cta_label} →</span>}
-                </a>
-              ) : (
-                bar.message
-              )}
+              <span
+                className="px-3 py-1"
+                style={{ background: bar.bg_color, color: bar.text_color }}
+              >
+                {bar.cta_href ? (
+                  <a href={bar.cta_href} className="hover:underline">
+                    {bar.message}
+                    {bar.cta_label && <span className="ml-2 opacity-70">— {bar.cta_label} →</span>}
+                  </a>
+                ) : (
+                  bar.message
+                )}
+              </span>
               <span className="opacity-50 text-xs">✦</span>
             </span>
           ))}

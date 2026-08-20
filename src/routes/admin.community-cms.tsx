@@ -18,31 +18,25 @@ function CommunityCmsAdmin() {
   const [loading, setLoading] = useState(true);
   const [newMedia, setNewMedia] = useState<MediaValue>({ url: "", type: "image" });
   const [adding, setAdding] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const load = async () => {
     const { data, error } = await supabase.from("community_photos").select("*").order("position");
     if (error) toast.error(error.message);
     else setRows(data ?? []);
     setLoading(false);
+    setDirty(false);
   };
 
   useEffect(() => { load(); }, []);
 
-  const update = async (id: string, patch: Partial<Omit<CommunityPhoto, "id" | "created_at">>) => {
-    // Each bento slot on the homepage is keyed by size — two photos claiming
-    // the same size would silently fight over the same slot, so this is
-    // enforced here rather than letting the grid quietly break.
-    if (patch.bento_size) {
-      const clash = rows.find((r) => r.id !== id && r.bento_size === patch.bento_size);
-      if (clash) {
-        toast.error(`Two photos can't share the same size — ${clash.handle ?? "another photo"} is already ${patch.bento_size.toUpperCase()}`);
-        setRows((r) => [...r]); // force the <select> back to its stored value
-        return;
-      }
-    }
+  // Handle/size/media-type/order are all local-only until SAVE — nothing
+  // writes to the database (or shows a validation error) on every keystroke
+  // or click anymore.
+  const editLocal = (id: string, patch: Partial<Omit<CommunityPhoto, "id" | "created_at">>) => {
     setRows((r) => r.map((x) => (x.id === id ? { ...x, ...patch } : x)));
-    const { error } = await supabase.from("community_photos").update(patch).eq("id", id);
-    if (error) toast.error(error.message);
+    setDirty(true);
   };
 
   const remove = async (id: string) => {
@@ -52,14 +46,44 @@ function CommunityCmsAdmin() {
     setRows((r) => r.filter((x) => x.id !== id));
   };
 
-  const reorder = async (id: string, dir: -1 | 1) => {
+  const reorder = (id: string, dir: -1 | 1) => {
     const idx = rows.findIndex((r) => r.id === id);
     const swapIdx = idx + dir;
     if (swapIdx < 0 || swapIdx >= rows.length) return;
     const next = [...rows];
     [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
     setRows(next.map((r, i) => ({ ...r, position: i })));
-    await Promise.all(next.map((r, i) => supabase.from("community_photos").update({ position: i }).eq("id", r.id)));
+    setDirty(true);
+  };
+
+  const save = async () => {
+    // Each bento slot on the homepage is keyed by size — two photos claiming
+    // the same size would silently fight over the same slot. Checked once,
+    // here, instead of on every dropdown change.
+    const seenAt = new Map<BentoSize, string>();
+    for (const r of rows) {
+      const clashHandle = seenAt.get(r.bento_size);
+      if (clashHandle) {
+        toast.error(`Two photos can't share the same size — ${r.handle ?? "this photo"} and ${clashHandle} are both ${r.bento_size.toUpperCase()}`);
+        return;
+      }
+      seenAt.set(r.bento_size, r.handle ?? "another photo");
+    }
+
+    setSaving(true);
+    const results = await Promise.all(
+      rows.map((r) =>
+        supabase
+          .from("community_photos")
+          .update({ handle: r.handle, bento_size: r.bento_size, media_type: r.media_type, position: r.position })
+          .eq("id", r.id)
+      )
+    );
+    setSaving(false);
+    const failed = results.find((res) => res.error);
+    if (failed?.error) return toast.error(failed.error.message);
+    setDirty(false);
+    toast.success("Saved");
   };
 
   // The bento grid has exactly one slot per size (sm/md/lg/wide/tall) — once
@@ -122,14 +146,13 @@ function CommunityCmsAdmin() {
             <div className="p-2 space-y-2">
               <input
                 value={photo.handle ?? ""}
-                onChange={(e) => setRows((r) => r.map((x) => (x.id === photo.id ? { ...x, handle: e.target.value } : x)))}
-                onBlur={(e) => update(photo.id, { handle: e.target.value || null })}
+                onChange={(e) => editLocal(photo.id, { handle: e.target.value || null })}
                 className="w-full bg-background border border-border h-7 px-2 text-xs font-mono"
                 placeholder="@handle (optional)"
               />
               <select
                 value={photo.bento_size}
-                onChange={(e) => update(photo.id, { bento_size: e.target.value as BentoSize })}
+                onChange={(e) => editLocal(photo.id, { bento_size: e.target.value as BentoSize })}
                 className="w-full bg-background border border-border h-7 px-2 text-xs font-mono"
                 style={{ cursor: "pointer" }}
               >
@@ -140,7 +163,7 @@ function CommunityCmsAdmin() {
                   <button
                     key={t}
                     type="button"
-                    onClick={() => update(photo.id, { media_type: t })}
+                    onClick={() => editLocal(photo.id, { media_type: t })}
                     className={`flex-1 h-7 text-[10px] font-semibold tracking-widest uppercase transition-colors ${
                       photo.media_type === t ? "bg-foreground text-background" : "bg-background text-muted-foreground hover:text-foreground"
                     }`}
@@ -170,6 +193,20 @@ function CommunityCmsAdmin() {
             <div className="text-mono text-[10px] tracking-widest text-muted-foreground">ALL {BENTO_SIZES.length} SIZES USED</div>
             <div className="text-mono text-[9px] text-muted-foreground/70">Resize or remove a photo to add another</div>
           </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving || !dirty}
+          className="bg-primary text-primary-foreground h-10 px-6 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50"
+        >
+          {saving ? "SAVING…" : "SAVE CHANGES"}
+        </button>
+        {dirty && !saving && (
+          <span className="text-mono text-[10px] tracking-widest text-muted-foreground">UNSAVED CHANGES</span>
         )}
       </div>
     </div>
