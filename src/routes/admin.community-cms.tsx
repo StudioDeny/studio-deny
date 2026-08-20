@@ -29,6 +29,17 @@ function CommunityCmsAdmin() {
   useEffect(() => { load(); }, []);
 
   const update = async (id: string, patch: Partial<Omit<CommunityPhoto, "id" | "created_at">>) => {
+    // Each bento slot on the homepage is keyed by size — two photos claiming
+    // the same size would silently fight over the same slot, so this is
+    // enforced here rather than letting the grid quietly break.
+    if (patch.bento_size) {
+      const clash = rows.find((r) => r.id !== id && r.bento_size === patch.bento_size);
+      if (clash) {
+        toast.error(`Two photos can't share the same size — ${clash.handle ?? "another photo"} is already ${patch.bento_size.toUpperCase()}`);
+        setRows((r) => [...r]); // force the <select> back to its stored value
+        return;
+      }
+    }
     setRows((r) => r.map((x) => (x.id === id ? { ...x, ...patch } : x)));
     const { error } = await supabase.from("community_photos").update(patch).eq("id", id);
     if (error) toast.error(error.message);
@@ -51,12 +62,21 @@ function CommunityCmsAdmin() {
     await Promise.all(next.map((r, i) => supabase.from("community_photos").update({ position: i }).eq("id", r.id)));
   };
 
+  // The bento grid has exactly one slot per size (sm/md/lg/wide/tall) — once
+  // every size is taken there's nowhere left to put another photo, so that's
+  // the real cap, not an arbitrary count.
+  const usedSizes = new Set(rows.map((r) => r.bento_size));
+  const nextAvailableSize = BENTO_SIZES.find((s) => !usedSizes.has(s));
+
   const addPhoto = async () => {
     if (!newMedia.url.trim()) return toast.error("Add an image/video URL, or upload one, first");
+    if (!nextAvailableSize) {
+      return toast.error(`All ${BENTO_SIZES.length} sizes are already in use — resize or remove a photo before adding another`);
+    }
     setAdding(true);
     const { data, error } = await supabase
       .from("community_photos")
-      .insert({ image_url: newMedia.url, media_type: newMedia.type, handle: null, bento_size: "md", is_active: true, position: rows.length })
+      .insert({ image_url: newMedia.url, media_type: newMedia.type, handle: null, bento_size: nextAvailableSize, is_active: true, position: rows.length })
       .select()
       .single();
     setAdding(false);
@@ -133,17 +153,24 @@ function CommunityCmsAdmin() {
           </div>
         ))}
 
-        <div className="aspect-square border border-dashed border-border p-3 flex flex-col justify-center gap-2">
-          <MediaField value={newMedia} onChange={setNewMedia} />
-          <button
-            type="button"
-            onClick={addPhoto}
-            disabled={adding}
-            className="w-full h-8 border border-border text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary disabled:opacity-50"
-          >
-            {adding ? "ADDING…" : "ADD"}
-          </button>
-        </div>
+        {nextAvailableSize ? (
+          <div className="aspect-square border border-dashed border-border p-3 flex flex-col justify-center gap-2">
+            <MediaField value={newMedia} onChange={setNewMedia} />
+            <button
+              type="button"
+              onClick={addPhoto}
+              disabled={adding}
+              className="w-full h-8 border border-border text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary disabled:opacity-50"
+            >
+              {adding ? "ADDING…" : `ADD (${nextAvailableSize.toUpperCase()})`}
+            </button>
+          </div>
+        ) : (
+          <div className="aspect-square border border-dashed border-border p-3 flex flex-col items-center justify-center text-center gap-1">
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground">ALL {BENTO_SIZES.length} SIZES USED</div>
+            <div className="text-mono text-[9px] text-muted-foreground/70">Resize or remove a photo to add another</div>
+          </div>
+        )}
       </div>
     </div>
   );

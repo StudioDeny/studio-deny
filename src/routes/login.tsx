@@ -12,9 +12,16 @@ export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Login — STUDIO DENY" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
+// No min-length here on purpose — this is LOGIN, not signup. A client-side
+// length gate meant "wrong password" always showed "Min 6 characters"
+// instead of the real Supabase error, since react-hook-form blocks the
+// submit (and therefore the actual auth call) before it ever happens for
+// any password under 6 characters. Signup still enforces min(6) — that's
+// a real new-password policy; login just needs *something* typed so the
+// server can say whether it's actually correct.
 const schema = z.object({
   email: z.string().email(),
-  password: z.string().min(6, "Min 6 characters"),
+  password: z.string().min(1, "Password is required"),
 });
 type V = z.infer<typeof schema>;
 
