@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import type { CommunityPhoto } from "@/types/database";
 import { useSectionHeading } from "@/lib/sectionHeadings";
 import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
+import { BENTO_SLOTS, BENTO_SLOT_COUNT } from "@/lib/communityBento";
 
 const SUPPLEMENTARY_PHOTOS: CommunityPhoto[] = [
   {
@@ -26,17 +27,6 @@ const SUPPLEMENTARY_PHOTOS: CommunityPhoto[] = [
     position: 11,
     created_at: "",
   },
-];
-
-// Exact Bento Grid Slot Spans for 7 items to form a 4x3 100% flush rectangle (12 slots)
-const BENTO_SLOT_CLASSES = [
-  "col-span-1 sm:col-span-2 row-span-2", // Card 0: 2x2 Hero Feature (4 slots)
-  "col-span-1 row-span-2",                // Card 1: 1x2 Tall Showcase (2 slots)
-  "col-span-1 row-span-1",                // Card 2: 1x1 Standard (1 slot)
-  "col-span-1 row-span-1",                // Card 3: 1x1 Standard (1 slot)
-  "col-span-1 sm:col-span-2 row-span-1", // Card 4: 2x1 Wide Banner (2 slots)
-  "col-span-1 row-span-1",                // Card 5: 1x1 Standard (1 slot)
-  "col-span-1 row-span-1",                // Card 6: 1x1 Standard (1 slot)
 ];
 
 export function CommunityBento() {
@@ -65,13 +55,12 @@ export function CommunityBento() {
 
   if (!visible) return null;
 
-  // Target exactly 7 items to fill the 4x3 Bento rectangle perfectly (12 slots = 3 full rows)
-  const targetCount = 7;
+  // Target exactly BENTO_SLOT_COUNT items to fill the 4x3 Bento rectangle perfectly (12 slots = 3 full rows)
   let displayPhotos: CommunityPhoto[] = [];
-  if (photos.length >= targetCount) {
-    displayPhotos = photos.slice(0, targetCount);
+  if (photos.length >= BENTO_SLOT_COUNT) {
+    displayPhotos = photos.slice(0, BENTO_SLOT_COUNT);
   } else if (photos.length > 0) {
-    displayPhotos = [...photos, ...SUPPLEMENTARY_PHOTOS.slice(0, targetCount - photos.length)];
+    displayPhotos = [...photos, ...SUPPLEMENTARY_PHOTOS.slice(0, BENTO_SLOT_COUNT - photos.length)];
   } else {
     displayPhotos = SUPPLEMENTARY_PHOTOS;
   }
@@ -98,7 +87,7 @@ export function CommunityBento() {
       {/* 100% Flush 4x3 Sharp-Edge Bento Box Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 auto-rows-[180px] sm:auto-rows-[210px] lg:auto-rows-[230px] gap-3 sm:gap-4 grid-flow-dense">
         {displayPhotos.map((photo, idx) => {
-          const spanClass = BENTO_SLOT_CLASSES[idx % BENTO_SLOT_CLASSES.length];
+          const spanClass = BENTO_SLOTS[idx % BENTO_SLOTS.length].className;
           const isHero = idx === 0;
 
           return (
