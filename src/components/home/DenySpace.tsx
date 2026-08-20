@@ -125,9 +125,9 @@ function PlayableDenyLogo({
             isDragging
               ? { y: 0, rotateZ: 0 }
               : {
-                  y: [0, -6, 0],
-                  rotateZ: [-0.6, 0.6, -0.6],
-                }
+                y: [0, -6, 0],
+                rotateZ: [-0.6, 0.6, -0.6],
+              }
           }
           transition={{
             duration: 4.5,
@@ -188,7 +188,7 @@ export function DenySpace() {
 
   return (
     <section
-      className="py-8 sm:py-12 px-4 sm:px-8 lg:px-16 relative overflow-hidden bg-[#080808] text-white select-none border-t border-b border-white/10"
+      className="py-8 sm:py-12 px-4 sm:px-8 lg:px-16 relative overflow-hidden bg-[#080808] text-white select-none"
       style={hasBgMedia ? undefined : { background: bg }}
     >
       {/* BACKGROUND MEDIA IF CONFIGURED */}
@@ -233,13 +233,13 @@ export function DenySpace() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
           viewport={{ once: true }}
-          className="text-xs sm:text-sm text-mono leading-relaxed max-w-2xl mx-auto mb-12 text-white/70 whitespace-pre-line font-normal"
+          className="text-xs sm:text-sm text-mono leading-relaxed max-w-2xl mx-auto mb-10 text-white/70 whitespace-pre-line font-normal"
         >
           {cfg.description}
         </motion.p>
 
-        {/* BENEFITS GRID WITH THIN VERTICAL DIVIDERS */}
-        <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-0 mb-14 border-t border-b border-white/10 py-8">
+        {/* BENEFITS GRID WITHOUT DIVIDER LINES */}
+        <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-4 mb-12 py-4">
           {cfg.benefits.slice(0, 4).map((b, idx) => {
             const Icon = ICON_MAP[b.icon] ?? Star;
             return (
@@ -249,9 +249,7 @@ export function DenySpace() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.15 + idx * 0.08 }}
                 viewport={{ once: true }}
-                className={`flex flex-col items-center gap-3 px-3 group ${
-                  idx < 3 ? "sm:border-r sm:border-white/10" : ""
-                }`}
+                className="flex flex-col items-center gap-3 px-3 group"
               >
                 {/* Circular Icon with Glow Halo */}
                 <div className="size-16 sm:size-18 rounded-full border border-white/30 flex items-center justify-center bg-black/60 shadow-[0_0_25px_rgba(255,255,255,0.12)] group-hover:border-white group-hover:shadow-[0_0_35px_rgba(255,255,255,0.3)] transition-all duration-300">

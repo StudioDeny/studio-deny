@@ -126,7 +126,7 @@ export function Navbar() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="relative z-[100] flex flex-col bg-white text-black border-b border-black/10 shadow-sm"
+        className="relative z-[100] flex flex-col bg-white text-black border-b border-black/10"
       >
         {/* Main bar — left: category dropdowns, center: logo, right: icons — ALWAYS z-[100] ON TOP */}
         <div
@@ -144,24 +144,17 @@ export function Navbar() {
                     type="button"
                     onMouseEnter={() => handleMouseEnterTab(cat.id)}
                     onClick={() => setOpenDropdown((d) => (d === cat.id ? null : cat.id))}
-                    className={`relative py-1 flex items-center gap-1.5 text-xs font-mono tracking-[0.18em] uppercase transition-all duration-200 ${
-                      isOpen ? "text-black font-extrabold scale-[1.03]" : "text-black/80 hover:text-black font-bold"
+                    className={`nav-tab-btn group relative py-1 flex items-center gap-1.5 text-xs font-mono tracking-[0.18em] uppercase transition-colors duration-200 ${
+                      isOpen ? "text-black font-extrabold" : "text-black/80 hover:text-black font-bold"
                     }`}
                   >
-                    <span>{cat.label}</span>
+                    <span className="transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-[1.5px]">{cat.label}</span>
                     <ChevronDown
                       className={`size-3 transition-transform duration-300 ease-out ${
                         isOpen ? "rotate-180 text-black opacity-100" : "opacity-60"
                       }`}
                       strokeWidth={2}
                     />
-                    {isOpen && (
-                      <motion.div
-                        layoutId="activeMegaTab"
-                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-black rounded-full"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      />
-                    )}
                   </button>
                 );
               })}
@@ -288,7 +281,8 @@ export function Navbar() {
                   transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] as const }}
                   onMouseEnter={handleMouseEnterPanel}
                   onMouseLeave={handleMouseLeaveNav}
-                  className="absolute top-full left-0 right-0 w-full z-[90] bg-white border-b border-black/10 shadow-lg overflow-hidden h-[360px] lg:h-[380px]"
+                  className="absolute top-full left-0 right-0 w-full z-[90] bg-white border-b border-black/10 overflow-y-auto overscroll-contain h-[360px] lg:h-[380px]"
+                  data-lenis-prevent
                 >
                   {/* Invisible hover bridge connecting nav tab row to dropdown container */}
                   <div className="absolute -top-4 inset-x-0 h-4 bg-transparent pointer-events-auto" />
