@@ -57,19 +57,6 @@ function CommunityCmsAdmin() {
   };
 
   const save = async () => {
-    // Each bento slot on the homepage is keyed by size — two photos claiming
-    // the same size would silently fight over the same slot. Checked once,
-    // here, instead of on every dropdown change.
-    const seenAt = new Map<BentoSize, string>();
-    for (const r of rows) {
-      const clashHandle = seenAt.get(r.bento_size);
-      if (clashHandle) {
-        toast.error(`Two photos can't share the same size — ${r.handle ?? "this photo"} and ${clashHandle} are both ${r.bento_size.toUpperCase()}`);
-        return;
-      }
-      seenAt.set(r.bento_size, r.handle ?? "another photo");
-    }
-
     setSaving(true);
     const results = await Promise.all(
       rows.map((r) =>
@@ -86,21 +73,12 @@ function CommunityCmsAdmin() {
     toast.success("Saved");
   };
 
-  // The bento grid has exactly one slot per size (sm/md/lg/wide/tall) — once
-  // every size is taken there's nowhere left to put another photo, so that's
-  // the real cap, not an arbitrary count.
-  const usedSizes = new Set(rows.map((r) => r.bento_size));
-  const nextAvailableSize = BENTO_SIZES.find((s) => !usedSizes.has(s));
-
   const addPhoto = async () => {
     if (!newMedia.url.trim()) return toast.error("Add an image/video URL, or upload one, first");
-    if (!nextAvailableSize) {
-      return toast.error(`All ${BENTO_SIZES.length} sizes are already in use — resize or remove a photo before adding another`);
-    }
     setAdding(true);
     const { data, error } = await supabase
       .from("community_photos")
-      .insert({ image_url: newMedia.url, media_type: newMedia.type, handle: null, bento_size: nextAvailableSize, is_active: true, position: rows.length })
+      .insert({ image_url: newMedia.url, media_type: newMedia.type, handle: null, bento_size: "md", is_active: true, position: rows.length })
       .select()
       .single();
     setAdding(false);
@@ -121,15 +99,15 @@ function CommunityCmsAdmin() {
 
       <div className="flex flex-wrap gap-2 mb-8">
         {BENTO_SIZES.map((s) => {
-          const holder = rows.find((r) => r.bento_size === s);
+          const count = rows.filter((r) => r.bento_size === s).length;
           return (
             <div
               key={s}
               className={`border px-2.5 py-1.5 text-mono text-[10px] tracking-widest ${
-                holder ? "border-border bg-surface" : "border-dashed border-border/60 text-muted-foreground"
+                count > 0 ? "border-border bg-surface" : "border-dashed border-border/60 text-muted-foreground"
               }`}
             >
-              {s.toUpperCase()} — {holder ? (holder.handle ?? "unnamed photo") : "free"}
+              {s.toUpperCase()} — {count} card{count === 1 ? "" : "s"}
             </div>
           );
         })}
@@ -192,24 +170,17 @@ function CommunityCmsAdmin() {
           </div>
         ))}
 
-        {nextAvailableSize ? (
-          <div className="aspect-square border border-dashed border-border p-3 flex flex-col justify-center gap-2">
-            <MediaField value={newMedia} onChange={setNewMedia} />
-            <button
-              type="button"
-              onClick={addPhoto}
-              disabled={adding}
-              className="w-full h-8 border border-border text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary disabled:opacity-50"
-            >
-              {adding ? "ADDING…" : `ADD (${nextAvailableSize.toUpperCase()})`}
-            </button>
-          </div>
-        ) : (
-          <div className="aspect-square border border-dashed border-border p-3 flex flex-col items-center justify-center text-center gap-1">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground">ALL {BENTO_SIZES.length} SIZES USED</div>
-            <div className="text-mono text-[9px] text-muted-foreground/70">Resize or remove a photo to add another</div>
-          </div>
-        )}
+        <div className="aspect-square border border-dashed border-border p-3 flex flex-col justify-center gap-2">
+          <MediaField value={newMedia} onChange={setNewMedia} />
+          <button
+            type="button"
+            onClick={addPhoto}
+            disabled={adding}
+            className="w-full h-8 border border-border text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary disabled:opacity-50"
+          >
+            {adding ? "ADDING…" : "ADD"}
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
