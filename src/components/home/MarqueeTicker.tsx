@@ -45,11 +45,11 @@ export function MarqueeTicker() {
   const durationSeconds = Math.max(6, Math.min(14, 1200 / (cfg.speed || 100)));
 
   return (
-    <section className="relative bg-[#FFE600] text-black overflow-hidden py-3 sm:py-4 select-none border-y-2 border-black group shadow-md">
+    <section className="relative bg-[#FFE600] text-black overflow-hidden py-2.5 sm:py-3 select-none border-y-2 border-black group shadow-md">
       {/* Top Hazard Diagonal Stripe Tape Border */}
       <div className="absolute top-0 inset-x-0 h-2 bg-[repeating-linear-gradient(-45deg,#000,#000_10px,#FFE600_10px,#FFE600_20px)] border-b border-black/20 z-10 pointer-events-none" />
 
-      <div className="flex overflow-hidden my-1">
+      <div className="flex overflow-hidden my-0.5">
         {[0, 1, 2, 3].map((dup) => (
           <div
             key={dup}
@@ -60,17 +60,15 @@ export function MarqueeTicker() {
             {items.map((item, i) => (
               <span key={`${dup}-${i}`} className="flex items-center shrink-0 whitespace-nowrap">
                 <span
-                  className="font-display font-black uppercase tracking-wider px-6 sm:px-8 text-black"
-                  style={{ fontSize: "clamp(1.3rem, 3vw, 2.1rem)" }}
+                  className="font-display font-black uppercase tracking-wider px-4 sm:px-6 text-black"
+                  style={{ fontSize: "clamp(1.1rem, 2.4vw, 1.6rem)" }}
                 >
                   {item}
                 </span>
                 
-                {/* Industrial Hazard Caution Badge Separators */}
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-[#FFE600] font-mono text-xs font-extrabold tracking-widest uppercase shrink-0 shadow-sm">
-                  <span className="opacity-70">///</span>
-                  <span>{i % 4 === 0 ? "CAUTION" : i % 4 === 1 ? "DO NOT CROSS" : i % 4 === 2 ? "WARNING" : "DANGER"}</span>
-                  <span className="opacity-70">///</span>
+                {/* Large Prominent Slash Separator */}
+                <span className="font-mono text-3xl sm:text-4xl font-black text-black px-4 sm:px-7 leading-none">
+                  /
                 </span>
               </span>
             ))}

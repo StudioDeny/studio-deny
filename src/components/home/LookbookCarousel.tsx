@@ -459,6 +459,9 @@ export function LookbookCarousel() {
           );
         })}
       </div>
+
+      {/* Section Segregation Line */}
+      <div className="absolute bottom-0 inset-x-0 h-[1.5px] bg-black/20 border-b border-black/10" />
     </section>
   );
 }

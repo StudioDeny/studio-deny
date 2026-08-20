@@ -104,7 +104,7 @@ export function FabricTabsSection() {
               <div key={fabric.id} onMouseEnter={() => setActiveFabric(fabric)} onClick={() => setActiveFabric(fabric)}
                 className="group cursor-pointer border-b border-border pb-6 sm:pb-8 last:border-0">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-4xl sm:text-5xl lg:text-6xl text-display uppercase tracking-wider transition-colors duration-300 ${activeFabric.id === fabric.id ? "text-foreground" : "text-foreground/50 group-hover:text-foreground/80"}`}>
+                  <h3 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl text-display uppercase tracking-wider transition-colors duration-300 ${activeFabric.id === fabric.id ? "text-foreground font-black" : "text-foreground/40 group-hover:text-foreground/75"}`}>
                     {fabric.name}
                   </h3>
                   {fabric.href ? (
@@ -114,16 +114,16 @@ export function FabricTabsSection() {
                       aria-label={`Shop ${fabric.name}`}
                       className={`transition-all duration-300 hover:text-primary ${activeFabric.id === fabric.id ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`}
                     >
-                      <ArrowRight className="w-6 h-6" />
+                      <ArrowRight className="w-8 h-8 sm:w-10 sm:h-10" />
                     </Link>
                   ) : (
-                    <ArrowRight className={`w-6 h-6 transition-all duration-300 ${activeFabric.id === fabric.id ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`} />
+                    <ArrowRight className={`w-8 h-8 sm:w-10 sm:h-10 transition-all duration-300 ${activeFabric.id === fabric.id ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`} />
                   )}
                 </div>
-                <div className={`overflow-hidden transition-all duration-500 ${activeFabric.id === fabric.id ? "max-h-64 opacity-100" : "max-h-0 opacity-0"}`}>
+                <div className={`overflow-hidden transition-all duration-500 ${activeFabric.id === fabric.id ? "max-h-72 opacity-100" : "max-h-0 opacity-0"}`}>
                   <div className="pt-2">
-                    <h4 className="text-sm tracking-[0.15em] uppercase text-mono mb-3 opacity-90">{fabric.title}</h4>
-                    <p className="text-base opacity-70 text-mono leading-relaxed max-w-lg">{fabric.desc}</p>
+                    <h4 className="text-base sm:text-lg font-bold tracking-[0.18em] uppercase text-mono mb-3 opacity-95">{fabric.title}</h4>
+                    <p className="text-base sm:text-lg opacity-75 text-mono leading-relaxed max-w-xl">{fabric.desc}</p>
                   </div>
                 </div>
               </div>

@@ -337,20 +337,29 @@ export function InfluencerPicksGrid() {
 
   return (
     <section className="py-14 sm:py-20 overflow-hidden border-t border-border bg-[#E2E2E4]">
-      <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-10 flex items-end justify-between">
+      <div className="px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 flex items-end justify-between flex-wrap gap-6">
         <div className="flex flex-col">
           {heading.eyebrow && (
-            <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{heading.eyebrow}</span>
+            <span className="text-mono text-primary mb-2 text-xs tracking-[0.35em]">◢ {heading.eyebrow}</span>
           )}
           <EditorialHeading
-            className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display"
+            className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display"
             style={heading.color ? { color: heading.color } : undefined}
           >
             {heading.text}
           </EditorialHeading>
+          {heading.subtitle && (
+            <p className="mt-3 max-w-xl text-sm sm:text-base opacity-80 text-mono font-medium">
+              {heading.subtitle}
+            </p>
+          )}
         </div>
-        <Link to="/shop" className="hidden sm:inline-flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-mono hover:text-primary transition-colors">
-          {cfg.explore_label ?? "EXPLORE OUR COLLECTION"} <ArrowRight className="size-3.5" />
+        <Link
+          to="/shop"
+          className="group inline-flex items-center gap-2 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase border-b-2 border-foreground pb-1 hover:border-primary hover:text-primary transition-colors"
+        >
+          {cfg.explore_label ?? "EXPLORE COLLECTION"}
+          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
 
