@@ -115,9 +115,25 @@ function CommunityCmsAdmin() {
   return (
     <div>
       <h1 className="text-display text-4xl md:text-5xl mb-2">COMMUNITY.</h1>
-      <p className="text-muted-foreground text-sm mb-8">
+      <p className="text-muted-foreground text-sm mb-4">
         Manage the "Worn By Our Community" bento grid. Admin-curated images only — these tiles are purely visual, no click-through.
       </p>
+
+      <div className="flex flex-wrap gap-2 mb-8">
+        {BENTO_SIZES.map((s) => {
+          const holder = rows.find((r) => r.bento_size === s);
+          return (
+            <div
+              key={s}
+              className={`border px-2.5 py-1.5 text-mono text-[10px] tracking-widest ${
+                holder ? "border-border bg-surface" : "border-dashed border-border/60 text-muted-foreground"
+              }`}
+            >
+              {s.toUpperCase()} — {holder ? (holder.handle ?? "unnamed photo") : "free"}
+            </div>
+          );
+        })}
+      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
         {rows.map((photo, idx) => (
