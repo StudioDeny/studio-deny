@@ -328,6 +328,30 @@ export interface Database {
         Update: Partial<Omit<PreloaderSettings, "id" | "created_at" | "updated_at">>;
         Relationships: [];
       };
+      brands: {
+        Row: BrandRow;
+        Insert: Omit<BrandRow, "id" | "created_at" | "is_active"> & Partial<Pick<BrandRow, "id" | "created_at" | "is_active">>;
+        Update: Partial<Omit<BrandRow, "id" | "created_at">>;
+        Relationships: [];
+      };
+      invoice_settings: {
+        Row: InvoiceSettingsRow;
+        Insert: Omit<InvoiceSettingsRow, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<InvoiceSettingsRow, "id" | "created_at" | "updated_at">>;
+        Relationships: [];
+      };
+      loyalty_settings: {
+        Row: LoyaltySettingsRow;
+        Insert: Omit<LoyaltySettingsRow, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<LoyaltySettingsRow, "id" | "created_at" | "updated_at">>;
+        Relationships: [];
+      };
+      stock_notify_requests: {
+        Row: StockNotifyRequest;
+        Insert: Omit<StockNotifyRequest, "id" | "created_at"> & Partial<Pick<StockNotifyRequest, "id" | "created_at">>;
+        Update: Partial<Omit<StockNotifyRequest, "id" | "created_at">>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -474,6 +498,7 @@ export type NotificationTemplate = {
   body_text: string;
   variables: string[];
   is_active: boolean;
+  meta_status: string | null;
   created_at: string;
 };
 
@@ -595,6 +620,24 @@ export type DBOrder = {
   refund_amount: number | null;
   refunded_at: string | null;
   cancelled_at: string | null;
+  shiprocket_order_id: string | null;
+  shiprocket_shipment_id: string | null;
+  awb_number: string | null;
+  courier_name: string | null;
+  tracking_url: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
+  rto_initiated_at: string | null;
+  return_status: "REQUESTED" | "PICKUP_SCHEDULED" | "PICKUP_FAILED" | "RECEIVED" | "REPLACED" | null;
+  return_reason: string | null;
+  return_requested_at: string | null;
+  shiprocket_return_order_id: string | null;
+  shiprocket_return_shipment_id: string | null;
+  return_awb_number: string | null;
+  return_courier_name: string | null;
+  return_tracking_url: string | null;
+  replacement_order_id: string | null;
+  return_received_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -697,9 +740,10 @@ export type InfluencerPick = {
 
 export type PreloaderSettings = {
   id: string;
-  bg_type: "image" | "video";
+  bg_type: "image" | "video" | "color";
   bg_image_url: string | null;
   bg_video_url: string | null;
+  bg_color: string;
   content_type: "image" | "text";
   content_image_url: string;
   content_text: string;
@@ -764,5 +808,49 @@ export type AdminNotification = {
   body: string | null;
   is_read: boolean;
   ref_id: string | null;
+  created_at: string;
+};
+
+export type BrandRow = {
+  id: string;
+  name: string;
+  slug: string;
+  is_active: boolean;
+  created_at: string;
+};
+
+export type InvoiceSettingsRow = {
+  id: string;
+  brand_name: string;
+  tagline: string;
+  gstin: string;
+  email: string;
+  phone: string;
+  address: string;
+  accent: string;
+  terms: string;
+  footer: string;
+  signatory: string;
+  tax_label: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LoyaltySettingsRow = {
+  id: string;
+  discount: { ROOKIE: number; RUNNER: number; RIOT: number; LEGEND: number };
+  entry_threshold: number;
+  rupees_per_earned_point: number;
+  rupees_per_point: number;
+  free_shipping: number;
+  filter_colors: { name: string; hex: string }[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type StockNotifyRequest = {
+  id: string;
+  user_id: string;
+  product_slug: string;
   created_at: string;
 };

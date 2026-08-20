@@ -189,3 +189,27 @@ export async function listAllAdminProducts(): Promise<Product[]> {
   }
   return (data as DBProduct[]).map(fromDB);
 }
+
+// The storefront (PDP, cart) always prefers per-variant stock over the flat
+// products.stock column once a product has any variants — nothing keeps
+// that flat column in sync, so any admin UI that shows/sorts by "stock"
+// needs this same effective value or it silently drifts from reality for
+// every variant-tracked product. Returns product_slug -> summed variant
+// stock; a product with no entry here has no variants, so callers should
+// fall back to product.stock.
+export async function getVariantStockTotals(): Promise<Record<string, number>> {
+  const { data, error } = await supabase.from("product_variants").select("product_id, stock");
+  if (error) {
+    console.error("getVariantStockTotals:", error.message);
+    return {};
+  }
+  const totals: Record<string, number> = {};
+  for (const row of (data as { product_id: string; stock: number }[]) ?? []) {
+    totals[row.product_id] = (totals[row.product_id] ?? 0) + row.stock;
+  }
+  return totals;
+}
+
+export function effectiveStock(product: Product, variantTotals: Record<string, number>): number {
+  return variantTotals[product.slug] ?? product.stock;
+}

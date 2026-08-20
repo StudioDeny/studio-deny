@@ -35,6 +35,24 @@ export type Order = {
   refundAmount?: number;
   refundedAt?: number;
   cancelledAt?: number;
+  shiprocketOrderId?: string;
+  shiprocketShipmentId?: string;
+  awbNumber?: string;
+  courierName?: string;
+  trackingUrl?: string;
+  shippedAt?: number;
+  deliveredAt?: number;
+  rtoInitiatedAt?: number;
+  returnStatus?: "REQUESTED" | "PICKUP_SCHEDULED" | "PICKUP_FAILED" | "RECEIVED" | "REPLACED";
+  returnReason?: string;
+  returnRequestedAt?: number;
+  shiprocketReturnOrderId?: string;
+  shiprocketReturnShipmentId?: string;
+  returnAwbNumber?: string;
+  returnCourierName?: string;
+  returnTrackingUrl?: string;
+  returnReceivedAt?: number;
+  replacementOrderId?: string;
   createdAt: number;
 };
 
@@ -62,6 +80,24 @@ function mapRow(row: DBOrder): Order {
     refundAmount: row.refund_amount != null ? Number(row.refund_amount) : undefined,
     refundedAt: row.refunded_at ? new Date(row.refunded_at).getTime() : undefined,
     cancelledAt: row.cancelled_at ? new Date(row.cancelled_at).getTime() : undefined,
+    shiprocketOrderId: row.shiprocket_order_id ?? undefined,
+    shiprocketShipmentId: row.shiprocket_shipment_id ?? undefined,
+    awbNumber: row.awb_number ?? undefined,
+    courierName: row.courier_name ?? undefined,
+    trackingUrl: row.tracking_url ?? undefined,
+    shippedAt: row.shipped_at ? new Date(row.shipped_at).getTime() : undefined,
+    deliveredAt: row.delivered_at ? new Date(row.delivered_at).getTime() : undefined,
+    rtoInitiatedAt: row.rto_initiated_at ? new Date(row.rto_initiated_at).getTime() : undefined,
+    returnStatus: row.return_status ?? undefined,
+    returnReason: row.return_reason ?? undefined,
+    returnRequestedAt: row.return_requested_at ? new Date(row.return_requested_at).getTime() : undefined,
+    shiprocketReturnOrderId: row.shiprocket_return_order_id ?? undefined,
+    shiprocketReturnShipmentId: row.shiprocket_return_shipment_id ?? undefined,
+    returnAwbNumber: row.return_awb_number ?? undefined,
+    returnCourierName: row.return_courier_name ?? undefined,
+    returnTrackingUrl: row.return_tracking_url ?? undefined,
+    returnReceivedAt: row.return_received_at ? new Date(row.return_received_at).getTime() : undefined,
+    replacementOrderId: row.replacement_order_id ?? undefined,
     createdAt: new Date(row.created_at).getTime(),
   };
 }
@@ -182,12 +218,24 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
   if (error) throw new Error(error.message);
 }
 
-export async function cancelOrder(id: string): Promise<void> {
-  const { error } = await supabase
-    .from("orders")
-    .update({ status: "CANCELLED", cancelled_at: new Date().toISOString() } as any)
-    .eq("id", id);
-  if (error) throw new Error(error.message);
+/** Cancels the order and, if a Shiprocket shipment already exists for it,
+ * cancels that too — server-side, so no manual cleanup in Shiprocket's
+ * dashboard is ever needed. */
+export async function cancelOrder(id: string): Promise<{ shiprocketCancelled: boolean; rtoInitiated: boolean }> {
+  const { data, error } = await supabase.functions.invoke("shiprocket-cancel", { body: { order_id: id } });
+  if (error) {
+    let message = error.message;
+    try {
+      const context = (error as unknown as { context?: Response }).context;
+      const body = await context?.clone().json();
+      if (body?.error) message = body.error;
+    } catch {
+      // fall back to the generic message
+    }
+    throw new Error(message);
+  }
+  if (!data?.ok) throw new Error(data?.error ?? "Could not cancel order");
+  return { shiprocketCancelled: !!data.shiprocket_cancelled, rtoInitiated: !!data.rto_initiated };
 }
 
 export async function refundOrder(id: string, amount?: number): Promise<void> {
@@ -206,4 +254,114 @@ export async function refundOrder(id: string, amount?: number): Promise<void> {
 export async function updateInvoice(id: string, patch: Partial<Order>): Promise<void> {
   const { error } = await supabase.from("orders").update(patchToRow(patch) as any).eq("id", id);
   if (error) throw new Error(error.message);
+}
+
+/** Creates the shipment on Shiprocket, assigns an AWB, asks the courier to
+ * pick it up, and marks the order SHIPPED — all server-side (the edge
+ * function holds the Shiprocket credentials, never the browser). */
+export async function createShipment(id: string): Promise<{ order: Order; pickupScheduled: boolean; pickupError?: string }> {
+  const { data, error } = await supabase.functions.invoke("shiprocket-sync", { body: { order_id: id } });
+  if (error) {
+    // On a non-2xx response, supabase-js hands back a generic
+    // "Edge Function returned a non-2xx status code" and leaves the actual
+    // JSON body (where our real error message lives) sitting unparsed on
+    // error.context — dig it out so the toast shows something useful.
+    let message = error.message;
+    try {
+      const context = (error as unknown as { context?: Response }).context;
+      const body = await context?.clone().json();
+      if (body?.error) message = body.error;
+    } catch {
+      // fall back to the generic message
+    }
+    throw new Error(message);
+  }
+  if (!data?.ok) {
+    throw new Error(data?.error ?? "Could not create shipment");
+  }
+  const order = await getOrder(id);
+  if (!order) throw new Error("Shipment created, but the order couldn't be reloaded");
+  return { order, pickupScheduled: !!data.pickup_scheduled, pickupError: data.pickup_error ?? undefined };
+}
+
+/** Requests a return on a DELIVERED order — creates a reverse shipment on
+ * Shiprocket and schedules a pickup from the customer's address, same
+ * "no manual admin work" shape as createShipment/cancelOrder above. */
+export async function requestReturn(id: string, reason?: string): Promise<{ order: Order; pickupScheduled: boolean; pickupError?: string }> {
+  const { data, error } = await supabase.functions.invoke("shiprocket-return", { body: { order_id: id, reason } });
+  if (error) {
+    let message = error.message;
+    try {
+      const context = (error as unknown as { context?: Response }).context;
+      const body = await context?.clone().json();
+      if (body?.error) message = body.error;
+    } catch {
+      // fall back to the generic message
+    }
+    throw new Error(message);
+  }
+  if (!data?.ok) throw new Error(data?.error ?? "Could not request a return");
+  const order = await getOrder(id);
+  if (!order) throw new Error("Return requested, but the order couldn't be reloaded");
+  return { order, pickupScheduled: !!data.pickup_scheduled, pickupError: data.pickup_error ?? undefined };
+}
+
+/** After inspecting a returned item, admin can send a like-for-like
+ * replacement instead of refunding — same items, same address, ₹0 net
+ * total (recorded as a full discount so the invoice shows it was free).
+ * Marks the original order's return as REPLACED and links to the new one.
+ * Does not create the shipment itself — call createShipment() on the
+ * returned order right after, same as any other PACKED order. */
+export async function createReplacementOrder(originalOrderId: string): Promise<Order> {
+  const { data: origRow, error: origErr } = await supabase.from("orders").select("*").eq("id", originalOrderId).single();
+  if (origErr || !origRow) throw new Error(origErr?.message ?? "Original order not found");
+  const original = mapRow(origRow);
+
+  const id = "SD" + Date.now().toString(36).toUpperCase();
+  const { data, error } = await supabase
+    .from("orders")
+    .insert({
+      id,
+      user_id: origRow.user_id,
+      user_email: original.userEmail,
+      items: original.items as unknown as DBOrder["items"],
+      subtotal: original.subtotal,
+      shipping: 0,
+      tax_rate: 0,
+      tax: 0,
+      discount: original.subtotal,
+      extra_lines: [],
+      total: 0,
+      status: "PACKED",
+      address: original.address,
+      payment_id: original.paymentId,
+      payment_method: original.payment_method ?? "razorpay",
+      notes: `Replacement for order ${original.order_number} (return)`,
+    } as any)
+    .select()
+    .single();
+  if (error || !data) throw new Error(error?.message ?? "Could not create replacement order");
+  const replacement = mapRow(data);
+
+  const { error: itemsError } = await supabase.from("order_items").insert(
+    original.items.map((i) => ({
+      order_id: replacement.id,
+      product_slug: i.slug,
+      product_name: i.name,
+      variant_id: i.variantId ?? null,
+      size: i.size,
+      color: null,
+      qty: i.qty,
+      unit_price: i.price,
+    }))
+  );
+  if (itemsError) console.warn("order_items sync:", itemsError.message);
+
+  const { error: linkErr } = await supabase
+    .from("orders")
+    .update({ return_status: "REPLACED", replacement_order_id: replacement.id } as any)
+    .eq("id", originalOrderId);
+  if (linkErr) console.warn("linking replacement to original order:", linkErr.message);
+
+  return replacement;
 }

@@ -21,6 +21,8 @@ function AdminMedia() {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [uploadCount, setUploadCount] = useState<{ i: number; total: number } | null>(null);
   const [q, setQ] = useState("");
   const [folderFilter, setFolderFilter] = useState("");
   const [selected, setSelected] = useState<MediaAsset | null>(null);
@@ -52,9 +54,14 @@ function AdminMedia() {
     if (!files.length) return;
     setUploading(true);
     try {
-      for (const file of files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setUploadCount({ i: i + 1, total: files.length });
+        setProgress(0);
         const isVideo = file.type.startsWith("video/");
-        const result = isVideo ? await uploadVideoToCloudinary(file) : await uploadToCloudinary(file);
+        const result = isVideo
+          ? await uploadVideoToCloudinary(file, setProgress)
+          : await uploadToCloudinary(file, setProgress);
         await supabase.from("media_assets").insert({
           public_id: result.public_id,
           secure_url: result.secure_url,
@@ -73,6 +80,8 @@ function AdminMedia() {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
+      setProgress(0);
+      setUploadCount(null);
       if (fileRef.current) fileRef.current.value = "";
     }
   };
@@ -112,7 +121,12 @@ function AdminMedia() {
             disabled={uploading}
             className="bg-primary text-primary-foreground px-4 h-10 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50"
           >
-            <Upload className="size-4" /> {uploading ? "UPLOADING…" : "UPLOAD"}
+            <Upload className="size-4" />
+            {uploading
+              ? uploadCount && uploadCount.total > 1
+                ? `UPLOADING ${uploadCount.i}/${uploadCount.total}… ${progress}%`
+                : `UPLOADING… ${progress}%`
+              : "UPLOAD"}
           </button>
         </div>
       </div>

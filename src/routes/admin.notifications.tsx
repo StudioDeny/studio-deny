@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type {
   NotificationTemplate,
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/admin/notifications")({
   component: AdminNotifications,
 });
 
-type Tab = "templates" | "queue" | "logs" | "campaigns";
+type Tab = "templates" | "queue" | "logs" | "campaigns" | "usage";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -41,7 +41,7 @@ function AdminNotifications() {
       </div>
 
       <div className="flex gap-1 mb-6">
-        {(["templates", "queue", "logs", "campaigns"] as Tab[]).map((t) => (
+        {(["templates", "queue", "logs", "campaigns", "usage"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -56,15 +56,26 @@ function AdminNotifications() {
       {tab === "queue" && <QueueTab />}
       {tab === "logs" && <LogsTab />}
       {tab === "campaigns" && <CampaignsTab />}
+      {tab === "usage" && <UsageTab />}
     </div>
   );
 }
 
+const META_STATUS_COLORS: Record<string, string> = {
+  APPROVED: "bg-emerald-100 text-emerald-800",
+  PENDING: "bg-yellow-100 text-yellow-800",
+  IN_APPEAL: "bg-yellow-100 text-yellow-800",
+  REJECTED: "bg-red-100 text-red-800",
+  PAUSED: "bg-red-100 text-red-800",
+  DISABLED: "bg-red-100 text-red-800",
+  MISSING: "bg-red-100 text-red-800",
+};
+
 function TemplatesTab() {
   const [rows, setRows] = useState<NotificationTemplate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<NotificationTemplate | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   const load = async () => {
     const { data, error } = await supabase.from("notification_templates").select("*").order("name");
@@ -81,17 +92,25 @@ function TemplatesTab() {
     setRows((r) => r.map((x) => (x.id === id ? { ...x, is_active: val } : x)));
   };
 
-  const save = async () => {
-    if (!editing) return;
-    setSaving(true);
-    const { error } = await supabase
-      .from("notification_templates")
-      .update({ body_text: editing.body_text, variables: editing.variables, is_active: editing.is_active })
-      .eq("id", editing.id);
-    if (error) { toast.error(error.message); setSaving(false); return; }
-    toast.success("Template saved");
-    setSaving(false);
-    setEditing(null);
+  const sync = async () => {
+    setSyncing(true);
+    const { data, error } = await supabase.functions.invoke("sync-whatsapp-templates");
+    setSyncing(false);
+    if (error) {
+      // supabase-js hides the real error body behind a generic "non-2xx"
+      // message on non-2xx responses — dig the actual message out.
+      let message = error.message;
+      try {
+        const context = (error as unknown as { context?: Response }).context;
+        const body = await context?.clone().json();
+        if (body?.error) message = body.error;
+      } catch {
+        // fall back to the generic message
+      }
+      return toast.error(message);
+    }
+    if (!data?.ok) return toast.error(data?.error ?? "Sync failed");
+    toast.success(`Synced ${data.synced} template(s) from Meta`);
     load();
   };
 
@@ -99,74 +118,68 @@ function TemplatesTab() {
 
   return (
     <div>
+      <div className="flex justify-between items-center mb-3">
+        <p className="text-xs text-muted-foreground max-w-md">
+          Body text and status are pulled directly from Meta — editing them here never affected what actually gets
+          sent, since Meta always uses its own approved copy. ACTIVE just controls whether we queue this template at all.
+        </p>
+        <button onClick={sync} disabled={syncing} className="shrink-0 ml-4 border border-primary text-primary h-9 px-4 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground disabled:opacity-50 inline-flex items-center gap-2">
+          <RefreshCw className={`size-3.5 ${syncing ? "animate-spin" : ""}`} /> {syncing ? "SYNCING…" : "SYNC FROM META"}
+        </button>
+      </div>
+
       <div className="border border-border bg-surface overflow-x-auto">
-        <table className="w-full text-sm min-w-[500px]">
+        <table className="w-full text-sm min-w-[600px]">
           <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">NAME</th>
               <th className="text-left p-3 hidden md:table-cell">TEMPLATE ID</th>
-              <th className="text-left p-3">STATUS</th>
+              <th className="text-left p-3">META STATUS</th>
+              <th className="text-left p-3">ACTIVE</th>
               <th className="text-right p-3">ACTIONS</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {rows.map((r) => (
-              <tr key={r.id} className="hover:bg-muted/40">
-                <td className="p-3 font-semibold">{r.name}</td>
-                <td className="p-3 text-mono text-[11px] text-muted-foreground hidden md:table-cell">{r.template_name}</td>
-                <td className="p-3">
-                  <button
-                    onClick={() => toggle(r.id, !r.is_active)}
-                    className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
-                  >
-                    {r.is_active ? "ACTIVE" : "INACTIVE"}
-                  </button>
-                </td>
-                <td className="p-3 text-right">
-                  <button onClick={() => setEditing(r)} className="border border-border h-8 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary">EDIT</button>
-                </td>
-              </tr>
+              <Fragment key={r.id}>
+                <tr className="hover:bg-muted/40">
+                  <td className="p-3 font-semibold">{r.name}</td>
+                  <td className="p-3 text-mono text-[11px] text-muted-foreground hidden md:table-cell">{r.template_name}</td>
+                  <td className="p-3">
+                    <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${META_STATUS_COLORS[r.meta_status ?? ""] ?? "bg-muted text-muted-foreground"}`}>
+                      {r.meta_status ?? "NOT SYNCED"}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <button
+                      onClick={() => toggle(r.id, !r.is_active)}
+                      className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
+                    >
+                      {r.is_active ? "ACTIVE" : "INACTIVE"}
+                    </button>
+                  </td>
+                  <td className="p-3 text-right">
+                    <button onClick={() => setExpanded(expanded === r.id ? null : r.id)} className="border border-border h-8 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary">
+                      {expanded === r.id ? "HIDE" : "VIEW BODY"}
+                    </button>
+                  </td>
+                </tr>
+                {expanded === r.id && (
+                  <tr>
+                    <td colSpan={5} className="p-4 bg-muted/30 text-sm">
+                      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">BODY TEXT (from Meta)</div>
+                      <p className="font-mono whitespace-pre-wrap">{r.body_text || "—"}</p>
+                      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mt-3 mb-1">VARIABLES (in order)</div>
+                      <p className="font-mono text-xs">{r.variables.join(", ") || "—"}</p>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
-            {rows.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-muted-foreground text-sm">No templates configured.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground text-sm">No templates configured.</td></tr>}
           </tbody>
         </table>
       </div>
-
-      {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-background border border-border w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-5 border-b border-border">
-              <div className="text-mono text-[11px] tracking-[0.25em] text-primary">EDIT TEMPLATE</div>
-              <button onClick={() => setEditing(null)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
-            </div>
-            <div className="p-5 space-y-4">
-              <div>
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">BODY TEXT</div>
-                <textarea rows={6} value={editing.body_text} onChange={(e) => setEditing({ ...editing, body_text: e.target.value })}
-                  className="w-full bg-background border border-border p-3 font-mono text-sm" />
-              </div>
-              <div>
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">VARIABLES (comma-separated)</div>
-                <input
-                  value={editing.variables.join(", ")}
-                  onChange={(e) => setEditing({ ...editing, variables: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
-                  className="w-full bg-background border border-border h-10 px-3 font-mono text-sm"
-                />
-              </div>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={editing.is_active} onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} className="w-4 h-4" />
-                <span className="text-mono text-[11px] tracking-widest">ACTIVE</span>
-              </label>
-            </div>
-            <div className="flex gap-3 p-5 border-t border-border">
-              <button onClick={save} disabled={saving} className="bg-primary text-primary-foreground h-10 px-6 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50">
-                {saving ? "SAVING…" : "SAVE"}
-              </button>
-              <button onClick={() => setEditing(null)} className="border border-border h-10 px-4 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">CANCEL</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -312,7 +325,7 @@ function CampaignsTab() {
   const load = async () => {
     const [camps, tmpls] = await Promise.all([
       supabase.from("marketing_campaigns").select("*").order("created_at", { ascending: false }),
-      supabase.from("notification_templates").select("id,name,template_name,body_text,variables,is_active,created_at").eq("is_active", true),
+      supabase.from("notification_templates").select("id,name,template_name,body_text,variables,is_active,meta_status,created_at").eq("is_active", true),
     ]);
     if (camps.error) toast.error(camps.error.message);
     else setRows(camps.data ?? []);
@@ -434,6 +447,105 @@ function CampaignsTab() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+const RATE_KEY = "sd_wa_rate_per_message";
+
+function UsageTab() {
+  const [logs, setLogs] = useState<{ created_at: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [rate, setRate] = useState<string>(() => (typeof window !== "undefined" ? localStorage.getItem(RATE_KEY) ?? "" : ""));
+
+  useEffect(() => {
+    supabase.from("whatsapp_logs").select("created_at").eq("status", "sent").then(({ data, error }) => {
+      if (error) toast.error(error.message);
+      else setLogs(data ?? []);
+      setLoading(false);
+    });
+  }, []);
+
+  const setAndSaveRate = (v: string) => {
+    setRate(v);
+    if (typeof window !== "undefined") localStorage.setItem(RATE_KEY, v);
+  };
+
+  if (loading) return <div className="text-mono text-xs">LOADING…</div>;
+
+  const byMonth = new Map<string, number>();
+  for (const l of logs) {
+    const d = new Date(l.created_at);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    byMonth.set(key, (byMonth.get(key) ?? 0) + 1);
+  }
+  const months = Array.from(byMonth.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+  const now = new Date();
+  const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const thisMonthCount = byMonth.get(thisMonthKey) ?? 0;
+  const rateNum = parseFloat(rate);
+  const hasRate = !isNaN(rateNum) && rateNum > 0;
+
+  const monthLabel = (key: string) => {
+    const [y, m] = key.split("-").map(Number);
+    return new Date(y, m - 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  };
+
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground mb-4 max-w-lg">
+        Counts of actually-sent messages (confirmed via whatsapp_logs), not what Meta bills you — their real per-message
+        rate depends on your country and message category and changes over time, so it's not something to guess here.
+        Enter your own known rate below (from Meta's WhatsApp Manager → Analytics) to see an estimate.
+      </p>
+
+      <div className="grid sm:grid-cols-3 gap-4 mb-6">
+        <Card label="TOTAL SENT (ALL TIME)" v={logs.length} />
+        <Card label={`SENT — ${monthLabel(thisMonthKey)}`} v={thisMonthCount} />
+        <div className="border border-border bg-surface p-5">
+          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">YOUR RATE (₹ / MESSAGE)</div>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={rate}
+            onChange={(e) => setAndSaveRate(e.target.value)}
+            placeholder="e.g. 0.80"
+            className="w-full bg-background border border-border h-9 px-2 text-mono text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="border border-border bg-surface overflow-x-auto">
+        <table className="w-full text-sm min-w-[400px]">
+          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+            <tr>
+              <th className="text-left p-3">MONTH</th>
+              <th className="text-left p-3">MESSAGES SENT</th>
+              <th className="text-left p-3">{hasRate ? "ESTIMATED COST" : "ESTIMATED COST (enter a rate above)"}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {months.map(([key, count]) => (
+              <tr key={key} className="hover:bg-muted/40">
+                <td className="p-3 font-semibold">{monthLabel(key)}</td>
+                <td className="p-3 text-mono">{count}</td>
+                <td className="p-3 text-mono">{hasRate ? `₹${(count * rateNum).toFixed(2)}` : "—"}</td>
+              </tr>
+            ))}
+            {months.length === 0 && <tr><td colSpan={3} className="p-6 text-center text-muted-foreground text-sm">No messages sent yet.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function Card({ label, v }: { label: string; v: React.ReactNode }) {
+  return (
+    <div className="border border-border bg-surface p-5">
+      <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{label}</div>
+      <div className="text-display text-3xl mt-2">{v}</div>
     </div>
   );
 }

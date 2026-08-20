@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { upsertProduct, type Product, type GalleryItem } from "@/lib/productsStore";
-import { listCategories, listBrands, type Category } from "@/lib/catalog";
+import { listCategories, listBrands, type Category, type Brand } from "@/lib/catalog";
 import { listSizesForCategory, type Size } from "@/lib/sizes";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -46,15 +46,15 @@ export function ProductForm({
   onSave: (p: Product) => Promise<void>;
 }) {
   const [cats, setCats] = useState<Category[]>([]);
-  const [brands, setBrands] = useState(() => listBrands());
+  const [brands, setBrands] = useState<Brand[]>([]);
 
   useEffect(() => {
     const refresh = () => {
       listCategories().then(setCats);
-      setBrands(listBrands());
+      listBrands().then(setBrands);
     };
     refresh();
-    // Re-read on window focus so categories added in Catalog tab appear immediately
+    // Re-read on window focus so categories/brands added in Catalog tab appear immediately
     window.addEventListener("focus", refresh);
     return () => window.removeEventListener("focus", refresh);
   }, []);
@@ -64,7 +64,7 @@ export function ProductForm({
       slug: "",
       name: "",
       category: "",
-      brand: listBrands()[0]?.name,
+      brand: undefined,
       price: 0,
       image: "",
       hoverImage: "",
@@ -89,6 +89,16 @@ export function ProductForm({
     if (!p.categoryId) { setSizesForCategory([]); return; }
     listSizesForCategory(p.categoryId).then(setSizesForCategory);
   }, [p.categoryId]);
+
+  // Default a brand-new product to the first real brand once brands finish
+  // loading — can't do this synchronously anymore since listBrands() is an
+  // async Supabase call, not a localStorage read.
+  useEffect(() => {
+    if (!initial && !p.brand && brands.length > 0) {
+      setP((prev) => ({ ...prev, brand: brands[0].name }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brands]);
 
   const fetchVariants = async () => {
     if (!initial) return;

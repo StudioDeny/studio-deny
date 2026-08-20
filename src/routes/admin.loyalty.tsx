@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { listOrders, type Order } from "@/lib/orders";
 import { pointsFromOrders, isLoyaltyMember, tierFor, TIERS } from "@/lib/loyalty";
-import { getSettings } from "@/lib/settings";
+import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { formatINR } from "@/context/CartContext";
 import { supabase } from "@/lib/supabase";
 
@@ -22,6 +22,9 @@ function LoyaltyDash() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [supaMembers, setSupaMembers] = useState<SupaMember[]>([]);
   const [useSupabase, setUseSupabase] = useState(false);
+  const [settings, setSettings] = useState(DEFAULT_LOYALTY_SETTINGS);
+
+  useEffect(() => { getLoyaltySettings().then(setSettings); }, []);
 
   useEffect(() => {
     listOrders().then(setOrders);
@@ -56,7 +59,7 @@ function LoyaltyDash() {
 
   // localStorage-derived data (fallback)
   const localData = useMemo(() => {
-    const { rupeesPerEarnedPoint, entryThreshold } = getSettings();
+    const { rupeesPerEarnedPoint, entryThreshold } = settings;
     const byUser: Record<string, Order[]> = {};
     orders.forEach((o) => { (byUser[o.userEmail] ??= []).push(o); });
     const members = Object.entries(byUser)
@@ -69,7 +72,7 @@ function LoyaltyDash() {
     TIERS.forEach((t) => (dist[t.name] = 0));
     members.forEach((m) => (dist[m.tier]++));
     return { members, dist, totalPoints: members.reduce((s, m) => s + m.points, 0) };
-  }, [orders]);
+  }, [orders, settings]);
 
   // Supabase-derived distribution
   const supaDist = useMemo(() => {
@@ -94,17 +97,12 @@ function LoyaltyDash() {
           <span className="text-mono text-[10px] tracking-widest text-primary border border-primary/30 px-3 py-1">LIVE DATA</span>
         )}
       </div>
-      {(() => {
-        const s = getSettings();
-        return (
-          <p className="text-muted-foreground text-xs text-mono mb-6">
-            Entry: single order ≥ ₹{s.entryThreshold.toLocaleString()} ·
-            Earn: 1 pt / ₹{s.rupeesPerEarnedPoint} ·
-            Redeem: ₹{s.rupeesPerPoint}/pt ·
-            <a href="/admin/settings" className="text-primary hover:underline ml-1">Edit in Settings →</a>
-          </p>
-        );
-      })()}
+      <p className="text-muted-foreground text-xs text-mono mb-6">
+        Entry: single order ≥ ₹{settings.entryThreshold.toLocaleString()} ·
+        Earn: 1 pt / ₹{settings.rupeesPerEarnedPoint} ·
+        Redeem: ₹{settings.rupeesPerPoint}/pt ·
+        <a href="/admin/settings" className="text-primary hover:underline ml-1">Edit in Settings →</a>
+      </p>
 
       <div className="grid sm:grid-cols-3 gap-4 mb-8">
         <Card label="MEMBERS" v={members.length} />

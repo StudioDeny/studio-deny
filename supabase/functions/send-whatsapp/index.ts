@@ -1,18 +1,36 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const WA_TOKEN = Deno.env.get("WHATSAPP_TOKEN")!;
-const WA_PHONE_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")!;
-const WA_API = `https://graph.facebook.com/v19.0/${WA_PHONE_ID}/messages`;
+// Reading secrets and constructing the Supabase client used to happen at
+// module load time — if a secret was missing, this would crash *before*
+// the request handler's try/catch ever ran, which Supabase reports as an
+// opaque EDGE_FUNCTION_ERROR with no useful detail (same failure mode we
+// hit and fixed on the Shiprocket functions). Doing it all inside the
+// handler means every possible failure is one we catch and report clearly.
+function requireEnv(name: string): string {
+  const v = Deno.env.get(name);
+  if (!v) throw new Error(`Missing required secret: ${name}. Add it in Supabase → Edge Functions → Secrets.`);
+  return v;
+}
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+// Cron-only — nothing in the frontend calls this. It has to be reachable
+// without a user JWT (pg_net's http_post carries none), which used to mean
+// anyone on the internet could trigger a 50-message WhatsApp flush at will.
+// pg_cron now sends this shared secret as a header (20260812000007); reject
+// anything that doesn't match.
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
 
 async function sendWhatsApp(
   to: string,
   templateName: string,
-  variables: Record<string, string>
+  variables: Record<string, string>,
+  waToken: string,
+  waApi: string
 ): Promise<{ ok: boolean; message_id?: string; error?: string }> {
   const components =
     Object.keys(variables).length > 0
@@ -38,10 +56,10 @@ async function sendWhatsApp(
     },
   };
 
-  const res = await fetch(WA_API, {
+  const res = await fetch(waApi, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${WA_TOKEN}`,
+      Authorization: `Bearer ${waToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
@@ -54,8 +72,18 @@ async function sendWhatsApp(
   return { ok: true, message_id: json.messages?.[0]?.id };
 }
 
-serve(async (_req) => {
+serve(async (req) => {
   try {
+    const cronSecret = requireEnv("CRON_SECRET");
+    if (!timingSafeEqual(req.headers.get("x-cron-secret") ?? "", cronSecret)) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
+    const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"));
+    const waToken = requireEnv("WHATSAPP_ACCESS_TOKEN");
+    const waPhoneId = requireEnv("WHATSAPP_PHONE_NUMBER_ID");
+    const waApi = `https://graph.facebook.com/v19.0/${waPhoneId}/messages`;
+
     // Pull up to 50 pending messages
     const { data: pending, error: fetchErr } = await supabase
       .from("notification_queue")
@@ -90,7 +118,9 @@ serve(async (_req) => {
       const result = await sendWhatsApp(
         msg.recipient_phone,
         templateName,
-        variables
+        variables,
+        waToken,
+        waApi
       );
 
       if (result.ok) {
@@ -121,7 +151,8 @@ serve(async (_req) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
+    console.error("send-whatsapp error:", err);
+    return new Response(JSON.stringify({ error: "internal_error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

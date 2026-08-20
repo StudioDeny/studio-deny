@@ -1,10 +1,20 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { getOrder, cancelOrder, type Order } from "@/lib/orders";
+import { getOrder, cancelOrder, requestReturn, type Order } from "@/lib/orders";
 import { formatINR } from "@/context/CartContext";
-import { Check, FileText, X } from "lucide-react";
+import { Check, FileText, X, Truck, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Loading } from "@/components/ui/loading";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+
+const RETURN_WINDOW_DAYS = 7;
+const RETURN_STATUS_LABEL: Record<string, string> = {
+  REQUESTED: "Return requested",
+  PICKUP_SCHEDULED: "Pickup scheduled",
+  PICKUP_FAILED: "Pickup pending — contact support",
+  RECEIVED: "Received at warehouse — refund pending",
+  REPLACED: "Replacement sent",
+};
 
 export const Route = createFileRoute("/order/$id")({
   component: OrderPage,
@@ -15,6 +25,9 @@ function OrderPage() {
   const { id } = Route.useParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [confirmReturn, setConfirmReturn] = useState(false);
+  const [returnReason, setReturnReason] = useState("");
 
   useEffect(() => {
     getOrder(id).then((o) => {
@@ -33,12 +46,25 @@ function OrderPage() {
     );
   }
 
-  const canCancel = order.status === "PLACED" || order.status === "PACKED";
+  const canCancel = order.status === "PLACED" || order.status === "PACKED" || order.status === "SHIPPED";
+  const daysSinceDelivery = order.deliveredAt ? (Date.now() - order.deliveredAt) / (1000 * 60 * 60 * 24) : Infinity;
+  const canReturn = order.status === "DELIVERED" && !order.returnStatus && daysSinceDelivery <= RETURN_WINDOW_DAYS;
+
   const onCancel = async () => {
-    if (!confirm("Cancel this order? A refund will be processed.")) return;
-    await cancelOrder(order.id);
+    const { shiprocketCancelled, rtoInitiated } = await cancelOrder(order.id);
     setOrder(await getOrder(id) ?? null);
-    toast.success("Order cancelled");
+    toast.success(
+      rtoInitiated ? "Order cancelled — parcel already picked up, return-to-origin requested"
+        : shiprocketCancelled ? "Order cancelled — shipment cancelled with courier"
+        : "Order cancelled"
+    );
+  };
+
+  const onRequestReturn = async () => {
+    const { pickupScheduled, pickupError } = await requestReturn(order.id, returnReason.trim() || undefined);
+    setReturnReason("");
+    setOrder(await getOrder(id) ?? null);
+    toast.success(pickupScheduled ? "Return requested — pickup scheduled" : `Return requested — pickup not scheduled (${pickupError ?? "unknown reason"}), we'll follow up`);
   };
 
   return (
@@ -67,6 +93,54 @@ function OrderPage() {
         </div>
       </div>
 
+      {order.awbNumber && (
+        <div className="mt-6 border border-border p-5 bg-surface flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><Truck className="size-3.5" /> SHIPPING</div>
+            <div className="font-semibold">{order.courierName ?? "Courier assigned"}</div>
+            <div className="text-sm text-muted-foreground text-mono">AWB {order.awbNumber}</div>
+          </div>
+          {order.trackingUrl && (
+            <a
+              href={order.trackingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border border-border h-11 px-6 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary"
+            >
+              TRACK SHIPMENT
+            </a>
+          )}
+        </div>
+      )}
+
+      {order.returnStatus && (
+        <div className="mt-6 border border-border p-5 bg-surface flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><RotateCcw className="size-3.5" /> RETURN</div>
+            <div className="font-semibold">{RETURN_STATUS_LABEL[order.returnStatus] ?? order.returnStatus}</div>
+            {order.returnAwbNumber && <div className="text-sm text-muted-foreground text-mono">AWB {order.returnAwbNumber}</div>}
+          </div>
+          {order.returnStatus === "REPLACED" && order.replacementOrderId ? (
+            <Link
+              to="/order/$id"
+              params={{ id: order.replacementOrderId }}
+              className="border border-border h-11 px-6 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary"
+            >
+              VIEW REPLACEMENT
+            </Link>
+          ) : order.returnTrackingUrl && (
+            <a
+              href={order.returnTrackingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border border-border h-11 px-6 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary"
+            >
+              TRACK RETURN
+            </a>
+          )}
+        </div>
+      )}
+
       <div className="mt-6 border border-border bg-surface">
         <ul className="divide-y divide-border">
           {order.items.map((it) => (
@@ -94,14 +168,44 @@ function OrderPage() {
           <FileText className="size-4" /> INVOICE
         </Link>
         {canCancel ? (
-          <button onClick={onCancel} className="border border-border h-12 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">
+          <button onClick={() => setConfirmCancel(true)} className="border border-border h-12 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">
             <X className="size-4" /> CANCEL ORDER
+          </button>
+        ) : canReturn ? (
+          <button onClick={() => setConfirmReturn(true)} className="border border-border h-12 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">
+            <RotateCcw className="size-4" /> REQUEST RETURN
           </button>
         ) : (
           <Link to="/account" className="text-center border border-border h-12 inline-flex items-center justify-center text-mono text-xs tracking-widest hover:border-primary hover:text-primary">VIEW ORDERS</Link>
         )}
         <Link to="/shop" className="text-center bg-foreground text-background h-12 inline-flex items-center justify-center text-mono text-xs tracking-widest hover:bg-primary hover:text-primary-foreground">KEEP SHOPPING</Link>
       </div>
+
+      <ConfirmDialog
+        open={confirmCancel}
+        onOpenChange={setConfirmCancel}
+        title="CANCEL THIS ORDER?"
+        description="A refund will be processed."
+        confirmLabel="CANCEL ORDER"
+        destructive
+        onConfirm={onCancel}
+      />
+      <ConfirmDialog
+        open={confirmReturn}
+        onOpenChange={(open) => { setConfirmReturn(open); if (!open) setReturnReason(""); }}
+        title="REQUEST A RETURN?"
+        description="A courier pickup will be scheduled automatically from your address."
+        confirmLabel="REQUEST RETURN"
+        onConfirm={onRequestReturn}
+      >
+        <textarea
+          value={returnReason}
+          onChange={(e) => setReturnReason(e.target.value)}
+          placeholder="Reason for return (optional)"
+          rows={3}
+          className="w-full border border-border bg-background p-3 text-sm resize-none focus:outline-none focus:border-primary"
+        />
+      </ConfirmDialog>
     </section>
   );
 }

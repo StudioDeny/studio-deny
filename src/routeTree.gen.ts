@@ -47,6 +47,7 @@ import { Route as AdminTestimonialsRouteImport } from './routes/admin.testimonia
 import { Route as AdminSizesRouteImport } from './routes/admin.sizes'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
+import { Route as AdminReturnsRouteImport } from './routes/admin.returns'
 import { Route as AdminRefundsRouteImport } from './routes/admin.refunds'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminPreloaderRouteImport } from './routes/admin.preloader'
@@ -60,6 +61,7 @@ import { Route as AdminLoyaltyRouteImport } from './routes/admin.loyalty'
 import { Route as AdminLookbookCmsRouteImport } from './routes/admin.lookbook-cms'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
 import { Route as AdminInvoiceTemplateRouteImport } from './routes/admin.invoice-template'
+import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminInfluencerPicksRouteImport } from './routes/admin.influencer-picks'
 import { Route as AdminHeadingsRouteImport } from './routes/admin.headings'
 import { Route as AdminFaqRouteImport } from './routes/admin.faq'
@@ -265,6 +267,11 @@ const AdminSeoRoute = AdminSeoRouteImport.update({
   path: '/seo',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReturnsRoute = AdminReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminRefundsRoute = AdminRefundsRouteImport.update({
   id: '/refunds',
   path: '/refunds',
@@ -328,6 +335,11 @@ const AdminInvoicesRoute = AdminInvoicesRouteImport.update({
 const AdminInvoiceTemplateRoute = AdminInvoiceTemplateRouteImport.update({
   id: '/invoice-template',
   path: '/invoice-template',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInventoryRoute = AdminInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminInfluencerPicksRoute = AdminInfluencerPicksRouteImport.update({
@@ -429,6 +441,7 @@ export interface FileRoutesByFullPath {
   '/admin/faq': typeof AdminFaqRoute
   '/admin/headings': typeof AdminHeadingsRoute
   '/admin/influencer-picks': typeof AdminInfluencerPicksRoute
+  '/admin/inventory': typeof AdminInventoryRoute
   '/admin/invoice-template': typeof AdminInvoiceTemplateRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/lookbook-cms': typeof AdminLookbookCmsRoute
@@ -442,6 +455,7 @@ export interface FileRoutesByFullPath {
   '/admin/preloader': typeof AdminPreloaderRoute
   '/admin/products': typeof AdminProductsRouteWithChildren
   '/admin/refunds': typeof AdminRefundsRoute
+  '/admin/returns': typeof AdminReturnsRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/sizes': typeof AdminSizesRoute
@@ -494,6 +508,7 @@ export interface FileRoutesByTo {
   '/admin/faq': typeof AdminFaqRoute
   '/admin/headings': typeof AdminHeadingsRoute
   '/admin/influencer-picks': typeof AdminInfluencerPicksRoute
+  '/admin/inventory': typeof AdminInventoryRoute
   '/admin/invoice-template': typeof AdminInvoiceTemplateRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/lookbook-cms': typeof AdminLookbookCmsRoute
@@ -506,6 +521,7 @@ export interface FileRoutesByTo {
   '/admin/popup': typeof AdminPopupRoute
   '/admin/preloader': typeof AdminPreloaderRoute
   '/admin/refunds': typeof AdminRefundsRoute
+  '/admin/returns': typeof AdminReturnsRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/sizes': typeof AdminSizesRoute
@@ -560,6 +576,7 @@ export interface FileRoutesById {
   '/admin/faq': typeof AdminFaqRoute
   '/admin/headings': typeof AdminHeadingsRoute
   '/admin/influencer-picks': typeof AdminInfluencerPicksRoute
+  '/admin/inventory': typeof AdminInventoryRoute
   '/admin/invoice-template': typeof AdminInvoiceTemplateRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/lookbook-cms': typeof AdminLookbookCmsRoute
@@ -573,6 +590,7 @@ export interface FileRoutesById {
   '/admin/preloader': typeof AdminPreloaderRoute
   '/admin/products': typeof AdminProductsRouteWithChildren
   '/admin/refunds': typeof AdminRefundsRoute
+  '/admin/returns': typeof AdminReturnsRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/sizes': typeof AdminSizesRoute
@@ -628,6 +646,7 @@ export interface FileRouteTypes {
     | '/admin/faq'
     | '/admin/headings'
     | '/admin/influencer-picks'
+    | '/admin/inventory'
     | '/admin/invoice-template'
     | '/admin/invoices'
     | '/admin/lookbook-cms'
@@ -641,6 +660,7 @@ export interface FileRouteTypes {
     | '/admin/preloader'
     | '/admin/products'
     | '/admin/refunds'
+    | '/admin/returns'
     | '/admin/seo'
     | '/admin/settings'
     | '/admin/sizes'
@@ -693,6 +713,7 @@ export interface FileRouteTypes {
     | '/admin/faq'
     | '/admin/headings'
     | '/admin/influencer-picks'
+    | '/admin/inventory'
     | '/admin/invoice-template'
     | '/admin/invoices'
     | '/admin/lookbook-cms'
@@ -705,6 +726,7 @@ export interface FileRouteTypes {
     | '/admin/popup'
     | '/admin/preloader'
     | '/admin/refunds'
+    | '/admin/returns'
     | '/admin/seo'
     | '/admin/settings'
     | '/admin/sizes'
@@ -758,6 +780,7 @@ export interface FileRouteTypes {
     | '/admin/faq'
     | '/admin/headings'
     | '/admin/influencer-picks'
+    | '/admin/inventory'
     | '/admin/invoice-template'
     | '/admin/invoices'
     | '/admin/lookbook-cms'
@@ -771,6 +794,7 @@ export interface FileRouteTypes {
     | '/admin/preloader'
     | '/admin/products'
     | '/admin/refunds'
+    | '/admin/returns'
     | '/admin/seo'
     | '/admin/settings'
     | '/admin/sizes'
@@ -1090,6 +1114,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSeoRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/returns': {
+      id: '/admin/returns'
+      path: '/returns'
+      fullPath: '/admin/returns'
+      preLoaderRoute: typeof AdminReturnsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/refunds': {
       id: '/admin/refunds'
       path: '/refunds'
@@ -1179,6 +1210,13 @@ declare module '@tanstack/react-router' {
       path: '/invoice-template'
       fullPath: '/admin/invoice-template'
       preLoaderRoute: typeof AdminInvoiceTemplateRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/inventory': {
+      id: '/admin/inventory'
+      path: '/inventory'
+      fullPath: '/admin/inventory'
+      preLoaderRoute: typeof AdminInventoryRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/influencer-picks': {
@@ -1301,6 +1339,7 @@ interface AdminRouteChildren {
   AdminFaqRoute: typeof AdminFaqRoute
   AdminHeadingsRoute: typeof AdminHeadingsRoute
   AdminInfluencerPicksRoute: typeof AdminInfluencerPicksRoute
+  AdminInventoryRoute: typeof AdminInventoryRoute
   AdminInvoiceTemplateRoute: typeof AdminInvoiceTemplateRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
   AdminLookbookCmsRoute: typeof AdminLookbookCmsRoute
@@ -1314,6 +1353,7 @@ interface AdminRouteChildren {
   AdminPreloaderRoute: typeof AdminPreloaderRoute
   AdminProductsRoute: typeof AdminProductsRouteWithChildren
   AdminRefundsRoute: typeof AdminRefundsRoute
+  AdminReturnsRoute: typeof AdminReturnsRoute
   AdminSeoRoute: typeof AdminSeoRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSizesRoute: typeof AdminSizesRoute
@@ -1334,6 +1374,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFaqRoute: AdminFaqRoute,
   AdminHeadingsRoute: AdminHeadingsRoute,
   AdminInfluencerPicksRoute: AdminInfluencerPicksRoute,
+  AdminInventoryRoute: AdminInventoryRoute,
   AdminInvoiceTemplateRoute: AdminInvoiceTemplateRoute,
   AdminInvoicesRoute: AdminInvoicesRoute,
   AdminLookbookCmsRoute: AdminLookbookCmsRoute,
@@ -1347,6 +1388,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPreloaderRoute: AdminPreloaderRoute,
   AdminProductsRoute: AdminProductsRouteWithChildren,
   AdminRefundsRoute: AdminRefundsRoute,
+  AdminReturnsRoute: AdminReturnsRoute,
   AdminSeoRoute: AdminSeoRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminSizesRoute: AdminSizesRoute,

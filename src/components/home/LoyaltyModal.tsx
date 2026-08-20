@@ -5,7 +5,7 @@ import {
   X, Trophy, ArrowRight, Lock, Zap, Gift, Truck, RotateCcw, ShieldCheck, Star,
   Sparkles, Heart, Award, Package, Clock, CheckCircle, type LucideIcon,
 } from "lucide-react";
-import { getSettings } from "@/lib/settings";
+import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { supabase } from "@/lib/supabase";
 import type { PopupPromo } from "@/types/database";
 
@@ -52,7 +52,9 @@ export function LoyaltyModal() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [cfg, setCfg] = useState<PopupPromo>(DEFAULTS);
-  const s = getSettings();
+  const [s, setS] = useState(DEFAULT_LOYALTY_SETTINGS);
+
+  useEffect(() => { getLoyaltySettings().then(setS); }, []);
 
   useEffect(() => {
     (async () => {

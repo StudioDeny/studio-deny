@@ -1,13 +1,23 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { ordersFor, cancelOrder, type Order } from "@/lib/orders";
+import { ordersFor, cancelOrder, requestReturn, type Order } from "@/lib/orders";
 import { formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { listProducts, type Product } from "@/lib/productsStore";
-import { LogOut, ShieldCheck, FileText, X, Heart, MapPin, Truck, RefreshCw, Plus, Trash2, Star } from "lucide-react";
+import { LogOut, ShieldCheck, FileText, X, Heart, MapPin, Truck, RefreshCw, Plus, Trash2, Star, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Loading } from "@/components/ui/loading";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+
+const RETURN_WINDOW_DAYS = 7;
+const RETURN_STATUS_LABEL: Record<string, string> = {
+  REQUESTED: "RETURN REQUESTED",
+  PICKUP_SCHEDULED: "RETURN PICKUP SCHEDULED",
+  PICKUP_FAILED: "RETURN PICKUP PENDING",
+  RECEIVED: "RETURN RECEIVED",
+  REPLACED: "REPLACEMENT SENT",
+};
 
 export const Route = createFileRoute("/account")({
   component: Account,
@@ -31,6 +41,9 @@ function Account() {
   const navigate = useNavigate();
   const { slugs, toggle } = useWishlist();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [cancelTarget, setCancelTarget] = useState<string | null>(null);
+  const [returnTarget, setReturnTarget] = useState<string | null>(null);
+  const [returnReason, setReturnReason] = useState("");
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addingAddr, setAddingAddr] = useState(false);
@@ -70,6 +83,25 @@ function Account() {
     const next = addresses.map((a) => ({ ...a, isDefault: a.id === id }));
     setAddresses(next);
     saveAddresses(next);
+  };
+
+  const confirmCancelOrder = async () => {
+    if (!cancelTarget || !user) return;
+    const { shiprocketCancelled, rtoInitiated } = await cancelOrder(cancelTarget);
+    setOrders(await ordersFor(user.email));
+    toast.success(
+      rtoInitiated ? "Order cancelled — parcel already picked up, return-to-origin requested"
+        : shiprocketCancelled ? "Order cancelled — shipment cancelled with courier"
+        : "Order cancelled"
+    );
+  };
+
+  const confirmReturnRequest = async () => {
+    if (!returnTarget || !user) return;
+    const { pickupScheduled, pickupError } = await requestReturn(returnTarget, returnReason.trim() || undefined);
+    setReturnReason("");
+    setOrders(await ordersFor(user.email));
+    toast.success(pickupScheduled ? "Return requested — pickup scheduled" : `Return requested — pickup not scheduled (${pickupError ?? "unknown reason"}), we'll follow up`);
   };
 
   if (loading) return <Loading className="min-h-[60vh]" />;
@@ -142,23 +174,34 @@ function Account() {
                   ))}
                 </div>
                 <div className="text-mono">{formatINR(o.total)}</div>
-                <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${
-                  o.status === "DELIVERED" ? "bg-emerald-100 text-emerald-800"
-                  : o.status === "SHIPPED" ? "bg-amber-100 text-amber-800"
-                  : o.status === "PACKED" ? "bg-yellow-100 text-yellow-800"
-                  : o.status === "PLACED" ? "bg-blue-100 text-blue-800"
-                  : o.status === "REFUNDED" ? "bg-purple-100 text-purple-800"
-                  : "bg-red-100 text-red-800"
-                }`}>{o.status}</span>
+                <div className="flex flex-col items-start gap-1">
+                  <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${
+                    o.status === "DELIVERED" ? "bg-emerald-100 text-emerald-800"
+                    : o.status === "SHIPPED" ? "bg-amber-100 text-amber-800"
+                    : o.status === "PACKED" ? "bg-yellow-100 text-yellow-800"
+                    : o.status === "PLACED" ? "bg-blue-100 text-blue-800"
+                    : o.status === "REFUNDED" ? "bg-purple-100 text-purple-800"
+                    : "bg-red-100 text-red-800"
+                  }`}>{o.status}</span>
+                  {o.returnStatus && (
+                    <span className="text-mono text-[9px] tracking-widest px-2 py-1 rounded font-semibold bg-purple-100 text-purple-800">
+                      {RETURN_STATUS_LABEL[o.returnStatus] ?? o.returnStatus}
+                    </span>
+                  )}
+                </div>
                 <div className="flex gap-3 items-center">
+                  {o.trackingUrl && (
+                    <a href={o.trackingUrl} target="_blank" rel="noopener noreferrer" title="Track shipment" className="text-muted-foreground hover:text-primary"><Truck className="size-4" /></a>
+                  )}
+                  {o.returnTrackingUrl && (
+                    <a href={o.returnTrackingUrl} target="_blank" rel="noopener noreferrer" title="Track return" className="text-muted-foreground hover:text-primary"><RotateCcw className="size-4" /></a>
+                  )}
                   <Link to="/invoice/$id" params={{ id: o.id }} title="Invoice" className="text-muted-foreground hover:text-primary"><FileText className="size-4" /></Link>
-                  {(o.status === "PLACED" || o.status === "PACKED") && (
-                    <button title="Cancel" onClick={async () => {
-                      if (!confirm("Cancel this order?")) return;
-                      await cancelOrder(o.id);
-                      setOrders(await ordersFor(user.email));
-                      toast.success("Order cancelled");
-                    }} className="text-muted-foreground hover:text-primary"><X className="size-4" /></button>
+                  {(o.status === "PLACED" || o.status === "PACKED" || o.status === "SHIPPED") && (
+                    <button title="Cancel" onClick={() => setCancelTarget(o.id)} className="text-muted-foreground hover:text-primary"><X className="size-4" /></button>
+                  )}
+                  {o.status === "DELIVERED" && !o.returnStatus && o.deliveredAt && (Date.now() - o.deliveredAt) / (1000 * 60 * 60 * 24) <= RETURN_WINDOW_DAYS && (
+                    <button title="Request return" onClick={() => setReturnTarget(o.id)} className="text-muted-foreground hover:text-primary"><RotateCcw className="size-4" /></button>
                   )}
                   <Link to="/order/$id" params={{ id: o.id }} className="text-mono text-[11px] tracking-widest text-primary hover:underline">VIEW →</Link>
                 </div>
@@ -287,6 +330,31 @@ function Account() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={cancelTarget !== null}
+        onOpenChange={(open) => !open && setCancelTarget(null)}
+        title="CANCEL THIS ORDER?"
+        confirmLabel="CANCEL ORDER"
+        destructive
+        onConfirm={confirmCancelOrder}
+      />
+      <ConfirmDialog
+        open={returnTarget !== null}
+        onOpenChange={(open) => { if (!open) { setReturnTarget(null); setReturnReason(""); } }}
+        title="REQUEST A RETURN?"
+        description="A courier pickup will be scheduled automatically from your address."
+        confirmLabel="REQUEST RETURN"
+        onConfirm={confirmReturnRequest}
+      >
+        <textarea
+          value={returnReason}
+          onChange={(e) => setReturnReason(e.target.value)}
+          placeholder="Reason for return (optional)"
+          rows={3}
+          className="w-full border border-border bg-background p-3 text-sm resize-none focus:outline-none focus:border-primary"
+        />
+      </ConfirmDialog>
     </section>
   );
 }

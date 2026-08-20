@@ -9,7 +9,7 @@ import { useCart, formatINR } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { createOrder, ordersFor, type Order } from "@/lib/orders";
 import { openRazorpay } from "@/lib/razorpay";
-import { getSettings } from "@/lib/settings";
+import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { pointsFromOrders, tierFor } from "@/lib/loyalty";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -64,11 +64,12 @@ function Checkout() {
   const [payMethod, setPayMethod] = useState<"razorpay" | "cod">("razorpay");
   const [codSettings, setCodSettings] = useState<CodSettings>({ cod_enabled: true, cod_advance_percent: 20, cod_min_order: 0 });
 
-  const settings = getSettings();
+  const [settings, setSettings] = useState(DEFAULT_LOYALTY_SETTINGS);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   useEffect(() => {
     if (user) ordersFor(user.email).then(setUserOrders);
   }, [user]);
+  useEffect(() => { getLoyaltySettings().then(setSettings); }, []);
   const points = pointsFromOrders(userOrders);
   const tier = tierFor(points);
   const discountPct = settings.discount[tier.name as keyof typeof settings.discount] ?? 0;

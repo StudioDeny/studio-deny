@@ -7,73 +7,6 @@ import { useSectionHeading } from "@/lib/sectionHeadings";
 
 type MiniProduct = { slug: string; name: string; price: number };
 
-// Fallback slides in case database has fewer items, ensuring 9 cards can always be displayed
-const FALLBACK_SLIDES: LookbookSlide[] = [
-  {
-    id: "fb-1",
-    image_url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 0,
-    product_slug: "denim-jacket",
-    caption: null,
-    link_href: null,
-    created_at: "",
-  },
-  {
-    id: "fb-2",
-    image_url: "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 1,
-    product_slug: "oversized-hoodie",
-    caption: null,
-    link_href: null,
-    created_at: "",
-  },
-  {
-    id: "fb-3",
-    image_url: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 2,
-    product_slug: "cargo-pants",
-    caption: null,
-    link_href: null,
-    created_at: "",
-  },
-  {
-    id: "fb-4",
-    image_url: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 3,
-    product_slug: "graphic-tee",
-    caption: null,
-    link_href: null,
-    created_at: "",
-  },
-  {
-    id: "fb-5",
-    image_url: "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?q=80&w=1000&auto=format&fit=crop",
-    media_type: "image",
-    is_active: true,
-    position: 4,
-    product_slug: "leather-bomber",
-    caption: null,
-    link_href: null,
-    created_at: "",
-  },
-];
-
-const FALLBACK_PRODUCTS: Record<string, MiniProduct> = {
-  "denim-jacket": { slug: "denim-jacket", name: "RIPPED DENIM JACKET", price: 4999 },
-  "oversized-hoodie": { slug: "oversized-hoodie", name: "OVERSIZED HOODIE", price: 3499 },
-  "cargo-pants": { slug: "cargo-pants", name: "TACTICAL CARGO PANTS", price: 3999 },
-  "graphic-tee": { slug: "graphic-tee", name: "HEAVYWEIGHT GRAPHIC TEE", price: 2199 },
-  "leather-bomber": { slug: "leather-bomber", name: "VINTAGE LEATHER BOMBER", price: 7999 },
-};
-
 export function LookbookCarousel() {
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [products, setProducts] = useState<Record<string, MiniProduct>>({});
@@ -105,18 +38,19 @@ export function LookbookCarousel() {
       .eq("is_active", true)
       .order("position")
       .then(async ({ data }) => {
-        if (!data || data.length === 0) return;
+        if (!data) return;
+        // Only cards with a real product picked are ready to show — never
+        // fall back to placeholder data, that would link to products that
+        // don't exist in the catalog.
         const withProduct = data.filter((s) => s.product_slug);
-        if (withProduct.length > 0) {
-          setSlides(withProduct);
-          const slugs = withProduct.map((s) => s.product_slug).filter((s): s is string => !!s);
-          if (slugs.length > 0) {
-            const { data: prods } = await supabase.from("products").select("slug,name,price").in("slug", slugs);
-            if (prods && prods.length > 0) {
-              const map: Record<string, MiniProduct> = {};
-              (prods as MiniProduct[]).forEach((p) => { map[p.slug] = p; });
-              setProducts(map);
-            }
+        setSlides(withProduct);
+        const slugs = withProduct.map((s) => s.product_slug).filter((s): s is string => !!s);
+        if (slugs.length > 0) {
+          const { data: prods } = await supabase.from("products").select("slug,name,price").in("slug", slugs);
+          if (prods) {
+            const map: Record<string, MiniProduct> = {};
+            (prods as MiniProduct[]).forEach((p) => { map[p.slug] = p; });
+            setProducts(map);
           }
         }
       });
@@ -137,8 +71,8 @@ export function LookbookCarousel() {
   }, []);
 
   // Prepare source slides & ring array
-  const rawSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
-  const mergedProducts = { ...FALLBACK_PRODUCTS, ...products };
+  const rawSlides = slides;
+  const mergedProducts = products;
 
   // Expand slides so ring length is >= 12 for seamless infinite circular cycling
   const ring = (() => {
@@ -425,18 +359,20 @@ export function LookbookCarousel() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                 {/* Bottom Text Overlay — Slides UP from bottom ONLY when mouse hovers onto the card */}
-                <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4 z-10 flex items-center justify-between gap-2 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto">
-                  <span className="font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-white truncate">
-                    {product ? product.name : "STUDIO DENY"}
-                  </span>
-                  <Link
-                    to="/product/$slug"
-                    params={{ slug: product?.slug ?? "denim-jacket" }}
-                    className="shrink-0 font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-white hover:text-primary transition-colors flex items-center gap-1"
-                  >
-                    SHOP THE LOOK <span className="text-primary font-bold">→</span>
-                  </Link>
-                </div>
+                {product && (
+                  <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4 z-10 flex items-center justify-between gap-2 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto">
+                    <span className="font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-white truncate">
+                      {product.name}
+                    </span>
+                    <Link
+                      to="/product/$slug"
+                      params={{ slug: product.slug }}
+                      className="shrink-0 font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-white hover:text-primary transition-colors flex items-center gap-1"
+                    >
+                      SHOP THE LOOK <span className="text-primary font-bold">→</span>
+                    </Link>
+                  </div>
+                )}
               </div>
             </motion.div>
           );

@@ -1,0 +1,276 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SR_BASE = "https://apiv2.shiprocket.in/v1/external";
+
+const ALLOWED_ORIGINS = ["https://studiodeny.com", "https://www.studiodeny.com", "http://localhost:5173"];
+function corsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
+  };
+}
+
+type OrderItemLine = { slug: string; name: string; qty: number; price: number };
+type OrderAddress = { name: string; phone: string; line1: string; city: string; state: string; pincode: string };
+
+// Reading env vars and constructing the Supabase client used to happen at
+// module load time — if any secret was missing, createClient() throws
+// *before* the request handler (and its try/catch) ever runs, which Supabase
+// reports as an opaque EDGE_FUNCTION_ERROR with no useful detail. Doing it
+// all inside the handler means every possible failure is one we catch and
+// report clearly.
+function requireEnv(name: string): string {
+  const v = Deno.env.get(name);
+  if (!v) throw new Error(`Missing required secret: ${name}. Add it in Supabase → Edge Functions → Secrets.`);
+  return v;
+}
+
+async function getShiprocketToken(email: string, password: string): Promise<string> {
+  const res = await fetch(`${SR_BASE}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const json = await res.json();
+  if (!res.ok || !json.token) {
+    console.error("Shiprocket login failed:", res.status, JSON.stringify(json));
+    throw new Error(json.message ?? `Shiprocket login failed (HTTP ${res.status}) — check SHIPROCKET_EMAIL/PASSWORD`);
+  }
+  return json.token as string;
+}
+
+function formatOrderDate(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// The pickup_location string the create-order API expects doesn't always
+// match the nickname shown in the dashboard UI (and can differ per API
+// user's granted access) — when Shiprocket rejects it, ask Shiprocket
+// itself what values it considers valid instead of guessing again.
+async function getPickupLocationNicknames(token: string): Promise<string[]> {
+  try {
+    const res = await fetch(`${SR_BASE}/settings/company/pickup`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const json = await res.json();
+    const list = json.data?.shipping_address ?? [];
+    return list.map((a: { pickup_location?: string }) => a.pickup_location).filter(Boolean);
+  } catch (e) {
+    console.error("Fetching pickup locations failed:", e);
+    return [];
+  }
+}
+
+serve(async (req) => {
+  const cors = corsHeaders(req);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+
+  try {
+    const supabaseUrl = requireEnv("SUPABASE_URL");
+    const supabaseServiceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseAnonKey = requireEnv("SUPABASE_ANON_KEY");
+    const srEmail = requireEnv("SHIPROCKET_EMAIL");
+    const srPassword = requireEnv("SHIPROCKET_PASSWORD");
+    const srPickupLocation = requireEnv("SHIPROCKET_PICKUP_LOCATION");
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { order_id } = await req.json();
+    if (!order_id) {
+      return new Response(JSON.stringify({ ok: false, error: "order_id is required" }), {
+        status: 400,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+
+    // Shipment creation needs the service-role key (Shiprocket credentials +
+    // writing the row regardless of RLS), but that key can't tell us who's
+    // asking — this function used to trust order_id alone, letting anyone
+    // who guessed one force a real shipment on someone else's order. Ask
+    // again as the caller's own JWT: if RLS ("own rows" or "admins all")
+    // wouldn't let them see this order, they can't ship it either.
+    const authedClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
+    });
+    const { data: allowed } = await authedClient.from("orders").select("id").eq("id", order_id).maybeSingle();
+    if (!allowed) {
+      return new Response(JSON.stringify({ ok: false, error: "Not authorized to ship this order" }), {
+        status: 403,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: order, error: orderErr } = await supabase.from("orders").select("*").eq("id", order_id).single();
+    if (orderErr || !order) {
+      return new Response(JSON.stringify({ ok: false, error: "Order not found" }), {
+        status: 404,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+
+    // Idempotent — a shipment already exists for this order, don't create a duplicate.
+    if (order.awb_number) {
+      return new Response(
+        JSON.stringify({ ok: true, awb: order.awb_number, courier_name: order.courier_name, tracking_url: order.tracking_url }),
+        { status: 200, headers: { ...cors, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = await getShiprocketToken(srEmail, srPassword);
+    const address = order.address as OrderAddress;
+    const items = order.items as OrderItemLine[];
+    const totalQty = items.reduce((s, i) => s + i.qty, 0);
+    const phoneDigits = (address.phone ?? "").replace(/[^0-9]/g, "").slice(-10);
+
+    const createRes = await fetch(`${SR_BASE}/orders/create/adhoc`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        order_id: order.order_number,
+        order_date: formatOrderDate(new Date()),
+        pickup_location: srPickupLocation,
+        billing_customer_name: address.name,
+        billing_last_name: "",
+        billing_address: address.line1,
+        billing_city: address.city,
+        billing_pincode: address.pincode,
+        billing_state: address.state,
+        billing_country: "India",
+        billing_email: order.user_email,
+        billing_phone: phoneDigits,
+        shipping_is_billing: true,
+        order_items: items.map((i) => ({
+          name: i.name,
+          sku: i.slug,
+          units: i.qty,
+          selling_price: i.price,
+        })),
+        payment_method: order.payment_method === "cod" ? "COD" : "Prepaid",
+        sub_total: Number(order.subtotal),
+        length: 30,
+        breadth: 25,
+        height: 5,
+        weight: Math.max(0.5, 0.25 * totalQty),
+      }),
+    });
+
+    const createJson = await createRes.json();
+    const shipmentId = createJson.shipment_id ?? createJson.payload?.shipment_id;
+    const shiprocketOrderId = createJson.order_id ?? createJson.payload?.order_id;
+
+    if (!createRes.ok || !shipmentId) {
+      console.error("Shiprocket order creation failed:", createRes.status, JSON.stringify(createJson));
+      let message = createJson.message ?? JSON.stringify(createJson.errors ?? createJson);
+      if (String(message).toLowerCase().includes("pickup location")) {
+        const validLocations = await getPickupLocationNicknames(token);
+        console.error("Pickup locations visible to this API user:", JSON.stringify(validLocations));
+        message += validLocations.length
+          ? ` — this API user can see these pickup_location values: ${JSON.stringify(validLocations)}. Update the SHIPROCKET_PICKUP_LOCATION secret to match one exactly.`
+          : " — this API user has no pickup addresses visible at all. In Shiprocket, edit the API user's permissions and grant it access to the pickup address, or re-check that the address is Verified + Active.";
+      }
+      return new Response(JSON.stringify({ ok: false, error: `Shiprocket order creation failed (HTTP ${createRes.status}): ${message}` }), {
+        status: 502,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+
+    const awbRes = await fetch(`${SR_BASE}/courier/assign/awb`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ shipment_id: shipmentId }),
+    });
+    const awbJson = await awbRes.json();
+    const awbData = awbJson.response?.data ?? awbJson.data ?? {};
+    const awbCode = awbData.awb_code;
+    const courierName = awbData.courier_name;
+
+    if (!awbRes.ok || !awbCode) {
+      console.error("AWB assignment failed:", awbRes.status, JSON.stringify(awbJson));
+      const message = awbJson.message ?? JSON.stringify(awbJson);
+      return new Response(JSON.stringify({ ok: false, error: `AWB assignment failed (HTTP ${awbRes.status}): ${message}` }), {
+        status: 502,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+
+    const trackingUrl = `https://shiprocket.co/tracking/${awbCode}`;
+
+    // Ask the courier to actually come collect the parcel — without this,
+    // the AWB exists but nothing physically happens. Best-effort: a pickup
+    // slot not being available today shouldn't undo the shipment we already
+    // created, so failures here are logged and surfaced but non-fatal.
+    let pickupScheduled = false;
+    let pickupError: string | undefined;
+    try {
+      const pickupRes = await fetch(`${SR_BASE}/courier/generate/pickup`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ shipment_id: [shipmentId] }),
+      });
+      const pickupJson = await pickupRes.json();
+      if (pickupRes.ok && pickupJson.pickup_status !== 0) {
+        pickupScheduled = true;
+      } else {
+        pickupError = pickupJson.message ?? `HTTP ${pickupRes.status}`;
+        console.error("Pickup generation failed:", pickupRes.status, JSON.stringify(pickupJson));
+      }
+    } catch (e) {
+      pickupError = e instanceof Error ? e.message : String(e);
+      console.error("Pickup generation threw:", pickupError);
+    }
+
+    await supabase
+      .from("orders")
+      .update({
+        shiprocket_order_id: String(shiprocketOrderId ?? ""),
+        shiprocket_shipment_id: String(shipmentId),
+        awb_number: awbCode,
+        courier_name: courierName ?? null,
+        tracking_url: trackingUrl,
+        shipped_at: new Date().toISOString(),
+        status: "SHIPPED",
+      })
+      .eq("id", order_id);
+
+    // Queue the WhatsApp "order shipped" notification (sent by the existing
+    // send-whatsapp function on its next run) — best-effort, doesn't fail
+    // the shipment creation if the template lookup or insert fails.
+    try {
+      const { data: template } = await supabase
+        .from("notification_templates")
+        .select("id")
+        .eq("template_name", "order_shipped")
+        .maybeSingle();
+      if (template) {
+        await supabase.from("notification_queue").insert({
+          template_id: template.id,
+          recipient_phone: address.phone,
+          order_id: order.id,
+          variables: { order_number: order.order_number, tracking_url: trackingUrl },
+        });
+      }
+    } catch {
+      // notification queueing is best-effort
+    }
+
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        awb: awbCode,
+        courier_name: courierName,
+        tracking_url: trackingUrl,
+        pickup_scheduled: pickupScheduled,
+        pickup_error: pickupError,
+      }),
+      { status: 200, headers: { ...cors, "Content-Type": "application/json" } }
+    );
+  } catch (err) {
+    console.error("shiprocket-sync uncaught error:", err);
+    return new Response(JSON.stringify({ ok: false, error: "internal_error" }), {
+      status: 500,
+      headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
+});

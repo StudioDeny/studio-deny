@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { listOrders, updateOrderStatus, refundOrder, type Order, type OrderStatus } from "@/lib/orders";
+import { listOrders, updateOrderStatus, refundOrder, createShipment, type Order, type OrderStatus } from "@/lib/orders";
 import { formatINR } from "@/context/CartContext";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { Truck, Loader2 } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export const Route = createFileRoute("/admin/orders")({
   component: AdminOrders,
@@ -12,7 +15,22 @@ const STATUSES: OrderStatus[] = ["PLACED", "PACKED", "SHIPPED", "DELIVERED", "CA
 
 function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
-  useEffect(() => { listOrders().then(setOrders); }, []);
+  const [shipping, setShipping] = useState<string | null>(null);
+  const [refundTarget, setRefundTarget] = useState<{ id: string; amount: number } | null>(null);
+
+  useEffect(() => {
+    listOrders().then(setOrders);
+    // Shiprocket's webhook updates the orders row server-side as the parcel
+    // moves — without this, the admin only sees that change on a manual
+    // page refresh.
+    const channel = supabase
+      .channel("admin-orders")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
+        listOrders().then(setOrders);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const change = async (id: string, status: OrderStatus) => {
     await updateOrderStatus(id, status);
@@ -20,11 +38,28 @@ function AdminOrders() {
     toast.success(`Order ${id} → ${status}`);
   };
 
-  const refund = async (id: string, amount: number) => {
-    if (!confirm(`Refund ${formatINR(amount)}?`)) return;
-    await refundOrder(id, amount);
+  const confirmRefund = async () => {
+    if (!refundTarget) return;
+    await refundOrder(refundTarget.id, refundTarget.amount);
     setOrders(await listOrders());
     toast.success("Refund processed");
+  };
+
+  const ship = async (id: string) => {
+    setShipping(id);
+    try {
+      const { pickupScheduled, pickupError } = await createShipment(id);
+      setOrders(await listOrders());
+      if (pickupScheduled) {
+        toast.success("Shipment created — AWB assigned, pickup scheduled");
+      } else {
+        toast.success(`Shipment created — AWB assigned. Pickup not scheduled (${pickupError ?? "unknown reason"}) — schedule it manually in Shiprocket.`);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not create shipment");
+    } finally {
+      setShipping(null);
+    }
   };
 
   return (
@@ -42,6 +77,7 @@ function AdminOrders() {
                 <th className="text-left p-3">DATE</th>
                 <th className="text-left p-3">TOTAL</th>
                 <th className="text-left p-3">STATUS</th>
+                <th className="text-left p-3">SHIPPING</th>
                 <th className="text-right p-3">ACTIONS</th>
               </tr>
             </thead>
@@ -61,11 +97,30 @@ function AdminOrders() {
                       {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </td>
+                  <td className="p-3">
+                    {o.awbNumber ? (
+                      <div className="text-xs">
+                        <div className="text-mono">{o.awbNumber}</div>
+                        <div className="text-muted-foreground">{o.courierName ?? "—"}</div>
+                      </div>
+                    ) : o.status === "PACKED" ? (
+                      <button
+                        onClick={() => ship(o.id)}
+                        disabled={shipping === o.id}
+                        className="border border-primary text-primary px-3 h-8 text-mono text-[10px] tracking-widest inline-flex items-center gap-1.5 hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                      >
+                        {shipping === o.id ? <Loader2 className="size-3 animate-spin" /> : <Truck className="size-3" />}
+                        {shipping === o.id ? "CREATING…" : "CREATE SHIPMENT"}
+                      </button>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">— mark PACKED first</span>
+                    )}
+                  </td>
                   <td className="p-3 text-right">
                     <div className="inline-flex gap-2">
                       <Link to="/admin/invoice/$id" params={{ id: o.id }} className="text-mono text-[10px] tracking-widest text-primary hover:underline">INVOICE</Link>
                       {o.status !== "REFUNDED" && (
-                        <button onClick={() => refund(o.id, o.total)} className="text-mono text-[10px] tracking-widest text-red-500 hover:underline">REFUND</button>
+                        <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="text-mono text-[10px] tracking-widest text-red-500 hover:underline">REFUND</button>
                       )}
                     </div>
                   </td>
@@ -75,6 +130,16 @@ function AdminOrders() {
           </table>
         </div>
       )}
+
+      <ConfirmDialog
+        open={refundTarget !== null}
+        onOpenChange={(open) => !open && setRefundTarget(null)}
+        title="ISSUE THIS REFUND?"
+        description={refundTarget ? `Refund ${formatINR(refundTarget.amount)}?` : undefined}
+        confirmLabel="REFUND"
+        destructive
+        onConfirm={confirmRefund}
+      />
     </div>
   );
 }

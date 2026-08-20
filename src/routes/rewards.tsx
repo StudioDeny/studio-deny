@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ordersFor, type Order } from "@/lib/orders";
-import { getSettings } from "@/lib/settings";
+import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import {
   isLoyaltyMember,
   pointsFromOrders,
@@ -27,11 +27,13 @@ const TIER_COLORS: Record<string, string> = {
 function Rewards() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
-  const settings = getSettings();
+  const [settings, setSettings] = useState(DEFAULT_LOYALTY_SETTINGS);
 
   useEffect(() => {
     if (user) ordersFor(user.email).then(setOrders);
   }, [user]);
+
+  useEffect(() => { getLoyaltySettings().then(setSettings); }, []);
 
   const { entryThreshold, rupeesPerEarnedPoint, rupeesPerPoint } = settings;
   const member = isLoyaltyMember(orders, entryThreshold);

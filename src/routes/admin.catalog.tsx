@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   upsertBrand, upsertCategory, deleteBrand, deleteCategory,
-  listBrands, listCategories, slugify,
+  listBrands, listCategories,
   type Brand, type Category,
 } from "@/lib/catalog";
 import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
@@ -20,10 +20,10 @@ function AdminCatalog() {
   const [editing, setEditing] = useState<{ kind: "cat" | "brand"; slug: string; name: string } | null>(null);
   const [newCatParent, setNewCatParent] = useState<string>("");
 
-  // Load from Supabase (categories) / localStorage (brands) on mount (client-only)
+  // Load from Supabase on mount (client-only)
   useEffect(() => {
     listCategories().then(setCats);
-    setBrands(listBrands());
+    listBrands().then(setBrands);
   }, []);
 
   const addCat = async () => {
@@ -36,12 +36,11 @@ function AdminCatalog() {
     toast.success(`"${name}" added`);
   };
 
-  const addBrand = () => {
+  const addBrand = async () => {
     const name = newBrand.trim();
     if (!name) return;
-    const item: Brand = { slug: slugify(name), name };
-    const next = upsertBrand(item);
-    setBrands(next);
+    await upsertBrand({ name });
+    setBrands(await listBrands());
     setNewBrand("");
     toast.success(`"${name}" added`);
   };
@@ -52,9 +51,10 @@ function AdminCatalog() {
     setCats(await listCategories());
   };
 
-  const removeBrand = (slug: string) => {
+  const removeBrand = async (slug: string) => {
     if (!confirm("Delete this brand?")) return;
-    setBrands(deleteBrand(slug));
+    await deleteBrand(slug);
+    setBrands(await listBrands());
   };
 
   const saveEdit = async () => {
@@ -65,7 +65,8 @@ function AdminCatalog() {
       await upsertCategory({ slug: editing.slug, name: editing.name, parentId: existing?.parentId ?? null });
       setCats(await listCategories());
     } else {
-      setBrands(upsertBrand({ slug: editing.slug, name: editing.name }));
+      await upsertBrand({ slug: editing.slug, name: editing.name });
+      setBrands(await listBrands());
     }
     setEditing(null);
     toast.success("Updated");

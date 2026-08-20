@@ -3,7 +3,7 @@ import { buildMeta, buildLinks, SITE_URL } from "@/lib/seo";
 import { useEffect, useMemo, useState } from "react";
 import { categories, type Category } from "@/lib/products";
 import { listProducts, type Product } from "@/lib/productsStore";
-import { getSettings } from "@/lib/settings";
+import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { X, SlidersHorizontal, Search as SearchIcon, ChevronDown } from "lucide-react";
@@ -66,8 +66,10 @@ function Shop() {
   const [loaded, setLoaded] = useState(false);
   const [mobileFilters, setMobileFilters] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [loyaltySettings, setLoyaltySettings] = useState(DEFAULT_LOYALTY_SETTINGS);
 
   useEffect(() => { listProducts().then((p) => { setProducts(p); setLoaded(true); }); }, []);
+  useEffect(() => { getLoyaltySettings().then(setLoyaltySettings); }, []);
 
   const cat = ((categories as readonly string[]).includes(search.cat ?? "") ? search.cat : "All") as Category;
   const q = search.q ?? "";
@@ -90,12 +92,12 @@ function Shop() {
   const max = search.max ?? maxBound;
 
   const allColors = useMemo(() => {
-    const curated = getSettings().filterColors;
+    const curated = loyaltySettings.filterColors;
     if (curated.length > 0) return curated;
     const m = new Map<string, string>();
     products.forEach((p) => p.colors.forEach((c) => m.set(c.name, c.hex)));
     return [...m.entries()].map(([name, hex]) => ({ name, hex }));
-  }, [products]);
+  }, [products, loyaltySettings]);
 
   const setS = (patch: Partial<Search>) =>
     navigate({ search: (prev: Search) => {

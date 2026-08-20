@@ -236,7 +236,7 @@ Handles order shipping, courier assignment, AWB generation, and delivery trackin
 1. Go to **Settings → API → Webhooks**
 2. Set **Webhook URL** to:
    ```
-   https://ablejcrtuiohdrapgacb.supabase.co/functions/v1/shiprocket-webhook
+   https://ablejcrtuiohdrapgacb.supabase.co/functions/v1/shipment-status-webhook
    ```
 3. Enable events: `Shipment Picked Up`, `Shipment In Transit`, `Out for Delivery`, `Delivered`, `RTO Initiated`, `RTO Delivered`
 
@@ -252,7 +252,7 @@ SHIPROCKET_CHANNEL_ID = 12345
 | Task | File |
 |------|------|
 | Edge function: create shipment + generate AWB | `supabase/functions/shiprocket-sync/index.ts` (NEW) |
-| Edge function: webhook receiver for live tracking | `supabase/functions/shiprocket-webhook/index.ts` (NEW) |
+| Edge function: webhook receiver for live tracking | `supabase/functions/shipment-status-webhook/index.ts` (NEW) |
 | DB migration: add tracking fields to orders | Run SQL below |
 | Admin orders UI: AWB input + shipment trigger | `src/routes/admin.orders.tsx` (MODIFY) |
 | Customer orders page: tracking link + courier | `src/routes/account.orders.tsx` (MODIFY) |
@@ -411,7 +411,7 @@ npx supabase functions deploy abandoned-cart-scan
 
 # Shipping (once built)
 npx supabase functions deploy shiprocket-sync
-npx supabase functions deploy shiprocket-webhook
+npx supabase functions deploy shipment-status-webhook
 ```
 
 ### All secrets required
@@ -425,8 +425,8 @@ npx supabase functions deploy shiprocket-webhook
 | `WHATSAPP_PHONE_NUMBER_ID` | send-whatsapp |
 | `WHATSAPP_VERIFY_TOKEN` | whatsapp-webhook |
 | `STORE_URL` | abandoned-cart-scan |
-| `SHIPROCKET_EMAIL` | shiprocket-sync, shiprocket-webhook (future) |
-| `SHIPROCKET_PASSWORD` | shiprocket-sync, shiprocket-webhook (future) |
+| `SHIPROCKET_EMAIL` | shiprocket-sync, shipment-status-webhook (future) |
+| `SHIPROCKET_PASSWORD` | shiprocket-sync, shipment-status-webhook (future) |
 | `SHIPROCKET_CHANNEL_ID` | shiprocket-sync (future) |
 
 ### Email confirmation
@@ -467,7 +467,7 @@ Supabase → **Authentication → Providers → Email** → toggle off **Confirm
 - [ ] `SHIPROCKET_CHANNEL_ID` added to Supabase secrets
 - [ ] DB migration run to add tracking fields to orders
 - [ ] `shiprocket-sync` edge function built and deployed
-- [ ] `shiprocket-webhook` edge function built and deployed
+- [ ] `shipment-status-webhook` edge function built and deployed
 - [ ] Admin orders UI updated with AWB input + shipment trigger
 - [ ] Customer orders page updated with tracking link display
 - [ ] WhatsApp `order_shipped` message populated with tracking URL

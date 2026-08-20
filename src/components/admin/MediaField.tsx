@@ -23,18 +23,23 @@ export function MediaField({
 }) {
   const [source, setSource] = useState<"url" | "upload">("url");
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
     setUploading(true);
+    setProgress(0);
     try {
-      const result = value.type === "video" ? await uploadVideoToCloudinary(file) : await uploadToCloudinary(file);
+      const result = value.type === "video"
+        ? await uploadVideoToCloudinary(file, setProgress)
+        : await uploadToCloudinary(file, setProgress);
       onChange({ url: result.secure_url, type: value.type });
       toast.success("Uploaded");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed");
     } finally {
       setUploading(false);
+      setProgress(0);
       if (fileRef.current) fileRef.current.value = "";
     }
   };
@@ -103,7 +108,7 @@ export function MediaField({
             className="border border-border h-10 px-4 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50"
           >
             {uploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
-            {uploading ? "UPLOADING…" : `UPLOAD ${value.type.toUpperCase()}`}
+            {uploading ? `UPLOADING… ${progress}%` : `UPLOAD ${value.type.toUpperCase()}`}
           </button>
           {value.url && !uploading && (
             <span className="text-[11px] text-muted-foreground truncate max-w-[220px]" title={value.url}>{value.url}</span>

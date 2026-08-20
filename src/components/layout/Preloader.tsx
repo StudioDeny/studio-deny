@@ -9,6 +9,7 @@ const DEFAULTS: PreloaderSettings = {
   bg_type: "image",
   bg_image_url: null,
   bg_video_url: null,
+  bg_color: "#0a0a0a",
   content_type: "image",
   content_image_url: "/deny-space-preloader.png",
   content_text: "STUDIO DENY",
@@ -155,6 +156,10 @@ export function Preloader() {
                     background: "radial-gradient(circle at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.92) 100%)",
                   }}
                 />
+                {/* Solid Color Background mode */}
+                {cfg.bg_type === "color" && (
+                  <div className="absolute inset-0 w-full h-full" style={{ background: cfg.bg_color || "var(--background,#E2E2E4)" }} />
+                )}
               </div>
 
               {/* ════════ SCANLINE OVERLAY ════════ */}
