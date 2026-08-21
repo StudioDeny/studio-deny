@@ -112,31 +112,6 @@ html.lenis, html.lenis body {
     background: var(--primary);
   }
 
-  /* Site-wide Premium Button Hover Animations */
-  button:not(:disabled),
-  a.btn-animated,
-  .btn-hover-effect {
-    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
-                box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
-                background-color 180ms ease,
-                border-color 180ms ease,
-                color 180ms ease,
-                letter-spacing 200ms cubic-bezier(0.16, 1, 0.3, 1),
-                opacity 180ms ease;
-  }
-  button:not(:disabled):hover,
-  a.btn-animated:hover,
-  .btn-hover-effect:hover {
-    letter-spacing: 0.22em;
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px -6px rgba(0, 0, 0, 0.25);
-  }
-  button:not(:disabled):active,
-  a.btn-animated:active,
-  .btn-hover-effect:active {
-    transform: translateY(0) scale(0.98);
-    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.12);
-  }
 
   /* Shimmer sheen overlay animation for action buttons */
   .btn-shimmer {

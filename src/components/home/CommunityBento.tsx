@@ -66,19 +66,19 @@ export function CommunityBento() {
   }
 
   return (
-    <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 border-t border-border max-w-[1560px] mx-auto bg-[#E2E2E4]">
-      <div className="mb-10 flex flex-col">
+    <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 border-t border-border bg-[#E2E2E4]">
+      <div className="mb-8 sm:mb-12 flex flex-col">
         {heading.eyebrow && (
-          <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{heading.eyebrow}</span>
+          <span className="text-mono text-primary mb-2 text-xs tracking-[0.35em]">◢ {heading.eyebrow}</span>
         )}
         <EditorialHeading
-          className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display"
+          className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display"
           style={heading.color ? { color: heading.color } : undefined}
         >
           {heading.text}
         </EditorialHeading>
         {heading.subtitle && (
-          <EditorialSubheading className="mt-3 text-muted-foreground text-sm sm:text-base text-mono" delay={0.2}>
+          <EditorialSubheading className="mt-3 max-w-xl text-sm sm:text-base opacity-80 text-mono" delay={0.2}>
             {heading.subtitle}
           </EditorialSubheading>
         )}

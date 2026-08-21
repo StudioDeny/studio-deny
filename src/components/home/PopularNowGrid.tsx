@@ -14,11 +14,11 @@ type PopularNowConfig = { items: PopularNowItem[]; view_all_href?: string };
 
 const DEFAULTS: PopularNowConfig = { items: [], view_all_href: "/shop" };
 
-// Mixed tile shapes cycling every 3: tall rectangle, square, narrow rectangle.
+// Larger tile shapes cycling every 3
 const SIZE_CLASSES = [
-  "w-[210px] sm:w-[260px] h-[320px] sm:h-[380px]",
-  "w-[210px] sm:w-[260px] h-[210px] sm:h-[260px]",
-  "w-[150px] sm:w-[190px] h-[320px] sm:h-[380px]",
+  "w-[260px] sm:w-[320px] md:w-[360px] h-[390px] sm:h-[460px]",
+  "w-[260px] sm:w-[320px] md:w-[360px] h-[260px] sm:h-[320px]",
+  "w-[190px] sm:w-[240px] md:w-[270px] h-[390px] sm:h-[460px]",
 ];
 
 function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: string }; sizeClass: string }) {
@@ -64,25 +64,25 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
         />
       )}
       {product.tag && (
-        <span className="absolute top-2.5 left-2.5 bg-primary text-primary-foreground text-mono font-semibold px-2 py-1" style={{ fontSize: "9px", letterSpacing: "0.2em" }}>
+        <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-mono font-bold px-2.5 py-1 text-[10px] tracking-[0.2em]">
           {product.tag.toUpperCase()}
         </span>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent" />
-      <div className="absolute bottom-2.5 left-2.5 right-2.5">
-        <p className="text-white text-xs font-semibold uppercase tracking-[0.06em] truncate">{product.name}</p>
-        <p className="text-white/80 text-mono text-[11px]">{formatINR(product.price)}</p>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/0 to-transparent" />
+      <div className="absolute bottom-3 left-3.5 right-3.5">
+        <p className="text-white text-sm sm:text-base font-bold uppercase tracking-[0.06em] truncate">{product.name}</p>
+        <p className="text-white/85 text-mono text-xs sm:text-sm font-medium">{formatINR(product.price)}</p>
       </div>
 
       {/* Quick add — open centered modal */}
       <button
         aria-label="Quick add to cart"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickAdd(product); }}
-        className={`absolute bottom-2 right-2 size-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+        className={`absolute bottom-3 right-3 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
           hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90 opacity-100"
         } bg-black text-white hover:bg-black/80`}
       >
-        <ShoppingBag className="size-3.5" />
+        <ShoppingBag className="size-4" />
       </button>
 
       <div
@@ -157,7 +157,7 @@ export function PopularNowGrid() {
   if (!visible || products.length === 0) return null;
 
   const slide = (dir: -1 | 1) => {
-    scrollerRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+    scrollerRef.current?.scrollBy({ left: dir * 360, behavior: "smooth" });
   };
 
   return (
@@ -168,7 +168,7 @@ export function PopularNowGrid() {
             <span className="text-mono text-primary mb-2 text-xs tracking-[0.35em]">◢ {heading.eyebrow}</span>
           )}
           <EditorialHeading
-            className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display"
+            className="text-[clamp(3.2rem,8.5vw,6rem)] leading-[0.88] tracking-[-0.03em] uppercase text-display"
             style={heading.color ? { color: heading.color } : undefined}
           >
             {heading.text}
@@ -224,6 +224,9 @@ export function PopularNowGrid() {
           )}
         </div>
       </div>
+
+      {/* Section Segregation Line */}
+      <div className="absolute bottom-0 inset-x-0 h-[1.5px] bg-black/20 border-b border-black/10" />
     </section>
   );
 }

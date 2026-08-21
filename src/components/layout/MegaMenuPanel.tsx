@@ -62,14 +62,15 @@ export function MegaMenuPanel({
   );
 
   return (
-    <div className={isDesktop ? "flex items-stretch h-full w-full overflow-hidden bg-white text-black" : "flex flex-col gap-6 bg-white text-black"}>
+    <div className={isDesktop ? "flex items-stretch h-full w-full bg-white text-black" : "flex flex-col gap-6 bg-white text-black"}>
       {/* Navigation Links Column (Width 220–240px, Minimal Luxury Typography) */}
       {isDesktop ? (
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="w-[220px] lg:w-[240px] shrink-0 h-full overflow-y-auto custom-scrollbar p-6 lg:px-8 flex flex-col justify-center border-r border-black/5 bg-white"
+          className="w-[220px] lg:w-[240px] shrink-0 h-full overflow-y-auto overscroll-contain custom-scrollbar p-6 lg:px-8 flex flex-col border-r border-black/5 bg-white"
+          data-lenis-prevent
         >
           <div className="flex flex-col gap-1.5 my-auto">
             {category.links.length > 0 ? (
@@ -81,7 +82,7 @@ export function MegaMenuPanel({
                     onClick={onNavigate}
                     activeProps={{ className: "text-black font-medium underline underline-offset-4 decoration-black/30" }}
                     inactiveProps={{ className: "text-black/60 font-normal" }}
-                    className="group py-1.5 text-sm tracking-wide hover:text-black hover:font-medium transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] flex items-center justify-between capitalize w-full bg-transparent font-body"
+                    className="group py-1.5 text-sm tracking-wide hover:text-black transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] flex items-center justify-between capitalize w-full bg-transparent font-body"
                   >
                     <span>{l.label}</span>
                     <span className="opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] text-xs text-black/40 font-mono">
