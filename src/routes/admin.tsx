@@ -74,7 +74,6 @@ function AdminLayout() {
 
   const coreLinks = [
     { to: "/admin" as const, label: "DASHBOARD", icon: LayoutDashboard, exact: true },
-    { to: "/admin/guide" as const, label: "GUIDE", icon: LifeBuoy },
     { to: "/admin/analytics" as const, label: "ANALYTICS", icon: BarChart3 },
     { to: "/admin/products" as const, label: "PRODUCTS", icon: Package },
     { to: "/admin/inventory" as const, label: "INVENTORY", icon: Boxes },
@@ -137,6 +136,9 @@ function AdminLayout() {
       <div className="md:hidden sticky top-0 z-[110] flex items-center justify-between px-4 h-14 border-b border-border bg-background">
         <Link to="/" className="text-display text-lg tracking-wider">STUDIO DENY</Link>
         <div className="flex items-center gap-4">
+          <Link to="/admin/guide" aria-label="Guide" title="Guide" className="text-foreground">
+            <LifeBuoy className="size-5" />
+          </Link>
           <button
             data-notif-bell
             onClick={openNotif}
@@ -180,20 +182,25 @@ function AdminLayout() {
       <aside className="hidden md:block border-r border-border bg-surface p-5 md:sticky md:top-0 md:h-screen md:max-h-screen overflow-y-auto overscroll-contain custom-scrollbar" data-lenis-prevent>
         <div className="flex items-center justify-between mb-6">
           <div className="text-mono text-[10px] tracking-[0.3em] text-primary">◢ ADMIN</div>
-          <button
-            data-notif-bell
-            onClick={openNotif}
-            className="relative text-muted-foreground hover:text-primary"
-            title="Notifications"
-            aria-label="Notifications"
-          >
-            <Bell className="size-4" />
-            {unseenOrders.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] text-mono px-1 rounded-full min-w-[14px] text-center">
-                {unseenOrders.length}
-              </span>
-            )}
-          </button>
+          <div className="flex items-center gap-3">
+            <Link to="/admin/guide" className="text-muted-foreground hover:text-primary" title="Guide" aria-label="Guide">
+              <LifeBuoy className="size-4" />
+            </Link>
+            <button
+              data-notif-bell
+              onClick={openNotif}
+              className="relative text-muted-foreground hover:text-primary"
+              title="Notifications"
+              aria-label="Notifications"
+            >
+              <Bell className="size-4" />
+              {unseenOrders.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] text-mono px-1 rounded-full min-w-[14px] text-center">
+                  {unseenOrders.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         <nav className="space-y-1">
