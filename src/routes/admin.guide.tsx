@@ -1,30 +1,50 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ADMIN_GUIDE, ADMIN_GUIDE_GROUPS, type GuideEntry } from "@/lib/adminGuideContent";
-import { ArrowRight, ArrowLeft, Info, Check, Upload, Search, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import {
+  ArrowRight, ArrowLeft, Info, Check, Upload, Search, ChevronUp, ChevronDown, Trash2,
+  MousePointerClick, List, ExternalLink,
+} from "lucide-react";
 
 export const Route = createFileRoute("/admin/guide")({
   component: AdminGuide,
   head: () => ({ meta: [{ title: "Guide — STUDIO DENY" }] }),
 });
 
-// Every step's mockup is picked by matching keywords in that step's own
-// text — there's no real screenshot per step, but a small, honest, generic
-// illustration of "this is the kind of control you're looking for" beats
-// a flat wall of text with nothing to visually anchor to.
-type MockupKind = "save" | "toggle" | "reorder" | "upload" | "search" | "color" | "dropdown" | "delete" | "default";
+// Every step's mockup is picked by matching its own text — there's no real
+// screenshot per step, but a small, honest, generic illustration of "this
+// is the kind of control you're looking for" beats a flat wall of text
+// with nothing to visually anchor to. Checked in order, most specific
+// first, so a step mentioning several things lands on the one that
+// actually matters most (e.g. "delete" wins over an incidental "click").
+type MockupKind =
+  | "save" | "toggle" | "reorder" | "upload" | "search" | "color" | "dropdown" | "delete"
+  | "chart" | "stat" | "list" | "link" | "button";
 
-function mockupForStep(step: string): MockupKind {
+type StepVisual = { kind: MockupKind; label?: string };
+
+function analyzeStep(step: string): StepVisual {
   const s = step.toLowerCase();
-  if (s.includes("delete") || s.includes("trash") || s.includes("remove")) return "delete";
-  if (s.includes("save")) return "save";
-  if (s.includes("toggle") || s.includes("instantly") || s.includes("switch") || s.includes("active")) return "toggle";
-  if (s.includes("reorder") || s.includes("arrow") || s.includes("drag")) return "reorder";
-  if (s.includes("upload") || s.includes("photo") || s.includes("video") || s.includes("image") || s.includes("media")) return "upload";
-  if (s.includes("search")) return "search";
-  if (s.includes("color")) return "color";
-  if (s.includes("dropdown") || s.includes("pick") || s.includes("select") || s.includes("category")) return "dropdown";
-  return "default";
+  if (s.includes("delete") || s.includes("trash") || s.includes("remove")) return { kind: "delete" };
+  if (s.includes("save")) return { kind: "save" };
+  if (s.includes("toggle") || s.includes("instantly") || s.includes("switch") || s.includes("active")) return { kind: "toggle" };
+  if (s.includes("reorder") || s.includes("arrow") || s.includes("drag")) return { kind: "reorder" };
+  if (s.includes("upload") || s.includes("photo") || s.includes("video") || s.includes("image") || s.includes("media")) return { kind: "upload" };
+  if (s.includes("search")) return { kind: "search" };
+  if (s.includes("color")) return { kind: "color" };
+  if (s.includes("chart") || s.includes("revenue") || s.includes("bar")) return { kind: "chart" };
+  if (s.includes("scroll down") || s.includes("list") || s.includes("table") || s.includes("row")) return { kind: "list" };
+  if (s.includes("go to") || s.includes("elsewhere") || s.includes("jump to")) return { kind: "link" };
+  if (s.includes("dropdown") || s.includes("pick") || s.includes("select") || s.includes("category")) return { kind: "dropdown" };
+  if (s.includes("read-only") || s.includes("overview") || s.includes("summary") || s.includes("at a glance") || s.includes("displays") || s.includes("check ")) return { kind: "stat" };
+  // Last resort before the generic "informational" fallback: pull the
+  // actual button label out of the step's own text if it mentions one
+  // ("Click NEW BAR" -> a mockup button literally reading NEW BAR),
+  // matching this app's own convention of ALL-CAPS button labels.
+  const clickMatch = step.match(/click(?:ing)?\s+(?:the\s+)?([A-Z][A-Z0-9&\-' ]{1,30})/);
+  if (clickMatch) return { kind: "button", label: clickMatch[1].trim() };
+  if (s.includes("click")) return { kind: "button" };
+  return { kind: "stat" };
 }
 
 const MOCKUP_CAPTION: Record<MockupKind, string> = {
@@ -36,10 +56,14 @@ const MOCKUP_CAPTION: Record<MockupKind, string> = {
   color: "A color picker — click the swatch or type a hex code.",
   dropdown: "A dropdown — pick one option from an existing list.",
   delete: "A delete action — usually asks you to confirm first.",
-  default: "This step is informational — nothing to click yet.",
+  chart: "A chart — this is data to read, not something to click.",
+  stat: "A stat summary — numbers to read, nothing to configure here.",
+  list: "A list/table — scroll or browse, nothing to configure here.",
+  link: "This step points you to a different admin page.",
+  button: "A button to click on this page.",
 };
 
-function StepMockup({ kind }: { kind: MockupKind }) {
+function StepMockup({ kind, label }: { kind: MockupKind; label?: string }) {
   switch (kind) {
     case "save":
       return (
@@ -119,6 +143,54 @@ function StepMockup({ kind }: { kind: MockupKind }) {
           <div className="text-[10px] font-mono tracking-widest text-muted-foreground">CONFIRM?</div>
         </div>
       );
+    case "chart":
+      return (
+        <div className="w-full max-w-[200px] flex items-end gap-2 h-20">
+          {[40, 70, 45, 90, 60, 100, 75].map((h, i) => (
+            <div key={i} className="flex-1 bg-primary/70 rounded-t-sm" style={{ height: `${h}%` }} />
+          ))}
+        </div>
+      );
+    case "stat":
+      return (
+        <div className="grid grid-cols-2 gap-2 w-full max-w-[200px]">
+          {["REVENUE", "ORDERS"].map((label2) => (
+            <div key={label2} className="border border-border/60 bg-background rounded-sm p-2.5">
+              <div className="text-[8px] font-mono tracking-widest text-muted-foreground">{label2}</div>
+              <div className="h-3 w-10 bg-border/60 rounded-sm mt-1.5" />
+            </div>
+          ))}
+        </div>
+      );
+    case "list":
+      return (
+        <div className="w-full max-w-[220px] space-y-1.5">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-8 border border-border/50 rounded-sm flex items-center gap-2 px-2">
+              <div className="size-4 bg-border/60 rounded-sm shrink-0" />
+              <div className="h-2 flex-1 bg-border/60 rounded-sm" />
+              <List className="size-3 text-muted-foreground shrink-0" />
+            </div>
+          ))}
+        </div>
+      );
+    case "link":
+      return (
+        <div className="flex items-center gap-2">
+          <div className="h-9 w-16 border border-border/60 rounded-sm bg-background" />
+          <ExternalLink className="size-4 text-primary shrink-0" />
+          <div className="h-9 w-16 border border-primary/60 rounded-sm bg-primary/5" />
+        </div>
+      );
+    case "button":
+      return (
+        <div className="flex items-center gap-2">
+          <MousePointerClick className="size-4 text-muted-foreground" />
+          <div className="h-9 px-4 bg-foreground text-background rounded-sm flex items-center justify-center text-[10px] font-mono tracking-widest whitespace-nowrap">
+            {label ? label.toUpperCase() : "CLICK"}
+          </div>
+        </div>
+      );
     default:
       return (
         <div className="size-9 border border-border/60 rounded-full flex items-center justify-center text-muted-foreground">
@@ -139,7 +211,7 @@ function AdminGuide() {
 
   const total = entry.steps.length;
   const currentStep = entry.steps[stepIndex];
-  const kind = mockupForStep(currentStep);
+  const visual = analyzeStep(currentStep);
 
   return (
     <div className="max-w-4xl">
@@ -250,9 +322,9 @@ function AdminGuide() {
           <div className="md:sticky md:top-6 self-start">
             <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">WHAT TO LOOK FOR</div>
             <div className="border border-border bg-background p-6 flex items-center justify-center min-h-[140px]">
-              <StepMockup kind={kind} />
+              <StepMockup kind={visual.kind} label={visual.label} />
             </div>
-            <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">{MOCKUP_CAPTION[kind]}</p>
+            <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">{MOCKUP_CAPTION[visual.kind]}</p>
           </div>
         </div>
       </div>
