@@ -6,7 +6,7 @@ import {
   Undo2, RotateCcw, BarChart3, Trophy, Bell, Settings, Tags, Download, FileEdit,
   Megaphone, Layout, Menu, HelpCircle, Star, Image, Globe, MessageSquare,
   UserCheck, AtSign, BookOpen, Users2, Heading, X, Ruler, PanelBottom, Sparkles,
-  Loader, Boxes,
+  Loader, Boxes, LifeBuoy,
 } from "lucide-react";
 import { listOrders, type Order } from "@/lib/orders";
 import { getLastSeen, markSeen } from "@/lib/notifications";
@@ -74,6 +74,7 @@ function AdminLayout() {
 
   const coreLinks = [
     { to: "/admin" as const, label: "DASHBOARD", icon: LayoutDashboard, exact: true },
+    { to: "/admin/guide" as const, label: "GUIDE", icon: LifeBuoy },
     { to: "/admin/analytics" as const, label: "ANALYTICS", icon: BarChart3 },
     { to: "/admin/products" as const, label: "PRODUCTS", icon: Package },
     { to: "/admin/inventory" as const, label: "INVENTORY", icon: Boxes },
