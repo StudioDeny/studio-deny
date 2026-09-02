@@ -225,20 +225,11 @@ export function ProductCard({
 
         {/* Product info — Increased size for legibility */}
         <div className="mt-3 px-0.5 flex flex-col gap-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <h3
-              className="font-medium text-xs sm:text-sm leading-tight text-foreground/90 group-hover:text-primary transition-colors tracking-wide truncate"
-            >
-              {product.name}
-            </h3>
-            <button
-              aria-label="Quick add to cart"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickAdd(product); }}
-              className="text-foreground/80 hover:text-primary transition-colors shrink-0 p-0.5"
-            >
-              <ShoppingBag className="size-4 sm:size-5" />
-            </button>
-          </div>
+          <h3
+            className="font-medium text-xs sm:text-sm leading-tight text-foreground/90 group-hover:text-primary transition-colors tracking-wide truncate"
+          >
+            {product.name}
+          </h3>
 
           <div className="flex items-baseline gap-2 text-mono">
             <span className="font-bold text-sm sm:text-base text-foreground">{formatINR(product.price)}</span>
@@ -249,19 +240,6 @@ export function ProductCard({
             )}
           </div>
 
-          {/* Color Swatch Dots */}
-          {product.colors && product.colors.length > 0 && (
-            <div className="flex items-center gap-1.5 mt-1">
-              {product.colors.map((c) => (
-                <span
-                  key={c.name}
-                  title={c.name}
-                  className="size-3 sm:size-3.5 border border-foreground/40 block shrink-0"
-                  style={{ backgroundColor: c.hex }}
-                />
-              ))}
-            </div>
-          )}
         </div>
       </Link>
     </div>
