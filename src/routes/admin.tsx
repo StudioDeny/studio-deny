@@ -11,6 +11,7 @@ import {
 import { listOrders, type Order } from "@/lib/orders";
 import { getLastSeen, markSeen } from "@/lib/notifications";
 import { formatINR } from "@/context/CartContext";
+import { AdminSearchConsole } from "@/components/admin/AdminSearchConsole";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -133,26 +134,31 @@ function AdminLayout() {
       {/* Mobile top bar — just the logo (back to site) + hamburger. No storefront
           navbar renders on admin routes (see __root.tsx), so this is the only
           header on mobile. */}
-      <div className="md:hidden sticky top-0 z-[110] flex items-center justify-between px-4 h-14 border-b border-border bg-background">
-        <Link to="/" className="text-display text-lg tracking-wider">STUDIO DENY</Link>
-        <div className="flex items-center gap-4">
-          <button
-            data-notif-bell
-            onClick={openNotif}
-            className="relative text-foreground"
-            title="Notifications"
-            aria-label="Notifications"
-          >
-            <Bell className="size-5" />
-            {unseenOrders.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] text-mono px-1 rounded-full min-w-[14px] text-center">
-                {unseenOrders.length}
-              </span>
-            )}
-          </button>
-          <button onClick={() => setMobileNavOpen(true)} aria-label="Open admin menu" className="text-foreground">
-            <Menu className="size-6" />
-          </button>
+      <div className="md:hidden sticky top-0 z-[110] border-b border-border bg-background">
+        <div className="flex items-center justify-between px-4 h-14">
+          <Link to="/" className="text-display text-lg tracking-wider">STUDIO DENY</Link>
+          <div className="flex items-center gap-4">
+            <button
+              data-notif-bell
+              onClick={openNotif}
+              className="relative text-foreground"
+              title="Notifications"
+              aria-label="Notifications"
+            >
+              <Bell className="size-5" />
+              {unseenOrders.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] text-mono px-1 rounded-full min-w-[14px] text-center">
+                  {unseenOrders.length}
+                </span>
+              )}
+            </button>
+            <button onClick={() => setMobileNavOpen(true)} aria-label="Open admin menu" className="text-foreground">
+              <Menu className="size-6" />
+            </button>
+          </div>
+        </div>
+        <div className="px-4 pb-3">
+          <AdminSearchConsole />
         </div>
       </div>
 
@@ -210,6 +216,9 @@ function AdminLayout() {
         </Link>
       </aside>
       <div className="p-5 md:p-8 min-w-0">
+        <div className="hidden md:block sticky top-0 z-20 pb-4 -mx-8 px-8 pt-0 bg-background">
+          <AdminSearchConsole />
+        </div>
         <Outlet />
       </div>
 
