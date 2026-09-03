@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight, ShoppingBag, Check } from "lucide-react";
@@ -31,6 +31,43 @@ function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: stri
   const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
   const [added, setAdded] = useState(false);
 
+  // All product photos (main image, hover image, gallery)
+  const photos = useMemo(() => {
+    const list = [
+      product.image,
+      product.hoverImage,
+      ...(product.gallery ?? []).map((g) => g.url),
+    ].filter(Boolean);
+    return Array.from(new Set(list));
+  }, [product.image, product.hoverImage, product.gallery]);
+
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+
+  // Auto-scroll through next photos on hover
+  useEffect(() => {
+    if (!hover || photos.length <= 1) {
+      setActivePhotoIndex(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setActivePhotoIndex((prev) => (prev + 1) % photos.length);
+    }, 1400);
+
+    return () => clearInterval(interval);
+  }, [hover, photos.length]);
+
+  // Scrub through photos as mouse moves across the card width
+  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (photos.length <= 1) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (rect.width > 0) {
+      const xRatio = (e.clientX - rect.left) / rect.width;
+      const index = Math.min(photos.length - 1, Math.max(0, Math.floor(xRatio * photos.length)));
+      setActivePhotoIndex(index);
+    }
+  };
+
   const handleOpenSizes = () => {
     setShowSizes(true);
     getVariantStock(product.slug, product.sizes).then(setSizeOptions);
@@ -50,28 +87,28 @@ function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: stri
       params={{ slug: product.slug }}
       className={`group relative shrink-0 overflow-hidden bg-surface ${sizeClass}`}
       onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => { setHover(false); setShowSizes(false); }}
+      onMouseLeave={() => { setHover(false); setShowSizes(false); setActivePhotoIndex(0); }}
+      onMouseMove={handleMouseMove}
     >
-      {product.imageType === "video" ? (
-        <video
-          src={product.image}
-          autoPlay loop muted playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-      ) : (
+      {/* Product Photos Stack with Crossfade */}
+      {photos.map((src, i) => (
         <img
-          src={product.image}
-          alt={product.name}
-          className="absolute inset-0 w-full h-full object-cover"
+          key={src + i}
+          src={src}
+          alt={i === 0 ? product.name : ""}
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-400 ease-out ${
+            i === activePhotoIndex ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
+          }`}
         />
-      )}
+      ))}
+
       {product.badge && (
-        <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-mono font-bold px-2.5 py-1 text-[10px] tracking-[0.2em]">
+        <span className="absolute top-3 left-3 z-10 bg-primary text-primary-foreground text-mono font-bold px-2.5 py-1 text-[10px] tracking-[0.2em]">
           {product.badge.toUpperCase()}
         </span>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/0 to-transparent" />
-      <div className="absolute bottom-3 left-3.5 right-3.5">
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/65 via-black/0 to-transparent pointer-events-none" />
+      <div className="absolute bottom-3 left-3.5 right-3.5 z-10 pointer-events-none">
         <p className="text-white text-sm sm:text-base font-bold uppercase tracking-[0.06em] truncate">{product.name}</p>
         <p className="text-white/85 text-mono text-xs sm:text-sm font-medium">{formatINR(product.price)}</p>
       </div>
@@ -80,7 +117,7 @@ function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: stri
       <button
         aria-label="Quick add to cart"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickAdd(product); }}
-        className={`absolute bottom-3 right-3 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+        className={`absolute bottom-3 right-3 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 z-20 ${
           hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90 opacity-100"
         } bg-black text-white hover:bg-black/80`}
       >
@@ -88,9 +125,8 @@ function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: stri
       </button>
 
       <div
-        className={`absolute inset-x-0 bottom-0 transition-all duration-300 ${
-          showSizes ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
-        }`}
+        className={`absolute inset-x-0 bottom-0 transition-all duration-300 ${showSizes ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
+          }`}
       >
         <div className="flex flex-wrap justify-center gap-1 p-2 bg-background/95 backdrop-blur-sm">
           {sizeOptions.map((opt) => (
@@ -98,11 +134,10 @@ function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: stri
               key={opt.variantId ?? opt.size}
               disabled={!opt.inStock}
               onClick={(e) => { e.preventDefault(); handleQuickAdd(opt); }}
-              className={`rounded-full px-2.5 py-1 text-mono font-semibold border transition-colors ${
-                opt.inStock
+              className={`rounded-full px-2.5 py-1 text-mono font-semibold border transition-colors ${opt.inStock
                   ? "border-foreground/30 hover:bg-foreground hover:text-background"
                   : "border-border opacity-30 line-through cursor-not-allowed"
-              }`}
+                }`}
               style={{ fontSize: "10px" }}
             >
               {opt.size}

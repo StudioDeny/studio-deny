@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Heart, ShoppingBag, Check } from "lucide-react";
 import { getVariantStock, type Product, type VariantStock } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
@@ -54,12 +54,38 @@ export function ProductCard({
     setTimeout(() => setAdded(false), 1600);
   };
 
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+
+  // Auto-scroll through next photos on hover (desktop)
+  useEffect(() => {
+    if (!hover || photos.length <= 1) {
+      setActivePhotoIndex(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setActivePhotoIndex((prev) => (prev + 1) % photos.length);
+    }, 1400);
+
+    return () => clearInterval(interval);
+  }, [hover, photos.length]);
+
+  const handleDesktopMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (photos.length <= 1) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (rect.width > 0) {
+      const xRatio = (e.clientX - rect.left) / rect.width;
+      const index = Math.min(photos.length - 1, Math.max(0, Math.floor(xRatio * photos.length)));
+      setActivePhotoIndex(index);
+    }
+  };
+
   return (
     <div
       className="group relative animate-in fade-in slide-in-from-bottom-3 duration-600"
       style={{ animationDelay: `${index * 80}ms`, animationFillMode: "both" }}
       onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => { setHover(false); setShowSizes(false); }}
+      onMouseLeave={() => { setHover(false); setShowSizes(false); setActivePhotoIndex(0); }}
     >
       <Link
         to="/product/$slug"
@@ -72,43 +98,22 @@ export function ProductCard({
           className="relative overflow-hidden"
           style={{ aspectRatio: "3/4", background: "var(--color-surface)" }}
         >
-          {/* Desktop: crossfade main <-> hover image */}
-          <div className="hidden md:block">
-            {product.imageType === "video" ? (
-              <video
-                src={product.image}
-                autoPlay loop muted playsInline
-                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
-                style={{ opacity: hover ? 0 : 1 }}
-              />
-            ) : (
+          {/* Desktop: photo stack auto-scroll & scrub on hover */}
+          <div
+            className="hidden md:block absolute inset-0"
+            onMouseMove={handleDesktopMouseMove}
+          >
+            {photos.map((url, i) => (
               <img
-                src={product.image}
-                alt={product.name}
-                loading="lazy"
-                width={800}
-                height={1000}
-                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
-                style={{ opacity: hover ? 0 : 1 }}
+                key={url + i}
+                src={url}
+                alt={i === 0 ? product.name : ""}
+                loading={i === 0 ? undefined : "lazy"}
+                className={`absolute inset-0 w-full h-full object-cover transition-all duration-400 ease-out ${
+                  i === activePhotoIndex ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
+                }`}
               />
-            )}
-            {product.hoverImageType === "video" ? (
-              <video
-                src={product.hoverImage}
-                autoPlay loop muted playsInline
-                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
-                style={{ opacity: hover ? 1 : 0 }}
-              />
-            ) : (
-              <img
-                src={product.hoverImage}
-                alt=""
-                loading="lazy"
-                aria-hidden
-                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ease-out"
-                style={{ opacity: hover ? 1 : 0 }}
-              />
-            )}
+            ))}
           </div>
 
           {/* Mobile: swipeable photo strip + dot pagination (no hover on touch) */}
@@ -151,13 +156,12 @@ export function ProductCard({
               )}
               {topLeftBadge && (
                 <span
-                  className={`text-mono font-semibold px-2 py-1 ${
-                    topLeftBadge === "SOLD OUT"
+                  className={`text-mono font-semibold px-2 py-1 ${topLeftBadge === "SOLD OUT"
                       ? "bg-muted text-muted-foreground"
                       : topLeftBadge === "LAST PIECE"
-                      ? "bg-primary text-primary-foreground glow-primary-sm"
-                      : "bg-primary text-primary-foreground"
-                  }`}
+                        ? "bg-primary text-primary-foreground glow-primary-sm"
+                        : "bg-primary text-primary-foreground"
+                    }`}
                   style={{ fontSize: "9px", letterSpacing: "0.25em" }}
                 >
                   {topLeftBadge}
@@ -180,9 +184,8 @@ export function ProductCard({
           <button
             aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
             onClick={(e) => { e.preventDefault(); toggle(product.slug); }}
-            className={`absolute top-2.5 right-2.5 p-1.5 transition-all duration-300 ease-out ${
-              wished ? "text-primary opacity-100" : "text-white/70 hover:text-primary opacity-90 hover:opacity-100"
-            }`}
+            className={`absolute top-2.5 right-2.5 p-1.5 transition-all duration-300 ease-out ${wished ? "text-primary opacity-100" : "text-white/70 hover:text-primary opacity-90 hover:opacity-100"
+              }`}
           >
             <Heart className={`size-4 drop-shadow ${wished ? "fill-primary" : ""}`} />
           </button>
@@ -191,17 +194,15 @@ export function ProductCard({
           <button
             aria-label="Quick add to cart"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickAdd(product); }}
-            className={`absolute bottom-2.5 right-2.5 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ease-out ${
-              hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-95 opacity-100"
-            } bg-black text-white hover:bg-black/85`}
+            className={`absolute bottom-2.5 right-2.5 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ease-out ${hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-95 opacity-100"
+              } bg-black text-white hover:bg-black/85`}
           >
             <ShoppingBag className="size-4" />
           </button>
 
           <div
-            className={`absolute inset-x-0 bottom-0 transition-all duration-300 ease-out ${
-              showSizes ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
-            }`}
+            className={`absolute inset-x-0 bottom-0 transition-all duration-300 ease-out ${showSizes ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
+              }`}
           >
             <div className="flex flex-wrap justify-center gap-1.5 p-2.5 bg-background/95 backdrop-blur-sm">
               {sizeOptions.map((opt) => (
@@ -209,11 +210,10 @@ export function ProductCard({
                   key={opt.variantId ?? opt.size}
                   disabled={!opt.inStock}
                   onClick={(e) => { e.preventDefault(); handleQuickAdd(opt); }}
-                  className={`rounded-full px-3.5 py-1.5 text-mono font-semibold border transition-colors ${
-                    opt.inStock
+                  className={`rounded-full px-3.5 py-1.5 text-mono font-semibold border transition-colors ${opt.inStock
                       ? "border-foreground/30 hover:bg-foreground hover:text-background"
                       : "border-border opacity-30 line-through cursor-not-allowed"
-                  }`}
+                    }`}
                   style={{ fontSize: "11px" }}
                 >
                   {opt.size}

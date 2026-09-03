@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
 import { useSectionHeading } from "@/lib/sectionHeadings";
@@ -8,6 +8,7 @@ import { useSectionHeading } from "@/lib/sectionHeadings";
 type MiniProduct = { slug: string; name: string; price: number };
 
 export function LookbookCarousel() {
+  const navigate = useNavigate();
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [products, setProducts] = useState<Record<string, MiniProduct>>({});
   const heading = useSectionHeading("lookbook", "LOOKBOOK", { subtitle: "Swipe through curated fits built for daily movement." });
@@ -117,39 +118,47 @@ export function LookbookCarousel() {
       handlePrev();
       lastWheelTime.current = now;
     }
-  };
+  };  const hasDraggedRef = useRef(false);
 
   // Touch / Mouse Drag event handlers for real-time fluid gesture swiping
   const handlePointerDown = (e: React.PointerEvent) => {
     pointerStartX.current = e.clientX;
-    setIsDragging(true);
+    hasDraggedRef.current = false;
+    setIsDragging(false);
     setDragX(0);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (pointerStartX.current === null) return;
     const deltaX = e.clientX - pointerStartX.current;
+    if (Math.abs(deltaX) > 8) {
+      hasDraggedRef.current = true;
+      setIsDragging(true);
+    }
     setDragX(deltaX);
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (pointerStartX.current !== null) {
       const deltaX = e.clientX - pointerStartX.current;
-      if (deltaX > 40) {
+      if (deltaX > 45) {
         handlePrev();
-      } else if (deltaX < -40) {
+      } else if (deltaX < -45) {
         handleNext();
       }
     }
     pointerStartX.current = null;
     setDragX(0);
-    setTimeout(() => setIsDragging(false), 50);
+    setTimeout(() => {
+      setIsDragging(false);
+    }, 80);
   };
 
   const handlePointerCancel = () => {
     pointerStartX.current = null;
     setDragX(0);
     setIsDragging(false);
+    hasDraggedRef.current = false;
   };
 
   if (total === 0) return null;
@@ -209,7 +218,7 @@ export function LookbookCarousel() {
 
       {/* Full-Bleed 3D Stage with Ground Shadows & Real-time Gesture Swiping */}
       <div
-        className="relative z-10 w-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-pan-y overflow-visible"
+        className="relative z-10 w-full flex items-center justify-center cursor-grab active:cursor-grabbing touch-pan-y overflow-hidden"
         style={{
           perspective: "1200px",
           perspectiveOrigin: "50% 50%",
@@ -245,7 +254,7 @@ export function LookbookCarousel() {
             ? (isTablet ? 0.90 : 0.95)
             : 0.80;
 
-          // 2. Horizontal Spread across full-bleed screen (medium ~10-20% controlled overlap)
+          // 2. Horizontal Spread across full-bleed screen
           const getX = () => {
             if (absOffset === 0) return 0;
             if (isMobile) {
@@ -255,7 +264,7 @@ export function LookbookCarousel() {
               return sign * (absOffset === 1 ? 215 : absOffset === 2 ? 395 : 550);
             }
             // Desktop: full-bleed wide spread
-            return sign * (absOffset === 1 ? 260 : absOffset === 2 ? 485 : absOffset === 3 ? 680 : 850);
+            return sign * (absOffset === 1 ? 250 : absOffset === 2 ? 465 : absOffset === 3 ? 660 : 830);
           };
 
           const x = getX() + dragX;
@@ -293,11 +302,6 @@ export function LookbookCarousel() {
           return (
             <motion.div
               key={`${slide.id}-${i}`}
-              onClick={() => {
-                if (!isCenter) {
-                  setActiveIndex(i);
-                }
-              }}
               animate={{
                 x,
                 y,
@@ -323,7 +327,7 @@ export function LookbookCarousel() {
               onMouseLeave={() => {
                 setIsCardHovered(false);
               }}
-              className="group relative cursor-pointer"
+              className="group relative"
             >
               {/* Realistic Ground Floor Contact Shadow aligned to unified floor baseline */}
               <div
@@ -335,8 +339,22 @@ export function LookbookCarousel() {
                 }}
               />
 
-              {/* Card Container with Sharp Edges */}
-              <div className="relative w-full h-full overflow-hidden rounded-none bg-neutral-900 shadow-xl border border-black/10">
+              {/* Card Container with Link & Click handler */}
+              <Link
+                to="/product/$slug"
+                params={{ slug: slide.product_slug || "" }}
+                onClick={(e) => {
+                  if (hasDraggedRef.current) {
+                    e.preventDefault();
+                    return;
+                  }
+                  if (!isCenter) {
+                    e.preventDefault();
+                    setActiveIndex(i);
+                  }
+                }}
+                className="relative w-full h-full overflow-hidden rounded-none bg-neutral-900 shadow-xl border border-black/10 block"
+              >
                 {/* 100% Full-Bleed Image/Video */}
                 {slide.media_type === "video" ? (
                   <video
@@ -364,16 +382,12 @@ export function LookbookCarousel() {
                     <span className="font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-white truncate">
                       {product.name}
                     </span>
-                    <Link
-                      to="/product/$slug"
-                      params={{ slug: product.slug }}
-                      className="shrink-0 font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-white hover:text-primary transition-colors flex items-center gap-1"
-                    >
+                    <span className="shrink-0 font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-white hover:text-primary transition-colors flex items-center gap-1">
                       SHOP THE LOOK <span className="text-primary font-bold">→</span>
-                    </Link>
+                    </span>
                   </div>
                 )}
-              </div>
+              </Link>
             </motion.div>
           );
         })}
@@ -388,9 +402,8 @@ export function LookbookCarousel() {
               key={idx}
               onClick={() => setActiveIndex(idx)}
               aria-label={`Go to slide ${idx + 1}`}
-              className={`h-1.5 transition-all duration-300 rounded-full cursor-pointer ${
-                isSelected ? "w-7 bg-black" : "w-1.5 bg-black/25 hover:bg-black/60"
-              }`}
+              className={`h-1.5 transition-all duration-300 rounded-full cursor-pointer ${isSelected ? "w-7 bg-black" : "w-1.5 bg-black/25 hover:bg-black/60"
+                }`}
             />
           );
         })}
