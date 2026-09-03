@@ -160,26 +160,10 @@ function PlayableDenyLogo({
   );
 }
 
-export function DenySpace() {
-  const [cfg, setCfg] = useState<DenySpaceConfig>(DEFAULTS);
-  const [visible, setVisible] = useState(true);
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "denyspace")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: unknown };
-        setVisible(row.is_visible);
-        if (row.config && typeof row.config === "object") {
-          setCfg({ ...DEFAULTS, ...(row.config as Partial<DenySpaceConfig>) });
-        }
-      });
-  }, []);
+export function DenySpace() {
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<DenySpaceConfig>("denyspace", DEFAULTS);
 
   if (!visible) return null;
 

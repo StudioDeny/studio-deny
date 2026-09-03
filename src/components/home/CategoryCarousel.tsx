@@ -30,27 +30,12 @@ const DEFAULTS: CategoryCarouselConfig = {
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+
 export function CategoryCarousel() {
-  const [cfg, setCfg] = useState<CategoryCarouselConfig>(DEFAULTS);
-  const [visible, setVisible] = useState(true);
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<CategoryCarouselConfig>("category_carousel", DEFAULTS);
   const [active, setActive] = useState(0);
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "category_carousel")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: unknown };
-        setVisible(row.is_visible);
-        const cfgData = row.config as Partial<CategoryCarouselConfig>;
-        if (cfgData?.slides && cfgData.slides.length > 0) setCfg({ slides: cfgData.slides });
-      });
-  }, []);
 
   useEffect(() => {
     if (cfg.slides.length <= 1) return;

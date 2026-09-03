@@ -65,10 +65,29 @@ export function SmoothScroll({
     };
   }, [duration, lerp, wheelMultiplier, touchMultiplier, smoothWheel]);
 
-  // Route change handler: reset scroll position smoothly / immediately on navigation
+  const isPopStateRef = useRef(false);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      isPopStateRef.current = true;
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // Route change handler: reset scroll position only on forward/push navigation, preserve on back/forward
   useEffect(() => {
     if (lenisInstance) {
-      lenisInstance.scrollTo(0, { immediate: true });
+      if (isPopStateRef.current) {
+        // Back/forward navigation: do not force top, let scroll restoration maintain exact position
+        isPopStateRef.current = false;
+        // Sync Lenis with restored window scroll position
+        requestAnimationFrame(() => {
+          lenisInstance.resize();
+        });
+      } else {
+        lenisInstance.scrollTo(0, { immediate: true });
+      }
     }
   }, [location.pathname, lenisInstance]);
 

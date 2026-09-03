@@ -12,29 +12,13 @@ const DEFAULTS: FaqConfig = { view_all_label: "VIEW ALL FAQS" };
 
 const PREVIEW_LIMIT = 5;
 
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+
 export function FaqSection() {
-  const [cfg, setCfg] = useState<FaqConfig>(DEFAULTS);
-  const [visible, setVisible] = useState(true);
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<FaqConfig>("faq", DEFAULTS);
   const [items, setItems] = useState<FaqPreviewItem[]>([]);
   const [open, setOpen] = useState<number | null>(0);
   const heading = useSectionHeading("faq", "WE'VE GOT ANSWERS.", { eyebrow: "GOT QUESTIONS?" });
-
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "faq")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: Partial<FaqConfig> };
-        setVisible(row.is_visible);
-        setCfg({
-          view_all_label: row.config?.view_all_label || DEFAULTS.view_all_label,
-        });
-      });
-  }, []);
 
   useEffect(() => {
     supabase

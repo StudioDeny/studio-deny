@@ -6,33 +6,17 @@ import { EditorialHeading, EditorialParagraph } from "@/components/ui/EditorialH
 
 type MotionPictureConfig = { video_url: string; media_type?: "image" | "video"; subtext: string };
 
-export function MotionPictureSection() {
-  const [visible, setVisible] = useState(true);
-  const [cfg, setCfg] = useState<MotionPictureConfig>({
-    video_url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    media_type: "video",
-    subtext: "CAPTURING THE ESSENCE OF THE STREETS. RAW, UNFILTERED, AND IN CONSTANT MOTION.",
-  });
-  const heading = useSectionHeading("motion_picture", "MOTION\nPICTURE");
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "motion_picture")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: Partial<MotionPictureConfig> };
-        setVisible(row.is_visible);
-        if (row.config?.video_url) setCfg((mp) => ({
-          video_url: row.config.video_url!,
-          media_type: row.config.media_type ?? "video",
-          subtext: row.config.subtext ?? mp.subtext,
-        }));
-      });
-  }, []);
+const DEFAULTS: MotionPictureConfig = {
+  video_url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+  media_type: "video",
+  subtext: "CAPTURING THE ESSENCE OF THE STREETS. RAW, UNFILTERED, AND IN CONSTANT MOTION.",
+};
+
+export function MotionPictureSection() {
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<MotionPictureConfig>("motion_picture", DEFAULTS);
+  const heading = useSectionHeading("motion_picture", "MOTION\nPICTURE");
 
   if (!visible) return null;
 

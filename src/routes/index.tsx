@@ -62,43 +62,23 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType> = {
   faq: FaqSection,
 };
 
+import { useMemo } from "react";
+import { useWebsiteSectionsOrder, useWebsiteSectionConfig } from "@/lib/websiteSections";
+
 function Index() {
-  const [heroSlides, setHeroSlides] = useState<HeroSlide[] | undefined>(undefined);
-  const [orderedTypes, setOrderedTypes] = useState<string[]>(Object.keys(SECTION_COMPONENTS));
-
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config")
-      .eq("page_slug", "home")
-      .eq("section_type", "hero")
-      .single()
-      .then(({ data }) => {
-        const cfg = data?.config as { slides?: HeroSlide[] } | undefined;
-        if (cfg?.slides && cfg.slides.length > 0) setHeroSlides(cfg.slides);
-      });
-  }, []);
-
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("section_type, position")
-      .eq("page_slug", "home")
-      .order("position")
-      .then(({ data }) => {
-        if (!data) return;
-        setOrderedTypes(data.map((r) => r.section_type).filter((t) => t in SECTION_COMPONENTS));
-      });
-  }, []);
+  const allowedKeys = useMemo(() => Object.keys(SECTION_COMPONENTS), []);
+  const orderedTypes = useWebsiteSectionsOrder(allowedKeys);
+  const { config: heroConfig } = useWebsiteSectionConfig<{ slides?: HeroSlide[] }>("hero", {});
 
   return (
     <div className="bg-background text-foreground overflow-x-hidden min-h-screen font-body">
       <LoyaltyModal />
 
-      <HeroSlider slides={heroSlides} />
+      <HeroSlider slides={heroConfig.slides && heroConfig.slides.length > 0 ? heroConfig.slides : undefined} />
 
       {orderedTypes.map((type) => {
         const Section = SECTION_COMPONENTS[type];
+        if (!Section) return null;
         return <Section key={type} />;
       })}
     </div>

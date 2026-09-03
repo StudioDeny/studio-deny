@@ -15,28 +15,10 @@ const DEFAULTS: MarqueeConfig = {
   speed: 120,
 };
 
-export function MarqueeTicker() {
-  const [cfg, setCfg] = useState<MarqueeConfig>(DEFAULTS);
-  const [visible, setVisible] = useState(true);
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "marquee")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: Partial<MarqueeConfig> };
-        setVisible(row.is_visible);
-        const loadedItems = row.config?.items ?? [];
-        setCfg({
-          items: loadedItems.length > 0 ? loadedItems : DEFAULTS.items,
-          speed: row.config?.speed ?? DEFAULTS.speed,
-        });
-      });
-  }, []);
+export function MarqueeTicker() {
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<MarqueeConfig>("marquee", DEFAULTS);
 
   if (!visible) return null;
   const items = cfg.items.length > 0 ? cfg.items : DEFAULTS.items;

@@ -29,20 +29,12 @@ const SUPPLEMENTARY_PHOTOS: CommunityPhoto[] = [
   },
 ];
 
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+
 export function CommunityBento() {
   const [photos, setPhotos] = useState<CommunityPhoto[]>([]);
-  const [visible, setVisible] = useState(true);
+  const { isVisible: visible } = useWebsiteSectionConfig("community", {});
   const heading = useSectionHeading("worn_by_community", "WORN BY OUR COMMUNITY", { eyebrow: "THE STREETS SPEAK", subtitle: "Real people, real fits. Tag us @studiodeny" });
-
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "community")
-      .single()
-      .then(({ data }) => { if (data) setVisible((data as { is_visible: boolean }).is_visible); });
-  }, []);
 
   useEffect(() => {
     supabase
