@@ -128,24 +128,13 @@ export function FabricTabsSection() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="flex items-end justify-between gap-4"
               >
-                <div>
-                  <div className="text-mono text-[10px] sm:text-[11px] tracking-[0.3em] text-primary uppercase font-bold mb-1">
-                    {activeFabric.name}
-                  </div>
-                  <div className="text-display text-xl sm:text-2xl text-white uppercase tracking-wider font-bold drop-shadow-md">
-                    {activeFabric.title}
-                  </div>
+                <div className="text-mono text-[10px] sm:text-[11px] tracking-[0.3em] text-primary uppercase font-bold mb-1">
+                  {activeFabric.name}
                 </div>
-                {activeFabric.href && (
-                  <Link
-                    to={activeFabric.href}
-                    className="pointer-events-auto shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white text-black hover:bg-primary hover:text-white transition-colors text-mono text-[9px] sm:text-[10px] tracking-[0.2em] uppercase font-bold"
-                  >
-                    EXPLORE <ArrowRight className="size-3" />
-                  </Link>
-                )}
+                <div className="text-display text-xl sm:text-2xl text-white uppercase tracking-wider font-bold drop-shadow-md">
+                  {activeFabric.title}
+                </div>
               </motion.div>
             </div>
           </div>
