@@ -149,31 +149,13 @@ function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: stri
   );
 }
 
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+
 export function NewArrivalsGrid() {
-  const [cfg, setCfg] = useState<ArrivalsConfig>(DEFAULTS);
-  const [visible, setVisible] = useState(true);
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<ArrivalsConfig>("new_arrivals", DEFAULTS);
   const [products, setProducts] = useState<Product[]>([]);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const heading = useSectionHeading("new_arrivals", "NEW ARRIVALS", { eyebrow: "FRESH OFF THE PRESS", subtitle: "" });
-
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "new_arrivals")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: unknown };
-        setVisible(row.is_visible);
-        const cfgData = row.config as Partial<ArrivalsConfig>;
-        if (cfgData) setCfg({
-          cta_label: cfgData.cta_label || DEFAULTS.cta_label,
-          product_slugs: cfgData.product_slugs ?? [],
-        });
-      });
-  }, []);
 
   useEffect(() => {
     if (cfg.product_slugs.length === 0) { setProducts([]); return; }

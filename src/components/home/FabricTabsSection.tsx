@@ -36,29 +36,14 @@ const DEFAULT_FABRIC_TABS: FabricTab[] = [
   },
 ];
 
-export function FabricTabsSection() {
-  const [fabricTabs, setFabricTabs] = useState<FabricTab[]>(DEFAULT_FABRIC_TABS);
-  const [activeFabric, setActiveFabric] = useState(DEFAULT_FABRIC_TABS[0]);
-  const [visible, setVisible] = useState(true);
-  const productSpecsHeading = useSectionHeading("product_specifications", "PREMIUM FABRIC.", { eyebrow: "THE DETAILS", subtitle: "UNCOMPROMISED QUALITY." });
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "fabric_tabs")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: Partial<FabricTabsConfig> };
-        setVisible(row.is_visible);
-        if (row.config?.tabs && row.config.tabs.length > 0) {
-          setFabricTabs(row.config.tabs);
-          setActiveFabric(row.config.tabs[0]);
-        }
-      });
-  }, []);
+export function FabricTabsSection() {
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<FabricTabsConfig>("fabric_tabs", { tabs: DEFAULT_FABRIC_TABS });
+  const fabricTabs = cfg.tabs && cfg.tabs.length > 0 ? cfg.tabs : DEFAULT_FABRIC_TABS;
+  const [activeFabricId, setActiveFabricId] = useState<string>(fabricTabs[0]?.id || DEFAULT_FABRIC_TABS[0].id);
+  const activeFabric = fabricTabs.find((t) => t.id === activeFabricId) || fabricTabs[0] || DEFAULT_FABRIC_TABS[0];
+  const productSpecsHeading = useSectionHeading("product_specifications", "PREMIUM FABRIC.", { eyebrow: "THE DETAILS", subtitle: "UNCOMPROMISED QUALITY." });
 
   if (!visible) return null;
 
@@ -82,52 +67,163 @@ export function FabricTabsSection() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
-          <div className="order-1 w-full relative h-[45vh] sm:h-[60vh] lg:h-[80vh] overflow-hidden border border-border bg-surface">
-            <AnimatePresence mode="wait">
-              {activeFabric.img_type === "video" ? (
-                <motion.video
-                  key={activeFabric.id}
-                  initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  src={activeFabric.img} autoPlay loop muted playsInline
-                />
-              ) : (
-                <motion.div key={activeFabric.id} initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}
-                  className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('${activeFabric.img}')` }} />
-              )}
-            </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent opacity-60" />
-          </div>
-          <div className="order-2 w-full flex flex-col justify-center space-y-6 sm:space-y-8">
-            {fabricTabs.map((fabric) => (
-              <div key={fabric.id} onMouseEnter={() => setActiveFabric(fabric)} onClick={() => setActiveFabric(fabric)}
-                className="group cursor-pointer border-b border-border pb-6 sm:pb-8 last:border-0">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl text-display uppercase tracking-wider transition-colors duration-300 ${activeFabric.id === fabric.id ? "text-foreground font-black" : "text-foreground/40 group-hover:text-foreground/75"}`}>
-                    {fabric.name}
-                  </h3>
-                  {fabric.href ? (
-                    <Link
-                      to={fabric.href}
-                      onClick={(e) => e.stopPropagation()}
-                      aria-label={`Shop ${fabric.name}`}
-                      className={`transition-all duration-300 hover:text-primary ${activeFabric.id === fabric.id ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`}
-                    >
-                      <ArrowRight className="w-8 h-8 sm:w-10 sm:h-10" />
-                    </Link>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+          {/* ════════ SILKY LUXURY IMAGE CROSSFADE STAGE (NO BLANK FLASHING) ════════ */}
+          <div className="order-1 lg:col-span-6 w-full relative h-[48vh] sm:h-[62vh] lg:h-[75vh] overflow-hidden border border-border bg-[#0D0D0D] shadow-2xl group">
+            {fabricTabs.map((fabric, idx) => {
+              const isActive = fabric.id === activeFabric.id;
+              return (
+                <motion.div
+                  key={fabric.id}
+                  initial={false}
+                  animate={{
+                    opacity: isActive ? 1 : 0,
+                    scale: isActive ? 1 : 1.06,
+                  }}
+                  transition={{
+                    duration: 0.55,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className={`absolute inset-0 w-full h-full ${
+                    isActive ? "z-10 pointer-events-auto" : "z-0 pointer-events-none"
+                  }`}
+                >
+                  {fabric.img_type === "video" ? (
+                    <video
+                      src={fabric.img}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <ArrowRight className={`w-8 h-8 sm:w-10 sm:h-10 transition-all duration-300 ${activeFabric.id === fabric.id ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}`} />
+                    <img
+                      src={fabric.img}
+                      alt={fabric.name}
+                      className="w-full h-full object-cover"
+                      loading="eager"
+                    />
                   )}
-                </div>
-                <div className={`overflow-hidden transition-all duration-500 ${activeFabric.id === fabric.id ? "max-h-72 opacity-100" : "max-h-0 opacity-0"}`}>
-                  <div className="pt-2">
-                    <h4 className="text-base sm:text-lg font-bold tracking-[0.18em] uppercase text-mono mb-3 opacity-95">{fabric.title}</h4>
-                    <p className="text-base sm:text-lg opacity-75 text-mono leading-relaxed max-w-xl">{fabric.desc}</p>
+                </motion.div>
+              );
+            })}
+
+            {/* Subtle luxury gradient overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none z-20" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-transparent pointer-events-none z-20" />
+
+            {/* Top-left Index Badge */}
+            <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-30 pointer-events-none flex items-center gap-2 bg-black/60 backdrop-blur-md border border-white/15 px-3 py-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-mono text-[9px] sm:text-[10px] tracking-[0.25em] text-white/90 uppercase font-semibold">
+                SPECS [ 0{fabricTabs.findIndex((t) => t.id === activeFabric.id) + 1} / 0{fabricTabs.length} ]
+              </span>
+            </div>
+
+            {/* Bottom Floating Title Overlay */}
+            <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 z-30 pointer-events-none">
+              <motion.div
+                key={activeFabric.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="flex items-end justify-between gap-4"
+              >
+                <div>
+                  <div className="text-mono text-[10px] sm:text-[11px] tracking-[0.3em] text-primary uppercase font-bold mb-1">
+                    {activeFabric.name}
+                  </div>
+                  <div className="text-display text-xl sm:text-2xl text-white uppercase tracking-wider font-bold drop-shadow-md">
+                    {activeFabric.title}
                   </div>
                 </div>
-              </div>
-            ))}
+                {activeFabric.href && (
+                  <Link
+                    to={activeFabric.href}
+                    className="pointer-events-auto shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white text-black hover:bg-primary hover:text-white transition-colors text-mono text-[9px] sm:text-[10px] tracking-[0.2em] uppercase font-bold"
+                  >
+                    EXPLORE <ArrowRight className="size-3" />
+                  </Link>
+                )}
+              </motion.div>
+            </div>
+          </div>
+
+          {/* ════════ ACCORDION TABS CONTROLS ════════ */}
+          <div className="order-2 lg:col-span-6 w-full flex flex-col justify-center space-y-4 sm:space-y-6">
+            {fabricTabs.map((fabric, idx) => {
+              const isSelected = activeFabric.id === fabric.id;
+              return (
+                <div
+                  key={fabric.id}
+                  onMouseEnter={() => setActiveFabricId(fabric.id)}
+                  onClick={() => setActiveFabricId(fabric.id)}
+                  className={`group cursor-pointer border-b border-border pb-5 sm:pb-7 transition-all duration-300 last:border-0 ${
+                    isSelected ? "opacity-100" : "opacity-60 hover:opacity-85"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-4 mb-2">
+                    <div className="flex items-baseline gap-4 sm:gap-6">
+                      <span className="text-mono text-xs sm:text-sm tracking-widest text-muted-foreground font-semibold">
+                        0{idx + 1}
+                      </span>
+                      <h3
+                        className={`text-4xl sm:text-5xl lg:text-6xl xl:text-7xl text-display uppercase tracking-wider transition-all duration-300 ${
+                          isSelected
+                            ? "text-foreground font-black translate-x-1"
+                            : "text-foreground/50 group-hover:text-foreground/80"
+                        }`}
+                      >
+                        {fabric.name}
+                      </h3>
+                    </div>
+
+                    {fabric.href ? (
+                      <Link
+                        to={fabric.href}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Shop ${fabric.name}`}
+                        className={`transition-all duration-300 p-2 text-foreground hover:text-primary ${
+                          isSelected ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-3 pointer-events-none"
+                        }`}
+                      >
+                        <ArrowRight className="size-6 sm:size-8" />
+                      </Link>
+                    ) : (
+                      <ArrowRight
+                        className={`size-6 sm:size-8 transition-all duration-300 ${
+                          isSelected ? "opacity-100 translate-x-0 text-primary" : "opacity-0 -translate-x-3 text-muted-foreground"
+                        }`}
+                      />
+                    )}
+                  </div>
+
+                  {/* Smooth Accordion Body */}
+                  <motion.div
+                    initial={false}
+                    animate={{
+                      height: isSelected ? "auto" : 0,
+                      opacity: isSelected ? 1 : 0,
+                    }}
+                    transition={{
+                      duration: 0.35,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-2 pl-8 sm:pl-12">
+                      <h4 className="text-xs sm:text-sm font-bold tracking-[0.2em] uppercase text-mono text-primary mb-2">
+                        {fabric.title}
+                      </h4>
+                      <p className="text-sm sm:text-base text-muted-foreground font-mono leading-relaxed max-w-xl">
+                        {fabric.desc}
+                      </p>
+                    </div>
+                  </motion.div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

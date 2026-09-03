@@ -21,29 +21,12 @@ const DEFAULT_CARDS: ContactCard[] = [
 ];
 type ContactSupportCfg = { cards: ContactCard[]; cta_label: string };
 
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+
 export function ContactSupportSection() {
   const [contact, setContact] = useState<ContactSupport>(CONTACT_DEFAULTS);
-  const [visible, setVisible] = useState(true);
-  const [cfg, setCfg] = useState<ContactSupportCfg>({ cards: DEFAULT_CARDS, cta_label: "VISIT SUPPORT PAGE" });
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<ContactSupportCfg>("contact_support", { cards: DEFAULT_CARDS, cta_label: "VISIT SUPPORT PAGE" });
   const heading = useSectionHeading("contact_support", "CONTACT SUPPORT", { eyebrow: "WE'RE HERE" });
-
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "contact_support")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: Partial<ContactSupportCfg> };
-        setVisible(row.is_visible);
-        setCfg({
-          cards: row.config?.cards?.length === 3 ? row.config.cards : DEFAULT_CARDS,
-          cta_label: row.config?.cta_label || "VISIT SUPPORT PAGE",
-        });
-      });
-  }, []);
 
   useEffect(() => {
     supabase

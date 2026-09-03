@@ -16,27 +16,17 @@ const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
   { quote: "Studio Deny is the only brand I trust for streetwear.", name: "Kiran R.", city: "Chennai", rating: 5 },
 ];
 
-export function TestimonialsSection() {
-  const [testimonials, setTestimonials] = useState<TestimonialItem[]>(DEFAULT_TESTIMONIALS);
-  const [visible, setVisible] = useState(true);
-  const heading = useSectionHeading("testimonials", "WORN IN\nEVERY CITY");
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "testimonials")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: { fallback_quotes?: { quote: string; name: string; city: string }[] } };
-        setVisible(row.is_visible);
-        if (row.config?.fallback_quotes && row.config.fallback_quotes.length > 0) {
-          setTestimonials(row.config.fallback_quotes.map((q) => ({ ...q, rating: 5 })));
-        }
-      });
-  }, []);
+export function TestimonialsSection() {
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<{ fallback_quotes?: { quote: string; name: string; city: string }[] }>("testimonials", { fallback_quotes: DEFAULT_TESTIMONIALS });
+  const [testimonials, setTestimonials] = useState<TestimonialItem[]>(() => {
+    if (cfg.fallback_quotes && cfg.fallback_quotes.length > 0) {
+      return cfg.fallback_quotes.map((q) => ({ ...q, rating: 5 }));
+    }
+    return DEFAULT_TESTIMONIALS;
+  });
+  const heading = useSectionHeading("testimonials", "WORN IN\nEVERY CITY");
 
   useEffect(() => {
     supabase

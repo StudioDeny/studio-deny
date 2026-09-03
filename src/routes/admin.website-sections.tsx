@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { MediaField } from "@/components/admin/MediaField";
+import { invalidateWebsiteSectionsCache } from "@/lib/websiteSections";
 
 export const Route = createFileRoute("/admin/website-sections")({
   component: AdminWebsiteSections,
@@ -165,6 +166,7 @@ function AdminWebsiteSections() {
     const { error } = await supabase.from("website_sections").update({ is_visible: val }).eq("id", id);
     if (error) { toast.error(error.message); return; }
     setSections((s) => s.map((x) => (x.id === id ? { ...x, is_visible: val } : x)));
+    invalidateWebsiteSectionsCache();
     toast.success(val ? "Section shown" : "Section hidden");
   };
 
@@ -175,6 +177,7 @@ function AdminWebsiteSections() {
     const { error } = await supabase.from("website_sections").delete().eq("id", id);
     if (error) { toast.error(error.message); setDeleting(null); return; }
     setSections((s) => s.filter((x) => x.id !== id));
+    invalidateWebsiteSectionsCache();
     toast.success("Section deleted");
     setDeleting(null);
   };
@@ -189,6 +192,7 @@ function AdminWebsiteSections() {
     await Promise.all(
       next.map((r, i) => supabase.from("website_sections").update({ position: i }).eq("id", r.id))
     );
+    invalidateWebsiteSectionsCache();
   };
 
   const resetOrderToDefault = async () => {
@@ -200,6 +204,7 @@ function AdminWebsiteSections() {
     const results = await Promise.all(updates);
     const failed = results.find((r) => r.error);
     if (failed?.error) { toast.error(failed.error.message); setResetting(false); return; }
+    invalidateWebsiteSectionsCache();
     toast.success("Order reset to default");
     setResetting(false);
     load();
@@ -213,6 +218,7 @@ function AdminWebsiteSections() {
       .update({ config: editing.config, title: editing.title })
       .eq("id", editing.id);
     if (error) { toast.error(error.message); setSaving(false); return; }
+    invalidateWebsiteSectionsCache();
     toast.success("Section saved");
     setSaving(false);
     setEditing(null);

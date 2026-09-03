@@ -144,34 +144,16 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
   );
 }
 
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+
 export function PopularNowGrid() {
-  const [cfg, setCfg] = useState<PopularNowConfig>(DEFAULTS);
-  const [visible, setVisible] = useState(true);
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<PopularNowConfig>("popular_now", DEFAULTS);
   const [products, setProducts] = useState<(Product & { tag?: string })[]>([]);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const heading = useSectionHeading("popular_now", "BEST SELLERS", {
     eyebrow: "MOST WANTED FITS",
     subtitle: "HEAVY ROTATION PIECES",
   });
-
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "popular_now")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: unknown };
-        setVisible(row.is_visible);
-        const cfgData = row.config as Partial<PopularNowConfig>;
-        if (cfgData) setCfg({
-          items: cfgData.items ?? [],
-          view_all_href: cfgData.view_all_href || DEFAULTS.view_all_href,
-        });
-      });
-  }, []);
 
   useEffect(() => {
     if (cfg.items.length === 0) { setProducts([]); return; }

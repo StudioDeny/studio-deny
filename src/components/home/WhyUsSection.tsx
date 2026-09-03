@@ -21,27 +21,11 @@ const DEFAULTS: WhyUsConfig = {
   ],
 };
 
-export function WhyUsSection() {
-  const [cfg, setCfg] = useState<WhyUsConfig>(DEFAULTS);
-  const [visible, setVisible] = useState(true);
-  const heading = useSectionHeading("why_us", "BUILT DIFFERENT.", { eyebrow: "WHY STUDIO DENY", subtitle: "STAYS DIFFERENT." });
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "why_us")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: unknown };
-        setVisible(row.is_visible);
-        if (row.config && typeof row.config === "object") {
-          setCfg({ ...DEFAULTS, ...(row.config as Partial<WhyUsConfig>) });
-        }
-      });
-  }, []);
+export function WhyUsSection() {
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<WhyUsConfig>("why_us", DEFAULTS);
+  const heading = useSectionHeading("why_us", "BUILT DIFFERENT.", { eyebrow: "WHY STUDIO DENY", subtitle: "STAYS DIFFERENT." });
 
   if (!visible) return null;
 

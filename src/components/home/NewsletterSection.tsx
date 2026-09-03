@@ -63,27 +63,11 @@ function Form({ ctaLabel, successHeading, successBody }: { ctaLabel: string; suc
   );
 }
 
-export function NewsletterSection() {
-  const [cfg, setCfg] = useState<NewsletterConfig>(DEFAULTS);
-  const [visible, setVisible] = useState(true);
-  const heading = useSectionHeading("newsletter", "READY FOR THE NEXT DROP?", { eyebrow: "DROP ALERTS", subtitle: "Be first in line when new pieces launch. No spam, just early access." });
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "newsletter")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: unknown };
-        setVisible(row.is_visible);
-        if (row.config && typeof row.config === "object") {
-          setCfg({ ...DEFAULTS, ...(row.config as Partial<NewsletterConfig>) });
-        }
-      });
-  }, []);
+export function NewsletterSection() {
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<NewsletterConfig>("newsletter", DEFAULTS);
+  const heading = useSectionHeading("newsletter", "READY FOR THE NEXT DROP?", { eyebrow: "DROP ALERTS", subtitle: "Be first in line when new pieces launch. No spam, just early access." });
 
   if (!visible) return null;
 

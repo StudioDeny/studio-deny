@@ -30,27 +30,10 @@ const GRID_COLS: Record<number, string> = {
   4: "sm:grid-cols-4",
 };
 
-export function GenderSplit() {
-  const [cfg, setCfg] = useState<GenderSplitConfig>(DEFAULTS);
-  const [visible, setVisible] = useState(true);
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "gender_split")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: unknown };
-        setVisible(row.is_visible);
-        const cfgData = row.config as Partial<GenderSplitConfig>;
-        if (cfgData?.cards && cfgData.cards.length > 0) {
-          setCfg({ cards: cfgData.cards, explore_label: cfgData.explore_label || DEFAULTS.explore_label });
-        }
-      });
-  }, []);
+export function GenderSplit() {
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<GenderSplitConfig>("gender_split", DEFAULTS);
 
   if (!visible) return null;
 

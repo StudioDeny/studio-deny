@@ -280,27 +280,13 @@ function Lightbox({
   );
 }
 
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+
 export function InfluencerPicksGrid() {
   const [picks, setPicks] = useState<PickWithTags[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [visible, setVisible] = useState(true);
-  const [cfg, setCfg] = useState<InfluencerPicksConfig>({ explore_label: "EXPLORE OUR COLLECTION" });
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<InfluencerPicksConfig>("influencer_picks", { explore_label: "EXPLORE OUR COLLECTION" });
   const scrollerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    supabase
-      .from("website_sections")
-      .select("config, is_visible")
-      .eq("page_slug", "home")
-      .eq("section_type", "influencer_picks")
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        const row = data as unknown as { is_visible: boolean; config: Partial<InfluencerPicksConfig> };
-        setVisible(row.is_visible);
-        if (row.config?.explore_label) setCfg({ explore_label: row.config.explore_label });
-      });
-  }, []);
 
   useEffect(() => {
     (async () => {
