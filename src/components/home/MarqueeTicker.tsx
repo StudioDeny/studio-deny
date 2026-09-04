@@ -21,7 +21,8 @@ export function MarqueeTicker() {
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<MarqueeConfig>("marquee", DEFAULTS);
 
   if (!visible) return null;
-  const items = cfg.items.length > 0 ? cfg.items : DEFAULTS.items;
+  const validItems = (cfg.items ?? []).map((s) => s.trim()).filter(Boolean);
+  const items = validItems.length > 0 ? validItems : DEFAULTS.items;
 
   // Fast, seamless infinite scrolling
   const durationSeconds = Math.max(6, Math.min(14, 1200 / (cfg.speed || 100)));

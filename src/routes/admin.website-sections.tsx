@@ -213,9 +213,28 @@ function AdminWebsiteSections() {
   const saveConfig = async () => {
     if (!editing) return;
     setSaving(true);
+    let configToSave = editing.config;
+    if (editing.section_type === "marquee" && configToSave && typeof configToSave === "object") {
+      const c = configToSave as Record<string, unknown>;
+      if (Array.isArray(c.items)) {
+        configToSave = {
+          ...c,
+          items: c.items.map((s: string) => String(s).trim()).filter(Boolean),
+        } as import("@/types/database").Json;
+      }
+    } else if (editing.section_type === "lookbook" && configToSave && typeof configToSave === "object") {
+      const c = configToSave as Record<string, unknown>;
+      if (Array.isArray(c.images)) {
+        configToSave = {
+          ...c,
+          images: c.images.map((s: string) => String(s).trim()).filter(Boolean),
+        } as import("@/types/database").Json;
+      }
+    }
+
     const { error } = await supabase
       .from("website_sections")
-      .update({ config: editing.config, title: editing.title })
+      .update({ config: configToSave, title: editing.title })
       .eq("id", editing.id);
     if (error) { toast.error(error.message); setSaving(false); return; }
     invalidateWebsiteSectionsCache();
@@ -545,7 +564,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
             <textarea
               rows={6}
               value={(c.items ?? []).join("\n")}
-              onChange={(e) => set("items", e.target.value.split("\n").map((s) => s.trim()).filter(Boolean))}
+              onChange={(e) => set("items", e.target.value.split("\n"))}
               className="inp"
               placeholder={"NEW DROP — SS26 Available Now\nRESTOCK — Essential Hoodie Back In Stock"}
             />
@@ -767,7 +786,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
             <textarea
               rows={6}
               value={(c.images ?? []).join("\n")}
-              onChange={(e) => set("images", e.target.value.split("\n").map((s) => s.trim()).filter(Boolean))}
+              onChange={(e) => set("images", e.target.value.split("\n"))}
               className="inp"
               placeholder="https://…"
             />
