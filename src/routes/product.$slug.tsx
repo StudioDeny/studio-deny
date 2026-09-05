@@ -418,7 +418,7 @@ function PDP() {
           </div>
 
           <div className="flex items-start justify-between gap-4 mt-3">
-            <h1 className="text-display leading-[0.9] flex-1" style={{ fontSize: "clamp(42px, 6vw, 72px)" }}>
+            <h1 className="text-display leading-none flex-1" style={{ fontSize: "clamp(42px, 6vw, 72px)" }}>
               {product.name}
             </h1>
 
