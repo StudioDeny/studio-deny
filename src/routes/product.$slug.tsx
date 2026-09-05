@@ -409,9 +409,8 @@ function PDP() {
           </div>
         </div>
 
-        {/* Product Info — pinned via sticky, and independently scrollable so a wheel
-            scroll with the cursor over this panel never drags the gallery underneath. */}
-        <div className="md:sticky md:top-24 md:self-start md:max-h-[calc(100vh-6rem)] md:overflow-y-auto no-scrollbar flex flex-col">
+        {/* Product Info — pinned via sticky while the gallery scrolls underneath. */}
+        <div className="md:sticky md:top-24 md:self-start flex flex-col">
           <div className="text-mono text-primary flex items-center gap-2" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>
             <span className="size-1 bg-primary rounded-full pulse-dot" />
             {product.category.toUpperCase()}
