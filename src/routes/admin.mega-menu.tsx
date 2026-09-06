@@ -58,13 +58,12 @@ function AdminMegaMenu() {
 
   // A category can only be a navbar tab once, and (separately) can't be
   // both the tab itself and a sublink under that same tab.
-  const usedAsTab = new Set(categories.filter((c) => c.id !== selectedId).map((c) => c.category_id));
-  const availableForTab = allCategories.filter((c) => !usedAsTab.has(c.id) || c.id === selected?.category_id);
+  const allUsedCategoryIds = new Set(categories.map((c) => c.category_id));
   const usedAsLink = new Set(selectedLinks.map((l) => l.category_id));
 
   // ── Categories (navbar tabs) ────────────────────────────────
   const addCategory = async () => {
-    const first = allCategories.find((c) => !usedAsTab.has(c.id));
+    const first = allCategories.find((c) => !allUsedCategoryIds.has(c.id));
     if (!first) return toast.error("Every category is already a navbar tab.");
     const { data, error } = await supabase
       .from("mega_menu_categories")
@@ -202,7 +201,7 @@ function AdminMegaMenu() {
                   cat={cat}
                   label={catName(cat.category_id)}
                   selected={cat.id === selectedId}
-                  options={allCategories.filter((c) => !usedAsTab.has(c.id) || c.id === cat.category_id)}
+                  options={allCategories.filter((c) => !allUsedCategoryIds.has(c.id) || c.id === cat.category_id)}
                   onSelect={() => setSelectedId(cat.id)}
                   onChange={(patch) => setCategories((cs) => cs.map((c) => (c.id === cat.id ? { ...c, ...patch } : c)))}
                   onDelete={() => deleteCategory(cat.id)}

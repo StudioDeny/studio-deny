@@ -44,7 +44,7 @@ export async function upsertCategory(input: { name: string; slug?: string; paren
   const slug = input.slug ?? slugify(input.name);
   const { error } = await supabase
     .from("categories")
-    .upsert({ name: input.name, slug, parent_id: input.parentId ?? null }, { onConflict: "slug" });
+    .upsert({ name: input.name, slug, parent_id: input.parentId ?? null, is_active: true }, { onConflict: "slug" });
   if (error) throw new Error(error.message);
 }
 
@@ -80,7 +80,7 @@ export async function upsertBrand(input: { slug?: string; name: string }): Promi
   const slug = input.slug ?? slugify(input.name);
   const { error } = await supabase
     .from("brands")
-    .upsert({ name: input.name, slug }, { onConflict: "slug" });
+    .upsert({ name: input.name, slug, is_active: true }, { onConflict: "slug" });
   if (error) throw new Error(error.message);
 }
 

@@ -29,47 +29,72 @@ function AdminCatalog() {
   const addCat = async () => {
     const name = newCat.trim();
     if (!name) return;
-    await upsertCategory({ name, parentId: newCatParent || null });
-    setCats(await listCategories());
-    setNewCat("");
-    setNewCatParent("");
-    toast.success(`"${name}" added`);
+    try {
+      await upsertCategory({ name, parentId: newCatParent || null });
+      setCats(await listCategories());
+      setNewCat("");
+      setNewCatParent("");
+      toast.success(`"${name}" added`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to add category";
+      toast.error(message);
+    }
   };
 
   const addBrand = async () => {
     const name = newBrand.trim();
     if (!name) return;
-    await upsertBrand({ name });
-    setBrands(await listBrands());
-    setNewBrand("");
-    toast.success(`"${name}" added`);
+    try {
+      await upsertBrand({ name });
+      setBrands(await listBrands());
+      setNewBrand("");
+      toast.success(`"${name}" added`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to add brand";
+      toast.error(message);
+    }
   };
 
   const removeCat = async (slug: string) => {
     if (!confirm("Delete this category?")) return;
-    await deleteCategory(slug);
-    setCats(await listCategories());
+    try {
+      await deleteCategory(slug);
+      setCats(await listCategories());
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to delete category";
+      toast.error(message);
+    }
   };
 
   const removeBrand = async (slug: string) => {
     if (!confirm("Delete this brand?")) return;
-    await deleteBrand(slug);
-    setBrands(await listBrands());
+    try {
+      await deleteBrand(slug);
+      setBrands(await listBrands());
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to delete brand";
+      toast.error(message);
+    }
   };
 
   const saveEdit = async () => {
     if (!editing) return;
-    if (editing.kind === "cat") {
-      // Preserve the existing parentId so editing a child's name doesn't silently un-parent it.
-      const existing = cats.find((c) => c.slug === editing.slug);
-      await upsertCategory({ slug: editing.slug, name: editing.name, parentId: existing?.parentId ?? null });
-      setCats(await listCategories());
-    } else {
-      await upsertBrand({ slug: editing.slug, name: editing.name });
-      setBrands(await listBrands());
+    try {
+      if (editing.kind === "cat") {
+        // Preserve the existing parentId so editing a child's name doesn't silently un-parent it.
+        const existing = cats.find((c) => c.slug === editing.slug);
+        await upsertCategory({ slug: editing.slug, name: editing.name, parentId: existing?.parentId ?? null });
+        setCats(await listCategories());
+      } else {
+        await upsertBrand({ slug: editing.slug, name: editing.name });
+        setBrands(await listBrands());
+      }
+      setEditing(null);
+      toast.success("Updated");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to update";
+      toast.error(message);
     }
-    setEditing(null);
-    toast.success("Updated");
   };
 
   return (
