@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { TextStyle } from "@tiptap/extension-text-style";
@@ -21,6 +22,12 @@ export function RichTextEditor({
   placeholder?: string;
   rows?: number;
 }) {
+  // The native color input fires on every drag across the picker (React's
+  // onChange = the native `input` event, not `change`) — only stage the
+  // pick here and commit it to the actual text selection on Apply, so
+  // dragging around the wheel doesn't repaint the selection live.
+  const [pendingColor, setPendingColor] = useState("#e63946");
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: false, bulletList: false, orderedList: false, blockquote: false, codeBlock: false, horizontalRule: false }),
@@ -61,15 +68,30 @@ export function RichTextEditor({
         <label
           className="relative size-7 rounded-full border border-border cursor-pointer overflow-hidden shrink-0"
           style={{ background: "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)" }}
-          title="Pick any color for the selected text"
+          title="Pick any color, then hit Apply"
         >
           <input
             type="color"
-            onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
+            value={pendingColor}
+            onChange={(e) => setPendingColor(e.target.value)}
             className="absolute inset-0 opacity-0 cursor-pointer"
-            aria-label="Color selected text"
+            aria-label="Pick a color"
           />
         </label>
+        <span
+          className="size-4 rounded-full border border-border shrink-0"
+          style={{ backgroundColor: pendingColor }}
+          aria-hidden="true"
+          title="Picked color (not yet applied)"
+        />
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().setColor(pendingColor).run()}
+          className="border border-border h-7 px-2 text-mono text-[9px] tracking-widest text-foreground hover:border-primary hover:text-primary"
+          title="Apply the picked color to the selected text"
+        >
+          APPLY
+        </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().unsetColor().run()}
