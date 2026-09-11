@@ -38,7 +38,7 @@ export function MotionPictureSection() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/70" />
       <div className="relative z-10 text-center px-4 max-w-5xl mx-auto flex flex-col items-center">
         <EditorialHeading
-          className="text-[clamp(4rem,12vw,10rem)] leading-[0.8] font-display uppercase tracking-[-0.04em] text-white whitespace-pre-line"
+          className="text-[clamp(4rem,12vw,10rem)] leading-none font-display uppercase tracking-[-0.04em] text-white whitespace-pre-line"
           style={heading.color ? { color: heading.color } : undefined}
         >
           {heading.text}
