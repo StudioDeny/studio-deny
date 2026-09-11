@@ -109,13 +109,14 @@ export function MultiCategoryPicker({
       )}
 
       <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setOpen(true)}
           placeholder="Search categories…"
-          className="inp pl-8"
+          className="inp"
+          style={{ paddingLeft: "2.25rem" }}
         />
       </div>
 
