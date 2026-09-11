@@ -72,6 +72,13 @@ export type MegaMenuProductRow = {
   created_at: string;
 };
 
+export type ProductCategoryRow = {
+  id: string;
+  product_slug: string;
+  category_id: string;
+  created_at: string;
+};
+
 export type AppRole = "admin" | "staff" | "customer";
 export type PaymentMethod = "RAZORPAY" | "COD";
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
@@ -128,6 +135,12 @@ export interface Database {
         Row: MegaMenuProductRow;
         Insert: Omit<MegaMenuProductRow, "id" | "created_at" | "position"> & Partial<Pick<MegaMenuProductRow, "id" | "created_at" | "position">>;
         Update: Partial<Omit<MegaMenuProductRow, "id" | "created_at">>;
+        Relationships: [];
+      };
+      product_categories: {
+        Row: ProductCategoryRow;
+        Insert: Omit<ProductCategoryRow, "id" | "created_at"> & Partial<Pick<ProductCategoryRow, "id" | "created_at">>;
+        Update: Partial<Omit<ProductCategoryRow, "id" | "created_at">>;
         Relationships: [];
       };
       announcement_bars: {

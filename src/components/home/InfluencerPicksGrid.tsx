@@ -15,39 +15,30 @@ type InfluencerPicksConfig = { explore_label?: string };
 function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) {
   const [hovered, setHovered] = useState(false);
   const [taggedIdx, setTaggedIdx] = useState(0);
-  const isUpload = pick.video_source === "upload" && !!pick.video_url;
-  const isLink = pick.video_source === "link";
+  const hasVideo = !!pick.video_url;
 
-  // While hovering an uploaded-video tile with more than one tagged product,
-  // auto-advance which tagged product the overlay shows.
+  // While hovering a tile with more than one tagged product, auto-advance
+  // which tagged product the overlay shows.
   useEffect(() => {
-    if (!hovered || !isUpload || pick.products.length <= 1) return;
+    if (!hovered || pick.products.length <= 1) return;
     const t = setInterval(() => setTaggedIdx((i) => (i + 1) % pick.products.length), 1800);
     return () => clearInterval(t);
-  }, [hovered, isUpload, pick.products.length]);
+  }, [hovered, pick.products.length]);
 
   useEffect(() => { if (!hovered) setTaggedIdx(0); }, [hovered]);
-
-  const handleClick = () => {
-    if (isLink && pick.link_url) {
-      window.open(pick.link_url, "_blank", "noopener,noreferrer");
-    } else {
-      onOpen();
-    }
-  };
 
   const taggedProduct = pick.products[taggedIdx];
 
   return (
     <button
       type="button"
-      onClick={handleClick}
+      onClick={onOpen}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className="shrink-0 w-[65vw] sm:w-[28vw] lg:w-[19vw] text-left group/tile"
     >
       <div className="relative aspect-[9/16] overflow-hidden bg-surface border border-border">
-        {isUpload && hovered ? (
+        {hasVideo && hovered ? (
           <video
             src={pick.video_url!}
             autoPlay
@@ -75,24 +66,30 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-black/25" />
 
-        {/* Default state (not hovering): always a video/play icon, for every
-            tile regardless of source. On hover, uploaded videos autoplay
-            inline (no icon needed); reel links swap to an Instagram
-            affordance instead, since that's an external link, not a hosted
-            file we can play inline. */}
-        {!hovered ? (
+        {/* Play affordance while not hovering (or with no video to autoplay);
+            clicking anywhere on the tile opens the reel-browsing modal. */}
+        {!(hasVideo && hovered) && (
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="size-12 sm:size-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/40 flex items-center justify-center">
               <Play className="size-5 sm:size-6 text-white fill-white ml-0.5" />
             </span>
           </div>
-        ) : isLink ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="size-12 sm:size-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/40 flex items-center justify-center scale-110 bg-black/55">
-              <Instagram className="size-5 sm:size-6 text-white" />
-            </span>
-          </div>
-        ) : null}
+        )}
+
+        {/* Instagram is a separate action from watching the reel, so it's
+            its own permanent tap target — not a hover-only swap-in. */}
+        {pick.link_url && (
+          <a
+            href={pick.link_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            aria-label={`Open ${pick.name}'s reel on Instagram`}
+            className="absolute top-3 right-3 size-8 rounded-full bg-black/40 backdrop-blur-sm border border-white/40 flex items-center justify-center text-white hover:bg-black/60 hover:border-white/70 transition-colors"
+          >
+            <Instagram className="size-4" />
+          </a>
+        )}
 
         <div className="absolute top-3 left-3">
           <p className="text-white font-display text-sm uppercase drop-shadow">{pick.name}</p>
@@ -285,8 +282,19 @@ import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 export function InfluencerPicksGrid() {
   const [picks, setPicks] = useState<PickWithTags[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [instagramUrl, setInstagramUrl] = useState<string | null>(null);
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<InfluencerPicksConfig>("influencer_picks", { explore_label: "EXPLORE OUR COLLECTION" });
   const scrollerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    supabase
+      .from("brand_settings")
+      .select("social_instagram")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => { if (data?.social_instagram) setInstagramUrl(data.social_instagram); });
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -371,6 +379,21 @@ export function InfluencerPicksGrid() {
             <GridTile key={pick.id} pick={pick} onOpen={() => openLightboxFor(pick)} />
           ))}
         </div>
+      </div>
+
+      <div className="mt-10 flex flex-col items-center gap-3 text-center">
+        <p className="text-mono text-xs sm:text-sm tracking-[0.2em] uppercase text-muted-foreground">
+          Follow for more content from Studio Deny
+        </p>
+        <a
+          href={instagramUrl || "https://instagram.com"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group inline-flex items-center gap-2 border border-foreground px-5 py-2.5 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase hover:border-primary hover:text-primary transition-colors"
+        >
+          <Instagram className="size-4" />
+          Follow me on Instagram
+        </a>
       </div>
 
       {lightboxIndex !== null && (

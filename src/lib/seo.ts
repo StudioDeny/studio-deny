@@ -1,3 +1,5 @@
+import { stripHtml } from "@/lib/richText";
+
 export const SITE_URL = "https://studiodeny.com";
 export const SITE_NAME = "STUDIO DENY";
 export const DEFAULT_OG =
@@ -104,7 +106,7 @@ export function productJsonLd(p: {
     "@context": "https://schema.org",
     "@type": "Product",
     name: p.name,
-    description: p.description,
+    description: stripHtml(p.description),
     image: p.image,
     url: `${SITE_URL}/product/${p.slug}`,
     brand: { "@type": "Brand", name: p.brand || "Studio Deny" },

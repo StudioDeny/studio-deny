@@ -57,9 +57,45 @@ export async function productsInCategory(catSlug: string) {
   const cat = await findCategoryBySlug(catSlug);
   if (!cat) return [];
   const children = await listChildCategories(catSlug);
-  const ids = new Set([cat.id, ...children.map((c) => c.id)]);
+  const ids = [cat.id, ...children.map((c) => c.id)];
+  const { data: memberships, error } = await supabase
+    .from("product_categories")
+    .select("product_slug")
+    .in("category_id", ids);
+  if (error) {
+    console.error("productsInCategory:", error.message);
+    return [];
+  }
+  const slugs = new Set((memberships ?? []).map((m) => m.product_slug as string));
   const all = await listProducts();
-  return all.filter((p) => p.categoryId && ids.has(p.categoryId));
+  return all.filter((p) => slugs.has(p.slug));
+}
+
+// ── Product ↔ category membership (many-to-many) ────────────────────
+// products.category_id stays the "primary" category (breadcrumbs,
+// badges, size-guide lookup); this table is the full membership list,
+// which always includes the primary alongside any extra categories.
+export async function listProductCategoryIds(productSlug: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("product_categories")
+    .select("category_id")
+    .eq("product_slug", productSlug);
+  if (error) {
+    console.error("listProductCategoryIds:", error.message);
+    return [];
+  }
+  return (data ?? []).map((r) => r.category_id as string);
+}
+
+export async function setProductCategories(productSlug: string, categoryIds: string[]): Promise<void> {
+  const { error: delError } = await supabase.from("product_categories").delete().eq("product_slug", productSlug);
+  if (delError) throw new Error(delError.message);
+  const unique = Array.from(new Set(categoryIds));
+  if (unique.length === 0) return;
+  const { error: insError } = await supabase
+    .from("product_categories")
+    .insert(unique.map((category_id) => ({ product_slug: productSlug, category_id })));
+  if (insError) throw new Error(insError.message);
 }
 
 // ── Brands ───────────────────────────────────────────────────────────

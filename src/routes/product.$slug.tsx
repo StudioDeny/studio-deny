@@ -10,6 +10,8 @@ import { useAuth } from "@/context/AuthContext";
 import { Heart, Truck, RotateCcw, ShieldCheck, ArrowRight, Zap, Share2, Minus, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { RichText } from "@/components/ui/RichText";
+import { stripHtml } from "@/lib/richText";
 
 type SizeOption = { size: string; inStock: boolean; variantId?: string; price?: number };
 type VariantRow = { id: string; size: string | null; stock: number; price: number | null; color: string | null; color_hex: string | null };
@@ -27,7 +29,7 @@ export const Route = createFileRoute("/product/$slug")({
     return {
       meta: buildMeta({
         title: `${p.name} — STUDIO DENY`,
-        description: p.description,
+        description: stripHtml(p.description),
         image: p.image,
         url,
         type: "product",
@@ -459,9 +461,11 @@ function PDP() {
             )}
           </div>
 
-          <p className="mt-6 text-muted-foreground leading-relaxed" style={{ fontSize: "14px" }}>
-            {product.description}
-          </p>
+          <RichText
+            html={product.description}
+            className="mt-6 text-muted-foreground leading-relaxed"
+            style={{ fontSize: "14px" }}
+          />
 
           {/* Color Selection */}
           {colorOptions.length > 0 && (
@@ -674,12 +678,14 @@ function PDP() {
                   <span className="text-xl leading-none">{tab === t.id ? "−" : "+"}</span>
                 </button>
                 <div
-                  className={`overflow-hidden transition-all duration-300 ease-in-out ${tab === t.id ? "max-h-40 opacity-100 pb-5" : "max-h-0 opacity-0"
+                  className={`overflow-hidden transition-all duration-300 ease-in-out ${tab === t.id ? "max-h-[600px] opacity-100 pb-5" : "max-h-0 opacity-0"
                     }`}
                 >
-                  <p className="text-muted-foreground leading-relaxed" style={{ fontSize: "13.5px" }}>
-                    {t.content}
-                  </p>
+                  <RichText
+                    html={t.content}
+                    className="text-muted-foreground leading-relaxed"
+                    style={{ fontSize: "13.5px" }}
+                  />
                   {t.link && (
                     <Link
                       to={t.link.to}

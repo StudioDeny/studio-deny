@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import type { InfluencerPick, InfluencerVideoSource } from "@/types/database";
+import type { InfluencerPick } from "@/types/database";
 import { uploadVideoToCloudinary } from "@/lib/cloudinary";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Upload, X, Search } from "lucide-react";
@@ -107,13 +107,13 @@ function InfluencerPicksAdmin() {
   const save = async () => {
     if (!modal) return;
     if (!modal.name?.trim()) return toast.error("Name is required");
-    if (modal.video_source === "upload" && !modal.video_url?.trim()) return toast.error("Upload a video, or switch to pasting a link");
-    if (modal.video_source === "link" && !modal.link_url?.trim()) return toast.error("Paste a reel link, or switch to uploading a video");
+    if (!modal.video_url?.trim()) return toast.error("Upload a video");
+    if (!modal.link_url?.trim()) return toast.error("Paste the Instagram reel link");
     setSaving(true);
     const payload = {
       name: modal.name,
       handle: modal.handle || null,
-      video_source: modal.video_source ?? "upload",
+      video_source: "upload" as const,
       video_url: modal.video_url || null,
       link_url: modal.link_url || null,
       thumbnail_url: modal.thumbnail_url || null,
@@ -164,7 +164,7 @@ function InfluencerPicksAdmin() {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-display text-4xl md:text-5xl">INFLUENCER PICKS.</h1>
-          <p className="text-muted-foreground text-sm mt-1">Paste a reel link or upload a video, then tag the products worn in it.</p>
+          <p className="text-muted-foreground text-sm mt-1">Upload a video and paste the Instagram reel link, then tag the products worn in it.</p>
         </div>
         <button onClick={() => openModal(null)} className="bg-primary text-primary-foreground px-4 h-10 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:glow-primary">
           <Plus className="size-4" /> NEW
@@ -177,7 +177,7 @@ function InfluencerPicksAdmin() {
             <tr>
               <th className="text-left p-3">ORDER</th>
               <th className="text-left p-3">INFLUENCER</th>
-              <th className="text-left p-3 hidden md:table-cell">SOURCE</th>
+              <th className="text-left p-3 hidden md:table-cell">VIDEO / REEL</th>
               <th className="text-left p-3">STATUS</th>
               <th className="text-right p-3">ACTIONS</th>
             </tr>
@@ -208,7 +208,11 @@ function InfluencerPicksAdmin() {
                     </div>
                   </div>
                 </td>
-                <td className="p-3 hidden md:table-cell text-mono text-xs uppercase text-muted-foreground">{r.video_source}</td>
+                <td className="p-3 hidden md:table-cell text-mono text-[10px] uppercase text-muted-foreground">
+                  <span className={r.video_url ? "text-emerald-600" : "text-red-500"}>{r.video_url ? "VIDEO ✓" : "VIDEO ✗"}</span>
+                  {"  ·  "}
+                  <span className={r.link_url ? "text-emerald-600" : "text-red-500"}>{r.link_url ? "REEL ✓" : "REEL ✗"}</span>
+                </td>
                 <td className="p-3">
                   <button onClick={() => toggle(r.id, !r.is_active)} className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}>
                     {r.is_active ? "ACTIVE" : "INACTIVE"}
@@ -247,33 +251,22 @@ function InfluencerPicksAdmin() {
               </div>
               <F label="QUOTE (optional)"><textarea rows={2} value={modal.quote ?? ""} onChange={(e) => setModal({ ...modal, quote: e.target.value })} className="inp" /></F>
 
-              <F label="VIDEO SOURCE">
-                <select
-                  value={modal.video_source ?? "upload"}
-                  onChange={(e) => setModal({ ...modal, video_source: e.target.value as InfluencerVideoSource })}
-                  className="inp" style={{ cursor: "pointer" }}
-                >
-                  <option value="upload">Upload a video file (plays on hover in the grid)</option>
-                  <option value="link">Paste a reel link (Instagram / YouTube — opens on click)</option>
-                </select>
+              <F label="VIDEO FILE * (plays on hover in the grid, and in the modal on click)">
+                <div className="flex items-center gap-3">
+                  {modal.video_url && <video src={modal.video_url} className="w-16 h-20 object-cover border border-border" muted />}
+                  <div className="flex flex-col gap-2 flex-1">
+                    <input ref={videoRef} type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} />
+                    <button type="button" onClick={() => videoRef.current?.click()} disabled={uploadingVideo}
+                      className="border border-border h-9 px-3 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary disabled:opacity-50">
+                      <Upload className="size-3" /> {uploadingVideo ? `UPLOADING… ${videoProgress}%` : "UPLOAD VIDEO"}
+                    </button>
+                  </div>
+                </div>
               </F>
 
-              {modal.video_source === "link" ? (
-                <F label="REEL LINK *"><input value={modal.link_url ?? ""} onChange={(e) => setModal({ ...modal, link_url: e.target.value })} className="inp" placeholder="https://instagram.com/reel/…" /></F>
-              ) : (
-                <F label="VIDEO FILE *">
-                  <div className="flex items-center gap-3">
-                    {modal.video_url && <video src={modal.video_url} className="w-16 h-20 object-cover border border-border" muted />}
-                    <div className="flex flex-col gap-2 flex-1">
-                      <input ref={videoRef} type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} />
-                      <button type="button" onClick={() => videoRef.current?.click()} disabled={uploadingVideo}
-                        className="border border-border h-9 px-3 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary disabled:opacity-50">
-                        <Upload className="size-3" /> {uploadingVideo ? `UPLOADING… ${videoProgress}%` : "UPLOAD VIDEO"}
-                      </button>
-                    </div>
-                  </div>
-                </F>
-              )}
+              <F label="INSTAGRAM REEL LINK * (opens in a new tab from the Instagram icon on the card)">
+                <input value={modal.link_url ?? ""} onChange={(e) => setModal({ ...modal, link_url: e.target.value })} className="inp" placeholder="https://instagram.com/reel/…" />
+              </F>
 
               <MediaField
                 label="THUMBNAIL (shown in the grid before hover / for reel links)"

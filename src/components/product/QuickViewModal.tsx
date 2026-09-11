@@ -5,6 +5,7 @@ import { X, ArrowRight, Heart } from "lucide-react";
 import type { Product } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { RichText } from "@/components/ui/RichText";
 
 interface Props {
   product: Product;
@@ -107,9 +108,11 @@ export function QuickViewModal({ product, open, onClose }: Props) {
                 </>
               )}
             </div>
-            <p className="mt-4 text-muted-foreground leading-relaxed line-clamp-3" style={{ fontSize: "13px" }}>
-              {product.description}
-            </p>
+            <RichText
+              html={product.description}
+              className="mt-4 text-muted-foreground leading-relaxed line-clamp-3"
+              style={{ fontSize: "13px" }}
+            />
 
             {/* Colors */}
             {product.colors && product.colors.length > 0 && (

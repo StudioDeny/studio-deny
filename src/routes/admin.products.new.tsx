@@ -1,13 +1,14 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { upsertProduct, type Product, type GalleryItem } from "@/lib/productsStore";
-import { listCategories, listBrands, type Category, type Brand } from "@/lib/catalog";
+import { listCategories, listBrands, listProductCategoryIds, setProductCategories, type Category, type Brand } from "@/lib/catalog";
 import { listSizesForCategory, type Size } from "@/lib/sizes";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { X, Loader2, ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { CategoryPicker } from "@/components/admin/CategoryPicker";
+import { MultiCategoryPicker } from "@/components/admin/MultiCategoryPicker";
 import { MediaField, type MediaValue } from "@/components/admin/MediaField";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 
 export type Variant = {
   id?: string;
@@ -78,6 +79,7 @@ export function ProductForm({
     }
   );
   const [saving, setSaving] = useState(false);
+  const [categoryIds, setCategoryIds] = useState<string[]>(initial?.categoryId ? [initial.categoryId] : []);
   const [galleryMedia, setGalleryMedia] = useState<MediaValue>({ url: "", type: "image" });
   const [sizesForCategory, setSizesForCategory] = useState<Size[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
@@ -89,6 +91,15 @@ export function ProductForm({
     if (!p.categoryId) { setSizesForCategory([]); return; }
     listSizesForCategory(p.categoryId).then(setSizesForCategory);
   }, [p.categoryId]);
+
+  // Full category membership lives in product_categories, separate from
+  // the product row itself — load it once we know which product we're editing.
+  useEffect(() => {
+    if (!initial?.slug) return;
+    listProductCategoryIds(initial.slug).then((ids) => {
+      if (ids.length > 0) setCategoryIds(ids);
+    });
+  }, [initial?.slug]);
 
   // Default a brand-new product to the first real brand once brands finish
   // loading — can't do this synchronously anymore since listBrands() is an
@@ -225,6 +236,7 @@ export function ProductForm({
           setSaving(true);
           try {
             await onSave(final);
+            await setProductCategories(final.slug, categoryIds.length > 0 ? categoryIds : final.categoryId ? [final.categoryId] : []);
             if (!initial && variants.length > 0) {
               const rows = variants.map((v) => ({
                 product_id: final.slug, size: v.size, color: v.color ?? null,
@@ -259,15 +271,21 @@ export function ProductForm({
           />
         </Field>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Field label="CATEGORY">
-            <CategoryPicker
-              categories={cats}
-              value={p.categoryId}
-              onChange={(c) => setP({ ...p, categoryId: c.id, category: c.name })}
-              onCategoriesChange={setCats}
-            />
-          </Field>
+        <Field label="CATEGORIES (search to add, star = primary)">
+          <MultiCategoryPicker
+            categories={cats}
+            selectedIds={categoryIds}
+            primaryId={p.categoryId}
+            onChange={(ids, primaryId) => {
+              setCategoryIds(ids);
+              const primary = cats.find((c) => c.id === primaryId);
+              setP({ ...p, categoryId: primaryId, category: primary?.name ?? "" });
+            }}
+            onCategoriesChange={setCats}
+          />
+        </Field>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="BRAND">
             <select
               value={p.brand ?? ""}
@@ -469,30 +487,28 @@ export function ProductForm({
           )}
         </Field>
 
-        <Field label="DESCRIPTION">
-          <textarea
+        <Field label="DESCRIPTION (select text to bold or color it)">
+          <RichTextEditor
             value={p.description}
-            onChange={(e) => set("description", e.target.value)}
+            onChange={(html) => set("description", html)}
             rows={3}
-            className="inp"
           />
         </Field>
 
-        <Field label="MATERIAL COMPOSITION">
-          <input
+        <Field label="MATERIAL COMPOSITION (select text to bold or color it)">
+          <RichTextEditor
             value={p.material}
-            onChange={(e) => set("material", e.target.value)}
-            className="inp"
+            onChange={(html) => set("material", html)}
+            rows={1}
             placeholder="100% heavyweight cotton, 300 GSM"
           />
         </Field>
 
-        <Field label="MATERIAL CARE INSTRUCTIONS">
-          <textarea
+        <Field label="MATERIAL CARE INSTRUCTIONS (select text to bold or color it)">
+          <RichTextEditor
             value={p.materialCare ?? ""}
-            onChange={(e) => set("materialCare", e.target.value)}
+            onChange={(html) => set("materialCare", html)}
             rows={2}
-            className="inp"
             placeholder="Machine wash cold inside out. Hang dry. Do not bleach. Do not tumble dry."
           />
         </Field>
