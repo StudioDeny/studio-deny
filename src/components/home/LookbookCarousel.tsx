@@ -4,6 +4,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
 
 type MiniProduct = { slug: string; name: string; price: number };
 
@@ -118,7 +119,7 @@ export function LookbookCarousel() {
       handlePrev();
       lastWheelTime.current = now;
     }
-  };  const hasDraggedRef = useRef(false);
+  }; const hasDraggedRef = useRef(false);
 
   // Touch / Mouse Drag event handlers for real-time fluid gesture swiping
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -203,16 +204,16 @@ export function LookbookCarousel() {
 
       {/* FOREGROUND LAYER 7: Heading */}
       <div className="relative z-10 max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 text-center">
-        <h2
+        <EditorialHeading
           className="text-[clamp(3.5rem,11vw,7rem)] leading-none tracking-[-0.04em] uppercase text-display font-black"
           style={heading.color ? { color: heading.color } : undefined}
         >
           {heading.text}
-        </h2>
+        </EditorialHeading>
         {heading.subtitle && (
-          <p className="text-base sm:text-lg mt-3 opacity-70 max-w-xl mx-auto text-mono font-medium">
+          <EditorialSubheading className="text-base sm:text-lg mt-3 opacity-70 max-w-xl mx-auto text-mono font-medium" delay={0.2}>
             {heading.subtitle}
-          </p>
+          </EditorialSubheading>
         )}
       </div>
 
@@ -247,12 +248,12 @@ export function LookbookCarousel() {
           const scale = isCenter
             ? 1.50
             : absOffset === 1
-            ? (isMobile ? 1.15 : isTablet ? 1.20 : 1.25)
-            : absOffset === 2
-            ? (isMobile ? 0.95 : isTablet ? 1.05 : 1.10)
-            : absOffset === 3
-            ? (isTablet ? 0.90 : 0.95)
-            : 0.80;
+              ? (isMobile ? 1.15 : isTablet ? 1.20 : 1.25)
+              : absOffset === 2
+                ? (isMobile ? 0.95 : isTablet ? 1.05 : 1.10)
+                : absOffset === 3
+                  ? (isTablet ? 0.90 : 0.95)
+                  : 0.80;
 
           // 2. Horizontal Spread across full-bleed screen
           const getX = () => {

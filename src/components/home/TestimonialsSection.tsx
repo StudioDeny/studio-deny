@@ -68,11 +68,10 @@ export function TestimonialsSection() {
                     {Array.from({ length: 5 }, (_, n) => (
                       <Star
                         key={n}
-                        className={`w-3.5 h-3.5 ${
-                          n < t.rating
+                        className={`w-3.5 h-3.5 ${n < t.rating
                             ? "fill-black text-black"
                             : "fill-transparent text-black/40 stroke-[1.5]"
-                        }`}
+                          }`}
                       />
                     ))}
                   </div>

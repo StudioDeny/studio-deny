@@ -38,7 +38,7 @@
   --secondary-foreground: #111111;
 
   --muted: #C7C7C3;
-  --muted-foreground: #4A4844;
+  --muted-foreground: #333330;
   --border: rgba(0, 0, 0, 0.18);
 
   --accent: #E0202A;
@@ -48,11 +48,14 @@
 }
 
 @media (min-width: 640px) {
-  :root { --topbar-h: 160px; }
+  :root {
+    --topbar-h: 160px;
+  }
 }
 
 /* Lenis Smooth Scroll Base Rules */
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 
@@ -74,12 +77,14 @@ html.lenis, html.lenis body {
     border-color: var(--color-border);
     box-sizing: border-box;
   }
+
   html {
     color-scheme: light;
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-body);
   }
+
   body {
     background-color: #E2E2E4;
     background: #E2E2E4;
@@ -89,25 +94,35 @@ html.lenis, html.lenis body {
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
     font-weight: 400;
     letter-spacing: 0.01em;
   }
+
   ::selection {
     background: var(--primary);
     color: var(--primary-foreground);
   }
+
   ::-webkit-scrollbar {
     width: 4px;
     height: 4px;
   }
+
   ::-webkit-scrollbar-track {
     background: var(--background);
   }
+
   ::-webkit-scrollbar-thumb {
     background: var(--border);
   }
+
   ::-webkit-scrollbar-thumb:hover {
     background: var(--primary);
   }
@@ -118,6 +133,7 @@ html.lenis, html.lenis body {
     position: relative;
     overflow: hidden;
   }
+
   .btn-shimmer::after {
     content: '';
     position: absolute;
@@ -125,16 +141,15 @@ html.lenis, html.lenis body {
     left: -60%;
     width: 50%;
     height: 200%;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.28) 50%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.28) 50%,
+        transparent 100%);
     transform: rotate(25deg);
     transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
   }
+
   .btn-shimmer:hover::after {
     transform: rotate(25deg) translate(300%, 0);
   }
@@ -148,6 +163,7 @@ html.lenis, html.lenis body {
   }
 
   @media (prefers-reduced-motion: reduce) {
+
     button:not(:disabled):hover,
     button:not(:disabled):active,
     a.btn-animated:hover,
@@ -155,6 +171,7 @@ html.lenis, html.lenis body {
       transform: none;
       box-shadow: none;
     }
+
     .btn-shimmer::after {
       display: none;
     }
@@ -162,19 +179,28 @@ html.lenis, html.lenis body {
 }
 
 @layer utilities {
-  .text-display { font-family: var(--font-display); font-weight: 400; }
-  .text-mono { font-family: var(--font-body); }
+  .text-display {
+    font-family: var(--font-display);
+    font-weight: 400;
+  }
+
+  .text-mono {
+    font-family: var(--font-body);
+  }
 
   /* Glow effects */
   .glow-primary {
     box-shadow: 0 0 30px rgba(255, 255, 255, 0.12), 0 0 60px rgba(255, 255, 255, 0.05);
   }
+
   .glow-primary-sm {
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.12);
   }
+
   .text-glow-primary {
     text-shadow: 0 0 40px rgba(255, 255, 255, 0.35);
   }
+
   .glow-lime {
     box-shadow: 0 0 20px rgba(132, 204, 22, 0.55), 0 0 40px rgba(132, 204, 22, 0.25);
   }
@@ -183,6 +209,7 @@ html.lenis, html.lenis body {
   .hover-scale {
     transition: transform 200ms ease;
   }
+
   .hover-scale:hover {
     transform: scale(1.02);
   }
@@ -192,26 +219,36 @@ html.lenis, html.lenis body {
     animation: ticker-scroll 35s linear infinite;
     will-change: transform;
   }
+
   @keyframes ticker-scroll {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-50%);
+    }
   }
 
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
   }
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.25);
     border-radius: 9999px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.45);
   }
@@ -220,25 +257,38 @@ html.lenis, html.lenis body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
 
   /* Reduce motion for perf */
   @media (prefers-reduced-motion: reduce) {
-    .ticker-scroll { animation: none; }
+    .ticker-scroll {
+      animation: none;
+    }
   }
 
   /* Slide-dot progress ring — fills clockwise over the autoplay interval,
      like an Instagram Stories timer. r=6 circle, circumference ≈ 37.7. */
   @keyframes dot-ring-progress {
-    from { stroke-dashoffset: 37.7; }
-    to { stroke-dashoffset: 0; }
+    from {
+      stroke-dashoffset: 37.7;
+    }
+
+    to {
+      stroke-dashoffset: 0;
+    }
   }
 
   @keyframes slide-bar-fill {
-    from { width: 0%; }
-    to { width: 100%; }
+    from {
+      width: 0%;
+    }
+
+    to {
+      width: 100%;
+    }
   }
 
   /* Fill-sweep button: border/ghost button that fills solid on hover,
@@ -248,6 +298,7 @@ html.lenis, html.lenis body {
     isolation: isolate;
     overflow: hidden;
   }
+
   .btn-fill-bg {
     position: absolute;
     inset: 0;
@@ -256,16 +307,19 @@ html.lenis, html.lenis body {
     transform-origin: left center;
     transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
+
   .btn-fill:hover .btn-fill-bg,
   .btn-fill:focus-visible .btn-fill-bg {
     transform: scaleX(1);
   }
+
   .btn-fill-front,
   .btn-fill-back {
     position: relative;
     z-index: 1;
     transition: clip-path 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
+
   .btn-fill-back {
     position: absolute;
     inset: 0;
@@ -274,29 +328,43 @@ html.lenis, html.lenis body {
     justify-content: center;
     clip-path: inset(0 100% 0 0);
   }
+
   .btn-fill-front {
     clip-path: inset(0 0 0 0);
   }
+
   .btn-fill:hover .btn-fill-front,
   .btn-fill:focus-visible .btn-fill-front {
     clip-path: inset(0 0 0 100%);
   }
+
   .btn-fill:hover .btn-fill-back,
   .btn-fill:focus-visible .btn-fill-back {
     clip-path: inset(0 0 0 0);
   }
 
-  .btn-fill--light .btn-fill-bg { background: #ffffff; }
-  .btn-fill--light .btn-fill-back { color: #0a0a0a; }
+  .btn-fill--light .btn-fill-bg {
+    background: #ffffff;
+  }
 
-  .btn-fill--dark .btn-fill-bg { background: var(--foreground); }
-  .btn-fill--dark .btn-fill-back { color: var(--background); }
+  .btn-fill--light .btn-fill-back {
+    color: #0a0a0a;
+  }
+
+  .btn-fill--dark .btn-fill-bg {
+    background: var(--foreground);
+  }
+
+  .btn-fill--dark .btn-fill-back {
+    color: var(--background);
+  }
 
   /* Editorial Navigation Link Underline Animation */
   .editorial-nav-link {
     position: relative;
     transition: color 250ms cubic-bezier(0.16, 1, 0.3, 1);
   }
+
   .editorial-nav-link::after {
     content: '';
     position: absolute;
@@ -309,6 +377,7 @@ html.lenis, html.lenis body {
     transform-origin: right center;
     transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
   }
+
   .editorial-nav-link:hover::after,
   .editorial-nav-link[data-status="active"]::after {
     transform: scaleX(1);
@@ -320,11 +389,13 @@ html.lenis, html.lenis body {
     animation: img-editorial-reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
     will-change: transform, opacity;
   }
+
   @keyframes img-editorial-reveal {
     from {
       opacity: 0;
       transform: scale(1.05);
     }
+
     to {
       opacity: 1;
       transform: scale(1);
@@ -332,7 +403,10 @@ html.lenis, html.lenis body {
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .btn-fill-bg, .btn-fill-front, .btn-fill-back,
+
+    .btn-fill-bg,
+    .btn-fill-front,
+    .btn-fill-back,
     .editorial-nav-link::after,
     .img-editorial-reveal {
       animation: none !important;

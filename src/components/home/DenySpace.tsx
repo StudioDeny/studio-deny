@@ -184,8 +184,10 @@ export function DenySpace() {
         )
       )}
 
-
-
+      {/* Dark overlay for background media legibility */}
+      {hasBgMedia && (
+        <div className="absolute inset-0 bg-black/75 z-[1]" />
+      )}
       {/* MAIN CONTAINER */}
       <div className="max-w-[840px] mx-auto relative z-10 text-center flex flex-col items-center">
         {/* DENY SPACE LOGO WITH FULL 3D INTERACTIVE MAGNETIC TILT & DRAGGABLE PHYSICS */}
@@ -206,7 +208,7 @@ export function DenySpace() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           viewport={{ once: true }}
-          className="font-mono text-xs sm:text-sm font-bold tracking-[0.25em] uppercase text-white/90 mb-6 flex items-center justify-center gap-2"
+          className="font-mono text-sm sm:text-base font-bold tracking-[0.25em] uppercase text-white mb-6 flex items-center justify-center gap-2"
         >
           <span className="text-white/40">—</span> A CULTURE. A COMMUNITY. A SPACE FOR WHAT’S NEXT. <span className="text-white/40">—</span>
         </motion.p>
@@ -217,7 +219,7 @@ export function DenySpace() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
           viewport={{ once: true }}
-          className="text-xs sm:text-sm text-mono leading-relaxed max-w-2xl mx-auto mb-10 text-white/70 whitespace-pre-line font-normal"
+          className="text-sm sm:text-base text-mono leading-relaxed max-w-2xl mx-auto mb-10 text-white/85 whitespace-pre-line font-normal"
         >
           {cfg.description}
         </motion.p>
@@ -239,10 +241,10 @@ export function DenySpace() {
                 <div className="size-16 sm:size-18 rounded-full border border-white/30 flex items-center justify-center bg-black/60 shadow-[0_0_25px_rgba(255,255,255,0.12)] group-hover:border-white group-hover:shadow-[0_0_35px_rgba(255,255,255,0.3)] transition-all duration-300">
                   <Icon className="size-6 sm:size-7 text-white stroke-[1.5]" />
                 </div>
-                <div className="text-mono text-[11px] font-bold tracking-[0.2em] uppercase text-white mt-1">
+                <div className="text-mono text-[11px] sm:text-xs font-bold tracking-[0.2em] uppercase text-white mt-1">
                   {b.label}
                 </div>
-                <p className="text-[11px] text-mono text-white/50 leading-snug max-w-[160px]">
+                <p className="text-[11px] sm:text-xs text-mono text-white/70 leading-snug max-w-[160px]">
                   {b.desc}
                 </p>
               </motion.div>

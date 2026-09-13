@@ -38,7 +38,7 @@ export function EditorialHeading({
     return (
       <Tag className={className} style={style}>
         {words.map((word, idx) => (
-          <span key={`${word}-${idx}`} className="inline-block overflow-hidden py-1 px-2 -mx-2 mr-[0.25em] align-top">
+          <span key={`${word}-${idx}`} className="inline-block overflow-hidden py-2 px-2 -mx-2 mr-[0.25em] align-top">
             <motion.span
               key={`${word}-${idx}`}
               className="inline-block pr-[0.05em]"
@@ -66,7 +66,7 @@ export function EditorialHeading({
     return (
       <Tag className={className} style={style}>
         {lines.map((line, lineIdx) => (
-          <span key={`${line}-${lineIdx}`} className="block overflow-hidden py-1 px-2 -mx-2">
+          <span key={`${line}-${lineIdx}`} className="block overflow-hidden py-2 px-2 -mx-2">
             <motion.span
               key={`${line}-${lineIdx}`}
               className="block pr-[0.05em]"
@@ -90,7 +90,7 @@ export function EditorialHeading({
 
   return (
     <Tag className={className} style={style}>
-      <span className="block overflow-hidden py-1 px-2 -mx-2">
+      <span className="block overflow-hidden py-2 px-2 -mx-2">
         <motion.span
           className="block pr-[0.05em]"
           initial={{ opacity: 0, y: shouldReduceMotion ? "0%" : "115%" }}
@@ -130,7 +130,7 @@ export function EditorialSubheading({
 
   return (
     <Tag className={className} style={style}>
-      <span className="block overflow-hidden py-0.5 px-2 -mx-2">
+      <span className="block overflow-hidden py-1.5 px-2 -mx-2">
         <motion.span
           key={typeof children === "string" ? children : undefined}
           className="block pr-[0.05em]"
@@ -163,7 +163,7 @@ export function EditorialParagraph({
 
   return (
     <Tag className={className} style={style}>
-      <span className="block overflow-hidden py-0.5 px-2 -mx-2">
+      <span className="block overflow-hidden py-1.5 px-2 -mx-2">
         <motion.span
           key={typeof children === "string" ? children : undefined}
           className="block pr-[0.05em]"

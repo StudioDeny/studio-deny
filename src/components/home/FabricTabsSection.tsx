@@ -84,9 +84,8 @@ export function FabricTabsSection() {
                     duration: 0.55,
                     ease: [0.16, 1, 0.3, 1],
                   }}
-                  className={`absolute inset-0 w-full h-full ${
-                    isActive ? "z-10 pointer-events-auto" : "z-0 pointer-events-none"
-                  }`}
+                  className={`absolute inset-0 w-full h-full ${isActive ? "z-10 pointer-events-auto" : "z-0 pointer-events-none"
+                    }`}
                 >
                   {fabric.img_type === "video" ? (
                     <video
@@ -148,9 +147,8 @@ export function FabricTabsSection() {
                   key={fabric.id}
                   onMouseEnter={() => setActiveFabricId(fabric.id)}
                   onClick={() => setActiveFabricId(fabric.id)}
-                  className={`group cursor-pointer border-b border-border pb-5 sm:pb-7 transition-all duration-300 last:border-0 ${
-                    isSelected ? "opacity-100" : "opacity-60 hover:opacity-85"
-                  }`}
+                  className={`group cursor-pointer border-b border-border pb-5 sm:pb-7 transition-all duration-300 last:border-0 ${isSelected ? "opacity-100" : "opacity-60 hover:opacity-85"
+                    }`}
                 >
                   <div className="flex items-center justify-between gap-4 mb-2">
                     <div className="flex items-baseline gap-4 sm:gap-6">
@@ -158,11 +156,10 @@ export function FabricTabsSection() {
                         0{idx + 1}
                       </span>
                       <h3
-                        className={`text-4xl sm:text-5xl lg:text-6xl xl:text-7xl text-display uppercase tracking-wider transition-all duration-300 ${
-                          isSelected
+                        className={`text-4xl sm:text-5xl lg:text-6xl xl:text-7xl text-display uppercase tracking-wider transition-all duration-300 ${isSelected
                             ? "text-foreground font-black translate-x-1"
                             : "text-foreground/50 group-hover:text-foreground/80"
-                        }`}
+                          }`}
                       >
                         {fabric.name}
                       </h3>
@@ -173,17 +170,15 @@ export function FabricTabsSection() {
                         to={fabric.href}
                         onClick={(e) => e.stopPropagation()}
                         aria-label={`Shop ${fabric.name}`}
-                        className={`transition-all duration-300 p-2 text-foreground hover:text-primary ${
-                          isSelected ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-3 pointer-events-none"
-                        }`}
+                        className={`transition-all duration-300 p-2 text-foreground hover:text-primary ${isSelected ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-3 pointer-events-none"
+                          }`}
                       >
                         <ArrowRight className="size-6 sm:size-8" />
                       </Link>
                     ) : (
                       <ArrowRight
-                        className={`size-6 sm:size-8 transition-all duration-300 ${
-                          isSelected ? "opacity-100 translate-x-0 text-primary" : "opacity-0 -translate-x-3 text-muted-foreground"
-                        }`}
+                        className={`size-6 sm:size-8 transition-all duration-300 ${isSelected ? "opacity-100 translate-x-0 text-primary" : "opacity-0 -translate-x-3 text-muted-foreground"
+                          }`}
                       />
                     )}
                   </div>

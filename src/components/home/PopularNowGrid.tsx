@@ -89,9 +89,8 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
           key={src + i}
           src={src}
           alt={i === 0 ? product.name : ""}
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-400 ease-out ${
-            i === activePhotoIndex ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
-          }`}
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-400 ease-out ${i === activePhotoIndex ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
+            }`}
         />
       ))}
 
@@ -110,17 +109,15 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
       <button
         aria-label="Quick add to cart"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickAdd(product); }}
-        className={`absolute bottom-3 right-3 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 z-20 ${
-          hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90 opacity-100"
-        } bg-black text-white hover:bg-black/80`}
+        className={`absolute bottom-3 right-3 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 z-20 ${hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90 opacity-100"
+          } bg-black text-white hover:bg-black/80`}
       >
         <ShoppingBag className="size-4" />
       </button>
 
       <div
-        className={`absolute inset-x-0 bottom-0 z-20 transition-all duration-300 ${
-          showSizes ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
-        }`}
+        className={`absolute inset-x-0 bottom-0 z-20 transition-all duration-300 ${showSizes ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
+          }`}
       >
         <div className="flex flex-wrap justify-center gap-1 p-2 bg-background/95 backdrop-blur-sm">
           {sizeOptions.map((opt) => (
@@ -128,11 +125,10 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
               key={opt.variantId ?? opt.size}
               disabled={!opt.inStock}
               onClick={(e) => { e.preventDefault(); handleQuickAdd(opt); }}
-              className={`rounded-full px-2.5 py-1 text-mono font-semibold border transition-colors ${
-                opt.inStock
+              className={`rounded-full px-2.5 py-1 text-mono font-semibold border transition-colors ${opt.inStock
                   ? "border-foreground/30 hover:bg-foreground hover:text-background"
                   : "border-border opacity-30 line-through cursor-not-allowed"
-              }`}
+                }`}
               style={{ fontSize: "10px" }}
             >
               {opt.size}

@@ -23,9 +23,10 @@ export function ProductCard({
   const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
   const [added, setAdded] = useState(false);
 
+  // Desktop: simple crossfade between main image and hover image only.
   // Mobile: swipeable photo strip (image, hover image, gallery) with dots.
-  // Desktop keeps the hover crossfade below instead.
-  const photos = Array.from(new Set([product.image, product.hoverImage, ...(product.gallery ?? []).map((g) => g.url)].filter(Boolean)));
+  const desktopPhotos = Array.from(new Set([product.image, product.hoverImage].filter(Boolean)));
+  const mobilePhotos = Array.from(new Set([product.image, product.hoverImage, ...(product.gallery ?? []).map((g) => g.url)].filter(Boolean)));
   const [mobilePhotoIndex, setMobilePhotoIndex] = useState(0);
   const mobileScrollerRef = useRef<HTMLDivElement>(null);
   const handleMobileScroll = () => {
@@ -54,38 +55,15 @@ export function ProductCard({
     setTimeout(() => setAdded(false), 1600);
   };
 
-  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
-
-  // Auto-scroll through next photos on hover (desktop)
-  useEffect(() => {
-    if (!hover || photos.length <= 1) {
-      setActivePhotoIndex(0);
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setActivePhotoIndex((prev) => (prev + 1) % photos.length);
-    }, 1400);
-
-    return () => clearInterval(interval);
-  }, [hover, photos.length]);
-
-  const handleDesktopMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (photos.length <= 1) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    if (rect.width > 0) {
-      const xRatio = (e.clientX - rect.left) / rect.width;
-      const index = Math.min(photos.length - 1, Math.max(0, Math.floor(xRatio * photos.length)));
-      setActivePhotoIndex(index);
-    }
-  };
+  // Desktop: show hover image (index 1) on hover, main image (index 0) otherwise
+  const activeDesktopIndex = hover && desktopPhotos.length > 1 ? 1 : 0;
 
   return (
     <div
       className="group relative animate-in fade-in slide-in-from-bottom-3 duration-600"
       style={{ animationDelay: `${index * 80}ms`, animationFillMode: "both" }}
       onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => { setHover(false); setShowSizes(false); setActivePhotoIndex(0); }}
+      onMouseLeave={() => { setHover(false); setShowSizes(false); }}
     >
       <Link
         to="/product/$slug"
@@ -98,20 +76,16 @@ export function ProductCard({
           className="relative overflow-hidden"
           style={{ aspectRatio: "3/4", background: "var(--color-surface)" }}
         >
-          {/* Desktop: photo stack auto-scroll & scrub on hover */}
-          <div
-            className="hidden md:block absolute inset-0"
-            onMouseMove={handleDesktopMouseMove}
-          >
-            {photos.map((url, i) => (
+          {/* Desktop: simple crossfade between main and hover image only */}
+          <div className="hidden md:block absolute inset-0">
+            {desktopPhotos.map((url, i) => (
               <img
                 key={url + i}
                 src={url}
                 alt={i === 0 ? product.name : ""}
                 loading={i === 0 ? undefined : "lazy"}
-                className={`absolute inset-0 w-full h-full object-cover transition-all duration-400 ease-out ${
-                  i === activePhotoIndex ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
-                }`}
+                className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out ${i === activeDesktopIndex ? "opacity-100 scale-100" : "opacity-0 scale-[1.03] pointer-events-none"
+                  }`}
               />
             ))}
           </div>
@@ -122,7 +96,7 @@ export function ProductCard({
             onScroll={handleMobileScroll}
             className="md:hidden absolute inset-0 flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
           >
-            {photos.map((url, i) => (
+            {mobilePhotos.map((url, i) => (
               <img
                 key={url + i}
                 src={url}
@@ -132,9 +106,9 @@ export function ProductCard({
               />
             ))}
           </div>
-          {photos.length > 1 && (
+          {mobilePhotos.length > 1 && (
             <div className="md:hidden absolute bottom-2 inset-x-0 flex items-center justify-center gap-1 z-[1]">
-              {photos.map((_, i) => (
+              {mobilePhotos.map((_, i) => (
                 <span
                   key={i}
                   className={`size-1.5 rounded-full transition-colors ${i === mobilePhotoIndex ? "bg-white" : "bg-white/40"}`}
@@ -157,10 +131,10 @@ export function ProductCard({
               {topLeftBadge && (
                 <span
                   className={`text-mono font-semibold px-2 py-1 ${topLeftBadge === "SOLD OUT"
-                      ? "bg-muted text-muted-foreground"
-                      : topLeftBadge === "LAST PIECE"
-                        ? "bg-primary text-primary-foreground glow-primary-sm"
-                        : "bg-primary text-primary-foreground"
+                    ? "bg-muted text-muted-foreground"
+                    : topLeftBadge === "LAST PIECE"
+                      ? "bg-primary text-primary-foreground glow-primary-sm"
+                      : "bg-primary text-primary-foreground"
                     }`}
                   style={{ fontSize: "9px", letterSpacing: "0.25em" }}
                 >
@@ -211,8 +185,8 @@ export function ProductCard({
                   disabled={!opt.inStock}
                   onClick={(e) => { e.preventDefault(); handleQuickAdd(opt); }}
                   className={`rounded-full px-3.5 py-1.5 text-mono font-semibold border transition-colors ${opt.inStock
-                      ? "border-foreground/30 hover:bg-foreground hover:text-background"
-                      : "border-border opacity-30 line-through cursor-not-allowed"
+                    ? "border-foreground/30 hover:bg-foreground hover:text-background"
+                    : "border-border opacity-30 line-through cursor-not-allowed"
                     }`}
                   style={{ fontSize: "11px" }}
                 >
@@ -226,7 +200,7 @@ export function ProductCard({
         {/* Product info — Increased size for legibility */}
         <div className="mt-3 px-0.5 flex flex-col gap-1.5">
           <h3
-            className="font-medium text-xs sm:text-sm leading-tight text-foreground/90 group-hover:text-primary transition-colors tracking-wide truncate"
+            className="font-medium text-xs sm:text-sm leading-tight text-foreground group-hover:text-primary transition-colors tracking-wide truncate"
           >
             {product.name}
           </h3>

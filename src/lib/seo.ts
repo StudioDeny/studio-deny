@@ -63,7 +63,7 @@ export function orgJsonLd() {
     url: SITE_URL,
     logo: `${SITE_URL}/logo.png`,
     sameAs: [
-      "https://instagram.com/studiodeny",
+      "https://www.instagram.com/studio.deny?stkn=ZDNlZDc0MzIxNw==",
       "https://twitter.com/studiodeny",
       "https://facebook.com/studiodeny",
     ],

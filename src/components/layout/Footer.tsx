@@ -181,7 +181,7 @@ export function Footer() {
           </div>
 
           <div className="mt-6 flex items-center gap-3">
-            <a href={brand.social_instagram || "https://instagram.com"} target="_blank" rel="noopener noreferrer"
+            <a href={brand.social_instagram || "https://www.instagram.com/studio.deny?stkn=ZDNlZDc0MzIxNw=="} target="_blank" rel="noopener noreferrer"
               className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors" aria-label="Instagram">
               <Instagram className="size-4" />
             </a>
