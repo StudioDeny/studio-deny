@@ -192,17 +192,6 @@ export function Preloader() {
               transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center gap-6 relative"
             >
-              {/* Brand Tagline */}
-              <motion.div
-                initial={{ opacity: 0, letterSpacing: "0.25em" }}
-                animate={{ opacity: 1, letterSpacing: "0.45em" }}
-                transition={{ duration: 0.8, delay: 0.15 }}
-                className="text-mono text-[10px] sm:text-[11px] text-primary tracking-[0.45em] uppercase font-semibold flex items-center gap-2"
-              >
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
-                ◢ FORGE YOUR IDENTITY
-              </motion.div>
-
               {/* Animated Studio Deny Logo Typography */}
               <AnimatedLogo className="w-[280px] sm:w-[380px] md:w-[480px]" />
 
