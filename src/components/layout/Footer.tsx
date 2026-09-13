@@ -87,8 +87,8 @@ function MagneticFooterLogo() {
           }}
           className="inline-block"
         >
-          <Link to="/" className="text-display tracking-wider inline-block text-black" style={{ fontSize: "28px" }}>
-            STUDIO DENY
+          <Link to="/" className="inline-block">
+            <img src="/logo.png" alt="STUDIO DENY" className="h-7 w-auto object-contain" />
           </Link>
         </motion.div>
       </motion.div>
