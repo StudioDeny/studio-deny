@@ -69,7 +69,7 @@ export function FabricTabsSection() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           {/* ════════ SILKY LUXURY IMAGE CROSSFADE STAGE (NO BLANK FLASHING) ════════ */}
-          <div className="order-1 lg:col-span-6 w-full relative h-[48vh] sm:h-[62vh] lg:h-[75vh] overflow-hidden border border-border bg-[#0D0D0D] shadow-2xl group">
+          <div className="dark-section order-1 lg:col-span-6 w-full relative h-[48vh] sm:h-[62vh] lg:h-[75vh] overflow-hidden border border-border bg-[#0D0D0D] shadow-2xl group">
             {fabricTabs.map((fabric, idx) => {
               const isActive = fabric.id === activeFabric.id;
               return (

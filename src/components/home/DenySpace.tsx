@@ -172,7 +172,7 @@ export function DenySpace() {
 
   return (
     <section
-      className="py-8 sm:py-12 px-4 sm:px-8 lg:px-16 relative overflow-hidden bg-[#080808] text-white select-none"
+      className="dark-section py-8 sm:py-12 px-4 sm:px-8 lg:px-16 relative overflow-hidden bg-[#080808] text-white select-none"
       style={hasBgMedia ? undefined : { background: bg }}
     >
       {/* BACKGROUND MEDIA IF CONFIGURED */}

@@ -84,7 +84,7 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
 
   return (
     <section
-      className="relative w-full overflow-hidden min-h-[420px]"
+      className="dark-section relative w-full overflow-hidden min-h-[420px]"
       style={{ height: "calc(100vh - var(--topbar-h))" }}
     >
       {/* Media layers */}

@@ -167,7 +167,7 @@ export function Navbar() {
             onClick={() => { setMobileNavOpen(false); closeSearch(); }}
             className="hover:opacity-80 transition-opacity justify-self-start sm:justify-self-center"
           >
-            <img src="/logo.png" alt="STUDIO DENY" className="h-5 sm:h-6 lg:h-7 w-auto object-contain" />
+            <img src="/logo.png" alt="STUDIO DENY" className="h-8 sm:h-9 lg:h-10 w-auto object-contain" />
           </Link>
 
           {/* Right — icons (desktop) */}
