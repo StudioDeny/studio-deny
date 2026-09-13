@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useLenis } from "@/components/common/SmoothScroll";
 import { supabase } from "@/lib/supabase";
+import { AnimatedLogo } from "@/components/layout/AnimatedLogo";
 import type { PreloaderSettings } from "@/types/database";
 
 const DEFAULTS: PreloaderSettings = {
@@ -134,11 +135,13 @@ export function Preloader() {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[99999] bg-[#0D0D0D] flex items-center justify-center pointer-events-auto select-none"
+            className="dark-section fixed inset-0 z-[99999] bg-[#0D0D0D] flex items-center justify-center pointer-events-auto select-none"
           >
-            <span className="text-display font-black text-3xl tracking-widest text-white uppercase">
-              {brandText}
-            </span>
+            <img
+              src="/logo-white.png"
+              alt="STUDIO DENY"
+              className="h-10 sm:h-12 w-auto object-contain"
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -151,16 +154,12 @@ export function Preloader() {
         <motion.div
           key="studio-deny-luxury-preloader"
           initial={{ opacity: 1 }}
-          exit={{
-            opacity: 0,
-            scale: 1.015,
-            filter: "blur(4px)",
-          }}
+          exit={{ opacity: 0 }}
           transition={{
-            duration: 0.45,
-            ease: [0.16, 1, 0.3, 1],
+            duration: 0.35,
+            ease: "easeInOut",
           }}
-          className="fixed inset-0 z-[99999] flex flex-col items-center justify-center pointer-events-auto select-none overflow-hidden touch-none cursor-pointer"
+          className="dark-section fixed inset-0 z-[99999] flex flex-col items-center justify-center pointer-events-auto select-none overflow-hidden touch-none cursor-pointer"
           style={{
             backgroundColor: cfg.bg_type === "color" ? cfg.bg_color : "#0D0D0D",
           }}
@@ -185,44 +184,37 @@ export function Preloader() {
             />
           )}
 
-          {/* ════════ SUBTLE LUXURY GRADIENT OVERLAY ════════ */}
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/40 via-transparent to-black/70" />
-
-          {/* ════════ CENTER BRAND IDENTITY REVEAL ════════ */}
+          {/* ════════ CENTER BRAND IDENTITY REVEAL WITH ANIMATED LOGO ════════ */}
           <div className="relative z-10 flex flex-col items-center justify-center px-6 max-w-4xl text-center">
             <motion.div
-              initial={{ opacity: 0, y: 12, scale: 0.96 }}
+              initial={{ opacity: 0, y: 16, scale: 0.94 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center gap-5"
+              transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center gap-6 relative"
             >
-              {isTextContent ? (
-                <div className="flex flex-col items-center">
-                  <div className="text-mono text-[10px] sm:text-[11px] tracking-[0.4em] text-primary mb-2 uppercase font-medium">
-                    ◢ FORGE YOUR IDENTITY
-                  </div>
-                  <h1
-                    className="text-display text-[clamp(2.75rem,8.5vw,5.5rem)] font-black uppercase tracking-wider leading-none select-none drop-shadow-lg"
-                    style={{ color: cfg.text_color || "#FFFFFF" }}
-                  >
-                    {brandText}
-                  </h1>
-                </div>
-              ) : (
-                <img
-                  src={cfg.content_image_url}
-                  alt="STUDIO DENY"
-                  className="w-[240px] sm:w-[340px] md:w-[420px] h-auto object-contain drop-shadow-xl"
-                />
-              )}
+              {/* Brand Tagline */}
+              <motion.div
+                initial={{ opacity: 0, letterSpacing: "0.25em" }}
+                animate={{ opacity: 1, letterSpacing: "0.45em" }}
+                transition={{ duration: 0.8, delay: 0.15 }}
+                className="text-mono text-[10px] sm:text-[11px] text-primary tracking-[0.45em] uppercase font-semibold flex items-center gap-2"
+              >
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
+                ◢ FORGE YOUR IDENTITY
+              </motion.div>
 
-              {/* Minimal Line Progress */}
-              <div className="w-36 sm:w-48 h-[2px] bg-white/10 overflow-hidden relative rounded-full mt-2">
+              {/* Animated Studio Deny Logo Typography */}
+              <AnimatedLogo className="w-[280px] sm:w-[380px] md:w-[480px]" />
+
+              {/* Minimal Luxury Progress Bar */}
+              <div className="w-44 sm:w-60 h-[2.5px] bg-white/10 overflow-hidden relative rounded-full mt-2">
                 <motion.div
-                  className="h-full bg-primary"
+                  className="h-full bg-primary relative rounded-full"
                   style={{ width: `${progress}%` }}
                   transition={{ ease: "linear", duration: 0.05 }}
-                />
+                >
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-white" />
+                </motion.div>
               </div>
             </motion.div>
           </div>

@@ -164,7 +164,7 @@ function Lightbox({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[300] bg-black/95 flex items-center justify-center" onWheel={onWheel}>
+    <div className="dark-section fixed inset-0 z-[300] bg-black/95 flex items-center justify-center" onWheel={onWheel}>
       <button
         onClick={onClose}
         aria-label="Close"
