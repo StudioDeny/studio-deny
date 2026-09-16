@@ -28,6 +28,7 @@ export type Product = {
   is_active?: boolean;
   is_featured?: boolean;
   isBestSeller?: boolean;
+  storeExclusive?: boolean;
 };
 
 type DBProduct = {
@@ -53,6 +54,7 @@ type DBProduct = {
   is_active: boolean;
   is_featured: boolean;
   is_best_seller: boolean;
+  store_exclusive: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -82,6 +84,7 @@ function fromDB(r: DBProduct): Product {
     is_active: r.is_active,
     is_featured: r.is_featured,
     isBestSeller: r.is_best_seller,
+    storeExclusive: r.store_exclusive,
   };
 }
 
@@ -109,6 +112,7 @@ function toDB(p: Product): Omit<DBProduct, "created_at" | "updated_at"> {
     is_active: p.is_active ?? true,
     is_featured: p.is_featured ?? false,
     is_best_seller: p.isBestSeller ?? false,
+    store_exclusive: p.storeExclusive ?? false,
   };
 }
 
