@@ -71,7 +71,7 @@ export function ProductForm({
       hoverImage: "",
       gallery: [],
       sizes: ["S", "M", "L", "XL"],
-      colors: [{ name: "Black", hex: "#0a0a0a" }],
+      colors: [],
       description: "",
       material: "",
       materialCare: "",
@@ -498,6 +498,39 @@ export function ProductForm({
           )}
         </Field>
 
+        <Field label="COLORS (used when this product has no variant colors)">
+          <div className="space-y-2">
+            {p.colors.map((c, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <ColorPicker
+                  value={c.hex}
+                  onChange={(hex) => set("colors", p.colors.map((x, idx) => (idx === i ? { ...x, hex } : x)))}
+                />
+                <input
+                  value={c.name}
+                  onChange={(e) => set("colors", p.colors.map((x, idx) => (idx === i ? { ...x, name: e.target.value } : x)))}
+                  className="inp flex-1"
+                  placeholder="Color name, e.g. Blue"
+                />
+                <button
+                  type="button"
+                  onClick={() => set("colors", p.colors.filter((_, idx) => idx !== i))}
+                  className="h-10 w-10 shrink-0 border border-border flex items-center justify-center hover:border-red-500 hover:text-red-500"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => set("colors", [...p.colors, { name: "", hex: "#000000" }])}
+              className="flex items-center gap-2 border border-dashed border-border h-10 px-4 text-mono text-[11px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+            >
+              <Plus className="size-3.5" /> ADD COLOR
+            </button>
+          </div>
+        </Field>
+
         <Field label="DESCRIPTION (select text to bold or color it)">
           <RichTextEditor
             value={p.description}
@@ -656,6 +689,7 @@ function VariantModal({
 
   const submit = () => {
     if (selectedSizes.length === 0) { toast.error("Pick at least one size"); return; }
+    if (v.color && !v.color_hex) { toast.error("Pick a color for \"" + v.color + "\""); return; }
     onSave(selectedSizes.map((size) => ({ ...v, size })));
   };
 
@@ -704,10 +738,10 @@ function VariantModal({
               <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COLOR NAME</div>
               <input value={v.color ?? ""} onChange={(e) => set("color", e.target.value || undefined)} className="inp" placeholder="Black" />
             </label>
-            <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COLOR HEX</div>
-              <input value={v.color_hex ?? ""} onChange={(e) => set("color_hex", e.target.value || undefined)} className="inp" placeholder="#0a0a0a" />
-            </label>
+            <div className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COLOR</div>
+              <ColorPicker value={v.color_hex ?? ""} onChange={(hex) => set("color_hex", hex || undefined)} />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <label className="block">
@@ -760,5 +794,37 @@ function Field({
       </div>
       {children}
     </label>
+  );
+}
+
+// Color wheel + hex box, kept in sync. The native picker only accepts
+// #rrggbb, so the text box is what holds partial/typed values until they
+// become a valid hex.
+function ColorPicker({ value, onChange }: { value: string; onChange: (hex: string) => void }) {
+  const [text, setText] = useState(value);
+  useEffect(() => setText(value), [value]);
+  const valid = /^#[0-9a-fA-F]{6}$/.test(value);
+
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="color"
+        value={valid ? value : "#000000"}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-10 w-12 cursor-pointer border border-border bg-background p-0.5 shrink-0"
+      />
+      <input
+        value={text}
+        onChange={(e) => {
+          const t = e.target.value.trim();
+          setText(t);
+          const hex = t.startsWith("#") ? t : "#" + t;
+          if (/^#[0-9a-fA-F]{6}$/.test(hex)) onChange(hex.toLowerCase());
+          else if (t === "") onChange("");
+        }}
+        className="inp w-28"
+        placeholder="#1e40ff"
+      />
+    </div>
   );
 }
