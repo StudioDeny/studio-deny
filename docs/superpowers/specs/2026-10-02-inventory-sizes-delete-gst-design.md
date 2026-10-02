@@ -101,9 +101,23 @@ size is asked and sales cannot be attributed to a size.
   its variant, log `ONLINE_RESTOCK`, set `stock_restored_at = now()`.
 - Both functions `security definer`, `set search_path = public`.
 
-### Pre-payment check (`supabase/functions/razorpay-create-order`)
-Before creating the Razorpay order, load the requested variants and reject with a clear
-error if any `stock < qty`. The checkout page shows that error instead of opening payment.
+### Pre-payment check
+RPC `check_cart_stock(p_items jsonb)` (`[{variant_id, qty}]`) returns the rows whose stock
+is lower than the requested qty. `src/routes/checkout.tsx` calls it before opening
+Razorpay (both prepaid and COD-advance paths) and shows "Only N left in <size>" instead of
+taking payment. (`razorpay-create-order` only receives an amount, so the check lives in the
+DB; no edge-function redeploy needed.)
+
+### Known limitation
+A signed-in customer can insert extra `order_items` rows on their own paid order (existing
+RLS), which would now also reduce stock. Price-integrity checks still apply; this is
+recorded, not fixed, here.
+
+### Billing-software product creation
+The billing app's own "new product" forms (`ProductsPage.tsx`, `QuickNewModal.tsx`) create
+products with invented S/M/L/XL stock splits that are never saved as variants. They are
+replaced by a link that opens the website admin's new-product page, so products and their
+colour × size stock are only ever created in one place.
 
 ## 4. Delete product (website admin)
 
@@ -152,9 +166,8 @@ panels and the table on that page are unchanged. Black bands on tags stay black.
 
 1. Apply website migrations 20261002000001–3 and billing migration 0009 to Supabase
    (owner runs them; nothing is run against the live DB by the implementer).
-2. Redeploy edge function `razorpay-create-order`.
-3. Deploy both frontends.
-4. In website admin, filter `NEEDS SIZE COUNTS` and enter per-size counts.
+2. Deploy both frontends.
+3. In website admin, filter `NEEDS SIZE COUNTS` and enter per-size counts.
 
 ## Verification (no test framework in either repo)
 
