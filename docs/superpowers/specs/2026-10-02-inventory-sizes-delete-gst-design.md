@@ -49,13 +49,20 @@ size is asked and sales cannot be attributed to a size.
 
 ### Website admin product form (`src/routes/admin.products.new.tsx`)
 - Remove the `STOCK` input and the `AVAILABLE SIZES` chip picker.
-- Add a **STOCK BY SIZE** section: one row per category size (from `listSizesForCategory`),
-  each with a numeric count input. Rows already backed by a variant show its stock; sizes
-  without a variant show an empty input marked "needs count". Category with no sizes →
-  single `ONE SIZE` row.
-- Saving writes/updates `product_variants` rows (match on product + size + null color).
-  A blank count is not saved; `0` is saved as 0.
-- The existing VARIANTS table and modal stay for colour-specific variants.
+- Add a **STOCK BY COLOUR × SIZE** grid. Rows = the product's colours (`products.colors`;
+  a single "no colour" row when it has none). Columns = category sizes (from
+  `listSizesForCategory`), or a single `ONE SIZE` column when the category has no sizes.
+  Each cell is a numeric count. Each colour can stock a different subset of sizes: a blank
+  cell means "this colour is not made in this size" (no variant row); `0` means "made, but
+  sold out" (variant row with stock 0).
+- Saving reconciles `product_variants` for the product, matched on (color, size):
+  filled cell → insert/update stock; cell cleared that had a variant → delete that variant
+  (blocked with a message if the variant appears on any bill/order; set it to 0 instead).
+  `color_hex` is copied from the product colour. Variant price defaults to the product price.
+- Variants whose (color, size) is not in the grid (e.g. a size later removed from the
+  category) are listed under the grid as "other variants" with stock edit + delete, so
+  nothing is hidden.
+- The old VARIANTS table + modal is removed; the grid replaces it.
 - Product cannot be saved as active with zero variant rows (validation message).
 
 ### "Needs size counts" flag
@@ -69,9 +76,12 @@ size is asked and sales cannot be attributed to a size.
 - `PosBillingPage.tsx` product tap:
   - `needsSizeCounts` → toast "Add size counts in the website admin before billing this
     product"; product card shows the flag and is not addable.
-  - exactly one variant with size `ONE SIZE` → add directly.
-  - otherwise → always open the existing size picker (even with a single sized variant),
-    each size showing its stock; sold-out sizes disabled.
+  - exactly one variant, size `ONE SIZE` → add directly.
+  - otherwise → always open the picker (even with a single sized variant). If the product
+    has more than one colour, the picker first shows colour swatches, then the sizes
+    available in that colour; with one colour it shows sizes directly. Each size shows its
+    stock; sold-out sizes disabled. Inline quick-tap chips on product cards are shown only
+    for single-colour products.
 - `pos_checkout` already decrements `product_variants.stock` for the chosen variant;
   no change to its stock logic.
 
