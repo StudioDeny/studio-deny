@@ -105,9 +105,9 @@ error if any `stock < qty`. The checkout page shows that error instead of openin
   - Otherwise, in one transaction, deletes the product's `product_variants` (cart rows
     cascade), `product_categories` rows, wishlist rows, other rows that reference the slug
     (found during implementation by checking FKs), then the `products` row.
-- `src/lib/productsStore.ts`: `deleteProduct` currently only hides the product; rename it to
-  `hideProduct` (update callers) and add `permanentlyDeleteProduct(slug)` calling the RPC,
-  mapping `PRODUCT_SOLD:n` to "Sold n times — hide it instead".
+- `src/lib/productsStore.ts`: `deleteProduct` (currently an unused soft-hide; hiding is
+  done by `setProductActive`) is rewritten to call the RPC, mapping `PRODUCT_SOLD:n` to
+  "Sold n times — hide it instead".
 - `src/routes/admin.products.index.tsx`: trash button per row next to the eye toggle,
   with `confirm()` naming the product, then refresh + toast.
 - Cloudinary images are not deleted.
