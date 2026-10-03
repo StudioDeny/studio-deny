@@ -1,6 +1,6 @@
 -- ============================================================
 -- Migration: online orders move the same per-size stock the POS uses.
---   * order item inserted (after payment)   -> variant stock goes down
+--   * paid order inserted                   -> variant stock goes down
 --   * order CANCELLED / return RECEIVED      -> stock goes back, once
 --   * check_cart_stock()                      -> checkout asks before payment
 -- Every movement is written to pos_inventory_logs so the billing app's
@@ -14,36 +14,55 @@ ALTER TABLE pos_inventory_logs ADD CONSTRAINT pos_inventory_logs_reason_check
                     'ONLINE_SALE', 'ONLINE_RESTOCK'));
 
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS stock_restored_at timestamptz;
+-- true once this order has reduced stock; orders placed before this
+-- migration stay false, so cancelling them never adds stock that was never taken.
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS stock_taken boolean NOT NULL DEFAULT false;
 
--- Payment is already captured when items are inserted, so this never
--- fails the insert: stock is clamped at 0 and the oversell is flagged.
-CREATE OR REPLACE FUNCTION trg_order_item_take_stock()
+-- Stock moves from orders.items - the item list the customer paid for.
+-- orders can only be inserted with a verified, single-use payment and
+-- customers cannot update them, so extra rows a customer adds to
+-- order_items afterwards can never reduce stock. Payment is already
+-- captured at insert time, so this never fails the insert: stock is
+-- clamped at 0 and an oversell is flagged in the log.
+CREATE OR REPLACE FUNCTION trg_order_take_stock()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
+  it jsonb;
+  v_variant uuid;
+  v_qty integer;
+  v_slug text;
   v_old integer;
   v_new integer;
 BEGIN
-  IF NEW.variant_id IS NULL THEN RETURN NULL; END IF;
-  SELECT stock INTO v_old FROM product_variants WHERE id = NEW.variant_id FOR UPDATE;
-  IF NOT FOUND THEN RETURN NULL; END IF;
-  v_new := greatest(0, v_old - NEW.qty);
-  UPDATE product_variants SET stock = v_new WHERE id = NEW.variant_id;
-  INSERT INTO pos_inventory_logs (variant_id, product_slug, change_qty, new_stock, reason, note)
-  VALUES (NEW.variant_id, NEW.product_slug, -NEW.qty, v_new, 'ONLINE_SALE',
-          'Order ' || NEW.order_id
-            || CASE WHEN v_old < NEW.qty THEN ' - OVERSOLD (had ' || v_old || ')' ELSE '' END);
+  IF jsonb_typeof(NEW.items::jsonb) <> 'array' THEN RETURN NULL; END IF;
+  FOR it IN SELECT * FROM jsonb_array_elements(NEW.items::jsonb) LOOP
+    v_variant := CASE WHEN coalesce(it->>'variantId', '') ~* '^[0-9a-f-]{36}$' THEN (it->>'variantId')::uuid END;
+    v_qty := CASE WHEN coalesce(it->>'qty', '') ~ '^[0-9]+$' THEN (it->>'qty')::integer ELSE 0 END;
+    CONTINUE WHEN v_variant IS NULL OR v_qty <= 0;
+    SELECT stock, product_id INTO v_old, v_slug FROM product_variants WHERE id = v_variant FOR UPDATE;
+    CONTINUE WHEN NOT FOUND;
+    v_new := greatest(0, v_old - v_qty);
+    UPDATE product_variants SET stock = v_new WHERE id = v_variant;
+    INSERT INTO pos_inventory_logs (variant_id, product_slug, change_qty, new_stock, reason, note)
+    VALUES (v_variant, v_slug, -v_qty, v_new, 'ONLINE_SALE',
+            'Order ' || NEW.id || CASE WHEN v_old < v_qty THEN ' - OVERSOLD (had ' || v_old || ')' ELSE '' END);
+  END LOOP;
+  UPDATE orders SET stock_taken = true WHERE id = NEW.id;
   RETURN NULL;
 END $$;
 
-DROP TRIGGER IF EXISTS order_item_take_stock ON order_items;
-CREATE TRIGGER order_item_take_stock
-  AFTER INSERT ON order_items
-  FOR EACH ROW EXECUTE FUNCTION trg_order_item_take_stock();
+DROP TRIGGER IF EXISTS order_take_stock ON orders;
+CREATE TRIGGER order_take_stock
+  AFTER INSERT ON orders
+  FOR EACH ROW EXECUTE FUNCTION trg_order_take_stock();
 
 CREATE OR REPLACE FUNCTION trg_order_restore_stock()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
-  r record;
+  it jsonb;
+  v_variant uuid;
+  v_qty integer;
+  v_slug text;
   v_new integer;
 BEGIN
   IF NEW.stock_restored_at IS NOT NULL THEN RETURN NULL; END IF;
@@ -53,15 +72,21 @@ BEGIN
   ) THEN
     RETURN NULL;
   END IF;
+  -- Orders placed before this migration never took stock - nothing to give back.
+  IF NOT NEW.stock_taken THEN RETURN NULL; END IF;
 
-  FOR r IN SELECT * FROM order_items WHERE order_id = NEW.id AND variant_id IS NOT NULL LOOP
-    UPDATE product_variants SET stock = stock + r.qty WHERE id = r.variant_id RETURNING stock INTO v_new;
-    IF FOUND THEN
+  IF jsonb_typeof(NEW.items::jsonb) = 'array' THEN
+    FOR it IN SELECT * FROM jsonb_array_elements(NEW.items::jsonb) LOOP
+      v_variant := CASE WHEN coalesce(it->>'variantId', '') ~* '^[0-9a-f-]{36}$' THEN (it->>'variantId')::uuid END;
+      v_qty := CASE WHEN coalesce(it->>'qty', '') ~ '^[0-9]+$' THEN (it->>'qty')::integer ELSE 0 END;
+      CONTINUE WHEN v_variant IS NULL OR v_qty <= 0;
+      UPDATE product_variants SET stock = stock + v_qty WHERE id = v_variant RETURNING stock, product_id INTO v_new, v_slug;
+      CONTINUE WHEN NOT FOUND;
       INSERT INTO pos_inventory_logs (variant_id, product_slug, change_qty, new_stock, reason, note)
-      VALUES (r.variant_id, r.product_slug, r.qty, v_new, 'ONLINE_RESTOCK',
+      VALUES (v_variant, v_slug, v_qty, v_new, 'ONLINE_RESTOCK',
               'Order ' || NEW.id || CASE WHEN NEW.status = 'CANCELLED' THEN ' cancelled' ELSE ' return received' END);
-    END IF;
-  END LOOP;
+    END LOOP;
+  END IF;
 
   UPDATE orders SET stock_restored_at = now() WHERE id = NEW.id;
   RETURN NULL;
