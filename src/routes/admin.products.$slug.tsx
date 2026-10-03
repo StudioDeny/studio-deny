@@ -22,7 +22,8 @@ function EditProduct() {
   return (
     <ProductForm
       initial={p}
-      onSave={async (np) => { await upsertProduct(np); toast.success("Saved"); nav({ to: "/admin/products" }); }}
+      onSave={upsertProduct}
+      onSaved={() => { toast.success("Saved"); nav({ to: "/admin/products" }); }}
     />
   );
 }

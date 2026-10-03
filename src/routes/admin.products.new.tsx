@@ -5,22 +5,15 @@ import { listCategories, listBrands, listProductCategoryIds, setProductCategorie
 import { listSizesForCategory, type Size } from "@/lib/sizes";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { X, Loader2, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { MultiCategoryPicker } from "@/components/admin/MultiCategoryPicker";
 import { MediaField, type MediaValue } from "@/components/admin/MediaField";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
-
-export type Variant = {
-  id?: string;
-  tempId?: string;
-  size: string | null;
-  color?: string | null;
-  color_hex?: string | null;
-  stock: number;
-  price?: number | null;
-  compare_price?: number | null;
-  sku?: string | null;
-};
+import { StockEditor } from "@/components/admin/StockEditor";
+import {
+  cardsFromVariants, colorsFromCards, describeSaveResult, listVariantRows, planStockSave, saveStockPlan,
+  validateCards, type ColourCard, type VariantRow,
+} from "@/lib/stockEditor";
 
 export const Route = createFileRoute("/admin/products/new")({
   component: NewProduct,
@@ -30,8 +23,8 @@ function NewProduct() {
   const nav = useNavigate();
   return (
     <ProductForm
-      onSave={async (p) => {
-        await upsertProduct(p);
+      onSave={upsertProduct}
+      onSaved={() => {
         toast.success("Product created");
         nav({ to: "/admin/products" });
       }}
@@ -42,9 +35,12 @@ function NewProduct() {
 export function ProductForm({
   initial,
   onSave,
+  onSaved,
 }: {
   initial?: Product;
+  // Persists the product row; stock rows are saved by the form afterwards.
   onSave: (p: Product) => Promise<void>;
+  onSaved: () => void;
 }) {
   const [cats, setCats] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -70,22 +66,23 @@ export function ProductForm({
       image: "",
       hoverImage: "",
       gallery: [],
-      sizes: ["S", "M", "L", "XL"],
+      sizes: [],
       colors: [],
       description: "",
       material: "",
       materialCare: "",
-      stock: 10,
+      stock: 0,
     }
   );
   const [saving, setSaving] = useState(false);
   const [categoryIds, setCategoryIds] = useState<string[]>(initial?.categoryId ? [initial.categoryId] : []);
   const [galleryMedia, setGalleryMedia] = useState<MediaValue>({ url: "", type: "image" });
   const [sizesForCategory, setSizesForCategory] = useState<Size[]>([]);
-  const [variants, setVariants] = useState<Variant[]>([]);
-  const [variantsLoading, setVariantsLoading] = useState(!!initial);
-  const [showVariantModal, setShowVariantModal] = useState(false);
-  const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
+  const [rows, setRows] = useState<VariantRow[]>([]);
+  const [cards, setCards] = useState<ColourCard[]>(() =>
+    cardsFromVariants([], initial?.colors ?? [], initial?.price ?? 0, initial?.compareAt),
+  );
+  const [stockLoading, setStockLoading] = useState(!!initial);
 
   useEffect(() => {
     if (!p.categoryId) { setSizesForCategory([]); return; }
@@ -111,75 +108,22 @@ export function ProductForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brands]);
 
-  const fetchVariants = async () => {
-    if (!initial) return;
-    setVariantsLoading(true);
-    const { data } = await supabase.from("product_variants").select("*").eq("product_id", initial.slug).order("size");
-    setVariants(data ?? []);
-    setVariantsLoading(false);
-  };
-  useEffect(() => { fetchVariants(); }, [initial?.slug]);
-
-  // `vs` is one entry per selected size — editing an existing row always
-  // yields exactly one; adding a new one can yield several at once (pick
-  // multiple sizes for the same color/stock/price to create a row per size).
-  const saveVariant = async (vs: Variant[]) => {
-    if (vs.length === 0) return;
-    if (initial) {
-      const existingId = vs[0].id;
-      if (existingId) {
-        const existing = vs[0];
-        const { error } = await supabase
-          .from("product_variants")
-          .update({
-            size: existing.size, color: existing.color ?? null, color_hex: existing.color_hex ?? null,
-            stock: existing.stock, price: existing.price ?? null, compare_price: existing.compare_price ?? null,
-            sku: existing.sku ?? null,
-          })
-          .eq("id", existingId);
-        if (error) { toast.error(error.message); return; }
-      } else {
-        const rows = vs.map((v) => ({
-          product_id: initial.slug, size: v.size, color: v.color ?? null,
-          color_hex: v.color_hex ?? null, stock: v.stock,
-          price: v.price ?? null, compare_price: v.compare_price ?? null, sku: v.sku ?? null,
-        }));
-        const { error } = await supabase.from("product_variants").insert(rows);
-        if (error) { toast.error(error.message); return; }
-      }
-      toast.success(vs.length > 1 ? `${vs.length} variants saved` : "Variant saved");
-      setShowVariantModal(false);
-      setEditingVariant(null);
-      fetchVariants();
-    } else {
-      setVariants((prev) => {
-        let next = [...prev];
-        vs.forEach((v, i) => {
-          const tempId = v.tempId ?? `tmp-${Date.now()}-${prev.length + i}`;
-          const withId = { ...v, tempId };
-          const idx = next.findIndex((x) => x.tempId === v.tempId);
-          if (idx >= 0) next[idx] = withId;
-          else next = [...next, withId];
-        });
-        return next;
-      });
-      setShowVariantModal(false);
-      setEditingVariant(null);
-      toast.success(vs.length > 1 ? `${vs.length} variants staged — will be saved with the product` : "Variant staged — will be saved with the product");
+  const loadStock = async (slug: string, colors: Product["colors"], price: number, compareAt?: number) => {
+    setStockLoading(true);
+    try {
+      const r = await listVariantRows(slug);
+      setRows(r);
+      setCards(cardsFromVariants(r, colors, price, compareAt));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not load stock");
+    } finally {
+      setStockLoading(false);
     }
   };
-
-  const deleteVariant = async (v: Variant) => {
-    if (!confirm("Delete this variant?")) return;
-    if (initial && v.id) {
-      const { error } = await supabase.from("product_variants").delete().eq("id", v.id);
-      if (error) { toast.error(error.message); return; }
-      toast.success("Deleted");
-      fetchVariants();
-    } else {
-      setVariants((prev) => prev.filter((x) => x.tempId !== v.tempId));
-    }
-  };
+  useEffect(() => {
+    if (initial) loadStock(initial.slug, initial.colors, initial.price, initial.compareAt);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initial?.slug]);
 
   const set = <K extends keyof Product>(k: K, v: Product[K]) =>
     setP({ ...p, [k]: v });
@@ -229,23 +173,38 @@ export function ProductForm({
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          const final = { ...p, slug: p.slug || slugify(p.name) };
+          const final: Product = { ...p, slug: p.slug || slugify(p.name) };
           if (!final.name) return toast.error("Name required");
           if (!final.slug) return toast.error("Slug required");
           if (!final.image) return toast.error("Product image required");
+          if (!final.categoryId) return toast.error("Select a category first — its sizes are used for stock");
+          const problem = validateCards(cards, final.is_active ?? true);
+          if (problem) return toast.error(problem);
           setSaving(true);
           try {
+            if (!initial) {
+              const { data: clash } = await supabase.from("products").select("slug").eq("slug", final.slug).maybeSingle();
+              if (clash) {
+                toast.error(`A product with the slug "${final.slug}" already exists — change the name or slug`);
+                return;
+              }
+            }
+            const plan = planStockSave(rows, cards, final.price, final.compareAt);
+            final.colors = colorsFromCards(cards);
+            final.sizes = [...new Set(cards.flatMap((c) => Object.keys(c.sizes)))];
+            final.stock = cards.reduce((sum, c) => sum + Object.values(c.sizes).reduce((t, q) => t + Number(q), 0), 0);
             await onSave(final);
             await setProductCategories(final.slug, categoryIds.length > 0 ? categoryIds : final.categoryId ? [final.categoryId] : []);
-            if (!initial && variants.length > 0) {
-              const rows = variants.map((v) => ({
-                product_id: final.slug, size: v.size, color: v.color ?? null,
-                color_hex: v.color_hex ?? null, stock: v.stock,
-                price: v.price ?? null, compare_price: v.compare_price ?? null, sku: v.sku ?? null,
-              }));
-              const { error } = await supabase.from("product_variants").insert(rows);
-              if (error) toast.error(`Product saved, but variants failed: ${error.message}`);
+            const result = await saveStockPlan(final.slug, plan);
+            const note = describeSaveResult(result);
+            if (note) {
+              toast.warning(note, { duration: 10000 });
+              if (initial) {
+                await loadStock(final.slug, final.colors, final.price, final.compareAt);
+                return;
+              }
             }
+            onSaved();
           } catch (err) {
             toast.error(err instanceof Error ? err.message : "Save failed");
           } finally {
@@ -339,7 +298,7 @@ export function ProductForm({
           <span className="text-mono text-[10px] text-muted-foreground">— never visible or purchasable on studiodeny.com, including via a direct link; still fully visible in the POS app</span>
         </label>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="PRICE (₹)">
             <input
               type="number"
@@ -355,14 +314,6 @@ export function ProductForm({
               onChange={(e) =>
                 set("compareAt", Number(e.target.value) || undefined)
               }
-              className="inp"
-            />
-          </Field>
-          <Field label="STOCK">
-            <input
-              type="number"
-              value={p.stock}
-              onChange={(e) => set("stock", Number(e.target.value))}
               className="inp"
             />
           </Field>
@@ -468,68 +419,30 @@ export function ProductForm({
           </div>
         </Field>
 
-        <Field label="AVAILABLE SIZES (used when this product has no variants)">
+        <div className="border border-border p-4 space-y-2">
+          <div className="text-mono text-[10px] tracking-widest text-muted-foreground">STOCK &amp; VARIANTS (COLOUR × SIZE)</div>
           {!p.categoryId ? (
-            <p className="text-mono text-[11px] text-muted-foreground">Select a category first.</p>
-          ) : sizesForCategory.length === 0 ? (
-            <p className="text-mono text-[11px] text-muted-foreground">
-              No sizes defined for this category yet — add some in <Link to="/admin/sizes" className="text-primary hover:underline">Admin → Sizes</Link>.
-            </p>
+            <p className="text-mono text-[11px] text-muted-foreground">Select a category first — the sizes come from the category.</p>
+          ) : stockLoading ? (
+            <p className="text-mono text-[11px] text-muted-foreground">Loading stock…</p>
           ) : (
-            <div className="flex flex-wrap gap-2">
-              {sizesForCategory.map((s) => {
-                const active = p.sizes.includes(s.label);
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() =>
-                      set("sizes", active ? p.sizes.filter((x) => x !== s.label) : [...p.sizes, s.label])
-                    }
-                    className={`h-10 px-4 border text-sm font-semibold transition-colors ${
-                      active ? "bg-foreground text-background border-foreground" : "border-border hover:border-primary hover:text-primary"
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                );
-              })}
-            </div>
+            <>
+              {sizesForCategory.length === 0 && (
+                <p className="text-mono text-[11px] text-muted-foreground">
+                  No sizes for this category, so stock is tracked as ONE SIZE. Add sizes in{" "}
+                  <Link to="/admin/sizes" className="text-primary hover:underline">Admin → Sizes</Link>.
+                </p>
+              )}
+              <StockEditor
+                cards={cards}
+                onChange={setCards}
+                sizeLabels={sizesForCategory.map((sz) => sz.label)}
+                productPrice={p.price}
+                productCompareAt={p.compareAt}
+              />
+            </>
           )}
-        </Field>
-
-        <Field label="COLORS (used when this product has no variant colors)">
-          <div className="space-y-2">
-            {p.colors.map((c, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <ColorPicker
-                  value={c.hex}
-                  onChange={(hex) => set("colors", p.colors.map((x, idx) => (idx === i ? { ...x, hex } : x)))}
-                />
-                <input
-                  value={c.name}
-                  onChange={(e) => set("colors", p.colors.map((x, idx) => (idx === i ? { ...x, name: e.target.value } : x)))}
-                  className="inp flex-1"
-                  placeholder="Color name, e.g. Blue"
-                />
-                <button
-                  type="button"
-                  onClick={() => set("colors", p.colors.filter((_, idx) => idx !== i))}
-                  className="h-10 w-10 shrink-0 border border-border flex items-center justify-center hover:border-red-500 hover:text-red-500"
-                >
-                  <X className="size-3.5" />
-                </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => set("colors", [...p.colors, { name: "", hex: "#000000" }])}
-              className="flex items-center gap-2 border border-dashed border-border h-10 px-4 text-mono text-[11px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-            >
-              <Plus className="size-3.5" /> ADD COLOR
-            </button>
-          </div>
-        </Field>
+        </div>
 
         <Field label="DESCRIPTION (select text to bold or color it)">
           <RichTextEditor
@@ -567,215 +480,7 @@ export function ProductForm({
         </button>
       </form>
 
-      <div className="mt-14 pt-10 border-t border-border">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-display text-3xl">VARIANTS.</h2>
-          <button
-            type="button"
-            onClick={() => { setEditingVariant({ size: "", stock: 10 }); setShowVariantModal(true); }}
-            className="flex items-center gap-2 bg-primary text-primary-foreground text-mono text-xs tracking-widest px-4 h-9 hover:glow-primary"
-          >
-            <Plus className="size-3.5" /> ADD VARIANT
-          </button>
-        </div>
-        <p className="text-muted-foreground text-xs mb-5" style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.1em" }}>
-          VARIANTS OVERRIDE SIZES FROM THE PRODUCT FORM. IF VARIANTS EXIST, THE STOREFRONT USES THEM FOR SIZE/STOCK.
-          {!initial && " NEW VARIANTS ARE SAVED WHEN YOU SAVE THE PRODUCT."}
-        </p>
-
-        {variantsLoading ? (
-          <p className="text-muted-foreground text-sm">Loading…</p>
-        ) : variants.length === 0 ? (
-          <div className="border border-dashed border-border p-8 text-center">
-            <p className="text-muted-foreground text-sm">No variants. Add size + stock combinations to track inventory per size/color.</p>
-          </div>
-        ) : (
-          <div className="border border-border bg-surface overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
-                <tr>
-                  <th className="text-left p-3">SIZE</th>
-                  <th className="text-left p-3">COLOR</th>
-                  <th className="text-left p-3">STOCK</th>
-                  <th className="text-left p-3">PRICE</th>
-                  <th className="text-left p-3">SKU</th>
-                  <th className="text-right p-3">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {variants.map((v) => (
-                  <tr key={v.id ?? v.tempId}>
-                    <td className="p-3 text-mono font-bold">{v.size}</td>
-                    <td className="p-3">
-                      {v.color ? (
-                        <div className="flex items-center gap-2">
-                          {v.color_hex && (
-                            <span className="size-4 rounded-full border border-border inline-block" style={{ background: v.color_hex }} />
-                          )}
-                          <span className="text-mono text-xs">{v.color}</span>
-                        </div>
-                      ) : <span className="text-muted-foreground">—</span>}
-                    </td>
-                    <td className="p-3">
-                      <span className={`text-mono text-xs font-semibold ${v.stock === 0 ? "text-red-500" : v.stock <= 5 ? "text-amber-600" : ""}`}>
-                        {v.stock === 0 ? "OUT" : v.stock}
-                      </span>
-                    </td>
-                    <td className="p-3 text-mono text-xs">{v.price ? `₹${v.price}` : <span className="text-muted-foreground">default</span>}</td>
-                    <td className="p-3 text-muted-foreground text-xs">{v.sku || "—"}</td>
-                    <td className="p-3 text-right">
-                      <div className="inline-flex gap-3">
-                        <button
-                          type="button"
-                          onClick={() => { setEditingVariant(v); setShowVariantModal(true); }}
-                          className="text-mono text-[10px] tracking-widest text-primary hover:underline"
-                        >
-                          EDIT
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => deleteVariant(v)}
-                          className="text-mono text-[10px] tracking-widest text-red-500 hover:underline"
-                        >
-                          DEL
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {showVariantModal && editingVariant && (
-        <VariantModal
-          initial={editingVariant}
-          categoryId={p.categoryId}
-          onSave={saveVariant}
-          onClose={() => { setShowVariantModal(false); setEditingVariant(null); }}
-        />
-      )}
-
       <style>{`.inp{background:var(--background);border:1px solid var(--border);height:40px;padding:0 12px;width:100%;font-family:var(--font-mono,monospace);font-size:14px}textarea.inp{height:auto;padding:10px 12px}`}</style>
-    </div>
-  );
-}
-
-function VariantModal({
-  initial, categoryId, onSave, onClose,
-}: {
-  initial: Variant;
-  categoryId?: string;
-  onSave: (vs: Variant[]) => void;
-  onClose: () => void;
-}) {
-  const isEditing = !!(initial.id || initial.tempId);
-  const [v, setV] = useState<Variant>(initial);
-  const [selectedSizes, setSelectedSizes] = useState<string[]>(initial.size ? [initial.size] : []);
-  const [sizesForCategory, setSizesForCategory] = useState<Size[]>([]);
-  const set = <K extends keyof Variant>(k: K, val: Variant[K]) => setV((prev) => ({ ...prev, [k]: val }));
-
-  useEffect(() => {
-    if (!categoryId) { setSizesForCategory([]); return; }
-    listSizesForCategory(categoryId).then(setSizesForCategory);
-  }, [categoryId]);
-
-  const toggleSize = (label: string) => {
-    if (isEditing) { setSelectedSizes([label]); return; }
-    setSelectedSizes((prev) => (prev.includes(label) ? prev.filter((s) => s !== label) : [...prev, label]));
-  };
-
-  const submit = () => {
-    if (selectedSizes.length === 0) { toast.error("Pick at least one size"); return; }
-    if (v.color && !v.color_hex) { toast.error("Pick a color for \"" + v.color + "\""); return; }
-    onSave(selectedSizes.map((size) => ({ ...v, size })));
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <div className="bg-surface border border-border w-full max-w-md p-6 shadow-2xl">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-display text-2xl">{isEditing ? "EDIT" : "ADD"} VARIANT.</h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="size-4" /></button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">
-              SIZE * {!isEditing && "(pick multiple to create one variant per size)"}
-            </div>
-            {!categoryId ? (
-              <p className="text-mono text-[11px] text-muted-foreground">Select a category on the product form first.</p>
-            ) : sizesForCategory.length === 0 ? (
-              <p className="text-mono text-[11px] text-muted-foreground">
-                No sizes defined for this category yet — add some in Admin → Sizes.
-              </p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {sizesForCategory.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => toggleSize(s.label)}
-                    className={`h-9 px-3 border text-sm font-semibold transition-colors ${
-                      selectedSizes.includes(s.label) ? "bg-foreground text-background border-foreground" : "border-border hover:border-primary hover:text-primary"
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <label className="block">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">STOCK *</div>
-            <input type="number" value={v.stock} min={0} onChange={(e) => set("stock", Number(e.target.value))} className="inp" />
-          </label>
-          <div className="grid grid-cols-2 gap-4">
-            <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COLOR NAME</div>
-              <input value={v.color ?? ""} onChange={(e) => set("color", e.target.value || undefined)} className="inp" placeholder="Black" />
-            </label>
-            <div className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COLOR</div>
-              <ColorPicker value={v.color_hex ?? ""} onChange={(hex) => set("color_hex", hex || undefined)} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">PRICE ₹ (blank = product default)</div>
-              <input
-                type="number" value={v.price ?? ""}
-                onChange={(e) => set("price", e.target.value ? Number(e.target.value) : undefined)}
-                className="inp"
-              />
-            </label>
-            <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COMPARE AT ₹</div>
-              <input
-                type="number" value={v.compare_price ?? ""}
-                onChange={(e) => set("compare_price", e.target.value ? Number(e.target.value) : undefined)}
-                className="inp"
-              />
-            </label>
-          </div>
-          <label className="block">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SKU (optional — your own internal code for this size/color, e.g. for warehouse or invoicing use. Not shown to customers.)</div>
-            <input value={v.sku ?? ""} onChange={(e) => set("sku", e.target.value || undefined)} className="inp" placeholder="SD-TEE-BLK-M" />
-          </label>
-        </div>
-
-        <div className="flex gap-3 mt-6">
-          <button onClick={submit} className="flex-1 bg-primary text-primary-foreground text-mono text-xs tracking-widest h-10 hover:glow-primary">
-            SAVE VARIANT
-          </button>
-          <button onClick={onClose} className="border border-border px-6 text-mono text-xs tracking-widest h-10 hover:border-primary">
-            CANCEL
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
@@ -794,37 +499,5 @@ function Field({
       </div>
       {children}
     </label>
-  );
-}
-
-// Color wheel + hex box, kept in sync. The native picker only accepts
-// #rrggbb, so the text box is what holds partial/typed values until they
-// become a valid hex.
-function ColorPicker({ value, onChange }: { value: string; onChange: (hex: string) => void }) {
-  const [text, setText] = useState(value);
-  useEffect(() => setText(value), [value]);
-  const valid = /^#[0-9a-fA-F]{6}$/.test(value);
-
-  return (
-    <div className="flex items-center gap-2">
-      <input
-        type="color"
-        value={valid ? value : "#000000"}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-12 cursor-pointer border border-border bg-background p-0.5 shrink-0"
-      />
-      <input
-        value={text}
-        onChange={(e) => {
-          const t = e.target.value.trim();
-          setText(t);
-          const hex = t.startsWith("#") ? t : "#" + t;
-          if (/^#[0-9a-fA-F]{6}$/.test(hex)) onChange(hex.toLowerCase());
-          else if (t === "") onChange("");
-        }}
-        className="inp w-28"
-        placeholder="#1e40ff"
-      />
-    </div>
   );
 }
