@@ -56,7 +56,9 @@ export function LightningStrike({ onStrike }: LightningStrikeProps) {
   }, [onStrike]);
 
   const isStriking = phase === "strike1" || phase === "strike2";
-  const currentBolt = phase === "strike1" ? STRIKE1 : STRIKE2;
+  // STRIKE1 has a third branch (b3), STRIKE2 doesn't - one shared shape.
+  const currentBolt: { main: string; b1: string; b2: string; b3?: string } =
+    phase === "strike1" ? STRIKE1 : STRIKE2;
 
   return (
     <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden flex items-center justify-center">
@@ -118,7 +120,7 @@ export function LightningStrike({ onStrike }: LightningStrikeProps) {
                 strokeLinejoin="miter"
                 opacity="0.5"
               />
-              {"b3" in currentBolt && currentBolt.b3 && (
+              {currentBolt.b3 && (
                 <path
                   d={currentBolt.b3}
                   fill="none"
@@ -155,7 +157,7 @@ export function LightningStrike({ onStrike }: LightningStrikeProps) {
                 strokeLinecap="round"
                 strokeLinejoin="miter"
               />
-              {"b3" in currentBolt && currentBolt.b3 && (
+              {currentBolt.b3 && (
                 <path
                   d={currentBolt.b3}
                   fill="none"
