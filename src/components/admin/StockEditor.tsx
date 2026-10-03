@@ -58,7 +58,7 @@ export function StockEditor({
               <input
                 value={card.name}
                 onChange={(e) => update(card.key, { name: e.target.value })}
-                placeholder={cards.length === 1 ? "Colour name (optional, e.g. Black)" : "Colour name, e.g. Black"}
+                placeholder={cards.length === 1 ? "Colour name (blank = White)" : "Colour name, e.g. Black"}
                 className="inp flex-1"
               />
               {cards.length > 1 && (

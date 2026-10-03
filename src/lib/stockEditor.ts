@@ -8,6 +8,8 @@ import { supabase } from "./supabase";
 import type { Color } from "./productsStore";
 
 export const ONE_SIZE = "ONE SIZE";
+// Stock is never saved without a colour: a card left unnamed becomes White.
+export const DEFAULT_COLOUR = { name: "White", hex: "#FFFFFF" };
 
 export type VariantRow = {
   id: string;
@@ -23,7 +25,7 @@ export type VariantRow = {
 
 export type ColourCard = {
   key: string;
-  name: string; // "" = product has no colours (only allowed as the single card)
+  name: string; // "" = saved as DEFAULT_COLOUR (only allowed as the single card)
   hex: string;
   price: string; // "" = use product price
   compareAt: string; // "" = use product compare-at
@@ -88,7 +90,7 @@ export function cardsFromVariants(
     target.origName = "";
     return [target];
   }
-  return cards.length > 0 ? cards : [emptyCard()];
+  return cards.length > 0 ? cards : [emptyCard(DEFAULT_COLOUR.name, DEFAULT_COLOUR.hex)];
 }
 
 const isWholeNumber = (s: string) => /^\d+$/.test(s.trim());
@@ -140,7 +142,8 @@ export function planStockSave(
   const kept = new Set<string>();
 
   for (const c of cards) {
-    const color = c.name.trim() || null;
+    const color = c.name.trim() || DEFAULT_COLOUR.name;
+    const hex = c.name.trim() ? c.hex : DEFAULT_COLOUR.hex;
     const rowColor = c.origName !== undefined ? c.origName.trim() || null : color;
     const price = c.price.trim() ? Number(c.price) : productPrice;
     const compare = c.compareAt.trim() ? Number(c.compareAt) : productCompareAt ?? null;
@@ -148,7 +151,7 @@ export function planStockSave(
       const stock = Number(qty);
       const match = rows.find((r) => !kept.has(r.id) && norm(r.color) === norm(rowColor) && (r.size || ONE_SIZE) === size);
       if (!match) {
-        plan.inserts.push({ size, color, color_hex: color ? c.hex : null, stock, price, compare_price: compare, sku: null });
+        plan.inserts.push({ size, color, color_hex: hex, stock, price, compare_price: compare, sku: null });
         continue;
       }
       kept.add(match.id);
@@ -156,7 +159,7 @@ export function planStockSave(
       if (match.stock !== stock) patch.stock = stock;
       if (Number(match.price) !== price) patch.price = price;
       if ((match.compare_price ?? null) !== compare) patch.compare_price = compare;
-      if (color && (match.color_hex ?? "") !== c.hex) patch.color_hex = c.hex;
+      if ((match.color_hex ?? "") !== hex) patch.color_hex = hex;
       if (match.color !== color) patch.color = color;
       if (Object.keys(patch).length > 0) plan.updates.push({ id: match.id, loadedStock: match.stock, patch });
     }
@@ -221,7 +224,9 @@ async function variantWasSold(id: string): Promise<boolean> {
 
 // products.colors mirrors the named colour cards (storefront swatches).
 export function colorsFromCards(cards: ColourCard[]): Color[] {
-  return cards.filter((c) => c.name.trim()).map((c) => ({ name: c.name.trim(), hex: c.hex }));
+  return cards
+    .filter((c) => c.name.trim() || cards.length === 1)
+    .map((c) => (c.name.trim() ? { name: c.name.trim(), hex: c.hex } : DEFAULT_COLOUR));
 }
 
 export function describeSaveResult(r: StockSaveResult): string | null {
