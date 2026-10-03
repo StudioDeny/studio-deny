@@ -65,7 +65,7 @@ export const Route = createFileRoute("/product/$slug")({
   errorComponent: ({ error, reset }) => (
     <div className="px-4 py-32 text-center min-h-[70vh] flex flex-col items-center justify-center">
       <h1 className="text-display text-muted-foreground/30 leading-none" style={{ fontSize: "clamp(60px, 10vw, 120px)" }}>SOMETHING BROKE</h1>
-      <p className="text-mono mt-6 text-muted-foreground" style={{ fontSize: "12px", letterSpacing: "0.2em" }}>{error.message}</p>
+      <p className="text-mono mt-6 text-muted-foreground" style={{ fontSize: "12px", letterSpacing: "0.2em" }}>{error instanceof Error ? error.message : "Something went wrong"}</p>
       <button
         onClick={reset}
         className="mt-10 border border-border px-8 py-3 text-mono hover:border-primary hover:text-primary transition-colors"
