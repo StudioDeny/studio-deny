@@ -75,6 +75,19 @@ export function cardsFromVariants(
     if (Number(r.price) !== Number(productPrice)) c.price = String(r.price);
     if (r.compare_price != null && Number(r.compare_price) !== Number(productCompareAt ?? NaN)) c.compareAt = String(r.compare_price);
   }
+  // Older products: stock rows saved without a colour while the product
+  // lists exactly one colour. Fold that stock into the colour card (rows are
+  // renamed on save) instead of showing an unnamed card next to it.
+  const unnamed = cards.filter((c) => !c.name.trim());
+  const named = cards.filter((c) => c.name.trim());
+  if (unnamed.length === 1 && named.length === 1 && Object.keys(named[0].sizes).length === 0) {
+    const [target] = named;
+    target.sizes = unnamed[0].sizes;
+    target.price = unnamed[0].price;
+    target.compareAt = unnamed[0].compareAt;
+    target.origName = "";
+    return [target];
+  }
   return cards.length > 0 ? cards : [emptyCard()];
 }
 
@@ -84,7 +97,9 @@ const isMoney = (s: string) => /^\d+(\.\d{1,2})?$/.test(s.trim());
 // Returns a message for the first problem, or null when the cards can be saved.
 export function validateCards(cards: ColourCard[], requireStock: boolean): string | null {
   const named = cards.filter((c) => c.name.trim());
-  if (cards.length > 1 && named.length !== cards.length) return "Give every colour a name (or remove the empty colour card).";
+  if (cards.length > 1 && named.length !== cards.length) {
+    return "One colour card has no name — give it a colour name (e.g. Black) or remove it with ×.";
+  }
   const seen = new Set<string>();
   for (const c of named) {
     const k = norm(c.name);
