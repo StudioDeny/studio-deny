@@ -9,6 +9,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
 import { Heart, Truck, RotateCcw, ShieldCheck, ArrowRight, Zap, Share2, Minus, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { singleItemVariant } from "@/lib/singleItem";
 import { toast } from "sonner";
 import { RichText } from "@/components/ui/RichText";
 import { stripHtml } from "@/lib/richText";
@@ -175,7 +176,11 @@ function PDP() {
   // variant rows while picking a different swatch per row (e.g. quick-adding
   // colors without renaming each one), so keying by name alone was silently
   // collapsing distinct colors down to whichever row was seen last.
+  // Single item (no colours or sizes): no pickers, just its one stock row.
+  const singleVariant = singleItemVariant(variants as { id: string; size: string | null; color: string | null; stock: number; price: number | null }[]);
+
   const colorOptions: { key: string; name: string; hex: string }[] = (() => {
+    if (singleVariant) return [];
     const seen = new Map<string, { name: string; hex: string }>();
     variants.forEach((v) => {
       if (!v.color) return;
@@ -201,6 +206,9 @@ function PDP() {
   // Sizes are scoped to the selected color when variants carry color data, so
   // switching color never shows the same size duplicated once per color.
   const sizeOptions: SizeOption[] = (() => {
+    if (singleVariant) {
+      return [{ size: singleVariant.size as string, inStock: singleVariant.stock > 0, variantId: singleVariant.id, price: singleVariant.price ?? undefined }];
+    }
     // No per-size stock entered yet: sold out until the admin adds counts, so
     // nothing is sold online without its stock being reduced.
     if (variants.length === 0) return product.sizes.map((s: string) => ({ size: s, inStock: false }));
@@ -244,6 +252,14 @@ function PDP() {
     setSize(null);
     setVariantId(undefined);
   }, [selectedColor]);
+
+  // A single item is always "selected" - there is nothing to choose.
+  useEffect(() => {
+    if (singleVariant && singleVariant.stock > 0) {
+      setSize(singleVariant.size);
+      setVariantId(singleVariant.id);
+    }
+  }, [singleVariant?.id, singleVariant?.stock, selectedColor]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedVariant = sizeOptions.find((o) => o.variantId === variantId);
   const displayPrice = selectedVariant?.price ?? product.price;
@@ -501,8 +517,9 @@ function PDP() {
             </div>
           )}
 
-          {/* Size Selection */}
+          {/* Size Selection (single items have none) */}
           <div className="mt-8">
+            {!singleVariant && (<>
             <div className="flex items-center justify-between mb-4">
               <div className="text-mono text-muted-foreground" style={{ fontSize: "11px", letterSpacing: "0.25em" }}>SIZE</div>
               <Link to="/size-guide" className="text-mono text-primary hover:underline flex items-center gap-1" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
@@ -530,6 +547,7 @@ function PDP() {
                 );
               })}
             </div>
+            </>)}
 
             {/* Stock Warning */}
             <div className="mt-4 min-h-[20px]">
@@ -537,6 +555,12 @@ function PDP() {
                 <div className="text-mono text-muted-foreground flex items-center gap-2" style={{ fontSize: "11px", letterSpacing: "0.15em" }}>
                   SOLD OUT — CHECK BACK SOON
                 </div>
+              ) : singleVariant ? (
+                singleVariant.stock <= 5 ? (
+                  <div className="text-mono text-secondary flex items-center gap-2" style={{ fontSize: "11px", letterSpacing: "0.15em" }}>
+                    <Zap className="size-3.5" /> ONLY {singleVariant.stock} LEFT IN STOCK
+                  </div>
+                ) : null
               ) : sizeOptions.filter((o) => o.inStock).length <= 2 && sizeOptions.length > 0 ? (
                 <div className="text-mono text-secondary flex items-center gap-2" style={{ fontSize: "11px", letterSpacing: "0.15em" }}>
                   <Zap className="size-3.5" /> ALMOST GONE — LIMITED SIZES LEFT

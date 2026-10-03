@@ -5,12 +5,13 @@ import { Link } from "@tanstack/react-router";
 import { Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { StockEditor } from "@/components/admin/StockEditor";
+import { StockModeEditor } from "@/components/admin/StockModeEditor";
+import { singleItemVariant } from "@/lib/singleItem";
 import { listSizesForCategory } from "@/lib/sizes";
 import { supabase } from "@/lib/supabase";
 import type { Product } from "@/lib/productsStore";
 import {
-  cardsFromVariants, colorsFromCards, describeSaveResult, listVariantRows, planStockSave, saveStockPlan,
+  cardsFromVariants, colorsFromCards, describeSaveResult, listVariantRows, planSingleSave, validateSingleQty, planStockSave, saveStockPlan,
   validateCards, type ColourCard, type VariantRow,
 } from "@/lib/stockEditor";
 
@@ -29,6 +30,8 @@ export function StockPanel({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [single, setSingle] = useState(false);
+  const [singleQty, setSingleQty] = useState("");
 
   const load = async (p: Product) => {
     setLoading(true);
@@ -38,7 +41,10 @@ export function StockPanel({
         p.categoryId ? listSizesForCategory(p.categoryId) : Promise.resolve([]),
       ]);
       setRows(r);
-      setCards(cardsFromVariants(r, p.colors, p.price, p.compareAt));
+      const one = singleItemVariant(r);
+      setSingle(!!one);
+      setSingleQty(one ? String(one.stock) : "");
+      setCards(cardsFromVariants(one ? r.filter((x) => x !== one) : r, p.colors, p.price, p.compareAt));
       setSizeLabels(sizes.map((s) => s.label));
       setDirty(false);
     } catch (e) {
@@ -60,13 +66,18 @@ export function StockPanel({
 
   const save = async () => {
     if (!product) return;
-    const problem = validateCards(cards, product.is_active ?? true);
+    const problem = single ? validateSingleQty(singleQty) : validateCards(cards, product.is_active ?? true);
     if (problem) return toast.error(problem);
     setSaving(true);
     try {
-      const plan = planStockSave(rows, cards, product.price, product.compareAt);
+      const plan = single
+        ? planSingleSave(rows, Number(singleQty), product.price, product.compareAt)
+        : planStockSave(rows, cards, product.price, product.compareAt);
       // Keep the storefront colour swatches in step with the colour cards.
-      const { error } = await supabase.from("products").update({ colors: colorsFromCards(cards) }).eq("slug", product.slug);
+      const { error } = await supabase
+        .from("products")
+        .update({ colors: single ? [] : colorsFromCards(cards) })
+        .eq("slug", product.slug);
       if (error) throw new Error(error.message);
       const result = await saveStockPlan(product.slug, plan);
       const note = describeSaveResult(result);
@@ -111,14 +122,18 @@ export function StockPanel({
                 </p>
               ) : (
                 <>
-                  {rows.length === 0 && (
+                  {rows.length === 0 && !dirty && (
                     <p className="text-mono text-[11px] bg-amber-100 text-amber-800 p-2">
-                      NEEDS SIZE COUNTS — this product only has one overall stock number. Tap each size and enter how many you have.
+                      NEEDS SIZE COUNTS — this product only has one overall stock number. Tap each size and enter how many you have, or switch on SINGLE ITEM if it has no colours or sizes.
                     </p>
                   )}
-                  <StockEditor
+                  <StockModeEditor
+                    single={single}
+                    onSingleChange={(v) => { setSingle(v); setDirty(true); }}
+                    singleQty={singleQty}
+                    onSingleQtyChange={(q) => { setSingleQty(q); setDirty(true); }}
                     cards={cards}
-                    onChange={(c) => { setCards(c); setDirty(true); }}
+                    onCardsChange={(c) => { setCards(c); setDirty(true); }}
                     sizeLabels={sizeLabels}
                     productPrice={product.price}
                     productCompareAt={product.compareAt}

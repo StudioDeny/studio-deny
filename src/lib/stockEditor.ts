@@ -6,8 +6,9 @@
 // recomputed by the database (recompute_product_stock).
 import { supabase } from "./supabase";
 import type { Color } from "./productsStore";
+import { ONE_SIZE } from "./singleItem";
 
-export const ONE_SIZE = "ONE SIZE";
+export { ONE_SIZE };
 // Stock is never saved without a colour: a card left unnamed becomes White.
 export const DEFAULT_COLOUR = { name: "White", hex: "#FFFFFF" };
 
@@ -168,6 +169,37 @@ export function planStockSave(
   return plan;
 }
 
+// Single item: exactly one ONE SIZE row with no colour. Every other row is
+// removed (or kept at 0 when it was already sold).
+export function planSingleSave(rows: VariantRow[], qty: number, productPrice: number, productCompareAt?: number): StockPlan {
+  const target = rows.find((r) => r.size === ONE_SIZE && !(r.color ?? "").trim());
+  const plan: StockPlan = { inserts: [], updates: [], deletes: rows.filter((r) => r !== target) };
+  const compare = productCompareAt ?? null;
+  if (!target) {
+    plan.inserts.push({ size: ONE_SIZE, color: null, color_hex: null, stock: qty, price: productPrice, compare_price: compare, sku: null });
+    return plan;
+  }
+  const patch: VariantPatch = {};
+  if (target.stock !== qty) patch.stock = qty;
+  if (Number(target.price) !== productPrice) patch.price = productPrice;
+  if ((target.compare_price ?? null) !== compare) patch.compare_price = compare;
+  if (Object.keys(patch).length > 0) plan.updates.push({ id: target.id, loadedStock: target.stock, patch });
+  return plan;
+}
+
+// Pending stock in cards, for the "switch mode" confirmation.
+export function cardsStockSummary(cards: ColourCard[]): { options: number; pieces: number } {
+  let options = 0;
+  let pieces = 0;
+  for (const c of cards) {
+    for (const q of Object.values(c.sizes)) {
+      options += 1;
+      if (/^\d+$/.test(q.trim())) pieces += Number(q);
+    }
+  }
+  return { options, pieces };
+}
+
 export type StockSaveResult = {
   // Rows the admin removed that were already sold: kept at 0 stock instead.
   keptSold: VariantRow[];
@@ -242,4 +274,11 @@ export function describeSaveResult(r: StockSaveResult): string | null {
     );
   }
   return parts.length > 0 ? parts.join(". ") : null;
+}
+
+// "" (not entered) and anything but a whole number >= 0 are rejected.
+export function validateSingleQty(qty: string): string | null {
+  if (qty.trim() === "") return "Enter the stock quantity for this single item.";
+  if (!/^\d+$/.test(qty.trim())) return "Stock quantity must be a whole number (0 or more).";
+  return null;
 }

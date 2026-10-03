@@ -9,9 +9,10 @@ import { X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { MultiCategoryPicker } from "@/components/admin/MultiCategoryPicker";
 import { MediaField, type MediaValue } from "@/components/admin/MediaField";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
-import { StockEditor } from "@/components/admin/StockEditor";
+import { StockModeEditor } from "@/components/admin/StockModeEditor";
+import { singleItemVariant, ONE_SIZE } from "@/lib/singleItem";
 import {
-  cardsFromVariants, colorsFromCards, describeSaveResult, listVariantRows, planStockSave, saveStockPlan,
+  cardsFromVariants, colorsFromCards, describeSaveResult, listVariantRows, planSingleSave, validateSingleQty, planStockSave, saveStockPlan,
   validateCards, type ColourCard, type VariantRow,
 } from "@/lib/stockEditor";
 
@@ -83,6 +84,9 @@ export function ProductForm({
     cardsFromVariants([], initial?.colors ?? [], initial?.price ?? 0, initial?.compareAt),
   );
   const [stockLoading, setStockLoading] = useState(!!initial);
+  // Single item = one quantity, no colours or sizes (one ONE SIZE row).
+  const [single, setSingle] = useState(false);
+  const [singleQty, setSingleQty] = useState("");
 
   useEffect(() => {
     if (!p.categoryId) { setSizesForCategory([]); return; }
@@ -113,7 +117,10 @@ export function ProductForm({
     try {
       const r = await listVariantRows(slug);
       setRows(r);
-      setCards(cardsFromVariants(r, colors, price, compareAt));
+      const one = singleItemVariant(r);
+      setSingle(!!one);
+      setSingleQty(one ? String(one.stock) : "");
+      setCards(cardsFromVariants(one ? r.filter((x) => x !== one) : r, colors, price, compareAt));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not load stock");
     } finally {
@@ -178,7 +185,7 @@ export function ProductForm({
           if (!final.slug) return toast.error("Slug required");
           if (!final.image) return toast.error("Product image required");
           if (!final.categoryId) return toast.error("Select a category first — its sizes are used for stock");
-          const problem = validateCards(cards, final.is_active ?? true);
+          const problem = single ? validateSingleQty(singleQty) : validateCards(cards, final.is_active ?? true);
           if (problem) return toast.error(problem);
           setSaving(true);
           try {
@@ -189,10 +196,14 @@ export function ProductForm({
                 return;
               }
             }
-            const plan = planStockSave(rows, cards, final.price, final.compareAt);
-            final.colors = colorsFromCards(cards);
-            final.sizes = [...new Set(cards.flatMap((c) => Object.keys(c.sizes)))];
-            final.stock = cards.reduce((sum, c) => sum + Object.values(c.sizes).reduce((t, q) => t + Number(q), 0), 0);
+            const plan = single
+              ? planSingleSave(rows, Number(singleQty), final.price, final.compareAt)
+              : planStockSave(rows, cards, final.price, final.compareAt);
+            final.colors = single ? [] : colorsFromCards(cards);
+            final.sizes = single ? [ONE_SIZE] : [...new Set(cards.flatMap((c) => Object.keys(c.sizes)))];
+            final.stock = single
+              ? Number(singleQty)
+              : cards.reduce((sum, c) => sum + Object.values(c.sizes).reduce((t, q) => t + Number(q), 0), 0);
             await onSave(final);
             await setProductCategories(final.slug, categoryIds.length > 0 ? categoryIds : final.categoryId ? [final.categoryId] : []);
             const result = await saveStockPlan(final.slug, plan);
@@ -427,15 +438,19 @@ export function ProductForm({
             <p className="text-mono text-[11px] text-muted-foreground">Loading stock…</p>
           ) : (
             <>
-              {sizesForCategory.length === 0 && (
+              {!single && sizesForCategory.length === 0 && (
                 <p className="text-mono text-[11px] text-muted-foreground">
                   No sizes for this category, so stock is tracked as ONE SIZE. Add sizes in{" "}
                   <Link to="/admin/sizes" className="text-primary hover:underline">Admin → Sizes</Link>.
                 </p>
               )}
-              <StockEditor
+              <StockModeEditor
+                single={single}
+                onSingleChange={setSingle}
+                singleQty={singleQty}
+                onSingleQtyChange={setSingleQty}
                 cards={cards}
-                onChange={setCards}
+                onCardsChange={setCards}
                 sizeLabels={sizesForCategory.map((sz) => sz.label)}
                 productPrice={p.price}
                 productCompareAt={p.compareAt}

@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import type { GalleryItem } from "@/types/database";
+import { singleItemVariant } from "./singleItem";
 
 export type Color = { name: string; hex: string };
 export type { GalleryItem };
@@ -174,7 +175,7 @@ export type VariantStock = { size: string; inStock: boolean; variantId?: string;
 export async function getVariantStock(slug: string, fallbackSizes: string[]): Promise<VariantStock[]> {
   const { data, error } = await supabase
     .from("product_variants")
-    .select("id, size, stock")
+    .select("id, size, color, stock")
     .eq("product_id", slug)
     .order("size");
   if (error) {
@@ -186,7 +187,10 @@ export async function getVariantStock(slug: string, fallbackSizes: string[]): Pr
     // sold out so no online sale happens without its stock being reduced.
     return fallbackSizes.map((size) => ({ size, inStock: false, stock: 0 }));
   }
-  return (data as { id: string; size: string | null; stock: number }[])
+  const rows = data as { id: string; size: string | null; color: string | null; stock: number }[];
+  // Single item: one option only, so quick-add picks it straight away.
+  const one = singleItemVariant(rows);
+  return (one ? [one] : rows)
     .filter((v) => v.size != null)
     .map((v) => ({ size: v.size as string, inStock: v.stock > 0, variantId: v.id, stock: v.stock }));
 }
