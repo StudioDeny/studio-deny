@@ -201,7 +201,9 @@ function PDP() {
   // Sizes are scoped to the selected color when variants carry color data, so
   // switching color never shows the same size duplicated once per color.
   const sizeOptions: SizeOption[] = (() => {
-    if (variants.length === 0) return product.sizes.map((s: string) => ({ size: s, inStock: true }));
+    // No per-size stock entered yet: sold out until the admin adds counts, so
+    // nothing is sold online without its stock being reduced.
+    if (variants.length === 0) return product.sizes.map((s: string) => ({ size: s, inStock: false }));
     const hasColorData = variants.some((v) => v.color);
     const scoped = hasColorData && effectiveColorKey
       ? variants.filter((v) => (v.color_hex ?? "#0a0a0a") === effectiveColorKey)

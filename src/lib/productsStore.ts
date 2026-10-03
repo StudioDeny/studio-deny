@@ -169,7 +169,7 @@ export async function setProductActive(slug: string, active: boolean): Promise<v
 export type VariantStock = { size: string; inStock: boolean; variantId?: string; stock: number };
 
 // Stock-aware size list for a product, sourced from its live variants — falls
-// back to the product's static size list (all treated as in stock) for
+// back to the product's static size list (all shown as sold out) for
 // products with no per-variant stock tracking, same fallback the PDP uses.
 export async function getVariantStock(slug: string, fallbackSizes: string[]): Promise<VariantStock[]> {
   const { data, error } = await supabase
@@ -177,8 +177,14 @@ export async function getVariantStock(slug: string, fallbackSizes: string[]): Pr
     .select("id, size, stock")
     .eq("product_id", slug)
     .order("size");
-  if (error || !data || data.length === 0) {
-    return fallbackSizes.map((size) => ({ size, inStock: true, stock: Infinity }));
+  if (error) {
+    // Can't confirm stock right now - don't sell blind.
+    return fallbackSizes.map((size) => ({ size, inStock: false, stock: 0 }));
+  }
+  if (!data || data.length === 0) {
+    // No per-size stock entered yet (admin shows NEEDS SIZE COUNTS): shown as
+    // sold out so no online sale happens without its stock being reduced.
+    return fallbackSizes.map((size) => ({ size, inStock: false, stock: 0 }));
   }
   return (data as { id: string; size: string | null; stock: number }[])
     .filter((v) => v.size != null)
