@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { listAllAdminProducts, type Product } from "@/lib/productsStore";
 import { listCategories, type Category } from "@/lib/catalog";
 import { Search, Pencil } from "lucide-react";
+import { StockPanel } from "@/components/admin/StockPanel";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/inventory")({
@@ -33,6 +34,7 @@ function Inventory() {
   const [filter, setFilter] = useState<typeof FILTERS[number]>("ALL");
   const [category, setCategory] = useState<string>("ALL");
   const [saving, setSaving] = useState<string | null>(null);
+  const [stockFor, setStockFor] = useState<Product | null>(null);
 
   const load = async () => {
     const [productsData, { data: variantData }, cats] = await Promise.all([
@@ -70,7 +72,9 @@ function Inventory() {
           });
         }
       } else {
-        out.push({ key: p.slug, productSlug: p.slug, productName: p.name, productImage: p.image, productCategory: p.category, label: "—", stock: p.stock });
+        // No per-size rows yet: the old single number can't be edited here any
+        // more - the admin is sent to the colour x size editor instead.
+        out.push({ key: p.slug, productSlug: p.slug, productName: p.name, productImage: p.image, productCategory: p.category, label: "NEEDS SIZE COUNTS", stock: p.stock });
       }
     }
     return out.sort((a, b) => a.stock - b.stock);
@@ -88,18 +92,27 @@ function Inventory() {
   }), [rows]);
 
   const saveStock = async (row: Row, next: number) => {
-    const value = Math.max(0, next);
+    if (!row.variantId) return;
+    if (!Number.isFinite(next) || next < 0 || !Number.isInteger(next)) {
+      toast.error("Stock must be a whole number, 0 or more");
+      return;
+    }
     setSaving(row.key);
-    const { error } = row.variantId
-      ? await supabase.from("product_variants").update({ stock: value }).eq("id", row.variantId)
-      : await supabase.from("products").update({ stock: value }).eq("slug", row.productSlug);
+    // Only overwrite if nobody sold from this size since the page loaded.
+    const { data, error } = await supabase
+      .from("product_variants")
+      .update({ stock: next })
+      .eq("id", row.variantId)
+      .eq("stock", row.stock)
+      .select("id");
     setSaving(null);
     if (error) { toast.error(error.message); return; }
-    if (row.variantId) {
-      setVariants((v) => v.map((x) => (x.id === row.variantId ? { ...x, stock: value } : x)));
-    } else {
-      setProducts((p) => p.map((x) => (x.slug === row.productSlug ? { ...x, stock: value } : x)));
+    if (!data || data.length === 0) {
+      toast.warning("This stock changed (a sale happened) while the page was open — reloaded, please check and edit again.");
+      await load();
+      return;
     }
+    setVariants((v) => v.map((x) => (x.id === row.variantId ? { ...x, stock: next } : x)));
   };
 
   if (loading) return <div className="text-mono text-xs">LOADING…</div>;
@@ -140,6 +153,7 @@ function Inventory() {
         </select>
       </div>
 
+      <StockPanel product={stockFor} onClose={() => setStockFor(null)} onSaved={load} />
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm min-w-[520px]">
           <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
@@ -162,7 +176,17 @@ function Inventory() {
                 </td>
                 <td className="p-3 text-muted-foreground text-mono text-xs">{r.label}</td>
                 <td className="p-3">
+                  {!r.variantId ? (
+                    <button
+                      type="button"
+                      onClick={() => setStockFor(products.find((x) => x.slug === r.productSlug) ?? null)}
+                      className="text-mono text-[10px] tracking-widest px-2 h-9 border border-amber-500 text-amber-800 hover:bg-amber-50"
+                    >
+                      ENTER SIZE COUNTS
+                    </button>
+                  ) : (
                   <input
+                    key={r.stock}
                     type="number"
                     min={0}
                     defaultValue={r.stock}
@@ -171,6 +195,7 @@ function Inventory() {
                     onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
                     className="w-20 bg-background border border-border h-9 px-2 text-mono text-sm disabled:opacity-50"
                   />
+                  )}
                 </td>
                 <td className="p-3">
                   <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${

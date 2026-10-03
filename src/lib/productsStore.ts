@@ -147,12 +147,15 @@ export async function upsertProduct(p: Product): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+// Permanent delete. The database refuses products that were ever billed in
+// the store or ordered online, so bill/invoice history is never broken.
 export async function deleteProduct(slug: string): Promise<void> {
-  const { error } = await supabase
-    .from("products")
-    .update({ is_active: false })
-    .eq("slug", slug);
-  if (error) throw new Error(error.message);
+  const { error } = await supabase.rpc("admin_delete_product" as never, { p_slug: slug } as never);
+  if (error) {
+    const sold = /PRODUCT_SOLD:(\d+)/.exec(error.message);
+    if (sold) throw new Error(`This product has been sold ${sold[1]} time(s), so it can't be deleted — hide it instead (eye icon).`);
+    throw new Error(error.message);
+  }
 }
 
 export async function setProductActive(slug: string, active: boolean): Promise<void> {

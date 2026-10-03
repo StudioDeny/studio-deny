@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { listAllAdminProducts, setProductActive, getVariantStockTotals, effectiveStock, type Product } from "@/lib/productsStore";
+import { listAllAdminProducts, setProductActive, deleteProduct, getVariantStockTotals, effectiveStock, type Product } from "@/lib/productsStore";
 import { listCategories, type Category } from "@/lib/catalog";
 import { formatINR } from "@/context/CartContext";
-import { Plus, Pencil, Eye, EyeOff, Settings2, Search } from "lucide-react";
+import { Plus, Pencil, Eye, EyeOff, Settings2, Search, Trash2, Layers } from "lucide-react";
+import { StockPanel } from "@/components/admin/StockPanel";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/products/")({
@@ -15,6 +16,7 @@ function AdminProducts() {
   const [stockTotals, setStockTotals] = useState<Record<string, number>>({});
   const [active, setActive] = useState<string>("ALL");
   const [q, setQ] = useState("");
+  const [stockFor, setStockFor] = useState<Product | null>(null);
   const refresh = async () => {
     const [data, totals] = await Promise.all([listAllAdminProducts(), getVariantStockTotals()]);
     setProducts(data);
@@ -43,8 +45,20 @@ function AdminProducts() {
     toast.success(next ? "Product reactivated — visible on storefront again" : "Product deactivated");
   };
 
+  const remove = async (p: Product) => {
+    if (!confirm(`Permanently delete "${p.name}"? This removes it and its stock everywhere and cannot be undone.`)) return;
+    try {
+      await deleteProduct(p.slug);
+      toast.success(`"${p.name}" deleted`);
+      await refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed", { duration: 8000 });
+    }
+  };
+
   return (
     <div>
+      <StockPanel product={stockFor} onClose={() => setStockFor(null)} onSaved={refresh} />
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 className="text-display text-4xl md:text-5xl">PRODUCTS.</h1>
         <div className="flex gap-2">
@@ -89,7 +103,7 @@ function AdminProducts() {
             {filtered.map((p) => {
               const stock = effectiveStock(p, stockTotals);
               return (
-              <tr key={p.slug} className="hover:bg-muted/40">
+              <tr key={p.slug} onClick={() => setStockFor(p)} title="Click to edit colours, sizes and stock" className="hover:bg-muted/40 cursor-pointer">
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-12 bg-muted overflow-hidden flex-shrink-0"><img src={p.image} alt="" className="w-full h-full object-cover" /></div>
@@ -105,6 +119,9 @@ function AdminProducts() {
                 <td className="p-3 text-mono">{stock}</td>
                 <td className="p-3 hidden sm:table-cell">
                   <div className="flex flex-col gap-1 items-start">
+                    {stockTotals[p.slug] === undefined && (
+                      <span className="text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold bg-amber-100 text-amber-800">NEEDS SIZE COUNTS</span>
+                    )}
                     <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${(p.is_active ?? true) ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-700"}`}>
                       {(p.is_active ?? true) ? "LIVE ON SITE" : "HIDDEN"}
                     </span>
@@ -120,7 +137,14 @@ function AdminProducts() {
                   </div>
                 </td>
                 <td className="p-3 text-right">
-                  <div className="inline-flex gap-2">
+                  <div className="inline-flex gap-2" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => setStockFor(p)}
+                      title="Colours, sizes & stock"
+                      className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"
+                    >
+                      <Layers className="size-3" />
+                    </button>
                     <Link to="/admin/products/$slug" params={{ slug: p.slug }} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Pencil className="size-3" /></Link>
                     <button
                       onClick={() => toggleActive(p)}
@@ -128,6 +152,13 @@ function AdminProducts() {
                       className={`border h-8 w-8 inline-flex items-center justify-center ${(p.is_active ?? true) ? "border-border hover:border-red-500 hover:text-red-500" : "border-emerald-600 text-emerald-700 hover:bg-emerald-50"}`}
                     >
                       {(p.is_active ?? true) ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+                    </button>
+                    <button
+                      onClick={() => remove(p)}
+                      title="Delete permanently"
+                      className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500"
+                    >
+                      <Trash2 className="size-3" />
                     </button>
                   </div>
                 </td>

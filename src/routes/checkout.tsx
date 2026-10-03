@@ -104,6 +104,24 @@ function Checkout() {
     defaultValues: { email: user?.email ?? "", name: user?.name ?? "" },
   });
 
+  // Asks the database whether every bag line still has enough stock, so we
+  // never take money for a size that just sold out. Returns a message or null.
+  const stockProblem = async (): Promise<string | null> => {
+    const lines = items.filter((i) => i.variantId).map((i) => ({ variant_id: i.variantId, qty: i.qty }));
+    if (lines.length === 0) return null;
+    const { data, error } = await supabase.rpc("check_cart_stock" as never, { p_items: lines } as never);
+    if (error) return null; // a failed check never blocks payment; stock is still recorded on the order
+    const short = (data ?? []) as unknown as { variant_id: string; size: string | null; color: string | null; available: number }[];
+    if (short.length === 0) return null;
+    return short
+      .map((s) => {
+        const name = items.find((i) => i.variantId === s.variant_id)?.product.name ?? "An item";
+        const opt = [s.color, s.size].filter(Boolean).join(" / ");
+        return s.available === 0 ? `${name} (${opt}) just sold out` : `Only ${s.available} left of ${name} (${opt})`;
+      })
+      .join(". ") + ". Please update your bag.";
+  };
+
   const onSubmit = async (data: FormValues) => {
     if (items.length === 0) return toast.error("Your bag is empty");
     const rl = checkRateLimit("checkout", 5, 30 * 60 * 1000, 30 * 60 * 1000);
@@ -112,6 +130,12 @@ function Checkout() {
       return;
     }
     setPaying(true);
+    const problem = await stockProblem();
+    if (problem) {
+      setPaying(false);
+      toast.error(problem, { duration: 8000 });
+      return;
+    }
     const address = {
       name: data.name, phone: data.phone, line1: data.line1,
       city: data.city, state: data.state, pincode: data.pincode,
