@@ -8,8 +8,10 @@ import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { getMegaMenu, type MegaMenuCategory } from "@/lib/megaMenu";
 import { MegaMenuPanel } from "@/components/layout/MegaMenuPanel";
+import { useLenis } from "@/components/common/SmoothScroll";
 
 export function Navbar() {
+  const { lenis } = useLenis();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQ, setSearchQ] = useState("");
@@ -164,7 +166,17 @@ export function Navbar() {
           {/* Center — logo */}
           <Link
             to="/"
-            onClick={() => { setMobileNavOpen(false); closeSearch(); }}
+            onClick={() => {
+              setMobileNavOpen(false);
+              closeSearch();
+              // Already on the homepage: the link goes nowhere, so take the
+              // user back to the top instead. Other pages navigate home and
+              // land at the top anyway.
+              if (window.location.pathname === "/") {
+                if (lenis) lenis.scrollTo(0);
+                else window.scrollTo({ top: 0, behavior: "smooth" });
+              }
+            }}
             className="hover:opacity-80 transition-opacity justify-self-start sm:justify-self-center"
           >
             <img src="/logo.png" alt="STUDIO DENY" className="h-8 sm:h-9 lg:h-10 w-auto object-contain" />

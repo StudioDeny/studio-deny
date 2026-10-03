@@ -8,7 +8,6 @@ import { Navbar } from "@/components/layout/Navbar";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Footer } from "@/components/layout/Footer";
 import { CartDrawer } from "@/components/layout/CartDrawer";
-import { ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 function NotFoundComponent() {
@@ -41,23 +40,15 @@ export const Route = createRootRoute({
 });
 
 import { Preloader } from "@/components/layout/Preloader";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { seedIfEmpty } from "@/lib/seed";
 
-import { SmoothScroll, useLenis } from "@/components/common/SmoothScroll";
+import { SmoothScroll } from "@/components/common/SmoothScroll";
 
 function RootContent() {
-  const [scrolled, setScrolled] = useState(false);
   const topBarRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/admin");
-  const { lenis } = useLenis();
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 400);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     seedIfEmpty();
@@ -79,14 +70,6 @@ function RootContent() {
     ro.observe(el);
     return () => ro.disconnect();
   }, [isAdmin]);
-
-  const scrollToTop = () => {
-    if (lenis) {
-      lenis.scrollTo(0);
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
 
   return (
     <AuthProvider>
@@ -117,14 +100,6 @@ function RootContent() {
               <>
                 <Footer />
                 <CartDrawer />
-                {/* Scroll-to-top — visible on all viewports, appears after scrolling 400px */}
-                <button
-                  onClick={scrollToTop}
-                  aria-label="Scroll to top"
-                  className={`flex fixed bottom-5 right-5 z-30 size-12 rounded-full border border-border bg-background/80 backdrop-blur-md text-foreground items-center justify-center hover:bg-foreground hover:text-background transition-all duration-300 ${scrolled ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4 pointer-events-none"}`}
-                >
-                  <ChevronUp className="size-5" />
-                </button>
               </>
             )}
           </QuickAddProvider>
