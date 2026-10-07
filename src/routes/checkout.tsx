@@ -13,6 +13,7 @@ import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { pointsFromOrders, tierFor } from "@/lib/loyalty";
 import { fetchQuote, quoteLines, couponErrorMessage, couponLabel, couponStatus, myWelcomeCoupon, type OrderQuote } from "@/lib/coupons";
 import type { Coupon } from "@/types/database";
+import { listAddresses, saveAddress, type SavedAddress } from "@/lib/addresses";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Lock, Sparkles, Truck, Tag, X } from "lucide-react";
@@ -121,10 +122,28 @@ function Checkout() {
     if (!codAvailable && payMethod === "cod") setPayMethod("razorpay");
   }, [codAvailable]);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { email: user?.email ?? "", name: user?.name ?? "" },
   });
+
+  const [saved, setSaved] = useState<SavedAddress[]>([]);
+  const [pickedId, setPickedId] = useState<string | "new">("new");
+  const [saveNew, setSaveNew] = useState(true);
+
+  const fillFrom = (a: SavedAddress) => {
+    setValue("name", a.name); setValue("phone", a.phone); setValue("line1", a.line1);
+    setValue("city", a.city); setValue("state", a.state); setValue("pincode", a.pincode);
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    listAddresses().then((list) => {
+      setSaved(list);
+      const def = list.find((a) => a.is_default) ?? list[0];
+      if (def) { setPickedId(def.id); fillFrom(def); }
+    });
+  }, [user]);
 
   // Asks the database whether every bag line still has enough stock, so we
   // never take money for a size that just sold out. Returns a message or null.
@@ -163,6 +182,10 @@ function Checkout() {
       name: data.name, phone: data.phone, line1: data.line1,
       city: data.city, state: data.state, pincode: data.pincode,
     };
+    if (pickedId === "new" && saveNew) {
+      saveAddress({ label: "", name: data.name, phone: data.phone, line1: data.line1, city: data.city, state: data.state, pincode: data.pincode, is_default: saved.length === 0 })
+        .catch(() => { /* saving the address is a convenience; never block payment */ });
+    }
 
     if (payMethod === "cod") {
       try {
@@ -288,6 +311,22 @@ function Checkout() {
           </div>
           <div>
             <h2 className="text-display text-2xl tracking-wider mb-4">SHIPPING ADDRESS</h2>
+            {saved.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                {saved.map((a) => (
+                  <button key={a.id} type="button" onClick={() => { setPickedId(a.id); fillFrom(a); }}
+                    className={`text-left border p-3 text-sm ${pickedId === a.id ? "border-primary bg-primary/5" : "border-border hover:border-foreground/30"}`}>
+                    <div className="font-semibold">{a.label ? `${a.label} · ` : ""}{a.name}</div>
+                    <div className="text-muted-foreground text-xs">{a.line1}, {a.city} — {a.pincode}</div>
+                    <div className="text-muted-foreground text-xs">{a.phone}</div>
+                  </button>
+                ))}
+                <button type="button" onClick={() => { setPickedId("new"); (["name", "phone", "line1", "city", "state", "pincode"] as const).forEach((k) => setValue(k, "")); }}
+                  className={`border border-dashed p-3 text-sm text-mono tracking-widest ${pickedId === "new" ? "border-primary text-primary" : "border-border"}`}>
+                  + USE A NEW ADDRESS
+                </button>
+              </div>
+            )}
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="FULL NAME" name="name" />
               <Field label="PHONE" name="phone" placeholder="+91 9876543210" />
@@ -296,6 +335,12 @@ function Checkout() {
               <Field label="STATE" name="state" />
               <Field label="PINCODE" name="pincode" />
             </div>
+            {pickedId === "new" && (
+              <label className="mt-3 flex items-center gap-2 text-xs cursor-pointer">
+                <input type="checkbox" checked={saveNew} onChange={(e) => setSaveNew(e.target.checked)} className="accent-primary" />
+                SAVE THIS ADDRESS TO MY ACCOUNT
+              </label>
+            )}
           </div>
 
           {/* Payment Method */}

@@ -5,10 +5,15 @@ import { ordersFor, cancelOrder, requestReturn, type Order } from "@/lib/orders"
 import { formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { listProducts, type Product } from "@/lib/productsStore";
-import { LogOut, ShieldCheck, FileText, X, Heart, MapPin, Truck, RefreshCw, Plus, Trash2, Star, RotateCcw } from "lucide-react";
+import { LogOut, ShieldCheck, FileText, X, Heart, MapPin, Truck, RefreshCw, Plus, Trash2, Star, RotateCcw, Pencil, Tag, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Loading } from "@/components/ui/loading";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { listAddresses, saveAddress, deleteAddress, setDefaultAddress, importLocalAddresses, validateAddress, type SavedAddress, type AddressInput } from "@/lib/addresses";
+import { getMyProfile, updateMyProfile } from "@/lib/profile";
+import { myWelcomeCoupon, couponLabel, couponStatus } from "@/lib/coupons";
+import type { Coupon, CouponRedemption } from "@/types/database";
+import { supabase } from "@/lib/supabase";
 
 const RETURN_WINDOW_DAYS = 7;
 const RETURN_STATUS_LABEL: Record<string, string> = {
@@ -24,18 +29,6 @@ export const Route = createFileRoute("/account")({
   head: () => ({ meta: [{ title: "Account — STUDIO DENY" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
-type Address = { id: string; label: string; name: string; line1: string; city: string; state: string; pin: string; phone: string; isDefault: boolean };
-
-const ADDR_KEY = "sd_addresses";
-function getAddresses(): Address[] {
-  try { const r = typeof window !== "undefined" ? localStorage.getItem(ADDR_KEY) : null; return r ? JSON.parse(r) : []; } catch { return []; }
-}
-function saveAddresses(list: Address[]) {
-  if (typeof window !== "undefined") localStorage.setItem(ADDR_KEY, JSON.stringify(list));
-}
-
-const BLANK: Omit<Address, "id" | "isDefault"> = { label: "", name: "", line1: "", city: "", state: "", pin: "", phone: "" };
-
 function Account() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
@@ -45,44 +38,51 @@ function Account() {
   const [returnTarget, setReturnTarget] = useState<string | null>(null);
   const [returnReason, setReturnReason] = useState("");
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [addingAddr, setAddingAddr] = useState(false);
-  const [addrForm, setAddrForm] = useState(BLANK);
+  const BLANK: AddressInput = { label: "", name: "", phone: "", line1: "", city: "", state: "", pincode: "" };
+  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [addrForm, setAddrForm] = useState<(AddressInput & { id?: string }) | null>(null);
+  const [profile, setProfile] = useState({ name: "", phone: "" });
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [welcome, setWelcome] = useState<Coupon | null>(null);
+  const [used, setUsed] = useState<CouponRedemption[]>([]);
+
+  const reloadAddresses = () => listAddresses().then(setAddresses);
 
   useEffect(() => {
     if (loading) return;
     if (!user) navigate({ to: "/login" });
     else {
       ordersFor(user.email).then(setOrders);
-      setAddresses(getAddresses());
+      importLocalAddresses().then((n) => { if (n) toast.success(`Moved ${n} saved address${n > 1 ? "es" : ""} to your account`); }).finally(reloadAddresses);
+      getMyProfile().then(setProfile);
+      myWelcomeCoupon().then(setWelcome);
+      supabase.from("coupon_redemptions").select("*").order("created_at", { ascending: false }).then(({ data }) => setUsed((data as CouponRedemption[]) ?? []));
       listProducts().then(setAllProducts);
     }
   }, [user, loading, navigate]);
 
   const wishItems = allProducts.filter((p) => slugs.includes(p.slug));
 
-  const saveAddr = () => {
-    if (!addrForm.name || !addrForm.line1 || !addrForm.city || !addrForm.pin) {
-      toast.error("Fill in the required fields"); return;
-    }
-    const next = [...addresses, { ...addrForm, id: Date.now().toString(), isDefault: addresses.length === 0 }];
-    setAddresses(next);
-    saveAddresses(next);
-    setAddrForm(BLANK);
-    setAddingAddr(false);
-    toast.success("Address saved");
+  const submitAddr = async () => {
+    if (!addrForm) return;
+    const problem = validateAddress(addrForm);
+    if (problem) return toast.error(problem);
+    try {
+      await saveAddress({ ...addrForm, is_default: addrForm.id ? addrForm.is_default : addresses.length === 0 });
+      setAddrForm(null);
+      toast.success("Address saved");
+      reloadAddresses();
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Could not save address"); }
   };
-
-  const removeAddr = (id: string) => {
-    const next = addresses.filter((a) => a.id !== id);
-    setAddresses(next);
-    saveAddresses(next);
+  const removeAddr = async (id: string) => {
+    try { await deleteAddress(id); reloadAddresses(); } catch (e) { toast.error(e instanceof Error ? e.message : "Could not delete"); }
   };
-
-  const setDefault = (id: string) => {
-    const next = addresses.map((a) => ({ ...a, isDefault: a.id === id }));
-    setAddresses(next);
-    saveAddresses(next);
+  const makeDefault = async (id: string) => {
+    try { await setDefaultAddress(id); reloadAddresses(); } catch (e) { toast.error(e instanceof Error ? e.message : "Could not update"); }
+  };
+  const saveProfile = async () => {
+    try { await updateMyProfile(profile); setEditingProfile(false); toast.success("Profile updated"); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Could not update profile"); }
   };
 
   const confirmCancelOrder = async () => {
@@ -129,9 +129,11 @@ function Account() {
       </div>
 
       {/* Quick action tiles */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-14">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-14">
         {[
           { href: "#wishlist", Icon: Heart, label: "WISHLIST", meta: `${slugs.length} ITEMS`, color: "hover:border-pink-500/60 hover:text-pink-400" },
+          { href: "#profile", Icon: Pencil, label: "PROFILE", meta: "NAME · PHONE", color: "hover:border-primary hover:text-primary" },
+          { href: "#coupons", Icon: Tag, label: "MY COUPONS", meta: welcome && couponStatus(welcome) === "active" ? "1 TO USE" : "—", color: "hover:border-primary hover:text-primary" },
           { href: "#addresses", Icon: MapPin, label: "SAVED ADDRESSES", meta: `${addresses.length} SAVED`, color: "hover:border-primary hover:text-primary" },
           { href: "/track-order", Icon: Truck, label: "TRACK ORDER", meta: "CHECK STATUS", color: "hover:border-primary hover:text-primary", external: true },
           { href: "/returns", Icon: RefreshCw, label: "RETURNS", meta: "& EXCHANGES", color: "hover:border-primary hover:text-primary", external: true },
@@ -248,63 +250,115 @@ function Account() {
         )}
       </div>
 
+      {/* Profile */}
+      <div id="profile" className="scroll-mt-24 mb-12">
+        <div className="flex items-baseline justify-between gap-4 mb-4 flex-wrap">
+          <h2 className="text-display text-3xl tracking-wider">PROFILE</h2>
+          {!editingProfile && (
+            <button onClick={() => setEditingProfile(true)} className="inline-flex items-center gap-2 border border-border px-4 h-9 text-mono text-[11px] tracking-widest hover:border-primary hover:text-primary">
+              <Pencil className="size-3.5" /> EDIT
+            </button>
+          )}
+        </div>
+        {editingProfile ? (
+          <div className="border border-border bg-surface p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
+            <input value={profile.name} onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))} placeholder="Full name" className="bg-background border border-border h-10 px-3 text-sm focus:border-primary outline-none" />
+            <input value={profile.phone} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} placeholder="10-digit phone" inputMode="numeric" className="bg-background border border-border h-10 px-3 text-sm focus:border-primary outline-none" />
+            <div className="sm:col-span-2 flex gap-3">
+              <button onClick={saveProfile} className="bg-foreground text-background px-6 h-10 text-mono text-[11px] tracking-widest hover:bg-primary hover:text-primary-foreground">SAVE</button>
+              <button onClick={() => { setEditingProfile(false); getMyProfile().then(setProfile); }} className="border border-border px-6 h-10 text-mono text-[11px] tracking-widest">CANCEL</button>
+            </div>
+            <p className="sm:col-span-2 text-xs text-muted-foreground">Email: {user.email} (can't be changed here)</p>
+          </div>
+        ) : (
+          <div className="border border-border bg-surface p-5 text-sm max-w-2xl">
+            <div className="font-semibold">{profile.name || user.name}</div>
+            <div className="text-muted-foreground">{profile.phone || "No phone added"}</div>
+            <div className="text-muted-foreground">{user.email}</div>
+          </div>
+        )}
+      </div>
+
+      {/* My coupons */}
+      <div id="coupons" className="scroll-mt-24 mb-12">
+        <h2 className="text-display text-3xl tracking-wider mb-4">MY COUPONS</h2>
+        {!welcome && used.length === 0 ? (
+          <div className="border border-dashed border-border p-8 text-center text-muted-foreground">No coupons yet.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl">
+            {welcome && (
+              <div className={`border p-5 ${couponStatus(welcome) === "active" ? "border-primary" : "border-border opacity-70"}`}>
+                <div className="text-mono text-[10px] tracking-[0.25em] text-muted-foreground mb-2">WELCOME OFFER · {couponLabel(welcome)}</div>
+                <div className="flex items-center gap-3">
+                  <span className="text-mono text-xl tracking-[0.2em]">{welcome.code}</span>
+                  {couponStatus(welcome) === "active" && (
+                    <button onClick={() => navigator.clipboard?.writeText(welcome.code).then(() => toast.success("Code copied"))} aria-label="Copy code" className="text-muted-foreground hover:text-primary"><Copy className="size-4" /></button>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground mt-2">
+                  {couponStatus(welcome) === "active" ? (welcome.expires_at ? `Valid till ${new Date(welcome.expires_at).toLocaleDateString("en-IN")}` : "No expiry") : couponStatus(welcome).toUpperCase()}
+                </div>
+              </div>
+            )}
+            {used.map((r) => (
+              <div key={r.id} className="border border-border p-5 text-sm">
+                <div className="flex items-center gap-2 text-mono"><Tag className="size-3.5" /> {r.code}</div>
+                <div className="text-muted-foreground text-xs mt-1">Saved {formatINR(r.discount_amount)} on order {r.order_id}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Saved Addresses */}
       <div id="addresses" className="scroll-mt-24">
         <div className="flex items-baseline justify-between gap-4 mb-4 flex-wrap">
           <h2 className="text-display text-3xl tracking-wider">SAVED ADDRESSES</h2>
-          {!addingAddr && (
-            <button
-              onClick={() => setAddingAddr(true)}
-              className="inline-flex items-center gap-2 border border-border px-4 h-9 text-mono text-[11px] tracking-widest hover:border-primary hover:text-primary transition-colors"
-            >
+          {!addrForm && (
+            <button onClick={() => setAddrForm({ ...BLANK, phone: profile.phone })} className="inline-flex items-center gap-2 border border-border px-4 h-9 text-mono text-[11px] tracking-widest hover:border-primary hover:text-primary transition-colors">
               <Plus className="size-3.5" /> ADD ADDRESS
             </button>
           )}
         </div>
 
-        {/* Add address form */}
-        {addingAddr && (
+        {addrForm && (
           <div className="border border-border bg-surface p-6 mb-5">
-            <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-5">NEW ADDRESS</div>
+            <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-5">{addrForm.id ? "EDIT ADDRESS" : "NEW ADDRESS"}</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               {([
                 { key: "label", placeholder: "Label (Home / Work…)", full: false },
                 { key: "name", placeholder: "Full Name *", full: false },
-                { key: "phone", placeholder: "Phone Number", full: false },
+                { key: "phone", placeholder: "Phone for delivery *", full: false },
                 { key: "line1", placeholder: "Address Line *", full: true },
                 { key: "city", placeholder: "City *", full: false },
-                { key: "state", placeholder: "State", full: false },
-                { key: "pin", placeholder: "PIN Code *", full: false },
-              ] as { key: keyof typeof addrForm; placeholder: string; full: boolean }[]).map(({ key, placeholder, full }) => (
+                { key: "state", placeholder: "State *", full: false },
+                { key: "pincode", placeholder: "PIN Code *", full: false },
+              ] as { key: keyof AddressInput; placeholder: string; full: boolean }[]).map(({ key, placeholder, full }) => (
                 <input
                   key={key}
-                  value={addrForm[key]}
-                  onChange={(e) => setAddrForm((f) => ({ ...f, [key]: e.target.value }))}
+                  value={String(addrForm[key] ?? "")}
+                  onChange={(e) => setAddrForm((f) => (f ? { ...f, [key]: e.target.value } : f))}
                   placeholder={placeholder}
                   className={`bg-background border border-border h-10 px-3 text-sm focus:border-primary outline-none ${full ? "sm:col-span-2" : ""}`}
                 />
               ))}
             </div>
             <div className="flex gap-3">
-              <button onClick={saveAddr} className="bg-foreground text-background px-6 h-10 text-mono text-[11px] tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors">
-                SAVE
-              </button>
-              <button onClick={() => { setAddingAddr(false); setAddrForm(BLANK); }} className="border border-border px-6 h-10 text-mono text-[11px] tracking-widest hover:border-primary transition-colors">
-                CANCEL
-              </button>
+              <button onClick={submitAddr} className="bg-foreground text-background px-6 h-10 text-mono text-[11px] tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors">SAVE</button>
+              <button onClick={() => setAddrForm(null)} className="border border-border px-6 h-10 text-mono text-[11px] tracking-widest hover:border-primary transition-colors">CANCEL</button>
             </div>
           </div>
         )}
 
-        {addresses.length === 0 && !addingAddr ? (
+        {addresses.length === 0 && !addrForm ? (
           <div className="border border-dashed border-border p-12 text-center">
             <p className="text-muted-foreground">No saved addresses yet.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {addresses.map((a) => (
-              <div key={a.id} className={`border bg-surface p-5 relative ${a.isDefault ? "border-primary" : "border-border"}`}>
-                {a.isDefault && (
+              <div key={a.id} className={`border bg-surface p-5 relative ${a.is_default ? "border-primary" : "border-border"}`}>
+                {a.is_default && (
                   <span className="absolute top-3 right-3 text-mono text-[9px] tracking-widest text-primary flex items-center gap-1">
                     <Star className="size-2.5 fill-primary" /> DEFAULT
                   </span>
@@ -312,16 +366,16 @@ function Account() {
                 {a.label && <div className="text-mono text-[10px] tracking-[0.25em] text-muted-foreground mb-2 uppercase">{a.label}</div>}
                 <div className="text-sm font-semibold mb-1">{a.name}</div>
                 <div className="text-sm text-muted-foreground leading-relaxed">
-                  {a.line1}<br />{a.city}{a.state ? `, ${a.state}` : ""} — {a.pin}
+                  {a.line1}<br />{a.city}{a.state ? `, ${a.state}` : ""} — {a.pincode}
                   {a.phone && <><br />{a.phone}</>}
                 </div>
-                <div className="flex gap-3 mt-4">
-                  {!a.isDefault && (
-                    <button onClick={() => setDefault(a.id)} className="text-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary transition-colors">
-                      SET DEFAULT
-                    </button>
+                <div className="flex gap-3 mt-4 items-center">
+                  {!a.is_default && (
+                    <button onClick={() => makeDefault(a.id)} className="text-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary transition-colors">SET DEFAULT</button>
                   )}
-                  <button onClick={() => removeAddr(a.id)} className="text-muted-foreground hover:text-red-500 transition-colors ml-auto">
+                  <button onClick={() => setAddrForm({ id: a.id, label: a.label ?? "", name: a.name, phone: a.phone, line1: a.line1, city: a.city, state: a.state, pincode: a.pincode, is_default: a.is_default })}
+                    className="text-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary">EDIT</button>
+                  <button onClick={() => removeAddr(a.id)} className="text-muted-foreground hover:text-red-500 transition-colors ml-auto" aria-label="Delete address">
                     <Trash2 className="size-3.5" />
                   </button>
                 </div>
