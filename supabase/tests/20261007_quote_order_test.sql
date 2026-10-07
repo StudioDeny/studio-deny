@@ -3,8 +3,8 @@ BEGIN;
 
 CREATE TEMP TABLE ctx ON COMMIT DROP AS
 SELECT gen_random_uuid() AS uid, gen_random_uuid() AS other_uid,
-       (SELECT slug FROM products WHERE price > 0 ORDER BY price LIMIT 1) AS slug,
-       (SELECT price FROM products WHERE price > 0 ORDER BY price LIMIT 1) AS price;
+       (SELECT slug FROM products WHERE price >= 100 ORDER BY price LIMIT 1) AS slug,
+       (SELECT price FROM products WHERE price >= 100 ORDER BY price LIMIT 1) AS price;
 
 INSERT INTO auth.users (id, email, raw_user_meta_data, aud, role)
 SELECT uid, 'quote-' || uid || '@example.com', '{}'::jsonb, 'authenticated', 'authenticated' FROM ctx
