@@ -6,7 +6,7 @@ import {
   Undo2, RotateCcw, BarChart3, Trophy, Bell, Settings, Tags, Download, FileEdit,
   Megaphone, Layout, Menu, HelpCircle, Star, Image, Globe, MessageSquare,
   UserCheck, AtSign, BookOpen, Users2, Heading, X, Ruler, PanelBottom, Sparkles,
-  Loader, Boxes, LifeBuoy,
+  Loader, Boxes, LifeBuoy, TicketPercent, Gift, UserPlus,
 } from "lucide-react";
 import { listOrders, type Order } from "@/lib/orders";
 import { getLastSeen, markSeen } from "@/lib/notifications";
@@ -87,6 +87,8 @@ function AdminLayout() {
     { to: "/admin/returns" as const, label: "RETURNS", icon: RotateCcw },
     { to: "/admin/customers" as const, label: "CUSTOMERS", icon: Users },
     { to: "/admin/loyalty" as const, label: "LOYALTY", icon: Trophy },
+    { to: "/admin/coupons" as const, label: "COUPONS", icon: TicketPercent },
+    { to: "/admin/welcome-offer" as const, label: "WELCOME OFFER", icon: Gift },
     { to: "/admin/export" as const, label: "EXPORT", icon: Download },
     { to: "/admin/settings" as const, label: "SETTINGS", icon: Settings },
   ];
@@ -104,7 +106,8 @@ function AdminLayout() {
     { to: "/admin/community-cms", label: "COMMUNITY", icon: Users2 },
     { to: "/admin/headings", label: "HEADINGS", icon: Heading },
     { to: "/admin/preloader", label: "PRELOADER", icon: Loader },
-    { to: "/admin/popup", label: "POPUP", icon: Sparkles },
+    { to: "/admin/popup", label: "LOYALTY POPUP", icon: Sparkles },
+    { to: "/admin/signup-popup", label: "SIGNUP POPUP", icon: UserPlus },
     { to: "/admin/media", label: "MEDIA", icon: Image },
     { to: "/admin/seo", label: "SEO", icon: Globe },
     { to: "/admin/notifications", label: "WHATSAPP", icon: MessageSquare },
