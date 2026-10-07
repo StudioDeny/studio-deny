@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from "react";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight, ShoppingBag, Check } from "lucide-react";
@@ -88,6 +89,7 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
         <img
           key={src + i}
           src={src}
+          style={blurPlaceholder(src)}
           alt={i === 0 ? product.name : ""}
           className={`absolute inset-0 w-full h-full object-cover transition-all duration-400 ease-out ${i === activePhotoIndex ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
             }`}

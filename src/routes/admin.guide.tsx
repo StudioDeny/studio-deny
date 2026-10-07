@@ -254,7 +254,7 @@ function AdminGuide() {
 
         <p className="text-sm text-muted-foreground mb-6">{entry.summary}</p>
 
-        <div className="grid md:grid-cols-[1fr_260px] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-6">
           {/* STEP WALKTHROUGH */}
           <div>
             <div className="flex items-center justify-between mb-3">

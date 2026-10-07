@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import { X, ArrowRight, Heart } from "lucide-react";
@@ -66,7 +67,7 @@ export function QuickViewModal({ product, open, onClose }: Props) {
         <div className="grid sm:grid-cols-2">
           {/* Image */}
           <div className="relative hidden sm:block" style={{ aspectRatio: "4/5", background: "var(--color-surface)" }}>
-            <img src={product.image} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
+            <img src={product.image} style={blurPlaceholder(product.image)} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
             {(product.badge || product.isBestSeller) && (
               <div className="absolute top-3 left-3 flex flex-col items-start gap-1">
                 {product.isBestSeller && (

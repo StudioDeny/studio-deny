@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { buildMeta, buildLinks, SITE_URL, productJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { useState, useEffect, useRef } from "react";
 import { listProducts, getStoredProduct as getProduct, type Product, type GalleryItem } from "@/lib/productsStore";
@@ -334,6 +335,7 @@ function PDP() {
         ) : (
           <img
             src={media.url}
+            style={blurPlaceholder(media.url)}
             alt={`${product.name} view ${index + 1}`}
             className="absolute inset-0 w-full h-full object-cover"
             loading={isFirst ? undefined : "lazy"}
@@ -368,12 +370,15 @@ function PDP() {
         </nav>
       </div>
 
-      <section className="px-4 md:px-8 mt-4 grid md:grid-cols-[1.3fr_1fr] lg:grid-cols-[1.5fr_1fr] gap-6 lg:gap-12">
+      {/* grid-cols-1 (minmax(0,1fr)), not the implicit auto column: an auto column grows
+          to the thumbnail strip's min-content width, pushing the gallery off the right
+          edge of narrow phones. */}
+      <section className="px-4 md:px-8 mt-4 grid grid-cols-1 md:grid-cols-[1.3fr_1fr] lg:grid-cols-[1.5fr_1fr] gap-6 lg:gap-12">
         {/* Image gallery. Desktop: continuous stack honoring each item's standalone/half
             layout (H&M-style). Mobile: standalone/half doesn't fit a narrow screen, so
-            every image is one full-width swipeable slide, with a thumbnail strip below
-            to jump to any image directly — the standard mobile PDP pattern. */}
-        <div className="flex flex-col">
+            every image is one full-width swipeable slide, edge to edge, with a thumbnail
+            strip below to jump to any image directly — the standard mobile PDP pattern. */}
+        <div className="flex flex-col min-w-0 -mx-4 md:mx-0">
           <div className="hidden md:flex md:flex-col">
             {(() => {
               let imgIndex = -1;
@@ -420,7 +425,7 @@ function PDP() {
                     {media.type === "video" ? (
                       <video src={media.url} className="w-full h-full object-cover" muted playsInline />
                     ) : (
-                      <img src={media.url} alt="" className="w-full h-full object-cover" />
+                      <img src={media.url} style={blurPlaceholder(media.url)} alt="" className="w-full h-full object-cover" />
                     )}
                   </button>
                 ))}
@@ -430,7 +435,7 @@ function PDP() {
         </div>
 
         {/* Product Info — pinned via sticky while the gallery scrolls underneath. */}
-        <div className="md:sticky md:top-24 md:self-start flex flex-col">
+        <div className="md:sticky md:top-24 md:self-start flex flex-col min-w-0">
           <div className="text-mono text-primary flex items-center gap-2" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>
             <span className="size-1 bg-primary rounded-full pulse-dot" />
             {product.category.toUpperCase()}

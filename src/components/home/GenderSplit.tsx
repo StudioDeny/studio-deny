@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
@@ -57,6 +58,7 @@ export function GenderSplit() {
           ) : (
             <img
               src={card.src}
+              style={blurPlaceholder(card.src)}
               alt={card.label}
               className="absolute inset-0 w-full h-full object-cover"
             />

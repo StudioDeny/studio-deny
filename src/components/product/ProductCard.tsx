@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { useRef, useState, useEffect } from "react";
 import { Heart, ShoppingBag, Check } from "lucide-react";
 import { getVariantStock, type Product, type VariantStock } from "@/lib/productsStore";
@@ -82,6 +83,7 @@ export function ProductCard({
               <img
                 key={url + i}
                 src={url}
+                style={blurPlaceholder(url)}
                 alt={i === 0 ? product.name : ""}
                 loading={i === 0 ? undefined : "lazy"}
                 className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out ${i === activeDesktopIndex ? "opacity-100 scale-100" : "opacity-0 scale-[1.03] pointer-events-none"
@@ -100,6 +102,7 @@ export function ProductCard({
               <img
                 key={url + i}
                 src={url}
+                style={blurPlaceholder(url)}
                 alt={i === 0 ? product.name : ""}
                 loading={i === 0 ? undefined : "lazy"}
                 className="w-full h-full object-cover shrink-0 snap-center"

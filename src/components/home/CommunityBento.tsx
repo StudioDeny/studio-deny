@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import type { CommunityPhoto } from "@/types/database";
@@ -94,7 +95,7 @@ export function CommunityBento() {
               {photo.media_type === "video" ? (
                 <video src={photo.image_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
               ) : (
-                <img src={photo.image_url} alt={photo.handle ?? "community"} className="w-full h-full object-cover" loading="lazy" />
+                <img src={photo.image_url} style={blurPlaceholder(photo.image_url)} alt={photo.handle ?? "community"} className="w-full h-full object-cover" loading="lazy" />
               )}
 
               {/* Hero Bento Badge */}

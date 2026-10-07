@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import {
@@ -180,7 +181,7 @@ export function DenySpace() {
         cfg.bg_media_type === "video" ? (
           <video src={cfg.bg_media_url} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" />
         ) : (
-          <img src={cfg.bg_media_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={cfg.bg_media_url} style={blurPlaceholder(cfg.bg_media_url)} alt="" className="absolute inset-0 w-full h-full object-cover" />
         )
       )}
 

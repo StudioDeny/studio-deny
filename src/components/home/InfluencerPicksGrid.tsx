@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
@@ -58,6 +59,7 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
             ) : (
               <img
                 src={pick.thumbnail_url}
+                style={blurPlaceholder(pick.thumbnail_url)}
                 alt={pick.name}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/tile:scale-[1.03]"
               />
@@ -104,7 +106,7 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
             onClick={(e) => e.stopPropagation()}
             className="absolute bottom-3 left-3 right-3 flex items-center gap-2 bg-white/95 hover:bg-white pl-1.5 pr-3 py-1.5 w-fit max-w-full transition-colors"
           >
-            <img src={taggedProduct.image} alt="" className="size-7 object-cover shrink-0" />
+            <img src={taggedProduct.image} style={blurPlaceholder(taggedProduct.image)} alt="" className="size-7 object-cover shrink-0" />
             <span className="text-xs font-semibold text-black truncate">{taggedProduct.name}</span>
           </Link>
         )}
@@ -193,7 +195,7 @@ function Lightbox({
           // couldn't load it (e.g. a pasted link that isn't a direct video file).
           <>
             {pick.thumbnail_url && (
-              <img src={pick.thumbnail_url} alt={pick.name} className="absolute inset-0 w-full h-full object-cover" />
+              <img src={pick.thumbnail_url} style={blurPlaceholder(pick.thumbnail_url)} alt={pick.name} className="absolute inset-0 w-full h-full object-cover" />
             )}
             <div className="absolute inset-0 bg-black/30" />
             {pick.link_url && (
@@ -244,7 +246,7 @@ function Lightbox({
                 params={{ slug: p.slug }}
                 className="flex items-center gap-3 bg-white/95 hover:bg-white pl-1.5 pr-4 py-1.5 rounded-full w-fit transition-colors"
               >
-                <img src={p.image} alt="" className="size-8 rounded-full object-cover" />
+                <img src={p.image} style={blurPlaceholder(p.image)} alt="" className="size-8 rounded-full object-cover" />
                 <span className="text-xs font-semibold text-black">{p.name}</span>
               </Link>
             ))}

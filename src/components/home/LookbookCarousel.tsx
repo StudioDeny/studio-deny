@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
@@ -369,6 +370,7 @@ export function LookbookCarousel() {
                 ) : (
                   <img
                     src={slide.image_url}
+                    style={blurPlaceholder(slide.image_url)}
                     alt={product?.name ?? ""}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />

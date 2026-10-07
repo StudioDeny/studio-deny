@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -66,7 +67,7 @@ export function CategoryCarousel() {
               <source src={mediaSrc} type="video/mp4" />
             </video>
           ) : (
-            <img src={mediaSrc} alt={slide.label} className="absolute inset-0 w-full h-full object-cover" />
+            <img src={mediaSrc} style={blurPlaceholder(mediaSrc)} alt={slide.label} className="absolute inset-0 w-full h-full object-cover" />
           )}
           <div className="absolute inset-0 bg-black/30" />
         </motion.div>

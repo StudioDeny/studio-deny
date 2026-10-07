@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { FillLink } from "@/components/ui/FillLink";
 import { SlideDots } from "@/components/ui/SlideDots";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 
 export type HeroSlide = {
   id: string;
@@ -115,7 +116,7 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
               alt=""
               aria-hidden
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ filter: "brightness(0.55)" }}
+              style={{ ...blurPlaceholder(mediaSrc), filter: "brightness(0.55)" }}
             />
           )}
         </motion.div>

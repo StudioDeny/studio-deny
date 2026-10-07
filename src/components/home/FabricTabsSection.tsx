@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -99,6 +100,7 @@ export function FabricTabsSection() {
                   ) : (
                     <img
                       src={fabric.img}
+                      style={blurPlaceholder(fabric.img)}
                       alt={fabric.name}
                       className="w-full h-full object-cover"
                       loading="eager"

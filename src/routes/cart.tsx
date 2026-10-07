@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { useCart, formatINR } from "@/context/CartContext";
 import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { Minus, Plus, Trash2, ArrowRight, ShieldCheck, ShoppingBag } from "lucide-react";
@@ -97,6 +98,7 @@ function CartPage() {
                 >
                   <img
                     src={it.product.image}
+                    style={blurPlaceholder(it.product.image)}
                     alt={it.product.name}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
