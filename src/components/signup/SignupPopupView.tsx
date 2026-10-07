@@ -113,7 +113,8 @@ export function SignupPopupView(p: Props) {
         ) : (
           <div className="text-center space-y-4">
             <h3 className="text-2xl font-bold">{cfg.success_heading}</h3>
-            <p className="text-sm opacity-80">{fillTokens(cfg.success_body, { code: p.code ?? "", discount: p.discountLabel })}</p>
+            {/* No code issued (welcome offer switched off) → skip the code message rather than show it with a blank. */}
+            {p.code && <p className="text-sm opacity-80">{fillTokens(cfg.success_body, { code: p.code, discount: p.discountLabel })}</p>}
             {p.code && (
               <div className="flex items-stretch border" style={{ borderColor: `${cfg.form_text_color}55` }}>
                 <span className="flex-1 text-mono text-lg tracking-[0.2em] py-3">{p.code}</span>

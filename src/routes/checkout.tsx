@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import type { UseFormRegister, FieldErrors } from "react-hook-form";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { checkRateLimit, recordAttempt, formatMs } from "@/lib/rateLimit";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -136,14 +136,19 @@ function Checkout() {
     setValue("city", a.city); setValue("state", a.state); setValue("pincode", a.pincode);
   };
 
+  // Pre-fill the default address once per visit. Keyed on the user id, not
+  // the user object: a session refresh creates a new object and must not
+  // overwrite an address the customer is typing.
+  const prefilledFor = useRef<string | null>(null);
   useEffect(() => {
-    if (!user) return;
+    if (!user || prefilledFor.current === user.id) return;
+    prefilledFor.current = user.id;
     listAddresses().then((list) => {
       setSaved(list);
       const def = list.find((a) => a.is_default) ?? list[0];
       if (def) { setPickedId(def.id); fillFrom(def); }
     });
-  }, [user]);
+  }, [user?.id]);
 
   // Asks the database whether every bag line still has enough stock, so we
   // never take money for a size that just sold out. Returns a message or null.
@@ -402,7 +407,7 @@ function Checkout() {
         <aside className="bg-surface border border-border p-6 h-fit lg:sticky lg:top-28">
           <h2 className="text-display text-2xl mb-4 tracking-wider">ORDER</h2>
           <ul className="space-y-3 max-h-72 overflow-y-auto">
-            {items.map((it) => (
+            {items.map((it, idx) => (
               <li key={it.product.slug + it.size} className="flex gap-3 text-sm">
                 <div className="w-14 h-16 bg-muted overflow-hidden shrink-0">
                   <img src={it.product.image} alt="" className="w-full h-full object-cover" />
@@ -411,7 +416,7 @@ function Checkout() {
                   <div className="truncate text-xs">{it.product.name}</div>
                   <div className="text-[10px] text-mono text-muted-foreground">{it.size} × {it.qty}</div>
                 </div>
-                <div className="text-mono text-xs">{formatINR(it.product.price * it.qty)}</div>
+                <div className="text-mono text-xs">{formatINR((quote?.lines[idx]?.slug === it.product.slug ? quote.lines[idx].price : it.product.price) * it.qty)}</div>
               </li>
             ))}
           </ul>
