@@ -54,12 +54,23 @@ DO $$ BEGIN
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
+-- Upper-casing existing codes would collide if two differ only by case.
+-- Stop with a readable message instead of a bare unique-violation.
+DO $$ DECLARE dup text; BEGIN
+  SELECT string_agg(k, ', ') INTO dup FROM (
+    SELECT upper(btrim(code)) AS k FROM coupons GROUP BY 1 HAVING count(*) > 1
+  ) d;
+  IF dup IS NOT NULL THEN
+    RAISE EXCEPTION 'Coupon codes exist twice in different letter case: %. Delete one of each, then run again.', dup;
+  END IF;
+END $$;
+
 UPDATE coupons SET code = upper(btrim(code)) WHERE code <> upper(btrim(code));
 
-DO $$ BEGIN
-  ALTER TABLE coupons ADD CONSTRAINT coupons_code_format_check
-    CHECK (code ~ '^[A-Z0-9_-]{3,32}$') NOT VALID;
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+-- Code format (A–Z, 0–9, - and _) is enforced by the admin screen for NEW
+-- codes only; a DB CHECK would also block editing (even switching off)
+-- any older code that has a space or symbol in it.
+ALTER TABLE coupons DROP CONSTRAINT IF EXISTS coupons_code_format_check;
 
 CREATE UNIQUE INDEX IF NOT EXISTS coupons_one_welcome_per_user
   ON coupons (assigned_user_id) WHERE kind = 'welcome';
@@ -228,6 +239,53 @@ $$;
 -- Internal only — never callable from the browser.
 REVOKE EXECUTE ON FUNCTION pick_welcome_tier() FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION issue_welcome_coupon(uuid) FROM PUBLIC, anon, authenticated;
+
+-- Admin "Welcome offer" save: settings + every tier change in ONE
+-- transaction, so a half-failed save can never leave the targets broken.
+CREATE OR REPLACE FUNCTION save_welcome_offer(p_settings jsonb, p_tiers jsonb, p_removed uuid[])
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  t jsonb;
+  i int := 0;
+  active_total numeric;
+BEGIN
+  IF NOT is_admin_or_staff() THEN RAISE EXCEPTION 'forbidden'; END IF;
+
+  UPDATE welcome_offer_settings SET
+    enabled          = (p_settings->>'enabled')::boolean,
+    code_prefix      = p_settings->>'code_prefix',
+    valid_days       = NULLIF(p_settings->>'valid_days', '')::int,
+    min_order        = NULLIF(p_settings->>'min_order', '')::numeric,
+    max_discount     = NULLIF(p_settings->>'max_discount', '')::numeric,
+    first_order_only = (p_settings->>'first_order_only')::boolean
+  WHERE id = (p_settings->>'id')::uuid;
+
+  DELETE FROM welcome_offer_tiers WHERE id = ANY(COALESCE(p_removed, '{}'));
+
+  FOR t IN SELECT * FROM jsonb_array_elements(p_tiers) LOOP
+    i := i + 1;
+    IF NULLIF(t->>'id', '') IS NULL THEN
+      INSERT INTO welcome_offer_tiers (label, discount_type, discount_value, target_percent, is_active, sort_order)
+      VALUES (t->>'label', t->>'discount_type', (t->>'discount_value')::numeric,
+              (t->>'target_percent')::numeric, (t->>'is_active')::boolean, i);
+    ELSE
+      UPDATE welcome_offer_tiers SET
+        label = t->>'label', discount_type = t->>'discount_type',
+        discount_value = (t->>'discount_value')::numeric, target_percent = (t->>'target_percent')::numeric,
+        is_active = (t->>'is_active')::boolean, sort_order = i
+      WHERE id = (t->>'id')::uuid;
+    END IF;
+  END LOOP;
+
+  SELECT COALESCE(SUM(target_percent), 0) INTO active_total FROM welcome_offer_tiers WHERE is_active;
+  IF active_total <> 100 THEN
+    RAISE EXCEPTION 'Active targets must add up to 100%% (now %)', active_total::text || '%';
+  END IF;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION save_welcome_offer(jsonb, jsonb, uuid[]) FROM PUBLIC, anon;
+GRANT  EXECUTE ON FUNCTION save_welcome_offer(jsonb, jsonb, uuid[]) TO authenticated;
 
 -- ── signup trigger: same as 20260812000005 + welcome coupon ─
 CREATE OR REPLACE FUNCTION public.handle_new_user()

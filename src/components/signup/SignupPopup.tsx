@@ -76,7 +76,12 @@ export function SignupPopup() {
       onSubmit={onSubmit}
       onClose={close}
       onLogin={() => { close(); navigate({ to: "/login" }); }}
-      onCta={() => { close(); navigate({ to: cfg.cta_href as never }); }}
+      onCta={() => {
+        close();
+        // Outside links (https://…) need a real page load; store paths use the router.
+        if (/^https?:\/\//i.test(cfg.cta_href)) window.location.href = cfg.cta_href;
+        else navigate({ to: cfg.cta_href as never });
+      }}
     />
   );
 }

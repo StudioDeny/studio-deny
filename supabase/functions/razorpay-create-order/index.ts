@@ -80,7 +80,7 @@ serve(async (req) => {
       });
     }
     if (coupon_code && quote.coupon_error) {
-      return new Response(JSON.stringify({ error: "coupon_invalid", coupon_error: quote.coupon_error }), {
+      return new Response(JSON.stringify({ error: "coupon_invalid", coupon_error: quote.coupon_error, coupon_min_order: quote.coupon_min_order }), {
         status: 409,
         headers: { ...cors, "Content-Type": "application/json" },
       });
@@ -133,6 +133,7 @@ serve(async (req) => {
       user_id: userData.user.id,
       items_key: itemsKey,
       coupon_code: quote.coupon_code,
+      coupon_id: quote.coupon_id,
       subtotal: quote.subtotal,
       loyalty_discount: quote.loyalty_discount,
       coupon_discount: quote.coupon_discount,

@@ -68,4 +68,50 @@ DO $$ BEGIN
   ASSERT EXISTS (SELECT 1 FROM coupons WHERE code = 'SUMMER10'), 'T6 code not normalised';
 END $$;
 
+-- T7: welcome-offer save is all-or-nothing — targets that don't total 100
+-- are refused and NOTHING changes; a valid save applies every change
+DO $$ DECLARE admin_id uuid := gen_random_uuid(); sid uuid; t5 uuid; t10 uuid; t15 uuid; failed boolean := false; BEGIN
+  INSERT INTO auth.users (id, email, raw_user_meta_data, aud, role)
+  VALUES (admin_id, 'admin-' || admin_id || '@example.com', '{}', 'authenticated', 'authenticated');
+  UPDATE user_roles SET role = 'admin' WHERE user_id = admin_id;
+  INSERT INTO user_roles (user_id, role) SELECT admin_id, 'admin' WHERE NOT EXISTS (SELECT 1 FROM user_roles WHERE user_id = admin_id);
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', admin_id, 'role', 'authenticated')::text, true);
+  SELECT id INTO sid FROM welcome_offer_settings LIMIT 1;
+  SELECT id INTO t5 FROM welcome_offer_tiers WHERE discount_value = 5;
+  SELECT id INTO t10 FROM welcome_offer_tiers WHERE discount_value = 10;
+  SELECT id INTO t15 FROM welcome_offer_tiers WHERE discount_value = 15;
+  BEGIN
+    PERFORM save_welcome_offer(
+      jsonb_build_object('id', sid, 'enabled', true, 'code_prefix', 'NEW', 'first_order_only', true),
+      jsonb_build_array(
+        jsonb_build_object('id', t5, 'label', '5% OFF', 'discount_type', 'percent', 'discount_value', 5, 'target_percent', 70, 'is_active', true),
+        jsonb_build_object('id', t10, 'label', '10% OFF', 'discount_type', 'percent', 'discount_value', 10, 'target_percent', 15, 'is_active', true),
+        jsonb_build_object('id', t15, 'label', '15% OFF', 'discount_type', 'percent', 'discount_value', 15, 'target_percent', 5, 'is_active', true)),
+      '{}');
+  EXCEPTION WHEN raise_exception THEN failed := true;
+  END;
+  ASSERT failed, 'T7 a save totalling 90% must be refused';
+  ASSERT (SELECT target_percent FROM welcome_offer_tiers WHERE id = t5) = 80, 'T7 refused save changed a tier';
+  ASSERT (SELECT code_prefix FROM welcome_offer_settings WHERE id = sid) = 'DENY', 'T7 refused save changed settings';
+
+  PERFORM save_welcome_offer(
+    jsonb_build_object('id', sid, 'enabled', true, 'code_prefix', 'NEW', 'valid_days', 7, 'first_order_only', true),
+    jsonb_build_array(
+      jsonb_build_object('id', t5, 'label', '5% OFF', 'discount_type', 'percent', 'discount_value', 5, 'target_percent', 85, 'is_active', true),
+      jsonb_build_object('id', t10, 'label', '10% OFF', 'discount_type', 'percent', 'discount_value', 10, 'target_percent', 15, 'is_active', true)),
+    ARRAY[t15]);
+  ASSERT (SELECT code_prefix FROM welcome_offer_settings WHERE id = sid) = 'NEW', 'T7 valid save did not apply settings';
+  ASSERT NOT EXISTS (SELECT 1 FROM welcome_offer_tiers WHERE id = t15), 'T7 removed tier still there';
+  ASSERT (SELECT SUM(target_percent) FROM welcome_offer_tiers WHERE is_active) = 100, 'T7 total after valid save';
+END $$;
+
+-- T8: an older coupon whose code has a space can still be switched off
+DO $$ BEGIN
+  ALTER TABLE coupons DISABLE TRIGGER trg_coupons_normalize_code;
+  INSERT INTO coupons (code, discount_type, discount_value) VALUES ('OLD CODE', 'fixed', 10);
+  ALTER TABLE coupons ENABLE TRIGGER trg_coupons_normalize_code;
+  UPDATE coupons SET is_active = false WHERE code = 'OLD CODE';
+  ASSERT (SELECT NOT is_active FROM coupons WHERE code = 'OLD CODE'), 'T8 old code could not be switched off';
+END $$;
+
 ROLLBACK;

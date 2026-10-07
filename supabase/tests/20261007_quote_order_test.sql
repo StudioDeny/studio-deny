@@ -66,7 +66,8 @@ DO $$ DECLARE q jsonb; c ctx%ROWTYPE; other_code text; own_code text; BEGIN
   SELECT code INTO other_code FROM coupons WHERE assigned_user_id = c.other_uid;
   SELECT code INTO own_code FROM coupons WHERE assigned_user_id = c.uid;
   q := quote_order(jsonb_build_array(jsonb_build_object('slug', c.slug, 'variantId', null, 'qty', 1)), other_code);
-  ASSERT q->>'coupon_error' = 'not_yours', format('T5 other → %s', q->>'coupon_error');
+  -- answers like an unknown code, so codes can't be probed
+  ASSERT q->>'coupon_error' = 'not_found', format('T5 other → %s', q->>'coupon_error');
   q := quote_order(jsonb_build_array(jsonb_build_object('slug', c.slug, 'variantId', null, 'qty', 1)), own_code);
   ASSERT q->>'coupon_error' IS NULL, format('T5 own → %s', q->>'coupon_error');
 END $$;
@@ -101,16 +102,19 @@ DO $$ DECLARE c ctx%ROWTYPE; items jsonb; q jsonb; BEGIN
   INSERT INTO verified_payments (payment_id, razorpay_order_id, amount_paise)
   VALUES ('pay_T8', 'order_T8', round((q->>'total')::numeric * 100)::integer);
 
-  ASSERT order_matches_payment_quote('pay_T8', c.uid, items, 'TEST10', (q->>'subtotal')::numeric, (q->>'loyalty_discount')::numeric,
+  ASSERT order_matches_payment_quote('pay_T8', items, 'TEST10', (q->>'subtotal')::numeric, (q->>'loyalty_discount')::numeric,
     (q->>'coupon_discount')::numeric, (q->>'shipping')::numeric, (q->>'total')::numeric, 'razorpay', NULL), 'T8 exact match accepted';
-  ASSERT NOT order_matches_payment_quote('pay_T8', c.uid, items, 'TEST10', (q->>'subtotal')::numeric, (q->>'loyalty_discount')::numeric,
+  ASSERT NOT order_matches_payment_quote('pay_T8', items, 'TEST10', (q->>'subtotal')::numeric, (q->>'loyalty_discount')::numeric,
     (q->>'coupon_discount')::numeric + 100, (q->>'shipping')::numeric, (q->>'total')::numeric - 100, 'razorpay', NULL), 'T8 forged coupon rejected';
-  ASSERT NOT order_matches_payment_quote('pay_T8', c.uid,
+  ASSERT NOT order_matches_payment_quote('pay_T8',
     jsonb_build_array(jsonb_build_object('slug', c.slug, 'variantId', null, 'qty', 5)), 'TEST10', (q->>'subtotal')::numeric,
     (q->>'loyalty_discount')::numeric, (q->>'coupon_discount')::numeric, (q->>'shipping')::numeric, (q->>'total')::numeric, 'razorpay', NULL),
     'T8 different cart rejected';
-  ASSERT NOT order_matches_payment_quote('pay_T8', c.other_uid, items, 'TEST10', (q->>'subtotal')::numeric, (q->>'loyalty_discount')::numeric,
+  -- another logged-in customer asking about this payment gets false
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', c.other_uid, 'role', 'authenticated')::text, true);
+  ASSERT NOT order_matches_payment_quote('pay_T8', items, 'TEST10', (q->>'subtotal')::numeric, (q->>'loyalty_discount')::numeric,
     (q->>'coupon_discount')::numeric, (q->>'shipping')::numeric, (q->>'total')::numeric, 'razorpay', NULL), 'T8 other user rejected';
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', c.uid, 'role', 'authenticated')::text, true);
 END $$;
 
 -- T9: redemption trigger records use even when the coupon is already full
@@ -246,6 +250,28 @@ DO $$ DECLARE c ctx%ROWTYPE; q jsonb; items jsonb; refused boolean := false; BEG
   END;
   RESET ROLE;
   ASSERT refused, 'T13 order with a forged line price was accepted';
+END $$;
+
+-- T15: an admin renames the coupon while the customer is paying → the
+-- paid order still counts against THAT coupon (id stored with the quote)
+DO $$ DECLARE c ctx%ROWTYPE; items jsonb; q jsonb; cid uuid; BEGIN
+  SELECT * INTO c FROM ctx;
+  INSERT INTO coupons (code, discount_type, discount_value) VALUES ('RENAME1', 'fixed', 20) RETURNING id INTO cid;
+  items := jsonb_build_array(jsonb_build_object('slug', c.slug, 'name', 'T15', 'price', c.price, 'qty', 1, 'variantId', null));
+  q := quote_order(items, 'RENAME1');
+  ASSERT (q->>'coupon_id')::uuid = cid, 'T15 quote carries the coupon id';
+  INSERT INTO payment_quotes (razorpay_order_id, user_id, items_key, coupon_code, coupon_id, subtotal, loyalty_discount,
+                              coupon_discount, shipping, total, payment_type, cod_advance)
+  VALUES ('order_T15', c.uid, order_items_key(q->'lines'), 'RENAME1', cid, (q->>'subtotal')::numeric, (q->>'loyalty_discount')::numeric,
+          (q->>'coupon_discount')::numeric, (q->>'shipping')::numeric, (q->>'total')::numeric, 'full', (q->>'cod_advance')::numeric);
+  INSERT INTO verified_payments (payment_id, razorpay_order_id, amount_paise)
+  VALUES ('pay_T15', 'order_T15', round((q->>'total')::numeric * 100)::integer);
+  UPDATE coupons SET code = 'RENAMED1' WHERE id = cid;   -- admin edit mid-payment
+  INSERT INTO orders (id, user_id, user_email, items, subtotal, shipping, discount, coupon_code, coupon_discount, total, address, payment_id, payment_method)
+  VALUES ('SDTEST15', c.uid, 'x@example.com', items, (q->>'subtotal')::numeric, (q->>'shipping')::numeric,
+          (q->>'loyalty_discount')::numeric, 'RENAME1', (q->>'coupon_discount')::numeric, (q->>'total')::numeric, '{}', 'pay_T15', 'razorpay');
+  ASSERT (SELECT used_count FROM coupons WHERE id = cid) = 1, 'T15 renamed coupon use not counted';
+  ASSERT (SELECT coupon_id FROM coupon_redemptions WHERE order_id = 'SDTEST15') = cid, 'T15 redemption not linked';
 END $$;
 
 ROLLBACK;

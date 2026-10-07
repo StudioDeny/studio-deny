@@ -58,18 +58,14 @@ function AdminWelcomeOffer() {
     if (!/^[A-Z0-9]{1,10}$/.test(settings.code_prefix)) return toast.error("Code prefix: 1–10 capital letters or numbers");
 
     setSaving(true);
-    const { id, created_at, updated_at, ...fields } = settings;
-    const results = await Promise.all([
-      supabase.from("welcome_offer_settings").update(fields).eq("id", id),
-      ...removed.map((rid) => supabase.from("welcome_offer_tiers").delete().eq("id", rid)),
-      ...tiers.map((t, i) => {
-        const row = { label: t.label.trim(), discount_type: t.discount_type, discount_value: t.discount_value, target_percent: t.target_percent, is_active: t.is_active, sort_order: i + 1 };
-        return t.id ? supabase.from("welcome_offer_tiers").update(row).eq("id", t.id) : supabase.from("welcome_offer_tiers").insert(row);
-      }),
-    ]);
+    // One database call = one transaction: either every change lands or none does.
+    const { error } = await supabase.rpc("save_welcome_offer" as never, {
+      p_settings: settings,
+      p_tiers: tiers.map((t) => ({ id: t.id ?? null, label: t.label.trim(), discount_type: t.discount_type, discount_value: t.discount_value, target_percent: t.target_percent, is_active: t.is_active })),
+      p_removed: removed,
+    } as never);
     setSaving(false);
-    const failed = results.find((r) => r.error);
-    if (failed?.error) return toast.error(failed.error.message);
+    if (error) return toast.error(error.message);
     toast.success("Welcome offer saved");
     load();
   };

@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS payment_quotes (
   user_id           uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   items_key         text NOT NULL,
   coupon_code       text,
+  coupon_id         uuid,
   subtotal          numeric(10,2) NOT NULL,
   loyalty_discount  numeric(10,2) NOT NULL,
   coupon_discount   numeric(10,2) NOT NULL,
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS payment_quotes (
   cod_advance       numeric(10,2) NOT NULL,
   created_at        timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE payment_quotes ADD COLUMN IF NOT EXISTS coupon_id uuid;  -- server-set; survives a coupon rename
 ALTER TABLE payment_quotes ENABLE ROW LEVEL SECURITY;  -- no policies: service role only
 
 -- Order-insensitive fingerprint of a cart: "slug|variant|qty|price" sorted.
@@ -77,8 +79,10 @@ BEGIN
   IF c.expires_at IS NOT NULL AND c.expires_at <= now() THEN
     RETURN QUERY SELECT c.id, c.code, 0::numeric, 'expired'::text, c.min_order; RETURN;
   END IF;
+  -- Someone else's welcome code answers exactly like an unknown code, so the
+  -- checkout can't be used to probe which codes exist.
   IF c.kind = 'welcome' AND c.assigned_user_id IS DISTINCT FROM p_user THEN
-    RETURN QUERY SELECT c.id, c.code, 0::numeric, 'not_yours'::text, c.min_order; RETURN;
+    RETURN QUERY SELECT NULL::uuid, c.code, 0::numeric, 'not_found'::text, NULL::numeric; RETURN;
   END IF;
   IF c.per_user_limit IS NOT NULL AND (
        SELECT count(*) FROM coupon_redemptions r WHERE r.coupon_id = c.id AND r.user_id = p_user
@@ -116,6 +120,7 @@ DECLARE
   v_subtotal numeric := 0;
   v_loyalty numeric;
   v_coupon_code text;
+  v_coupon_id uuid;
   v_coupon_discount numeric := 0;
   v_coupon_error text;
   v_coupon_min numeric;
@@ -155,6 +160,7 @@ BEGIN
     v_coupon_error := ev.error;
     v_coupon_min := ev.min_order;
     IF ev.error IS NULL THEN
+      v_coupon_id := ev.coupon_id;
       v_coupon_discount := GREATEST(0, LEAST(ev.discount, v_subtotal - v_loyalty));
     ELSE
       v_coupon_code := NULL;
@@ -175,6 +181,7 @@ BEGIN
     'subtotal', v_subtotal,
     'loyalty_discount', v_loyalty,
     'coupon_code', v_coupon_code,
+    'coupon_id', v_coupon_id,
     'coupon_discount', v_coupon_discount,
     'coupon_error', v_coupon_error,
     'coupon_min_order', v_coupon_min,
@@ -187,8 +194,11 @@ BEGIN
 END;
 $$;
 
+-- Checks the CALLER's own quote (auth.uid()), so it can't be used to ask
+-- about another customer's payment.
+DROP FUNCTION IF EXISTS order_matches_payment_quote(text, uuid, jsonb, text, numeric, numeric, numeric, numeric, numeric, text, numeric);
 CREATE OR REPLACE FUNCTION order_matches_payment_quote(
-  p_payment_id text, p_user uuid, p_items jsonb, p_coupon_code text,
+  p_payment_id text, p_items jsonb, p_coupon_code text,
   p_subtotal numeric, p_discount numeric, p_coupon_discount numeric,
   p_shipping numeric, p_total numeric, p_payment_method text, p_cod_advance numeric
 ) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
@@ -198,7 +208,7 @@ CREATE OR REPLACE FUNCTION order_matches_payment_quote(
     JOIN payment_quotes q ON q.razorpay_order_id = vp.razorpay_order_id
     WHERE vp.payment_id = p_payment_id
       AND vp.used = false
-      AND q.user_id = p_user
+      AND q.user_id = auth.uid()
       AND q.items_key = order_items_key(p_items)
       AND q.coupon_code IS NOT DISTINCT FROM p_coupon_code
       AND q.subtotal = p_subtotal
@@ -219,8 +229,8 @@ $$;
 REVOKE EXECUTE ON FUNCTION coupon_evaluate(uuid, text, numeric) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION quote_order(jsonb, text) FROM PUBLIC, anon;
 GRANT  EXECUTE ON FUNCTION quote_order(jsonb, text) TO authenticated;
-REVOKE EXECUTE ON FUNCTION order_matches_payment_quote(text, uuid, jsonb, text, numeric, numeric, numeric, numeric, numeric, text, numeric) FROM PUBLIC, anon;
-GRANT  EXECUTE ON FUNCTION order_matches_payment_quote(text, uuid, jsonb, text, numeric, numeric, numeric, numeric, numeric, text, numeric) TO authenticated;
+REVOKE EXECUTE ON FUNCTION order_matches_payment_quote(text, jsonb, text, numeric, numeric, numeric, numeric, numeric, text, numeric) FROM PUBLIC, anon;
+GRANT  EXECUTE ON FUNCTION order_matches_payment_quote(text, jsonb, text, numeric, numeric, numeric, numeric, numeric, text, numeric) TO authenticated;
 
 -- ── orders INSERT policy: 20260812000009's list, quote check replaces
 --    the direct loyalty, catalog-price and verified_payments checks.
@@ -258,7 +268,7 @@ DO $$ BEGIN
       AND replacement_order_id IS NULL
       AND payment_id IS NOT NULL
       AND order_matches_payment_quote(
-        payment_id, auth.uid(), items, coupon_code,
+        payment_id, items, coupon_code,
         subtotal, discount, coupon_discount, shipping, total,
         payment_method, cod_advance_amount
       )
@@ -273,9 +283,19 @@ DECLARE
 BEGIN
   IF NEW.coupon_code IS NULL OR NEW.coupon_discount <= 0 THEN RETURN NEW; END IF;
   BEGIN
-    SELECT id INTO cid FROM coupons WHERE code = NEW.coupon_code FOR UPDATE;
-    IF cid IS NOT NULL THEN
+    -- The coupon id stored with the paid quote survives an admin renaming
+    -- the code mid-payment; fall back to the code for older quotes.
+    SELECT q.coupon_id INTO cid
+    FROM verified_payments vp JOIN payment_quotes q ON q.razorpay_order_id = vp.razorpay_order_id
+    WHERE vp.payment_id = NEW.payment_id;
+    IF cid IS NULL THEN
+      SELECT id INTO cid FROM coupons WHERE code = NEW.coupon_code;
+    END IF;
+    PERFORM 1 FROM coupons WHERE id = cid FOR UPDATE;
+    IF FOUND THEN
       UPDATE coupons SET used_count = used_count + 1 WHERE id = cid;
+    ELSE
+      cid := NULL;  -- coupon deleted mid-payment: keep the redemption row by code
     END IF;
     INSERT INTO coupon_redemptions (coupon_id, code, user_id, order_id, discount_amount)
     VALUES (cid, NEW.coupon_code, NEW.user_id, NEW.id, NEW.coupon_discount)

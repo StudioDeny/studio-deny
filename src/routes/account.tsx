@@ -9,7 +9,7 @@ import { LogOut, ShieldCheck, FileText, X, Heart, MapPin, Truck, RefreshCw, Plus
 import { toast } from "sonner";
 import { Loading } from "@/components/ui/loading";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { listAddresses, saveAddress, deleteAddress, setDefaultAddress, importLocalAddresses, validateAddress, type SavedAddress, type AddressInput } from "@/lib/addresses";
+import { listAddresses, saveAddress, deleteAddress, setDefaultAddress, importLocalAddresses, countLocalAddresses, discardLocalAddresses, validateAddress, type SavedAddress, type AddressInput } from "@/lib/addresses";
 import { getMyProfile, updateMyProfile } from "@/lib/profile";
 import { myWelcomeCoupon, couponLabel, couponStatus } from "@/lib/coupons";
 import type { Coupon, CouponRedemption } from "@/types/database";
@@ -47,13 +47,23 @@ function Account() {
   const [used, setUsed] = useState<CouponRedemption[]>([]);
 
   const reloadAddresses = () => listAddresses().then(setAddresses);
+  // Addresses the old page kept in this browser — imported only if the customer says so.
+  const [legacyCount, setLegacyCount] = useState(0);
+  const importLegacy = async () => {
+    const n = await importLocalAddresses();
+    setLegacyCount(0);
+    if (n) toast.success(`Added ${n} address${n > 1 ? "es" : ""} to your account`);
+    reloadAddresses();
+  };
+  const dismissLegacy = () => { discardLocalAddresses(); setLegacyCount(0); };
 
   useEffect(() => {
     if (loading) return;
     if (!user) navigate({ to: "/login" });
     else {
       ordersFor(user.email).then(setOrders);
-      importLocalAddresses().then((n) => { if (n) toast.success(`Moved ${n} saved address${n > 1 ? "es" : ""} to your account`); }).finally(reloadAddresses);
+      setLegacyCount(countLocalAddresses());
+      reloadAddresses();
       getMyProfile().then(setProfile);
       myWelcomeCoupon().then(setWelcome);
       supabase.from("coupon_redemptions").select("*").order("created_at", { ascending: false }).then(({ data }) => setUsed((data as CouponRedemption[]) ?? []));
@@ -320,6 +330,16 @@ function Account() {
             </button>
           )}
         </div>
+
+        {legacyCount > 0 && (
+          <div className="border border-primary/40 bg-primary/5 p-4 mb-5 flex flex-wrap items-center gap-3 justify-between">
+            <p className="text-sm">We found {legacyCount} address{legacyCount > 1 ? "es" : ""} saved on this device. Add {legacyCount > 1 ? "them" : "it"} to your account?</p>
+            <div className="flex gap-2">
+              <button onClick={importLegacy} className="bg-foreground text-background px-4 h-9 text-mono text-[11px] tracking-widest hover:bg-primary hover:text-primary-foreground">ADD</button>
+              <button onClick={dismissLegacy} className="border border-border px-4 h-9 text-mono text-[11px] tracking-widest hover:border-primary">NO THANKS</button>
+            </div>
+          </div>
+        )}
 
         {addrForm && (
           <div className="border border-border bg-surface p-6 mb-5">

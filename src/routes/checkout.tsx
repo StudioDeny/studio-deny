@@ -130,6 +130,9 @@ function Checkout() {
   const [saved, setSaved] = useState<SavedAddress[]>([]);
   const [pickedId, setPickedId] = useState<string | "new">("new");
   const [saveNew, setSaveNew] = useState(true);
+  // The address last saved from this form, so a retried/cancelled payment
+  // doesn't save the same new address again.
+  const lastSavedAddress = useRef<string | null>(null);
 
   const fillFrom = (a: SavedAddress) => {
     setValue("name", a.name); setValue("phone", a.phone); setValue("line1", a.line1);
@@ -187,7 +190,9 @@ function Checkout() {
       name: data.name, phone: data.phone, line1: data.line1,
       city: data.city, state: data.state, pincode: data.pincode,
     };
-    if (pickedId === "new" && saveNew) {
+    const addressKey = JSON.stringify(address);
+    if (pickedId === "new" && saveNew && lastSavedAddress.current !== addressKey) {
+      lastSavedAddress.current = addressKey;
       saveAddress({ label: "", name: data.name, phone: data.phone, line1: data.line1, city: data.city, state: data.state, pincode: data.pincode, is_default: saved.length === 0 })
         .catch(() => { /* saving the address is a convenience; never block payment */ });
     }
@@ -223,7 +228,7 @@ function Checkout() {
       } catch (e: any) {
         setPaying(false);
         if (e instanceof CouponRejectedError) {
-          setCouponMsg(couponErrorMessage(e.couponError, null));
+          setCouponMsg(couponErrorMessage(e.couponError, e.minOrder));
           setAppliedCoupon(null);
           return;
         }
@@ -259,7 +264,7 @@ function Checkout() {
       } catch (e: any) {
         setPaying(false);
         if (e instanceof CouponRejectedError) {
-          setCouponMsg(couponErrorMessage(e.couponError, null));
+          setCouponMsg(couponErrorMessage(e.couponError, e.minOrder));
           setAppliedCoupon(null);
           return;
         }

@@ -55,6 +55,19 @@ export async function setDefaultAddress(id: string): Promise<void> {
 const LEGACY_KEY = "sd_addresses";
 type LegacyAddress = { label: string; name: string; line1: string; city: string; state: string; pin: string; phone: string; isDefault: boolean };
 
+/** How many addresses the old account page left in this browser (shared by
+ * everyone who used it, so the customer is asked before they are imported). */
+export function countLocalAddresses(): number {
+  try {
+    const v = JSON.parse(localStorage.getItem(LEGACY_KEY) ?? "[]");
+    return Array.isArray(v) ? v.length : 0;
+  } catch { return 0; }
+}
+
+export function discardLocalAddresses() {
+  try { localStorage.removeItem(LEGACY_KEY); } catch { /* ignore */ }
+}
+
 /** One-time move of addresses saved in this browser by the old account page. */
 export async function importLocalAddresses(): Promise<number> {
   let legacy: LegacyAddress[] = [];

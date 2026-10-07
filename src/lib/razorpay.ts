@@ -25,7 +25,7 @@ export function loadRazorpay(): Promise<boolean> {
 }
 
 export class CouponRejectedError extends Error {
-  constructor(public couponError: CouponError) { super("coupon_invalid"); }
+  constructor(public couponError: CouponError, public minOrder: number | null = null) { super("coupon_invalid"); }
 }
 
 type CheckoutRequest = { items: QuoteLine[]; couponCode: string | null; paymentType: "full" | "cod_advance" };
@@ -39,9 +39,9 @@ async function createRazorpayOrder(
   });
   if (error) {
     // supabase-js hides non-2xx bodies behind error.context (a Response).
-    let body: { error?: string; coupon_error?: CouponError } = {};
+    let body: { error?: string; coupon_error?: CouponError; coupon_min_order?: number | null } = {};
     try { body = await (error as { context?: Response }).context?.json(); } catch { /* keep {} */ }
-    if (body.error === "coupon_invalid" && body.coupon_error) throw new CouponRejectedError(body.coupon_error);
+    if (body.error === "coupon_invalid" && body.coupon_error) throw new CouponRejectedError(body.coupon_error, body.coupon_min_order ?? null);
     throw new Error(body.error ?? "Could not start payment — try again");
   }
   if (!data?.order_id) throw new Error("Could not start payment — try again");
