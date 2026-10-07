@@ -3,6 +3,7 @@
 // (razorpay-verify-payment) before onSuccess ever fires — the browser's
 // "payment succeeded" callback alone is never trusted.
 import { supabase } from "@/lib/supabase";
+import { toQuote, type OrderQuote, type QuoteLine, type CouponError } from "@/lib/coupons";
 
 export const RAZORPAY_KEY_ID =
   (import.meta.env.VITE_RAZORPAY_KEY_ID as string | undefined) || "rzp_test_Smq00oQl4okg6L";
@@ -23,14 +24,28 @@ export function loadRazorpay(): Promise<boolean> {
   return scriptPromise;
 }
 
-async function createRazorpayOrder(amountPaise: number, notes?: Record<string, string>): Promise<string> {
+export class CouponRejectedError extends Error {
+  constructor(public couponError: CouponError) { super("coupon_invalid"); }
+}
+
+type CheckoutRequest = { items: QuoteLine[]; couponCode: string | null; paymentType: "full" | "cod_advance" };
+
+async function createRazorpayOrder(
+  checkout: CheckoutRequest,
+  notes?: Record<string, string>,
+): Promise<{ orderId: string; amountPaise: number; quote: OrderQuote }> {
   const { data, error } = await supabase.functions.invoke("razorpay-create-order", {
-    body: { amount: amountPaise, currency: "INR", notes },
+    body: { items: checkout.items, coupon_code: checkout.couponCode, payment_type: checkout.paymentType, notes },
   });
-  if (error || !data?.order_id) {
-    throw new Error(error?.message ?? "Could not start payment — try again");
+  if (error) {
+    // supabase-js hides non-2xx bodies behind error.context (a Response).
+    let body: { error?: string; coupon_error?: CouponError } = {};
+    try { body = await (error as { context?: Response }).context?.json(); } catch { /* keep {} */ }
+    if (body.error === "coupon_invalid" && body.coupon_error) throw new CouponRejectedError(body.coupon_error);
+    throw new Error(body.error ?? "Could not start payment — try again");
   }
-  return data.order_id as string;
+  if (!data?.order_id) throw new Error("Could not start payment — try again");
+  return { orderId: data.order_id as string, amountPaise: Number(data.amount), quote: toQuote(data.quote) };
 }
 
 // Best-effort — a payment-failed WhatsApp nudge is a nice-to-have, never a
@@ -40,12 +55,12 @@ function queuePaymentFailedNotice(phone: string, name: string) {
 }
 
 export type RzpOpts = {
-  amountPaise: number;
+  checkout: CheckoutRequest;
   name: string;
   description: string;
   prefill: { name: string; email: string; contact: string };
   notes?: Record<string, string>;
-  onSuccess: (paymentId: string) => void | Promise<void>;
+  onSuccess: (paymentId: string, quote: OrderQuote) => void | Promise<void>;
   onDismiss: () => void;
   onVerifyFailed: (message: string) => void;
 };
@@ -54,12 +69,12 @@ export async function openRazorpay(opts: RzpOpts) {
   const ok = await loadRazorpay();
   if (!ok) throw new Error("Failed to load Razorpay. Check your connection.");
 
-  const orderId = await createRazorpayOrder(opts.amountPaise, opts.notes);
+  const { orderId, amountPaise, quote } = await createRazorpayOrder(opts.checkout, opts.notes);
 
   const rzp = new (window as any).Razorpay({
     key: RAZORPAY_KEY_ID,
     order_id: orderId,
-    amount: opts.amountPaise,
+    amount: amountPaise,
     currency: "INR",
     name: opts.name,
     description: opts.description,
@@ -80,7 +95,7 @@ export async function openRazorpay(opts: RzpOpts) {
         opts.onVerifyFailed(error?.message ?? "Payment could not be verified. Contact support if you were charged.");
         return;
       }
-      await opts.onSuccess(resp.razorpay_payment_id);
+      await opts.onSuccess(resp.razorpay_payment_id, quote);
     },
     modal: { ondismiss: opts.onDismiss, backdropclose: false, escape: true },
   });

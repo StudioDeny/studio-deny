@@ -159,6 +159,7 @@ function OrderPage() {
           <div className="flex justify-between text-muted-foreground"><span>SHIPPING</span><span>{order.shipping === 0 ? "FREE" : formatINR(order.shipping)}</span></div>
           {order.taxRate ? <div className="flex justify-between text-muted-foreground"><span>TAX ({order.taxRate}%)</span><span>{formatINR(order.tax)}</span></div> : null}
           {order.discount ? <div className="flex justify-between text-muted-foreground"><span>DISCOUNT</span><span>− {formatINR(order.discount)}</span></div> : null}
+          {order.couponDiscount ? <div className="flex justify-between text-muted-foreground"><span>COUPON {order.couponCode}</span><span>− {formatINR(order.couponDiscount)}</span></div> : null}
           <div className="flex justify-between pt-2 border-t border-border"><span>TOTAL</span><span className="text-display text-2xl">{formatINR(order.total)}</span></div>
         </div>
       </div>

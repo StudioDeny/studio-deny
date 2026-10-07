@@ -8,12 +8,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCart, formatINR } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { createOrder, ordersFor, type Order } from "@/lib/orders";
-import { openRazorpay } from "@/lib/razorpay";
+import { openRazorpay, CouponRejectedError } from "@/lib/razorpay";
 import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { pointsFromOrders, tierFor } from "@/lib/loyalty";
+import { fetchQuote, quoteLines, couponErrorMessage, couponLabel, couponStatus, myWelcomeCoupon, type OrderQuote } from "@/lib/coupons";
+import type { Coupon } from "@/types/database";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Lock, Sparkles, Truck } from "lucide-react";
+import { Lock, Sparkles, Truck, Tag, X } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
   component: Checkout,
@@ -30,8 +32,6 @@ const schema = z.object({
   pincode: z.string().regex(/^[0-9]{6}$/, "6-digit pincode"),
 });
 type FormValues = z.infer<typeof schema>;
-
-type CodSettings = { cod_enabled: boolean; cod_advance_percent: number; cod_min_order: number };
 
 function FieldImpl(props: {
   label: string;
@@ -57,42 +57,64 @@ function FieldImpl(props: {
 }
 
 function Checkout() {
-  const { items, subtotal, clear } = useCart();
+  const { items, clear } = useCart();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [paying, setPaying] = useState(false);
   const [payMethod, setPayMethod] = useState<"razorpay" | "cod">("razorpay");
-  const [codSettings, setCodSettings] = useState<CodSettings>({ cod_enabled: true, cod_advance_percent: 20, cod_min_order: 0 });
 
+  // Loyalty tier is only used for the summary LABEL; the amount comes from the server quote.
   const [settings, setSettings] = useState(DEFAULT_LOYALTY_SETTINGS);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   useEffect(() => {
     if (user) ordersFor(user.email).then(setUserOrders);
   }, [user]);
   useEffect(() => { getLoyaltySettings().then(setSettings); }, []);
-  const points = pointsFromOrders(userOrders);
-  const tier = tierFor(points);
+  const tier = tierFor(pointsFromOrders(userOrders));
   const discountPct = settings.discount[tier.name as keyof typeof settings.discount] ?? 0;
-  const discount = Math.round(subtotal * (discountPct / 100));
-  const ship = subtotal - discount >= settings.freeShipping ? 0 : 99;
-  const total = Math.max(0, subtotal - discount + ship);
-  const codAdvance = Math.round(total * (codSettings.cod_advance_percent / 100));
-  const codAvailable = codSettings.cod_enabled && total >= codSettings.cod_min_order;
+
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [couponMsg, setCouponMsg] = useState<string | null>(null);
+  const [welcome, setWelcome] = useState<Coupon | null>(null);
+  const [quote, setQuote] = useState<OrderQuote | null>(null);
+  const [quoteFailed, setQuoteFailed] = useState(false);
 
   useEffect(() => {
-    supabase
-      .from("settings")
-      .select("cod_enabled, cod_advance_percent, cod_min_order")
-      .limit(1)
-      .single()
-      .then(({ data }) => {
-        if (data) setCodSettings({
-          cod_enabled: data.cod_enabled ?? true,
-          cod_advance_percent: data.cod_advance_percent ?? 20,
-          cod_min_order: Number(data.cod_min_order ?? 0),
-        });
-      });
-  }, []);
+    if (!user) return;
+    myWelcomeCoupon().then((c) => setWelcome(c && couponStatus(c) === "active" ? c : null));
+  }, [user]);
+
+  // Re-price whenever the bag or the applied code changes. The server is
+  // the only place money is computed.
+  const linesKey = JSON.stringify(quoteLines(items));
+  useEffect(() => {
+    if (!user || items.length === 0) return;
+    let cancelled = false;
+    setQuoteFailed(false);
+    fetchQuote(quoteLines(items), appliedCoupon)
+      .then((q) => {
+        if (cancelled) return;
+        if (appliedCoupon && q.coupon_error) {
+          setCouponMsg(couponErrorMessage(q.coupon_error, q.coupon_min_order));
+          setAppliedCoupon(null);
+          return;
+        }
+        setQuote(q);
+      })
+      .catch(() => { if (!cancelled) setQuoteFailed(true); });
+    return () => { cancelled = true; };
+  }, [user, linesKey, appliedCoupon]);
+
+  const applyCoupon = (code: string) => {
+    const c = code.trim().toUpperCase();
+    if (!c) return;
+    setCouponMsg(null);
+    setAppliedCoupon(c);
+  };
+  const removeCoupon = () => { setAppliedCoupon(null); setCouponInput(""); setCouponMsg(null); };
+
+  const codAvailable = quote?.cod_available ?? false;
 
   // If COD becomes unavailable, reset to Razorpay
   useEffect(() => {
@@ -124,6 +146,7 @@ function Checkout() {
 
   const onSubmit = async (data: FormValues) => {
     if (items.length === 0) return toast.error("Your bag is empty");
+    if (!quote) return toast.error("Still pricing your bag — try again in a second");
     const rl = checkRateLimit("checkout", 5, 30 * 60 * 1000, 30 * 60 * 1000);
     if (!rl.allowed) {
       toast.error(`Too many orders placed. Try again in ${formatMs(rl.lockedUntil! - Date.now())}.`);
@@ -144,21 +167,20 @@ function Checkout() {
     if (payMethod === "cod") {
       try {
         await openRazorpay({
-          amountPaise: Math.round(codAdvance * 100),
+          checkout: { items: quoteLines(items), couponCode: appliedCoupon, paymentType: "cod_advance" },
           name: "STUDIO DENY",
           description: `COD Advance — ${items.length} item(s)`,
           prefill: { name: data.name, email: data.email, contact: data.phone },
           notes: { city: data.city, pincode: data.pincode, payment_type: "cod_advance" },
           onDismiss: () => { setPaying(false); toast.error("Payment cancelled"); },
           onVerifyFailed: (message) => { setPaying(false); toast.error(message); },
-          onSuccess: async (paymentId) => {
+          onSuccess: async (paymentId, paidQuote) => {
             try {
               const order = await createOrder({
-                email: data.email, userId: user?.id, items, shipping: ship, address, paymentId,
-                discount,
+                email: data.email, userId: user?.id, items, address, paymentId,
+                quote: paidQuote,
                 payment_method: "cod",
                 cod_advance_paid: true,
-                cod_advance_amount: codAdvance,
               });
               recordAttempt("checkout", 5, 30 * 60 * 1000, 30 * 60 * 1000);
               toast.success("COD order placed! Advance paid.");
@@ -172,23 +194,28 @@ function Checkout() {
         });
       } catch (e: any) {
         setPaying(false);
+        if (e instanceof CouponRejectedError) {
+          setCouponMsg(couponErrorMessage(e.couponError, null));
+          setAppliedCoupon(null);
+          return;
+        }
         toast.error(e?.message ?? "Payment failed to start");
       }
     } else {
       try {
         await openRazorpay({
-          amountPaise: Math.round(total * 100),
+          checkout: { items: quoteLines(items), couponCode: appliedCoupon, paymentType: "full" },
           name: "STUDIO DENY",
           description: `${items.length} item(s) — Drop 014`,
           prefill: { name: data.name, email: data.email, contact: data.phone },
           notes: { city: data.city, pincode: data.pincode },
           onDismiss: () => { setPaying(false); toast.error("Payment cancelled"); },
           onVerifyFailed: (message) => { setPaying(false); toast.error(message); },
-          onSuccess: async (paymentId) => {
+          onSuccess: async (paymentId, paidQuote) => {
             try {
               const order = await createOrder({
-                email: data.email, userId: user?.id, items, shipping: ship, address, paymentId,
-                discount,
+                email: data.email, userId: user?.id, items, address, paymentId,
+                quote: paidQuote,
                 payment_method: "razorpay",
               });
               recordAttempt("checkout", 5, 30 * 60 * 1000, 30 * 60 * 1000);
@@ -203,6 +230,11 @@ function Checkout() {
         });
       } catch (e: any) {
         setPaying(false);
+        if (e instanceof CouponRejectedError) {
+          setCouponMsg(couponErrorMessage(e.couponError, null));
+          setAppliedCoupon(null);
+          return;
+        }
         toast.error(e?.message ?? "Payment failed to start");
       }
     }
@@ -310,7 +342,7 @@ function Checkout() {
                   <div>
                     <div className="font-semibold text-sm">Cash on Delivery</div>
                     <div className="text-xs text-muted-foreground">
-                      Pay {codSettings.cod_advance_percent}% advance ({formatINR(codAdvance)}) now · Remaining on delivery
+                      Pay {quote?.cod_advance_percent ?? 0}% advance ({formatINR(quote?.cod_advance ?? 0)}) now · Remaining on delivery
                     </div>
                   </div>
                 </label>
@@ -338,39 +370,88 @@ function Checkout() {
               </li>
             ))}
           </ul>
-          <div className="border-t border-border mt-4 pt-4 space-y-2 text-sm text-mono">
-            <div className="flex justify-between"><span className="text-muted-foreground">SUBTOTAL</span><span>{formatINR(subtotal)}</span></div>
-            {discount > 0 && (
-              <div className="flex justify-between text-secondary">
-                <span className="flex items-center gap-1"><Sparkles className="size-3" /> {tier.name} −{discountPct}%</span>
-                <span>−{formatINR(discount)}</span>
+          {/* Coupon */}
+          <div className="border-t border-border mt-4 pt-4">
+            {appliedCoupon && quote?.coupon_code ? (
+              <div className="flex items-center justify-between border border-primary/40 bg-primary/5 px-3 h-10">
+                <span className="text-mono text-xs tracking-widest flex items-center gap-2"><Tag className="size-3.5" /> {quote.coupon_code}</span>
+                <button type="button" onClick={removeCoupon} aria-label="Remove coupon" className="text-muted-foreground hover:text-primary"><X className="size-4" /></button>
               </div>
+            ) : (
+              <>
+                <div className="flex gap-2">
+                  <input
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCoupon(couponInput); } }}
+                    placeholder="COUPON CODE"
+                    className="flex-1 min-w-0 bg-background border border-border h-10 px-3 text-mono text-xs tracking-widest uppercase focus:border-primary outline-none"
+                  />
+                  <button type="button" onClick={() => applyCoupon(couponInput)} className="border border-border px-4 h-10 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary">
+                    APPLY
+                  </button>
+                </div>
+                {welcome && (
+                  <button
+                    type="button"
+                    onClick={() => applyCoupon(welcome.code)}
+                    className="mt-2 w-full text-left border border-dashed border-primary/50 px-3 py-2 text-xs hover:bg-primary/5"
+                  >
+                    Your welcome offer <span className="text-mono font-semibold">{welcome.code}</span> — {couponLabel(welcome)} · <span className="text-primary">APPLY</span>
+                  </button>
+                )}
+              </>
             )}
-            <div className="flex justify-between"><span className="text-muted-foreground">SHIPPING</span><span>{ship === 0 ? "FREE" : formatINR(ship)}</span></div>
-            <div className="border-t border-border pt-2 flex justify-between">
-              <span>TOTAL</span><span className="text-display text-2xl">{formatINR(total)}</span>
-            </div>
-            {payMethod === "cod" && (
-              <div className="border border-primary/30 bg-primary/5 p-3 mt-2">
-                <div className="flex justify-between text-primary">
-                  <span>PAY NOW (ADVANCE)</span><span>{formatINR(codAdvance)}</span>
+            {couponMsg && <p className="text-xs text-primary mt-2">{couponMsg}</p>}
+          </div>
+
+          <div className="border-t border-border mt-4 pt-4 space-y-2 text-sm text-mono">
+            {!quote ? (
+              <div className="text-muted-foreground text-xs">{quoteFailed ? "COULD NOT PRICE YOUR BAG — REFRESH" : "PRICING…"}</div>
+            ) : (
+              <>
+                <div className="flex justify-between"><span className="text-muted-foreground">SUBTOTAL</span><span>{formatINR(quote.subtotal)}</span></div>
+                {quote.loyalty_discount > 0 && (
+                  <div className="flex justify-between text-secondary">
+                    <span className="flex items-center gap-1"><Sparkles className="size-3" /> {tier.name} −{discountPct}%</span>
+                    <span>−{formatINR(quote.loyalty_discount)}</span>
+                  </div>
+                )}
+                {quote.coupon_discount > 0 && (
+                  <div className="flex justify-between text-secondary">
+                    <span className="flex items-center gap-1"><Tag className="size-3" /> {quote.coupon_code}</span>
+                    <span>−{formatINR(quote.coupon_discount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between"><span className="text-muted-foreground">SHIPPING</span><span>{quote.shipping === 0 ? "FREE" : formatINR(quote.shipping)}</span></div>
+                <div className="border-t border-border pt-2 flex justify-between">
+                  <span>TOTAL</span><span className="text-display text-2xl">{formatINR(quote.total)}</span>
                 </div>
-                <div className="flex justify-between text-muted-foreground text-xs mt-1">
-                  <span>PAY ON DELIVERY</span><span>{formatINR(total - codAdvance)}</span>
-                </div>
-              </div>
+                {payMethod === "cod" && (
+                  <div className="border border-primary/30 bg-primary/5 p-3 mt-2">
+                    <div className="flex justify-between text-primary">
+                      <span>PAY NOW (ADVANCE)</span><span>{formatINR(quote.cod_advance)}</span>
+                    </div>
+                    <div className="flex justify-between text-muted-foreground text-xs mt-1">
+                      <span>PAY ON DELIVERY</span><span>{formatINR(quote.total - quote.cod_advance)}</span>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
           <button
             type="submit"
-            disabled={paying}
+            disabled={paying || !quote}
             className="w-full mt-5 bg-primary text-primary-foreground font-bold tracking-[0.2em] text-mono text-xs h-12 hover:glow-primary disabled:opacity-50"
           >
             {paying
               ? "PROCESSING…"
+              : !quote
+              ? "PRICING…"
               : payMethod === "cod"
-              ? `PAY ADVANCE ${formatINR(codAdvance)}`
-              : `PAY ${formatINR(total)}`}
+              ? `PAY ADVANCE ${formatINR(quote.cod_advance)}`
+              : `PAY ${formatINR(quote.total)}`}
           </button>
         </aside>
       </form>

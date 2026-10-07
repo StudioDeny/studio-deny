@@ -289,8 +289,26 @@ export interface Database {
       };
       coupons: {
         Row: Coupon;
-        Insert: Omit<Coupon, "id" | "created_at">;
-        Update: Partial<Omit<Coupon, "id" | "created_at">>;
+        Insert: Omit<Coupon, "id" | "created_at" | "updated_at" | "used_count"> & Partial<Pick<Coupon, "used_count">>;
+        Update: Partial<Omit<Coupon, "id" | "created_at" | "updated_at">>;
+        Relationships: [];
+      };
+      welcome_offer_tiers: {
+        Row: WelcomeOfferTier;
+        Insert: Omit<WelcomeOfferTier, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<WelcomeOfferTier, "id" | "created_at" | "updated_at">>;
+        Relationships: [];
+      };
+      welcome_offer_settings: {
+        Row: WelcomeOfferSettings;
+        Insert: Omit<WelcomeOfferSettings, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<WelcomeOfferSettings, "id" | "created_at" | "updated_at">>;
+        Relationships: [];
+      };
+      coupon_redemptions: {
+        Row: CouponRedemption;
+        Insert: Omit<CouponRedemption, "id" | "created_at">;
+        Update: Partial<Omit<CouponRedemption, "id" | "created_at">>;
         Relationships: [];
       };
       admin_notifications: {
@@ -621,6 +639,8 @@ export type DBOrder = {
   tax_rate: number;
   tax: number;
   discount: number;
+  coupon_code: string | null;
+  coupon_discount: number;
   extra_lines: Json;
   total: number;
   status: "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED";
@@ -700,13 +720,56 @@ export type LoyaltyTransaction = {
 export type Coupon = {
   id: string;
   code: string;
+  kind: "general" | "welcome";
+  assigned_user_id: string | null;
+  welcome_tier_id: string | null;
+  description: string | null;
   discount_type: "percent" | "fixed";
   discount_value: number;
   min_order: number | null;
+  max_discount: number | null;
   max_uses: number | null;
+  per_user_limit: number | null;
+  first_order_only: boolean;
   used_count: number;
   is_active: boolean;
+  starts_at: string | null;
   expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WelcomeOfferTier = {
+  id: string;
+  label: string;
+  discount_type: "percent" | "fixed";
+  discount_value: number;
+  target_percent: number;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WelcomeOfferSettings = {
+  id: string;
+  enabled: boolean;
+  code_prefix: string;
+  valid_days: number | null;
+  min_order: number | null;
+  max_discount: number | null;
+  first_order_only: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CouponRedemption = {
+  id: string;
+  coupon_id: string | null;
+  code: string;
+  user_id: string | null;
+  order_id: string;
+  discount_amount: number;
   created_at: string;
 };
 

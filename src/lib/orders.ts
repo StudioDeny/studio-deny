@@ -1,6 +1,7 @@
 import type { CartItem } from "@/context/CartContext";
 import { supabase } from "@/lib/supabase";
 import type { DBOrder } from "@/types/database";
+import type { OrderQuote } from "@/lib/coupons";
 
 export type OrderStatus =
   | "PLACED"
@@ -23,6 +24,8 @@ export type Order = {
   taxRate: number;
   tax: number;
   discount: number;
+  couponCode?: string;
+  couponDiscount: number;
   extraLines: InvoiceLine[];
   total: number;
   status: OrderStatus;
@@ -68,6 +71,8 @@ function mapRow(row: DBOrder): Order {
     taxRate: Number(row.tax_rate),
     tax: Number(row.tax),
     discount: Number(row.discount),
+    couponCode: row.coupon_code ?? undefined,
+    couponDiscount: Number(row.coupon_discount ?? 0),
     extraLines: (row.extra_lines as unknown as InvoiceLine[]) ?? [],
     total: Number(row.total),
     status: row.status,
@@ -145,24 +150,22 @@ export async function getOrder(id: string): Promise<Order | undefined> {
 export const recomputeTotal = (o: Order): number => {
   const tax = Math.round((o.subtotal * (o.taxRate || 0)) / 100);
   const extras = (o.extraLines || []).reduce((s, l) => s + l.amount, 0);
-  return Math.max(0, o.subtotal + o.shipping + tax + extras - (o.discount || 0));
+  return Math.max(0, o.subtotal + o.shipping + tax + extras - (o.discount || 0) - (o.couponDiscount || 0));
 };
 
 export async function createOrder(params: {
   email: string;
   userId?: string;
   items: CartItem[];
-  shipping: number;
   address: Order["address"];
   paymentId: string;
-  discount?: number;
+  quote: OrderQuote;
   payment_method?: Order["payment_method"];
   cod_advance_paid?: boolean;
-  cod_advance_amount?: number;
 }): Promise<Order> {
-  const subtotal = params.items.reduce((s, i) => s + i.qty * i.product.price, 0);
   const id = "SD" + Date.now().toString(36).toUpperCase();
-  const discount = params.discount ?? 0;
+  const { quote } = params;
+  const isCod = params.payment_method === "cod";
   const items = params.items.map((i) => ({
     slug: i.product.slug, name: i.product.name, image: i.product.image,
     size: i.size, qty: i.qty, price: i.product.price,
@@ -176,19 +179,21 @@ export async function createOrder(params: {
       user_id: params.userId ?? null,
       user_email: params.email,
       items: items as unknown as DBOrder["items"],
-      subtotal,
-      shipping: params.shipping,
+      subtotal: quote.subtotal,
+      shipping: quote.shipping,
       tax_rate: 0,
       tax: 0,
-      discount,
+      discount: quote.loyalty_discount,
+      coupon_code: quote.coupon_code,
+      coupon_discount: quote.coupon_discount,
       extra_lines: [],
-      total: Math.max(0, subtotal - discount + params.shipping),
+      total: quote.total,
       status: "PLACED",
       address: params.address,
       payment_id: params.paymentId,
       payment_method: params.payment_method ?? "razorpay",
       cod_advance_paid: params.cod_advance_paid ?? false,
-      cod_advance_amount: params.cod_advance_amount ?? null,
+      cod_advance_amount: isCod ? quote.cod_advance : null,
     } as any)
     .select()
     .single();

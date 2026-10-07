@@ -88,6 +88,7 @@ function EditInvoice() {
           <Row k="SHIPPING" v={formatINR(o.shipping)} />
           <Row k={`TAX (${o.taxRate}%)`} v={formatINR(o.tax)} />
           {o.discount ? <Row k="DISCOUNT" v={"− " + formatINR(o.discount)} /> : null}
+          {o.couponDiscount ? <Row k={`COUPON ${o.couponCode ?? ""}`} v={"− " + formatINR(o.couponDiscount)} /> : null}
           {o.extraLines.map((l, i) => <Row key={i} k={l.label.toUpperCase()} v={formatINR(l.amount)} />)}
           <Row k="TOTAL" v={formatINR(o.total)} bold />
         </div>

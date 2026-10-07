@@ -113,6 +113,7 @@ function InvoicePage() {
               <Row k="Shipping" v={o.shipping === 0 ? "FREE" : formatINR(o.shipping)} />
               {o.taxRate ? <Row k={`GST (${o.taxRate}%)`} v={formatINR(o.tax)} /> : null}
               {o.discount ? <Row k="Discount" v={"− " + formatINR(o.discount)} /> : null}
+              {o.couponDiscount ? <Row k={`Coupon ${o.couponCode ?? ""}`} v={"− " + formatINR(o.couponDiscount)} /> : null}
               {o.extraLines.map((l, i) => <Row key={i} k={l.label} v={formatINR(l.amount)} />)}
               <div className="flex justify-between pt-3 mt-2 border-t-2 text-lg font-bold text-neutral-900" style={{ borderColor: tpl.accent }}><span>TOTAL</span><span>{formatINR(o.total)}</span></div>
               {o.refundAmount ? <Row k="Refunded" v={"− " + formatINR(o.refundAmount)} /> : null}
