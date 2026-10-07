@@ -118,9 +118,9 @@ serve(async (req) => {
     }
 
     // The orders INSERT policy only accepts an order equal to this stored quote.
-    // The cart fingerprint comes from the same SQL function the policy uses,
-    // so the two can never disagree.
-    const { data: itemsKey, error: keyErr } = await supabase.rpc("order_items_key", { p_items: items });
+    // The cart fingerprint (incl. the server price per line) comes from the
+    // same SQL function the policy uses, so the two can never disagree.
+    const { data: itemsKey, error: keyErr } = await supabase.rpc("order_items_key", { p_items: quote.lines });
     if (keyErr || typeof itemsKey !== "string") {
       console.error("razorpay-create-order: order_items_key failed", keyErr?.message);
       return new Response(JSON.stringify({ error: "Could not start payment" }), {

@@ -166,4 +166,86 @@ DO $$ DECLARE c ctx%ROWTYPE; items jsonb; q jsonb; refused boolean := false; BEG
   ASSERT EXISTS (SELECT 1 FROM coupon_redemptions WHERE order_id = 'SDTEST11'), 'T11 redemption missing';
 END $$;
 
+-- T14: no regression — without a coupon, the server quote equals the OLD
+-- browser checkout math (checkout.tsx before this change) for a loyalty
+-- member and a non-member, across the free-shipping boundary.
+DO $$ DECLARE c ctx%ROWTYPE; q jsonb; qty int; sub numeric; disc numeric; ship numeric; tot numeric;
+              free_ship numeric; adv_pct numeric; cod_min numeric; member boolean; BEGIN
+  SELECT * INTO c FROM ctx;
+  SELECT COALESCE((SELECT free_shipping FROM loyalty_settings LIMIT 1), 2499) INTO free_ship;
+  SELECT COALESCE(cod_advance_percent, 20), COALESCE(cod_min_order, 0) INTO adv_pct, cod_min FROM settings LIMIT 1;
+  FOREACH member IN ARRAY ARRAY[false, true] LOOP
+    IF member THEN  -- a past qualifying order makes this customer a loyalty member
+      INSERT INTO orders (id, user_id, user_email, items, subtotal, shipping, discount, total, address, payment_id, status)
+      VALUES ('SDTEST14', c.uid, 'x@example.com', '[]', 900000, 0, 0, 900000, '{}', 'pay_T14', 'DELIVERED');
+    END IF;
+    FOR qty IN 1..6 LOOP
+      q := quote_order(jsonb_build_array(jsonb_build_object('slug', c.slug, 'variantId', null, 'qty', qty)), NULL);
+      -- old checkout.tsx: discount = round(subtotal × tier%), ship = 0 if subtotal − discount ≥ free, else 99
+      sub  := c.price * qty;
+      disc := customer_loyalty_discount(c.uid, sub);
+      ship := CASE WHEN sub - disc >= free_ship THEN 0 ELSE 99 END;
+      tot  := GREATEST(0, sub - disc + ship);
+      ASSERT (q->>'subtotal')::numeric = sub, format('T14 member=%s qty=%s subtotal %s vs %s', member, qty, q->>'subtotal', sub);
+      ASSERT (q->>'loyalty_discount')::numeric = disc, format('T14 member=%s qty=%s discount %s vs %s', member, qty, q->>'loyalty_discount', disc);
+      ASSERT (q->>'shipping')::numeric = ship, format('T14 member=%s qty=%s shipping %s vs %s', member, qty, q->>'shipping', ship);
+      ASSERT (q->>'total')::numeric = tot, format('T14 member=%s qty=%s total %s vs %s', member, qty, q->>'total', tot);
+      ASSERT (q->>'cod_advance')::numeric = round(tot * adv_pct / 100), format('T14 qty=%s cod advance', qty);
+      ASSERT (q->>'cod_available')::boolean = (tot >= cod_min), format('T14 qty=%s cod available', qty);
+    END LOOP;
+  END LOOP;
+  ASSERT customer_loyalty_discount(c.uid, c.price) > 0, 'T14 member case must actually get a loyalty discount';
+  DELETE FROM orders WHERE id = 'SDTEST14';
+END $$;
+
+-- T12: the order saves at the price the customer PAID, even if the catalog
+-- price changed after the quote (admin edit mid-payment). Order line prices
+-- come from the quote's lines, exactly as src/lib/orders.ts builds them.
+DO $$ DECLARE c ctx%ROWTYPE; q jsonb; items jsonb; BEGIN
+  SELECT * INTO c FROM ctx;
+  q := quote_order(jsonb_build_array(jsonb_build_object('slug', c.slug, 'variantId', null, 'qty', 2)), NULL);
+  ASSERT jsonb_array_length(q->'lines') = 1, format('T12 quote lines missing: %s', q);
+  ASSERT (q->'lines'->0->>'price')::numeric = c.price, 'T12 line price is the catalog price';
+  INSERT INTO payment_quotes (razorpay_order_id, user_id, items_key, coupon_code, subtotal, loyalty_discount,
+                              coupon_discount, shipping, total, payment_type, cod_advance)
+  VALUES ('order_T12', c.uid, order_items_key(q->'lines'), NULL, (q->>'subtotal')::numeric, (q->>'loyalty_discount')::numeric,
+          0, (q->>'shipping')::numeric, (q->>'total')::numeric, 'full', (q->>'cod_advance')::numeric);
+  INSERT INTO verified_payments (payment_id, razorpay_order_id, amount_paise)
+  VALUES ('pay_T12', 'order_T12', round((q->>'total')::numeric * 100)::integer);
+
+  UPDATE products SET price = price + 500 WHERE slug = c.slug;   -- admin edits the price
+
+  -- the browser sends JS numbers: 1199, not "1199.00"
+  items := jsonb_build_array(jsonb_build_object('slug', c.slug, 'name', 'T12', 'qty', 2, 'variantId', null,
+                                                'price', (q->'lines'->0->>'price')::numeric::float8));
+  SET LOCAL ROLE authenticated;
+  INSERT INTO orders (id, user_id, user_email, items, subtotal, shipping, discount, coupon_code, coupon_discount, total, address, payment_id, payment_method)
+  VALUES ('SDTEST12', c.uid, 'x@example.com', items, (q->>'subtotal')::numeric, (q->>'shipping')::numeric,
+          (q->>'loyalty_discount')::numeric, NULL, 0, (q->>'total')::numeric, '{}', 'pay_T12', 'razorpay');
+  RESET ROLE;
+  ASSERT EXISTS (SELECT 1 FROM orders WHERE id = 'SDTEST12'), 'T12 paid order missing';
+END $$;
+
+-- T13: an order whose line prices differ from what was paid is refused
+DO $$ DECLARE c ctx%ROWTYPE; q jsonb; items jsonb; refused boolean := false; BEGIN
+  SELECT * INTO c FROM ctx;
+  q := quote_order(jsonb_build_array(jsonb_build_object('slug', c.slug, 'variantId', null, 'qty', 1)), NULL);
+  INSERT INTO payment_quotes (razorpay_order_id, user_id, items_key, coupon_code, subtotal, loyalty_discount,
+                              coupon_discount, shipping, total, payment_type, cod_advance)
+  VALUES ('order_T13', c.uid, order_items_key(q->'lines'), NULL, (q->>'subtotal')::numeric, (q->>'loyalty_discount')::numeric,
+          0, (q->>'shipping')::numeric, (q->>'total')::numeric, 'full', (q->>'cod_advance')::numeric);
+  INSERT INTO verified_payments (payment_id, razorpay_order_id, amount_paise)
+  VALUES ('pay_T13', 'order_T13', round((q->>'total')::numeric * 100)::integer);
+  items := jsonb_build_array(jsonb_build_object('slug', c.slug, 'name', 'T13', 'qty', 1, 'variantId', null, 'price', 1));
+  SET LOCAL ROLE authenticated;
+  BEGIN
+    INSERT INTO orders (id, user_id, user_email, items, subtotal, shipping, discount, coupon_code, coupon_discount, total, address, payment_id, payment_method)
+    VALUES ('SDTEST13', c.uid, 'x@example.com', items, (q->>'subtotal')::numeric, (q->>'shipping')::numeric,
+            (q->>'loyalty_discount')::numeric, NULL, 0, (q->>'total')::numeric, '{}', 'pay_T13', 'razorpay');
+  EXCEPTION WHEN insufficient_privilege THEN refused := true;
+  END;
+  RESET ROLE;
+  ASSERT refused, 'T13 order with a forged line price was accepted';
+END $$;
+
 ROLLBACK;

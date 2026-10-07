@@ -8,7 +8,11 @@ export type CouponError =
   | "not_found" | "inactive" | "not_started" | "expired" | "not_yours"
   | "already_used" | "limit_reached" | "first_order_only" | "min_order";
 
+export type QuotedLine = QuoteLine & { price: number };
+
 export type OrderQuote = {
+  /** Server price per cart line, in the order the lines were sent. */
+  lines: QuotedLine[];
   subtotal: number;
   loyalty_discount: number;
   coupon_code: string | null;
@@ -29,7 +33,9 @@ export const quoteLines = (items: CartItem[]): QuoteLine[] =>
 // driver path; normalise once here so callers can do arithmetic.
 export function toQuote(raw: Record<string, unknown>): OrderQuote {
   const n = (v: unknown) => Number(v ?? 0);
+  const lines = Array.isArray(raw.lines) ? (raw.lines as Record<string, unknown>[]) : [];
   return {
+    lines: lines.map((l) => ({ slug: String(l.slug), variantId: (l.variantId as string | null) ?? null, qty: n(l.qty), price: n(l.price) })),
     subtotal: n(raw.subtotal),
     loyalty_discount: n(raw.loyalty_discount),
     coupon_code: (raw.coupon_code as string | null) ?? null,

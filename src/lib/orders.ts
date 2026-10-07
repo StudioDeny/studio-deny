@@ -166,9 +166,18 @@ export async function createOrder(params: {
   const id = "SD" + Date.now().toString(36).toUpperCase();
   const { quote } = params;
   const isCod = params.payment_method === "cod";
-  const items = params.items.map((i) => ({
+  // Line prices are the ones the server quoted and the customer paid, not
+  // the cart’s copy (which can be stale, or the base price of a colour that
+  // has its own price). The orders INSERT policy checks them against the quote.
+  const paidPrice = (i: CartItem, idx: number): number => {
+    const vid = i.variantId ?? null;
+    const same = (l: OrderQuote["lines"][number]) => l.slug === i.product.slug && l.variantId === vid && l.qty === i.qty;
+    const line = same(quote.lines[idx]) ? quote.lines[idx] : quote.lines.find(same);
+    return line ? line.price : i.product.price;
+  };
+  const items = params.items.map((i, idx) => ({
     slug: i.product.slug, name: i.product.name, image: i.product.image,
-    size: i.size, qty: i.qty, price: i.product.price,
+    size: i.size, qty: i.qty, price: paidPrice(i, idx),
     variantId: i.variantId ?? null,
   }));
 
@@ -202,7 +211,7 @@ export async function createOrder(params: {
   const order = mapRow(data);
 
   const { error: itemsError } = await supabase.from("order_items").insert(
-    params.items.map((i) => ({
+    params.items.map((i, idx) => ({
       order_id: order.id,
       product_slug: i.product.slug,
       product_name: i.product.name,
@@ -210,7 +219,7 @@ export async function createOrder(params: {
       size: i.size,
       color: null,
       qty: i.qty,
-      unit_price: i.product.price,
+      unit_price: paidPrice(i, idx),
     }))
   );
   if (itemsError) console.warn("order_items sync:", itemsError.message);

@@ -40,15 +40,18 @@ CREATE TABLE IF NOT EXISTS payment_quotes (
 );
 ALTER TABLE payment_quotes ENABLE ROW LEVEL SECURITY;  -- no policies: service role only
 
--- Order-insensitive fingerprint of a cart: "slug|variant|qty" sorted.
+-- Order-insensitive fingerprint of a cart: "slug|variant|qty|price" sorted.
+-- Price is rounded to 2dp so 1199 (from the browser) and 1199.00 (from
+-- Postgres) produce the same key; a line without a price keys as "-".
 CREATE OR REPLACE FUNCTION order_items_key(p_items jsonb)
 RETURNS text LANGUAGE sql IMMUTABLE AS $$
   SELECT COALESCE(string_agg(k, ',' ORDER BY k), '')
   FROM (
-    SELECT format('%s|%s|%s',
+    SELECT format('%s|%s|%s|%s',
                   e->>'slug',
                   COALESCE(NULLIF(e->>'variantId', ''), '-'),
-                  (e->>'qty')::int) AS k
+                  (e->>'qty')::int,
+                  COALESCE(round((e->>'price')::numeric, 2)::text, '-')) AS k
     FROM jsonb_array_elements(p_items) e
   ) s;
 $$;
@@ -119,6 +122,7 @@ DECLARE
   v_free_ship numeric;
   v_shipping numeric;
   v_total numeric;
+  v_lines jsonb := '[]'::jsonb;
   st RECORD;
   ev RECORD;
 BEGIN
@@ -139,6 +143,8 @@ BEGIN
     END IF;
     IF price IS NULL THEN RAISE EXCEPTION 'unknown_item:%', e->>'slug'; END IF;
     v_subtotal := v_subtotal + price * qty;
+    v_lines := v_lines || jsonb_build_array(jsonb_build_object(
+      'slug', e->>'slug', 'variantId', NULLIF(e->>'variantId', ''), 'qty', qty, 'price', price));
   END LOOP;
 
   v_loyalty := COALESCE(customer_loyalty_discount(uid, v_subtotal), 0);
@@ -165,6 +171,7 @@ BEGIN
   INTO st FROM settings LIMIT 1;
 
   RETURN jsonb_build_object(
+    'lines', v_lines,
     'subtotal', v_subtotal,
     'loyalty_discount', v_loyalty,
     'coupon_code', v_coupon_code,
@@ -216,8 +223,11 @@ REVOKE EXECUTE ON FUNCTION order_matches_payment_quote(text, uuid, jsonb, text, 
 GRANT  EXECUTE ON FUNCTION order_matches_payment_quote(text, uuid, jsonb, text, numeric, numeric, numeric, numeric, numeric, text, numeric) TO authenticated;
 
 -- ── orders INSERT policy: 20260812000009's list, quote check replaces
---    the direct loyalty + verified_payments checks (same guarantees,
---    plus coupon/total/cart binding). ──────────────────────────
+--    the direct loyalty, catalog-price and verified_payments checks.
+--    Line prices are now bound to the prices the server quoted and the
+--    customer paid (order_items_key includes price), so an admin price
+--    edit while a customer is in Razorpay no longer rejects their paid
+--    order. ──────────────────────────────────────────────────
 DROP POLICY IF EXISTS "orders: customers insert own" ON orders;
 
 DO $$ BEGIN
@@ -247,7 +257,6 @@ DO $$ BEGIN
       AND return_received_at IS NULL
       AND replacement_order_id IS NULL
       AND payment_id IS NOT NULL
-      AND items_match_catalog_prices(items)
       AND order_matches_payment_quote(
         payment_id, auth.uid(), items, coupon_code,
         subtotal, discount, coupon_discount, shipping, total,
