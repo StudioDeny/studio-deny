@@ -149,6 +149,13 @@ serve(async (req) => {
         })),
         payment_method: order.payment_method === "cod" ? "COD" : "Prepaid",
         sub_total: Number(order.subtotal),
+        shipping_charges: Number(order.shipping ?? 0),
+        // For COD the advance already paid online is treated as a discount so
+        // the courier collects only the balance (total − advance).
+        total_discount:
+          Number(order.discount ?? 0) +
+          Number(order.coupon_discount ?? 0) +
+          (order.payment_method === "cod" ? Number(order.cod_advance_amount ?? 0) : 0),
         length: 30,
         breadth: 25,
         height: 5,
