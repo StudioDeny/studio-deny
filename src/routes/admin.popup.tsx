@@ -163,7 +163,7 @@ function AdminPopup() {
     <div>
       <h1 className="text-display text-4xl md:text-5xl mb-2">POPUP.</h1>
       <p className="text-mono text-[11px] tracking-widest text-muted-foreground mb-6">
-        THE LOYALTY POPUP EVERY VISITOR SEES AFTER THE DELAY BELOW — NO CODE REQUIRED.
+        THE LOYALTY POPUP LOGGED-IN MEMBERS SEE AFTER THE DELAY BELOW — NO CODE REQUIRED.
       </p>
 
       <div className="max-w-2xl space-y-6">

@@ -44,6 +44,7 @@ import { useEffect, useRef } from "react";
 import { seedIfEmpty } from "@/lib/seed";
 
 import { SmoothScroll } from "@/components/common/SmoothScroll";
+import { SignupPopup } from "@/components/signup/SignupPopup";
 
 function RootContent() {
   const topBarRef = useRef<HTMLDivElement>(null);
@@ -100,6 +101,7 @@ function RootContent() {
               <>
                 <Footer />
                 <CartDrawer />
+                <SignupPopup />
               </>
             )}
           </QuickAddProvider>

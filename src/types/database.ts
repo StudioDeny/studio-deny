@@ -347,6 +347,12 @@ export interface Database {
         Update: Partial<Omit<SectionHeading, "key">>;
         Relationships: [];
       };
+      signup_popup: {
+        Row: import("@/lib/signupPopup").SignupPopupConfig;
+        Insert: Partial<import("@/lib/signupPopup").SignupPopupConfig>;
+        Update: Partial<Omit<import("@/lib/signupPopup").SignupPopupConfig, "id" | "created_at" | "updated_at">>;
+        Relationships: [];
+      };
       popup_promo: {
         Row: PopupPromo;
         Insert: Omit<PopupPromo, "id" | "created_at" | "updated_at">;
@@ -590,6 +596,7 @@ export type UserRole = {
 export type Address = {
   id: string;
   user_id: string;
+  label: string | null;
   name: string;
   phone: string;
   line1: string;

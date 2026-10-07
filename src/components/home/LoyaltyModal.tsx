@@ -47,7 +47,7 @@ const DEFAULTS: PopupPromo = {
   updated_at: "",
 };
 
-/** Shows once per user session/login — remembered in localStorage so page refreshes won't show it again. */
+/** Loyalty popup for logged-in members — once per account per browser. */
 export function LoyaltyModal() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -67,29 +67,23 @@ export function LoyaltyModal() {
     })();
   }, []);
 
+  // Logged-out visitors get the signup popup instead; this one is for members.
   useEffect(() => {
-    if (typeof window === "undefined" || !cfg.enabled) return;
+    if (typeof window === "undefined" || !cfg.enabled || !user) return;
 
-    const seenKey = user ? `deny_popup_seen_${user.id}` : "deny_popup_seen";
-    if (localStorage.getItem(seenKey) || localStorage.getItem("deny_popup_seen")) {
-      return;
-    }
+    const seenKey = `deny_popup_seen_${user.id}`;
+    if (localStorage.getItem(seenKey)) return;
 
     const timer = setTimeout(() => {
       setOpen(true);
       localStorage.setItem(seenKey, "true");
-      localStorage.setItem("deny_popup_seen", "true");
     }, Math.max(0, cfg.delay_seconds) * 1000);
 
     return () => clearTimeout(timer);
   }, [cfg.enabled, cfg.delay_seconds, user]);
 
   const dismiss = () => {
-    if (typeof window !== "undefined") {
-      const seenKey = user ? `deny_popup_seen_${user.id}` : "deny_popup_seen";
-      localStorage.setItem(seenKey, "true");
-      localStorage.setItem("deny_popup_seen", "true");
-    }
+    if (typeof window !== "undefined" && user) localStorage.setItem(`deny_popup_seen_${user.id}`, "true");
     setOpen(false);
   };
 
