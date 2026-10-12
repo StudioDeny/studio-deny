@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import type { Product, VariantStock } from "@/lib/productsStore";
 import { getVariantStock } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
@@ -582,9 +582,27 @@ function DesktopModal({
 }
 
 /* ═══════════════════ PROVIDER ═══════════════════════════════ */
+// Each colour has its own variant rows, so an unscoped list repeats every
+// size once per colour and could put the wrong colour in the bag. Falls back
+// to one entry per size (in-stock preferred) when no row matches the colour —
+// single items, or older products whose rows carry a different colour name.
+function scopeToColor(opts: VariantStock[], color: string | null): VariantStock[] {
+  const norm = (s?: string | null) => (s ?? "").trim().toLowerCase();
+  if (color) {
+    const own = opts.filter((o) => norm(o.color) === norm(color));
+    if (own.length > 0) return own;
+  }
+  const bySize = new Map<string, VariantStock>();
+  for (const o of opts) {
+    const cur = bySize.get(o.size);
+    if (!cur || (!cur.inStock && o.inStock)) bySize.set(o.size, o);
+  }
+  return [...bySize.values()];
+}
+
 export function QuickAddProvider({ children }: { children: React.ReactNode }) {
   const [product, setProduct] = useState<Product | null>(null);
-  const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
+  const [allOptions, setAllOptions] = useState<VariantStock[]>([]);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [loadingSizes, setLoadingSizes] = useState(false);
@@ -602,20 +620,28 @@ export function QuickAddProvider({ children }: { children: React.ReactNode }) {
     setSelectedColor(p.colors?.[0]?.name ?? null);
     setAddedSuccess(false);
     setLoadingSizes(true);
-    getVariantStock(p.slug, p.sizes).then((opts) => {
-      setSizeOptions(opts);
-      const first = opts.find((o) => o.inStock);
-      if (first) setSelectedSize(first.size);
+    getVariantStock(p.slug, p.sizes, p.categoryId).then((opts) => {
+      setAllOptions(opts);
       setLoadingSizes(false);
     });
   }, []);
+
+  const sizeOptions = useMemo(() => scopeToColor(allOptions, selectedColor), [allOptions, selectedColor]);
+
+  // Keep the picked size if the colour still has it in stock, otherwise
+  // pre-pick that colour's first in-stock size.
+  useEffect(() => {
+    setSelectedSize((cur) =>
+      sizeOptions.some((o) => o.size === cur && o.inStock) ? cur : sizeOptions.find((o) => o.inStock)?.size ?? null,
+    );
+  }, [sizeOptions]);
 
   const closeQuickAdd = useCallback(() => {
     setProduct(null);
     setSelectedSize(null);
     setSelectedColor(null);
     setAddedSuccess(false);
-    setSizeOptions([]);
+    setAllOptions([]);
   }, []);
 
   /* ESC key + body scroll lock */

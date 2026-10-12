@@ -45,7 +45,7 @@ export function ProductCard({
 
   const handleOpenSizes = () => {
     setShowSizes(true);
-    getVariantStock(product.slug, product.sizes).then(setSizeOptions);
+    getVariantStock(product.slug, product.sizes, product.categoryId).then(setSizeOptions);
   };
 
   const handleQuickAdd = (opt: VariantStock) => {

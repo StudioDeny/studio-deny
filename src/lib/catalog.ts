@@ -48,8 +48,15 @@ export async function upsertCategory(input: { name: string; slug?: string; paren
   if (error) throw new Error(error.message);
 }
 
+// Subcategories go with their parent: a child left under a deleted parent
+// can't be reached from the admin list or any storefront menu.
 export async function deleteCategory(slug: string): Promise<void> {
-  const { error } = await supabase.from("categories").update({ is_active: false }).eq("slug", slug);
+  const { data: cat, error: findError } = await supabase.from("categories").select("id").eq("slug", slug).single();
+  if (findError || !cat) throw new Error(findError?.message ?? "Category not found");
+  const { error } = await supabase
+    .from("categories")
+    .update({ is_active: false })
+    .or(`id.eq.${cat.id},parent_id.eq.${cat.id}`);
   if (error) throw new Error(error.message);
 }
 

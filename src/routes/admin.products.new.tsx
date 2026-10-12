@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { upsertProduct, type Product, type GalleryItem } from "@/lib/productsStore";
 import { listCategories, listBrands, listProductCategoryIds, setProductCategories, type Category, type Brand } from "@/lib/catalog";
-import { listSizesForCategory, type Size } from "@/lib/sizes";
+import { listSizesForCategory, sortSizeLabels, type Size } from "@/lib/sizes";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -200,7 +200,9 @@ export function ProductForm({
               ? planSingleSave(rows, Number(singleQty), final.price, final.compareAt)
               : planStockSave(rows, cards, final.price, final.compareAt);
             final.colors = single ? [] : colorsFromCards(cards);
-            final.sizes = single ? [ONE_SIZE] : [...new Set(cards.flatMap((c) => Object.keys(c.sizes)))];
+            final.sizes = single
+              ? [ONE_SIZE]
+              : sortSizeLabels([...new Set(cards.flatMap((c) => Object.keys(c.sizes)))], sizesForCategory.map((sz) => sz.label));
             final.stock = single
               ? Number(singleQty)
               : cards.reduce((sum, c) => sum + Object.values(c.sizes).reduce((t, q) => t + Number(q), 0), 0);

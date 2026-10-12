@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 import type { GalleryItem } from "@/types/database";
 import { singleItemVariant } from "./singleItem";
+import { sizeOrderFor, sortSizes } from "./sizes";
 
 export type Color = { name: string; hex: string };
 export type { GalleryItem };
@@ -167,32 +168,37 @@ export async function setProductActive(slug: string, active: boolean): Promise<v
   if (error) throw new Error(error.message);
 }
 
-export type VariantStock = { size: string; inStock: boolean; variantId?: string; stock: number };
+// One entry per variant row (colour x size), so a product in two colours has
+// each size twice — callers scope to the chosen colour.
+export type VariantStock = { size: string; inStock: boolean; variantId?: string; stock: number; color?: string | null };
 
-// Stock-aware size list for a product, sourced from its live variants — falls
-// back to the product's static size list (all shown as sold out) for
-// products with no per-variant stock tracking, same fallback the PDP uses.
-export async function getVariantStock(slug: string, fallbackSizes: string[]): Promise<VariantStock[]> {
-  const { data, error } = await supabase
-    .from("product_variants")
-    .select("id, size, color, stock")
-    .eq("product_id", slug)
-    .order("size");
+// Stock-aware size list for a product, sourced from its live variants and
+// ordered as set in Admin → Sizes for its category — falls back to the
+// product's static size list (all shown as sold out) for products with no
+// per-variant stock tracking, same fallback the PDP uses.
+export async function getVariantStock(slug: string, fallbackSizes: string[], categoryId?: string): Promise<VariantStock[]> {
+  const [{ data, error }, order] = await Promise.all([
+    supabase.from("product_variants").select("id, size, color, stock").eq("product_id", slug),
+    sizeOrderFor([categoryId]),
+  ]);
+  const ordered = (opts: VariantStock[]) => sortSizes(opts, (o) => o.size, order);
   if (error) {
     // Can't confirm stock right now - don't sell blind.
-    return fallbackSizes.map((size) => ({ size, inStock: false, stock: 0 }));
+    return ordered(fallbackSizes.map((size) => ({ size, inStock: false, stock: 0 })));
   }
   if (!data || data.length === 0) {
     // No per-size stock entered yet (admin shows NEEDS SIZE COUNTS): shown as
     // sold out so no online sale happens without its stock being reduced.
-    return fallbackSizes.map((size) => ({ size, inStock: false, stock: 0 }));
+    return ordered(fallbackSizes.map((size) => ({ size, inStock: false, stock: 0 })));
   }
   const rows = data as { id: string; size: string | null; color: string | null; stock: number }[];
   // Single item: one option only, so quick-add picks it straight away.
   const one = singleItemVariant(rows);
-  return (one ? [one] : rows)
-    .filter((v) => v.size != null)
-    .map((v) => ({ size: v.size as string, inStock: v.stock > 0, variantId: v.id, stock: v.stock }));
+  return ordered(
+    (one ? [one] : rows)
+      .filter((v) => v.size != null)
+      .map((v) => ({ size: v.size as string, inStock: v.stock > 0, variantId: v.id, stock: v.stock, color: one ? null : v.color })),
+  );
 }
 
 export async function listAllAdminProducts(): Promise<Product[]> {

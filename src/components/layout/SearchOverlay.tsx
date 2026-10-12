@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Search, X, Sparkles, TrendingUp, Clock } from "lucide-react";
 import { listProducts } from "@/lib/productsStore";
+import { listCategories, type Category } from "@/lib/catalog";
 import { formatINR } from "@/context/CartContext";
 
 const RECENT_KEY = "sd_recent_searches";
@@ -20,11 +21,14 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
   const [q, setQ] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
   const [products, setProducts] = useState<Awaited<ReturnType<typeof listProducts>>>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const navigate = useNavigate();
 
   // refresh products + recent each time it opens
   useEffect(() => {
-    if (open) listProducts().then(setProducts);
+    if (!open) return;
+    listProducts().then(setProducts);
+    listCategories().then(setCategories);
   }, [open]);
 
   useEffect(() => {
@@ -69,15 +73,16 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
   const completions = useMemo(() => {
     const term = q.trim().toLowerCase();
     if (!term) return [];
-    const cats = ["Tops", "Bottoms", "Outerwear", "Accessories"].filter((c) =>
-      c.toLowerCase().includes(term)
-    );
+    const cats = categories.filter((c) => c.name.toLowerCase().includes(term)).slice(0, 4);
     const namePart = products
       .map((p) => p.name)
       .filter((n) => n.toLowerCase().includes(term))
       .slice(0, 4);
-    return [...cats.map((c) => ({ kind: "cat" as const, label: c })), ...namePart.map((n) => ({ kind: "term" as const, label: n }))];
-  }, [q, products]);
+    return [
+      ...cats.map((c) => ({ kind: "cat" as const, label: c.name, slug: c.slug })),
+      ...namePart.map((n) => ({ kind: "term" as const, label: n, slug: "" })),
+    ];
+  }, [q, products, categories]);
 
   const trending = ["Hoodie", "Cargo", "Bomber", "Tee", "Cap", "Denim"];
 
@@ -142,7 +147,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
               {completions.map((c) => (
                 <button
                   key={c.kind + c.label}
-                  onClick={() => c.kind === "cat" ? (onClose(), navigate({ to: "/shop", search: { cat: c.label } })) : submit(c.label)}
+                  onClick={() => c.kind === "cat" ? (onClose(), navigate({ to: "/collections/$slug", params: { slug: c.slug } })) : submit(c.label)}
                   className="px-3 py-1.5 border border-border text-mono text-xs tracking-widest hover:border-primary hover:text-primary"
                 >
                   {c.kind === "cat" ? "◢ " : ""}{c.label.toUpperCase()}

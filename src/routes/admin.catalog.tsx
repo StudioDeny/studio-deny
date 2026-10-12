@@ -20,6 +20,12 @@ function AdminCatalog() {
   const [editing, setEditing] = useState<{ kind: "cat" | "brand"; slug: string; name: string } | null>(null);
   const [newCatParent, setNewCatParent] = useState<string>("");
 
+  // Main categories, plus any whose main category was deleted (they'd
+  // otherwise be listed nowhere and could never be removed), A → Z.
+  const roots = cats
+    .filter((c) => c.parentId === null || !cats.some((p) => p.id === c.parentId))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   // Load from Supabase on mount (client-only)
   useEffect(() => {
     listCategories().then(setCats);
@@ -56,7 +62,12 @@ function AdminCatalog() {
   };
 
   const removeCat = async (slug: string) => {
-    if (!confirm("Delete this category?")) return;
+    const cat = cats.find((c) => c.slug === slug);
+    const children = cat ? cats.filter((c) => c.parentId === cat.id) : [];
+    const msg = children.length > 0
+      ? `Delete "${cat?.name}" and its ${children.length} subcategor${children.length === 1 ? "y" : "ies"} (${children.map((c) => c.name).join(", ")})?`
+      : `Delete "${cat?.name ?? slug}"?`;
+    if (!confirm(msg)) return;
     try {
       await deleteCategory(slug);
       setCats(await listCategories());
@@ -102,27 +113,30 @@ function AdminCatalog() {
       <h1 className="text-display text-4xl md:text-5xl mb-2">CATALOG.</h1>
       <p className="text-muted-foreground text-sm mb-8">Manage categories and brands surfaced across the storefront and admin.</p>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-6 items-start">
         <Panel title="CATEGORIES">
           <AddRow value={newCat} onChange={setNewCat} onAdd={addCat} placeholder="New category name" />
-          <select value={newCatParent} onChange={(e) => setNewCatParent(e.target.value)}
-            className="bg-background border border-border h-9 px-2 text-xs mb-1 w-full">
-            <option value="">— Top level —</option>
-            {cats.filter((c) => c.parentId === null).map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-          <p className="text-[11px] text-muted-foreground mb-2">
-            Filters the list below to that parent's children, and is where a new category you add gets nested.
-          </p>
+          <label className="block mb-4">
+            <span className="text-mono text-[10px] tracking-widest text-muted-foreground">ADD IT UNDER</span>
+            <select value={newCatParent} onChange={(e) => setNewCatParent(e.target.value)}
+              className="mt-1 bg-background border border-border h-9 px-2 text-xs w-full">
+              <option value="">Nothing — make it a main category</option>
+              {roots.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </label>
           <List
-            items={cats
-              .filter((c) => (newCatParent ? c.parentId === newCatParent : c.parentId === null))
-              .map((c) => ({
-                slug: c.slug,
-                name: c.name,
-                meta: c.parentId ? `under ${cats.find((p) => p.id === c.parentId)?.name ?? "?"}` : undefined,
-              }))}
+            items={roots.flatMap((root) => [
+              {
+                slug: root.slug,
+                name: root.name,
+                meta: root.parentId ? "its main category was deleted" : undefined,
+              },
+              ...cats
+                .filter((c) => c.parentId === root.id)
+                .map((c) => ({ slug: c.slug, name: c.name, depth: 1 })),
+            ])}
             onEdit={(it) => setEditing({ kind: "cat", slug: it.slug, name: it.name })}
             onDelete={(slug) => removeCat(slug)}
             editing={editing?.kind === "cat" ? editing : null}
@@ -181,7 +195,7 @@ function AddRow({ value, onChange, onAdd, placeholder }: {
   );
 }
 
-type Item = { slug: string; name: string; meta?: string };
+type Item = { slug: string; name: string; meta?: string; depth?: number };
 function List({ items, onEdit, onDelete, editing, setEditing, onSaveEdit }: {
   items: Item[];
   onEdit: (it: Item) => void;
@@ -196,7 +210,7 @@ function List({ items, onEdit, onDelete, editing, setEditing, onSaveEdit }: {
       {items.map((it) => {
         const isEdit = editing?.slug === it.slug;
         return (
-          <li key={it.slug} className="flex items-center gap-2 p-2">
+          <li key={it.slug} className={`flex items-center gap-2 p-2 ${it.depth ? "pl-8 bg-background/40" : ""}`}>
             {isEdit ? (
               <>
                 <input
@@ -209,15 +223,16 @@ function List({ items, onEdit, onDelete, editing, setEditing, onSaveEdit }: {
               </>
             ) : (
               <>
-                <div className="flex-1">
-                  <div className="text-sm font-semibold">
+                <div className="flex-1 min-w-0">
+                  <div className={`text-sm ${it.depth ? "" : "font-semibold"}`}>
+                    {!!it.depth && <span className="text-muted-foreground mr-1.5">↳</span>}
                     {it.name}
                     {it.meta && <span className="font-normal text-muted-foreground"> ({it.meta})</span>}
                   </div>
                   <div className="text-mono text-[10px] text-muted-foreground">{it.slug}</div>
                 </div>
-                <button type="button" onClick={() => onEdit(it)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Pencil className="size-3" /></button>
-                <button type="button" onClick={() => onDelete(it.slug)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Trash2 className="size-3" /></button>
+                <button type="button" title="Rename" aria-label={`Rename ${it.name}`} onClick={() => onEdit(it)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Pencil className="size-3" /></button>
+                <button type="button" title="Delete" aria-label={`Delete ${it.name}`} onClick={() => onDelete(it.slug)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500"><Trash2 className="size-3" /></button>
               </>
             )}
           </li>

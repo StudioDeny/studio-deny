@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Heart, Truck, RotateCcw, ShieldCheck, ArrowRight, Zap, Share2, Minus, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { singleItemVariant } from "@/lib/singleItem";
+import { sizeOrderFor, sortSizes } from "@/lib/sizes";
 import { toast } from "sonner";
 import { RichText } from "@/components/ui/RichText";
 import { stripHtml } from "@/lib/richText";
@@ -91,6 +92,7 @@ function PDP() {
   const [tab, setTab] = useState<"desc" | "mat" | "care" | "delivery" | "">("desc");
   const [added, setAdded] = useState(false);
   const [variants, setVariants] = useState<VariantRow[]>([]);
+  const [sizeOrder, setSizeOrder] = useState<string[]>([]);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [shared, setShared] = useState(false);
@@ -161,15 +163,23 @@ function PDP() {
     });
   }, [product.category, product.slug]);
 
-  // Fetch Supabase variants; fall back to product.sizes if none
+  // Fetch Supabase variants; fall back to product.sizes if none. Sizes are
+  // shown in the order set in Admin → Sizes for the product's category.
   useEffect(() => {
-    supabase
-      .from("product_variants")
-      .select("id, size, stock, price, color, color_hex")
-      .eq("product_id", product.slug)
-      .order("size")
-      .then(({ data }) => setVariants(data ?? []));
-  }, [product.slug]);
+    let cancelled = false;
+    Promise.all([
+      supabase
+        .from("product_variants")
+        .select("id, size, stock, price, color, color_hex")
+        .eq("product_id", product.slug),
+      sizeOrderFor([product.categoryId]),
+    ]).then(([{ data }, order]) => {
+      if (cancelled) return;
+      setSizeOrder(order);
+      setVariants(sortSizes((data ?? []) as VariantRow[], (v) => v.size ?? "", order));
+    });
+    return () => { cancelled = true; };
+  }, [product.slug, product.categoryId]);
 
   // Colors come from variants (if any admin-set colors exist) — falls back to the
   // product's own color list for products with no per-variant color tracking.
@@ -212,7 +222,7 @@ function PDP() {
     }
     // No per-size stock entered yet: sold out until the admin adds counts, so
     // nothing is sold online without its stock being reduced.
-    if (variants.length === 0) return product.sizes.map((s: string) => ({ size: s, inStock: false }));
+    if (variants.length === 0) return sortSizes(product.sizes as string[], (s) => s, sizeOrder).map((s) => ({ size: s, inStock: false }));
     const hasColorData = variants.some((v) => v.color);
     const scoped = hasColorData && effectiveColorKey
       ? variants.filter((v) => (v.color_hex ?? "#0a0a0a") === effectiveColorKey)
@@ -306,6 +316,7 @@ function PDP() {
     try {
       await navigator.clipboard.writeText(url);
       setShared(true);
+      toast.success("Link copied");
       setTimeout(() => setShared(false), 1800);
     } catch {
       toast.error("Couldn't copy link — copy it from the address bar instead.");
@@ -317,6 +328,30 @@ function PDP() {
     setSize(opt.size);
     setVariantId(opt.variantId);
   };
+
+  // Wishlist + share sit on the image's top-right corner (Flipkart-style),
+  // stacked, on both the mobile carousel and the desktop gallery.
+  const imageActions = (
+    <div className="flex flex-col gap-2">
+      <button
+        type="button"
+        aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+        aria-pressed={wished}
+        onClick={() => toggle(product.slug)}
+        className={`size-10 border flex items-center justify-center transition-colors ${wished ? "border-primary bg-background text-primary" : "border-border bg-background text-foreground hover:border-primary hover:text-primary"}`}
+      >
+        <Heart className={`size-[18px] ${wished ? "fill-primary" : ""}`} />
+      </button>
+      <button
+        type="button"
+        aria-label="Share product"
+        onClick={handleShare}
+        className={`size-10 border flex items-center justify-center transition-colors ${shared ? "border-primary bg-background text-primary" : "border-border bg-background text-foreground hover:border-primary hover:text-primary"}`}
+      >
+        <Share2 className="size-[18px]" />
+      </button>
+    </div>
+  );
 
   const renderGalleryTile = (media: GalleryMediaItem, index: number) => {
     const isFirst = index === 0;
@@ -380,6 +415,11 @@ function PDP() {
             strip below to jump to any image directly — the standard mobile PDP pattern. */}
         <div className="flex flex-col min-w-0 -mx-4 md:mx-0">
           <div className="hidden md:flex md:flex-col">
+            {/* Zero-height sticky rail: the buttons float over the images and
+                stay in reach while the gallery scrolls under them. */}
+            <div className="sticky z-10 h-0 self-end" style={{ top: "calc(var(--topbar-h) + 16px)" }}>
+              <div className="pt-4 pr-4">{imageActions}</div>
+            </div>
             {(() => {
               let imgIndex = -1;
               return galleryRows.map((row, rowIdx) => {
@@ -400,16 +440,19 @@ function PDP() {
           </div>
 
           <div className="md:hidden">
-            <div
-              ref={mobileGalleryRef}
-              onScroll={handleMobileGalleryScroll}
-              className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
-            >
-              {galleryFlat.map((media, i) => (
-                <div key={media.url} className="w-full shrink-0 snap-center">
-                  {renderGalleryTile(media, i)}
-                </div>
-              ))}
+            <div className="relative">
+              <div className="absolute top-3 right-3 z-10">{imageActions}</div>
+              <div
+                ref={mobileGalleryRef}
+                onScroll={handleMobileGalleryScroll}
+                className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+              >
+                {galleryFlat.map((media, i) => (
+                  <div key={media.url} className="w-full shrink-0 snap-center">
+                    {renderGalleryTile(media, i)}
+                  </div>
+                ))}
+              </div>
             </div>
             {galleryFlat.length > 1 && (
               <div className="flex gap-2 overflow-x-auto no-scrollbar px-4 py-3">
@@ -441,34 +484,10 @@ function PDP() {
             {product.category.toUpperCase()}
           </div>
 
-          <div className="flex items-start justify-between gap-4 mt-3">
-            <h1 className="text-display leading-none flex-1" style={{ fontSize: "clamp(42px, 6vw, 72px)" }}>
-              {product.name}
-            </h1>
-
-            {/* Mobile Wishlist & Share buttons beside product name right corner */}
-            <div className="flex sm:hidden items-center gap-2 shrink-0 pt-1">
-              <button
-                type="button"
-                aria-label="Wishlist"
-                onClick={() => toggle(product.slug)}
-                className={`size-9 border flex items-center justify-center transition-all ${wished ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-primary"
-                  }`}
-              >
-                <Heart className={`size-4 ${wished ? "fill-primary" : ""}`} />
-              </button>
-
-              <button
-                type="button"
-                aria-label="Share product"
-                onClick={handleShare}
-                className={`size-9 border flex items-center justify-center transition-all ${shared ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-primary"
-                  }`}
-              >
-                <Share2 className="size-4" />
-              </button>
-            </div>
-          </div>
+          {/* 24px on phones (long names wrapped to 3–4 lines at the old 42px). */}
+          <h1 className="text-display leading-[1.05] mt-3" style={{ fontSize: "clamp(24px, 5.5vw, 72px)" }}>
+            {product.name}
+          </h1>
 
           <div className="mt-5 flex items-baseline gap-4 text-mono">
             <span className="text-foreground" style={{ fontSize: "28px" }}>{formatINR(displayPrice)}</span>
@@ -632,30 +651,7 @@ function PDP() {
                 {size && !added && <ArrowRight className="size-4" />}
               </button>
             )}
-
-            <button
-              aria-label="Wishlist"
-              onClick={() => toggle(product.slug)}
-              className={`hidden sm:flex border w-[60px] items-center justify-center transition-all duration-300 ${wished ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-primary"
-                }`}
-            >
-              <Heart className={`size-5 ${wished ? "fill-primary" : ""}`} />
-            </button>
-
-            <button
-              aria-label="Share product"
-              onClick={handleShare}
-              className={`hidden sm:flex border w-[60px] items-center justify-center transition-all duration-300 ${shared ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface text-muted-foreground hover:border-primary hover:text-primary"
-                }`}
-            >
-              <Share2 className="size-5" />
-            </button>
           </div>
-          {shared && (
-            <p className="mt-2 text-mono text-primary" style={{ fontSize: "10px", letterSpacing: "0.15em" }}>
-              LINK COPIED
-            </p>
-          )}
 
           {/* Trust Badges */}
           <div className="mt-8 grid grid-cols-3 gap-3">
