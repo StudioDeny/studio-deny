@@ -3,7 +3,9 @@ import type { GalleryItem } from "@/types/database";
 import { singleItemVariant } from "./singleItem";
 import { sizeOrderFor, sortSizes } from "./sizes";
 
-export type Color = { name: string; hex: string };
+// images: optional photos for this colour (product form → colour card). The
+// product page shows them when the colour is picked; none = main photos.
+export type Color = { name: string; hex: string; images?: string[] };
 export type { GalleryItem };
 
 export type Product = {

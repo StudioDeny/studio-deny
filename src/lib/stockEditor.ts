@@ -31,6 +31,7 @@ export type ColourCard = {
   price: string; // "" = use product price
   compareAt: string; // "" = use product compare-at
   sizes: Record<string, string>; // selected size label -> qty text
+  images: string[]; // optional photos for this colour; [] = main product photos
   origName?: string; // colour name the saved rows carry, so a rename moves them
 };
 
@@ -38,7 +39,7 @@ let keySeq = 0;
 export const newCardKey = () => `card-${Date.now()}-${keySeq++}`;
 
 export function emptyCard(name = "", hex = "#000000"): ColourCard {
-  return { key: newCardKey(), name, hex, price: "", compareAt: "", sizes: {} };
+  return { key: newCardKey(), name, hex, price: "", compareAt: "", sizes: {}, images: [] };
 }
 
 const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
@@ -71,7 +72,7 @@ export function cardsFromVariants(
     return c;
   };
 
-  colors.filter((c) => c.name.trim()).forEach((c) => cardFor(c.name.trim(), c.hex));
+  colors.filter((c) => c.name.trim()).forEach((c) => { cardFor(c.name.trim(), c.hex).images = c.images ?? []; });
   for (const r of rows) {
     const c = cardFor(r.color?.trim() ?? "", r.color_hex ?? "");
     c.sizes[r.size || ONE_SIZE] = String(r.stock);
@@ -258,7 +259,10 @@ async function variantWasSold(id: string): Promise<boolean> {
 export function colorsFromCards(cards: ColourCard[]): Color[] {
   return cards
     .filter((c) => c.name.trim() || cards.length === 1)
-    .map((c) => (c.name.trim() ? { name: c.name.trim(), hex: c.hex } : DEFAULT_COLOUR));
+    .map((c) => ({
+      ...(c.name.trim() ? { name: c.name.trim(), hex: c.hex } : DEFAULT_COLOUR),
+      ...(c.images.length > 0 ? { images: c.images } : {}),
+    }));
 }
 
 export function describeSaveResult(r: StockSaveResult): string | null {

@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { buildMeta, buildLinks, SITE_URL, productJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { useState, useEffect, useRef } from "react";
-import { listProducts, getStoredProduct as getProduct, type Product, type GalleryItem } from "@/lib/productsStore";
+import { listProducts, getStoredProduct as getProduct, type Product, type GalleryItem, type Color } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reviews } from "@/components/product/Reviews";
@@ -102,7 +102,7 @@ function PDP() {
   // renders full-width, consecutive "half" items pair up side-by-side (H&M-style).
   type GalleryMediaItem = { url: string; type: "image" | "video" };
   type GalleryRow = { type: "standalone"; item: GalleryMediaItem } | { type: "half"; items: GalleryMediaItem[] };
-  const galleryRows: GalleryRow[] = (() => {
+  const productGalleryRows: GalleryRow[] = (() => {
     const seen = new Set<string>();
     const rows: GalleryRow[] = [];
     const pushStandalone = (url: string, mediaType: "image" | "video") => {
@@ -136,8 +136,6 @@ function PDP() {
     }
     return rows;
   })();
-  // Mobile ignores standalone/half — every image is just one slide in a swipe carousel.
-  const galleryFlat: GalleryMediaItem[] = galleryRows.flatMap((row) => (row.type === "standalone" ? [row.item] : row.items));
   const [mobileGalleryIndex, setMobileGalleryIndex] = useState(0);
   const mobileGalleryRef = useRef<HTMLDivElement>(null);
   const handleMobileGalleryScroll = () => {
@@ -213,6 +211,30 @@ function PDP() {
   // no longer exists in the real colorOptions, silently producing zero
   // matches. Deriving it fresh every render closes that window entirely.
   const effectiveColorKey = (colorOptions.find((c) => c.key === selectedColor) ?? colorOptions[0])?.key ?? null;
+
+  // Photos set for the picked colour (product form → colour card) replace the
+  // main gallery; a colour without its own photos shows the main photos.
+  const colourImages: string[] = (() => {
+    const picked = colorOptions.find((c) => c.key === effectiveColorKey);
+    if (!picked) return [];
+    const colours = product.colors as Color[];
+    const match =
+      colours.find((c) => c.name.trim().toLowerCase() === picked.name.trim().toLowerCase()) ??
+      colours.find((c) => c.hex.toLowerCase() === picked.hex.toLowerCase());
+    return (match?.images ?? []).filter(Boolean);
+  })();
+  const galleryRows: GalleryRow[] = colourImages.length > 0
+    ? colourImages.map((url) => ({ type: "standalone", item: { url, type: "image" } }))
+    : productGalleryRows;
+  // Mobile ignores standalone/half — every image is just one slide in a swipe carousel.
+  const galleryFlat: GalleryMediaItem[] = galleryRows.flatMap((row) => (row.type === "standalone" ? [row.item] : row.items));
+
+  // A new set of photos starts from the first one.
+  const galleryKey = galleryFlat.map((m) => m.url).join("|");
+  useEffect(() => {
+    setMobileGalleryIndex(0);
+    mobileGalleryRef.current?.scrollTo({ left: 0 });
+  }, [galleryKey]);
 
   // Sizes are scoped to the selected color when variants carry color data, so
   // switching color never shows the same size duplicated once per color.

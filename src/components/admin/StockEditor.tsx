@@ -1,8 +1,9 @@
 // Colour cards with per-size stock. Tapping a size chip selects it and
 // asks for its stock right underneath, in the same column. Used by the
 // product form and the products-list stock panel.
-import { useEffect, useState } from "react";
-import { Copy, Plus, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Copy, ImagePlus, Loader2, Plus, X } from "lucide-react";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
 import { emptyCard, ONE_SIZE, type ColourCard } from "@/lib/stockEditor";
 
@@ -180,6 +181,12 @@ export function StockEditor({
               </label>
             </div>
 
+            <ColourPhotos
+              colourName={card.name.trim()}
+              images={card.images}
+              onChange={(images) => update(card.key, { images })}
+            />
+
             {cards.length > 1 && (
               <label className="flex items-center gap-2 cursor-pointer text-mono text-[10px] tracking-widest text-muted-foreground hover:text-foreground">
                 <input
@@ -236,6 +243,73 @@ export function ColorPicker({ value, onChange, compact }: { value: string; onCha
           placeholder="#1e40ff"
         />
       )}
+    </div>
+  );
+}
+
+const MAX_COLOUR_PHOTOS = 8;
+
+// Optional photos for one colour. Shown on the product page when a shopper
+// picks this colour; a colour without photos shows the main product photos.
+function ColourPhotos({ colourName, images, onChange }: {
+  colourName: string;
+  images: string[];
+  onChange: (images: string[]) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const add = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const f of Array.from(files).slice(0, MAX_COLOUR_PHOTOS - images.length)) {
+        urls.push((await uploadToCloudinary(f)).secure_url);
+      }
+      onChange([...images, ...urls]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <div>
+      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">
+        PHOTOS FOR {colourName ? colourName.toUpperCase() : "THIS COLOUR"} (OPTIONAL)
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {images.map((url, i) => (
+          <div key={`${url}-${i}`} className="relative w-16 h-20 border border-border bg-background">
+            <img src={url} alt="" className="w-full h-full object-cover" />
+            <button
+              type="button"
+              aria-label="Remove photo"
+              onClick={() => onChange(images.filter((_, j) => j !== i))}
+              className="absolute -top-2 -right-2 size-5 bg-foreground text-background flex items-center justify-center hover:bg-red-500"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        ))}
+        {images.length < MAX_COLOUR_PHOTOS && (
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => fileRef.current?.click()}
+            className="w-16 h-20 border border-dashed border-border flex flex-col items-center justify-center gap-1 text-mono text-[9px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary disabled:opacity-60"
+          >
+            {uploading ? <Loader2 className="size-4 animate-spin" /> : <><ImagePlus className="size-4" /> ADD</>}
+          </button>
+        )}
+        <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => add(e.target.files)} />
+      </div>
+      <p className="text-[10px] text-muted-foreground mt-1">
+        Shown when a shopper picks this colour (first photo first). Leave empty to show the main product photos.
+      </p>
     </div>
   );
 }
