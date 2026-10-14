@@ -59,10 +59,23 @@ serve(async (req) => {
 
     const razorpayKeyId = requireEnv("RAZORPAY_KEY_ID");
     const razorpayKeySecret = requireEnv("RAZORPAY_KEY_SECRET");
-    const { items, coupon_code = null, payment_type, notes } = await req.json();
+    // fulfillment: "delivery" (default, so older clients behave as before) or
+    // "pickup" (store pickup: no shipping, paid in full — no COD).
+    const { items, coupon_code = null, payment_type, notes, fulfillment = "delivery" } = await req.json();
 
-    if (!Array.isArray(items) || items.length === 0 || (payment_type !== "full" && payment_type !== "cod_advance")) {
+    if (
+      !Array.isArray(items) || items.length === 0 ||
+      (payment_type !== "full" && payment_type !== "cod_advance") ||
+      (fulfillment !== "delivery" && fulfillment !== "pickup")
+    ) {
       return new Response(JSON.stringify({ error: "Invalid checkout request" }), {
+        status: 400,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+
+    if (fulfillment === "pickup" && payment_type === "cod_advance") {
+      return new Response(JSON.stringify({ error: "Store pickup is paid online in full" }), {
         status: 400,
         headers: { ...cors, "Content-Type": "application/json" },
       });
@@ -72,6 +85,7 @@ serve(async (req) => {
     const { data: quote, error: quoteErr } = await authedClient.rpc("quote_order", {
       p_items: items,
       p_coupon_code: coupon_code,
+      p_fulfillment: fulfillment,
     });
     if (quoteErr || !quote) {
       return new Response(JSON.stringify({ error: quoteErr?.message ?? "Could not price your bag" }), {
@@ -141,6 +155,7 @@ serve(async (req) => {
       total: quote.total,
       payment_type,
       cod_advance: quote.cod_advance,
+      fulfillment,
     });
     if (quoteSaveErr) {
       console.error("razorpay-create-order: payment_quotes insert failed", quoteSaveErr.message);

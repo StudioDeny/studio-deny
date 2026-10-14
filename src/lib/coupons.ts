@@ -53,8 +53,9 @@ export function toQuote(raw: Record<string, unknown>): OrderQuote {
   };
 }
 
-export async function fetchQuote(lines: QuoteLine[], couponCode: string | null): Promise<OrderQuote> {
-  const { data, error } = await supabase.rpc("quote_order" as never, { p_items: lines, p_coupon_code: couponCode } as never);
+export async function fetchQuote(lines: QuoteLine[], couponCode: string | null, fulfillment: "delivery" | "pickup" = "delivery"): Promise<OrderQuote> {
+  const params = { p_items: lines, p_coupon_code: couponCode, ...(fulfillment === "pickup" ? { p_fulfillment: "pickup" } : {}) };
+  const { data, error } = await supabase.rpc("quote_order" as never, params as never);
   if (error) throw new Error(error.message);
   return toQuote(data as unknown as Record<string, unknown>);
 }

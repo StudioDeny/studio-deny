@@ -9,14 +9,14 @@ import { useCart, formatINR } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { createOrder, ordersFor, type Order } from "@/lib/orders";
 import { openRazorpay, CouponRejectedError } from "@/lib/razorpay";
-import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
+import { getLoyaltySettings, getInvoiceTemplate, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { pointsFromOrders, tierFor } from "@/lib/loyalty";
 import { fetchQuote, fetchAvailableCoupons, quoteLines, couponErrorMessage, type AvailableCoupon, type OrderQuote } from "@/lib/coupons";
 import { CouponSheet } from "@/components/checkout/CouponSheet";
 import { listAddresses, saveAddress, type SavedAddress } from "@/lib/addresses";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Lock, Sparkles, Truck, Tag, X, ChevronRight } from "lucide-react";
+import { Lock, Sparkles, Truck, Tag, X, ChevronRight, Store } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
   component: Checkout,
@@ -33,6 +33,9 @@ const schema = z.object({
   pincode: z.string().regex(/^[0-9]{6}$/, "6-digit pincode"),
 });
 type FormValues = z.infer<typeof schema>;
+// Store pickup asks only for contact details: nothing is shipped.
+const fullResolver = zodResolver(schema);
+const pickupResolver = zodResolver(schema.pick({ email: true, name: true, phone: true })) as unknown as typeof fullResolver;
 
 function FieldImpl(props: {
   label: string;
@@ -62,7 +65,16 @@ function Checkout() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [paying, setPaying] = useState(false);
-  const [payMethod, setPayMethod] = useState<"razorpay" | "cod">("razorpay");
+  const [payMethod, setPayMethod] = useState<"razorpay" | "cod" | "pickup">("razorpay");
+  const pickup = payMethod === "pickup";
+  const fulfillment = pickup ? "pickup" : "delivery";
+  const pickupRef = useRef(false);
+  pickupRef.current = pickup;
+  // Store shown for pickup: the address and phone from the invoice settings.
+  const [store, setStore] = useState<{ address: string; phone: string } | null>(null);
+  useEffect(() => { getInvoiceTemplate().then((t) => { if (t) setStore({ address: t.address, phone: t.phone }); }); }, []);
+  // COD eligibility from the last delivery quote (a pickup quote never offers COD).
+  const [codEligible, setCodEligible] = useState(false);
 
   // Loyalty tier is only used for the summary LABEL; the amount comes from the server quote.
   const [settings, setSettings] = useState(DEFAULT_LOYALTY_SETTINGS);
@@ -94,9 +106,10 @@ function Checkout() {
     if (!user || items.length === 0) return;
     let cancelled = false;
     setQuoteFailed(false);
-    fetchQuote(quoteLines(items), appliedCoupon)
+    fetchQuote(quoteLines(items), appliedCoupon, fulfillment)
       .then((q) => {
         if (cancelled) return;
+        if (fulfillment === "delivery") setCodEligible(q.cod_available);
         const asked = appliedCoupon !== null && checkingRef.current === appliedCoupon;
         if (asked) { checkingRef.current = null; setCheckingCode(null); }
         if (appliedCoupon && q.coupon_error) {
@@ -114,7 +127,7 @@ function Checkout() {
         setQuoteFailed(true);
       });
     return () => { cancelled = true; };
-  }, [user, linesKey, appliedCoupon]);
+  }, [user, linesKey, appliedCoupon, fulfillment]);
 
   useEffect(() => {
     if (!user || items.length === 0) return;
@@ -137,7 +150,7 @@ function Checkout() {
   const removeCoupon = () => { setAppliedCoupon(null); setCouponMsg(null); };
   const usableCoupons = (coupons ?? []).filter((c) => !c.error);
 
-  const codAvailable = quote?.cod_available ?? false;
+  const codAvailable = codEligible;
 
   // If COD becomes unavailable, reset to Razorpay
   useEffect(() => {
@@ -145,7 +158,8 @@ function Checkout() {
   }, [codAvailable]);
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: ((values, context, options) =>
+      (pickupRef.current ? pickupResolver : fullResolver)(values, context, options)) as typeof fullResolver,
     defaultValues: { email: user?.email ?? "", name: user?.name ?? "" },
   });
 
@@ -208,12 +222,14 @@ function Checkout() {
       toast.error(problem, { duration: 8000 });
       return;
     }
-    const address = {
-      name: data.name, phone: data.phone, line1: data.line1,
-      city: data.city, state: data.state, pincode: data.pincode,
-    };
+    const address = pickup
+      ? { name: data.name, phone: data.phone, line1: `STORE PICKUP — ${store?.address ?? "Studio Deny store"}`, city: "", state: "", pincode: "" }
+      : {
+          name: data.name, phone: data.phone, line1: data.line1,
+          city: data.city, state: data.state, pincode: data.pincode,
+        };
     const addressKey = JSON.stringify(address);
-    if (pickedId === "new" && saveNew && lastSavedAddress.current !== addressKey) {
+    if (!pickup && pickedId === "new" && saveNew && lastSavedAddress.current !== addressKey) {
       lastSavedAddress.current = addressKey;
       saveAddress({ label: "", name: data.name, phone: data.phone, line1: data.line1, city: data.city, state: data.state, pincode: data.pincode, is_default: saved.length === 0 })
         .catch(() => { /* saving the address is a convenience; never block payment */ });
@@ -259,11 +275,11 @@ function Checkout() {
     } else {
       try {
         await openRazorpay({
-          checkout: { items: quoteLines(items), couponCode: appliedCoupon, paymentType: "full" },
+          checkout: { items: quoteLines(items), couponCode: appliedCoupon, paymentType: "full", fulfillment },
           name: "STUDIO DENY",
-          description: `${items.length} item(s) — Drop 014`,
+          description: pickup ? `${items.length} item(s) — Store pickup` : `${items.length} item(s) — Drop 014`,
           prefill: { name: data.name, email: data.email, contact: data.phone },
-          notes: { city: data.city, pincode: data.pincode },
+          notes: pickup ? { fulfillment: "pickup" } : { city: data.city, pincode: data.pincode },
           onDismiss: () => { setPaying(false); toast.error("Payment cancelled"); },
           onVerifyFailed: (message) => { setPaying(false); toast.error(message); },
           onSuccess: async (paymentId, paidQuote) => {
@@ -272,9 +288,10 @@ function Checkout() {
                 email: data.email, userId: user?.id, items, address, paymentId,
                 quote: paidQuote,
                 payment_method: "razorpay",
+                fulfillment,
               });
               recordAttempt("checkout", 5, 30 * 60 * 1000, 30 * 60 * 1000);
-              toast.success("Payment successful");
+              toast.success(pickup ? "Paid — collect your order from the store within 7 days" : "Payment successful");
               clear();
               navigate({ to: "/order/$id", params: { id: order.id } });
             } catch {
@@ -342,8 +359,8 @@ function Checkout() {
             </div>
           </div>
           <div>
-            <h2 className="text-display text-2xl tracking-wider mb-4">SHIPPING ADDRESS</h2>
-            {saved.length > 0 && (
+            <h2 className="text-display text-2xl tracking-wider mb-4">{pickup ? "YOUR DETAILS" : "SHIPPING ADDRESS"}</h2>
+            {!pickup && saved.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 {saved.map((a) => (
                   <button key={a.id} type="button" onClick={() => { setPickedId(a.id); fillFrom(a); }}
@@ -362,12 +379,16 @@ function Checkout() {
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="FULL NAME" name="name" />
               <Field label="PHONE" name="phone" placeholder="+91 9876543210" />
-              <Field label="ADDRESS" name="line1" full />
-              <Field label="CITY" name="city" />
-              <Field label="STATE" name="state" />
-              <Field label="PINCODE" name="pincode" />
+              {!pickup && (
+                <>
+                  <Field label="ADDRESS" name="line1" full />
+                  <Field label="CITY" name="city" />
+                  <Field label="STATE" name="state" />
+                  <Field label="PINCODE" name="pincode" />
+                </>
+              )}
             </div>
-            {pickedId === "new" && (
+            {!pickup && pickedId === "new" && (
               <label className="mt-3 flex items-center gap-2 text-xs cursor-pointer">
                 <input type="checkbox" checked={saveNew} onChange={(e) => setSaveNew(e.target.checked)} className="accent-primary" />
                 SAVE THIS ADDRESS TO MY ACCOUNT
@@ -423,6 +444,36 @@ function Checkout() {
                     </div>
                   </div>
                 </label>
+              )}
+
+              {/* Store pickup — paid online in full, collected at the store */}
+              <label
+                className={`flex items-center gap-3 border p-4 bg-surface cursor-pointer transition-colors ${
+                  pickup ? "border-primary" : "border-border hover:border-foreground/30"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="payMethod"
+                  value="pickup"
+                  checked={pickup}
+                  onChange={() => setPayMethod("pickup")}
+                  className="accent-primary"
+                />
+                <Store className="size-5 text-muted-foreground shrink-0" />
+                <div>
+                  <div className="font-semibold text-sm">Store Pickup — Pay Now</div>
+                  <div className="text-xs text-muted-foreground">No shipping fee · Pay online now, collect from our store within 7 days</div>
+                </div>
+              </label>
+              {pickup && (
+                <div className="border border-primary/40 bg-primary/5 p-4 text-sm">
+                  <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COLLECT FROM</div>
+                  <div className="font-semibold">STUDIO DENY</div>
+                  <div className="text-muted-foreground">{store?.address ?? "Loading store address…"}</div>
+                  {store?.phone && <div className="text-muted-foreground">{store.phone}</div>}
+                  <div className="mt-2 text-xs">Collect within <span className="font-semibold">7 days</span> of ordering — show your order number at the store.</div>
+                </div>
               )}
             </div>
             <p className="text-[10px] text-mono tracking-widest text-muted-foreground mt-2 flex items-center gap-1">
@@ -502,7 +553,7 @@ function Checkout() {
                     <span>−{formatINR(quote.coupon_discount)}</span>
                   </div>
                 )}
-                <div className="flex justify-between"><span className="text-muted-foreground">SHIPPING</span><span>{quote.shipping === 0 ? "FREE" : formatINR(quote.shipping)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">SHIPPING</span><span>{quote.shipping === 0 ? (pickup ? "FREE · STORE PICKUP" : "FREE") : formatINR(quote.shipping)}</span></div>
                 <div className="border-t border-border pt-2 flex justify-between">
                   <span>TOTAL</span><span className="text-display text-2xl">{formatINR(quote.total)}</span>
                 </div>

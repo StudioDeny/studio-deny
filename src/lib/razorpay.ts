@@ -28,14 +28,17 @@ export class CouponRejectedError extends Error {
   constructor(public couponError: CouponError, public minOrder: number | null = null) { super("coupon_invalid"); }
 }
 
-type CheckoutRequest = { items: QuoteLine[]; couponCode: string | null; paymentType: "full" | "cod_advance" };
+type CheckoutRequest = { items: QuoteLine[]; couponCode: string | null; paymentType: "full" | "cod_advance"; fulfillment?: "delivery" | "pickup" };
 
 async function createRazorpayOrder(
   checkout: CheckoutRequest,
   notes?: Record<string, string>,
 ): Promise<{ orderId: string; amountPaise: number; quote: OrderQuote }> {
   const { data, error } = await supabase.functions.invoke("razorpay-create-order", {
-    body: { items: checkout.items, coupon_code: checkout.couponCode, payment_type: checkout.paymentType, notes },
+    body: {
+      items: checkout.items, coupon_code: checkout.couponCode, payment_type: checkout.paymentType, notes,
+      ...(checkout.fulfillment === "pickup" ? { fulfillment: "pickup" } : {}),
+    },
   });
   if (error) {
     // supabase-js hides non-2xx bodies behind error.context (a Response).

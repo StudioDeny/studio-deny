@@ -63,6 +63,7 @@ import { Route as AdminSeoRouteImport } from './routes/admin.seo'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminSignupPopupRouteImport } from './routes/admin.signup-popup'
 import { Route as AdminSizesRouteImport } from './routes/admin.sizes'
+import { Route as AdminStorePickupsRouteImport } from './routes/admin.store-pickups'
 import { Route as AdminTestimonialsRouteImport } from './routes/admin.testimonials'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminWebsiteSectionsRouteImport } from './routes/admin.website-sections'
@@ -350,6 +351,11 @@ const AdminSizesRoute = AdminSizesRouteImport.update({
   path: '/sizes',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminStorePickupsRoute = AdminStorePickupsRouteImport.update({
+  id: '/store-pickups',
+  path: '/store-pickups',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminTestimonialsRoute = AdminTestimonialsRouteImport.update({
   id: '/testimonials',
   path: '/testimonials',
@@ -486,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/signup-popup': typeof AdminSignupPopupRoute
   '/admin/sizes': typeof AdminSizesRoute
+  '/admin/store-pickups': typeof AdminStorePickupsRoute
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/website-sections': typeof AdminWebsiteSectionsRoute
@@ -556,6 +563,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/signup-popup': typeof AdminSignupPopupRoute
   '/admin/sizes': typeof AdminSizesRoute
+  '/admin/store-pickups': typeof AdminStorePickupsRoute
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/website-sections': typeof AdminWebsiteSectionsRoute
@@ -629,6 +637,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/signup-popup': typeof AdminSignupPopupRoute
   '/admin/sizes': typeof AdminSizesRoute
+  '/admin/store-pickups': typeof AdminStorePickupsRoute
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/website-sections': typeof AdminWebsiteSectionsRoute
@@ -703,6 +712,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/signup-popup'
     | '/admin/sizes'
+    | '/admin/store-pickups'
     | '/admin/testimonials'
     | '/admin/users'
     | '/admin/website-sections'
@@ -773,6 +783,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/signup-popup'
     | '/admin/sizes'
+    | '/admin/store-pickups'
     | '/admin/testimonials'
     | '/admin/users'
     | '/admin/website-sections'
@@ -845,6 +856,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/signup-popup'
     | '/admin/sizes'
+    | '/admin/store-pickups'
     | '/admin/testimonials'
     | '/admin/users'
     | '/admin/website-sections'
@@ -1274,6 +1286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSizesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/store-pickups': {
+      id: '/admin/store-pickups'
+      path: '/store-pickups'
+      fullPath: '/admin/store-pickups'
+      preLoaderRoute: typeof AdminStorePickupsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/testimonials': {
       id: '/admin/testimonials'
       path: '/testimonials'
@@ -1436,6 +1455,7 @@ interface AdminRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSignupPopupRoute: typeof AdminSignupPopupRoute
   AdminSizesRoute: typeof AdminSizesRoute
+  AdminStorePickupsRoute: typeof AdminStorePickupsRoute
   AdminTestimonialsRoute: typeof AdminTestimonialsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminWebsiteSectionsRoute: typeof AdminWebsiteSectionsRoute
@@ -1475,6 +1495,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminSignupPopupRoute: AdminSignupPopupRoute,
   AdminSizesRoute: AdminSizesRoute,
+  AdminStorePickupsRoute: AdminStorePickupsRoute,
   AdminTestimonialsRoute: AdminTestimonialsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminWebsiteSectionsRoute: AdminWebsiteSectionsRoute,

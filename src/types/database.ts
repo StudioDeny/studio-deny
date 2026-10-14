@@ -678,6 +678,10 @@ export type DBOrder = {
   return_tracking_url: string | null;
   replacement_order_id: string | null;
   return_received_at: string | null;
+  // Store pickup (20261014000003). Optional: absent on rows from older code paths.
+  fulfillment?: "delivery" | "pickup";
+  pickup_due_at?: string | null;
+  collected_at?: string | null;
   created_at: string;
   updated_at: string;
 };

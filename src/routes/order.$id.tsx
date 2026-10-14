@@ -46,9 +46,11 @@ function OrderPage() {
     );
   }
 
-  const canCancel = order.status === "PLACED" || order.status === "PACKED" || order.status === "SHIPPED";
+  // Store pickup orders are never shipped: no cancel/return through the courier.
+  const pickup = order.fulfillment === "pickup";
+  const canCancel = !pickup && (order.status === "PLACED" || order.status === "PACKED" || order.status === "SHIPPED");
   const daysSinceDelivery = order.deliveredAt ? (Date.now() - order.deliveredAt) / (1000 * 60 * 60 * 24) : Infinity;
-  const canReturn = order.status === "DELIVERED" && !order.returnStatus && daysSinceDelivery <= RETURN_WINDOW_DAYS;
+  const canReturn = !pickup && order.status === "DELIVERED" && !order.returnStatus && daysSinceDelivery <= RETURN_WINDOW_DAYS;
 
   const onCancel = async () => {
     const { shiprocketCancelled, rtoInitiated } = await cancelOrder(order.id);
@@ -77,13 +79,27 @@ function OrderPage() {
       <p className="text-muted-foreground mt-3">Order <span className="text-mono text-foreground">{order.order_number ?? order.id}</span> — confirmation sent to <span className="text-foreground">{order.userEmail}</span>.</p>
 
       <div className="mt-10 grid md:grid-cols-2 gap-6">
-        <div className="border border-border p-5 bg-surface">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">SHIPPING TO</div>
-          <div className="font-semibold">{order.address.name}</div>
-          <div className="text-sm text-muted-foreground">{order.address.line1}</div>
-          <div className="text-sm text-muted-foreground">{order.address.city}, {order.address.state} {order.address.pincode}</div>
-          <div className="text-sm text-muted-foreground mt-1">{order.address.phone}</div>
-        </div>
+        {pickup ? (
+          <div className="border border-border p-5 bg-surface">
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">STORE PICKUP</div>
+            <div className="font-semibold">STUDIO DENY</div>
+            <div className="text-sm text-muted-foreground">{order.address.line1.replace(/^STORE PICKUP — /, "")}</div>
+            <div className="text-sm mt-2">
+              {order.collectedAt
+                ? <>Collected on <span className="font-semibold">{new Date(order.collectedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span></>
+                : <>Collect by <span className="font-semibold">{order.pickupDueAt ? new Date(order.pickupDueAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}</span> · show order number <span className="text-mono">{order.order_number ?? order.id}</span></>}
+            </div>
+            <div className="text-sm text-muted-foreground mt-1">{order.address.name} · {order.address.phone}</div>
+          </div>
+        ) : (
+          <div className="border border-border p-5 bg-surface">
+            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">SHIPPING TO</div>
+            <div className="font-semibold">{order.address.name}</div>
+            <div className="text-sm text-muted-foreground">{order.address.line1}</div>
+            <div className="text-sm text-muted-foreground">{order.address.city}, {order.address.state} {order.address.pincode}</div>
+            <div className="text-sm text-muted-foreground mt-1">{order.address.phone}</div>
+          </div>
+        )}
         <div className="border border-border p-5 bg-surface">
           <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">PAYMENT</div>
           <div className="font-semibold">Razorpay</div>

@@ -6,7 +6,7 @@ import {
   Undo2, RotateCcw, BarChart3, Trophy, Bell, Settings, Tags, Download, FileEdit,
   Megaphone, Layout, Menu, HelpCircle, Star, Image, Globe, MessageSquare,
   UserCheck, AtSign, BookOpen, Users2, Heading, X, Ruler, PanelBottom, Sparkles,
-  Loader, Boxes, LifeBuoy, TicketPercent, Gift, UserPlus,
+  Loader, Boxes, LifeBuoy, TicketPercent, Gift, UserPlus, Store,
 } from "lucide-react";
 import { listOrders, type Order } from "@/lib/orders";
 import { getLastSeen, markSeen } from "@/lib/notifications";
@@ -81,6 +81,7 @@ function AdminLayout() {
     { to: "/admin/catalog" as const, label: "CATALOG", icon: Tags },
     { to: "/admin/sizes" as const, label: "SIZES", icon: Ruler },
     { to: "/admin/orders" as const, label: "ORDERS", icon: ShoppingBag, badge: unseenOrders.length },
+    { to: "/admin/store-pickups" as const, label: "STORE PICKUPS", icon: Store },
     { to: "/admin/invoices" as const, label: "INVOICES", icon: FileText },
     { to: "/admin/invoice-template" as const, label: "INVOICE TEMPLATE", icon: FileEdit },
     { to: "/admin/refunds" as const, label: "REFUNDS", icon: Undo2 },

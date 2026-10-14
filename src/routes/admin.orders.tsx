@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { listOrders, updateOrderStatus, refundOrder, createShipment, type Order, type OrderStatus } from "@/lib/orders";
+import { listOrders, updateOrderStatus, refundOrder, createShipment, isStorePickup, isPickupOverdue, type Order, type OrderStatus } from "@/lib/orders";
 import { formatINR } from "@/context/CartContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -89,16 +89,28 @@ function AdminOrders() {
                   <td className="p-3 text-muted-foreground text-xs">{new Date(o.createdAt).toLocaleDateString()}</td>
                   <td className="p-3 text-mono">{formatINR(o.total)}</td>
                   <td className="p-3">
-                    <select
-                      value={o.status}
-                      onChange={(e) => change(o.id, e.target.value as OrderStatus)}
-                      className="bg-background border border-border px-2 h-8 text-mono text-xs"
-                    >
-                      {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
+                    {isStorePickup(o) ? (
+                      // Store pickup never ships: no status steps here, handled in Store Pickups.
+                      <Link to="/admin/store-pickups" className="inline-flex flex-col items-start gap-1 hover:opacity-80">
+                        <span className="text-mono text-[10px] tracking-widest px-2 py-1 bg-foreground text-background">STORE PICKUP</span>
+                        <span className={`text-mono text-[10px] tracking-widest ${o.collectedAt ? "text-emerald-600" : isPickupOverdue(o) ? "text-red-500" : "text-amber-600"}`}>
+                          {o.status === "CANCELLED" || o.status === "REFUNDED" ? o.status : o.collectedAt ? "COLLECTED" : isPickupOverdue(o) ? "OVERDUE" : "PENDING"}
+                        </span>
+                      </Link>
+                    ) : (
+                      <select
+                        value={o.status}
+                        onChange={(e) => change(o.id, e.target.value as OrderStatus)}
+                        className="bg-background border border-border px-2 h-8 text-mono text-xs"
+                      >
+                        {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    )}
                   </td>
                   <td className="p-3">
-                    {o.awbNumber ? (
+                    {isStorePickup(o) ? (
+                      <span className="text-muted-foreground text-xs">— store pickup, no shipping</span>
+                    ) : o.awbNumber ? (
                       <div className="text-xs">
                         <div className="text-mono">{o.awbNumber}</div>
                         <div className="text-muted-foreground">{o.courierName ?? "—"}</div>

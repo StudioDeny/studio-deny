@@ -56,6 +56,12 @@ export type Order = {
   returnTrackingUrl?: string;
   returnReceivedAt?: number;
   replacementOrderId?: string;
+  /** "pickup" = store pickup: paid online, collected at the store, no shipping. */
+  fulfillment?: "delivery" | "pickup";
+  /** Store pickup: collect-by date (order + 7 days, set by the database). */
+  pickupDueAt?: number;
+  /** Store pickup: when the admin marked it collected. */
+  collectedAt?: number;
   createdAt: number;
 };
 
@@ -103,6 +109,9 @@ function mapRow(row: DBOrder): Order {
     returnTrackingUrl: row.return_tracking_url ?? undefined,
     returnReceivedAt: row.return_received_at ? new Date(row.return_received_at).getTime() : undefined,
     replacementOrderId: row.replacement_order_id ?? undefined,
+    fulfillment: row.fulfillment ?? "delivery",
+    pickupDueAt: row.pickup_due_at ? new Date(row.pickup_due_at).getTime() : undefined,
+    collectedAt: row.collected_at ? new Date(row.collected_at).getTime() : undefined,
     createdAt: new Date(row.created_at).getTime(),
   };
 }
@@ -130,6 +139,20 @@ export async function listOrders(): Promise<Order[]> {
   if (error) { console.warn("listOrders:", error.message); return []; }
   return (data ?? []).map(mapRow);
 }
+
+// Store pickup: the admin marks an order collected (or undoes it). The order
+// status is not touched, so no shipped/delivered step or message runs.
+export async function setPickupCollected(id: string, collected: boolean): Promise<void> {
+  const { error } = await supabase
+    .from("orders")
+    .update({ collected_at: collected ? new Date().toISOString() : null } as never)
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export const isStorePickup = (o: Pick<Order, "fulfillment">) => o.fulfillment === "pickup";
+export const isPickupOverdue = (o: Order) =>
+  isStorePickup(o) && !o.collectedAt && !!o.pickupDueAt && o.pickupDueAt < Date.now() && o.status !== "CANCELLED" && o.status !== "REFUNDED";
 
 export async function ordersFor(email: string): Promise<Order[]> {
   const { data, error } = await supabase
@@ -162,6 +185,7 @@ export async function createOrder(params: {
   quote: OrderQuote;
   payment_method?: Order["payment_method"];
   cod_advance_paid?: boolean;
+  fulfillment?: "delivery" | "pickup";
 }): Promise<Order> {
   const id = "SD" + Date.now().toString(36).toUpperCase();
   const { quote } = params;
@@ -203,6 +227,7 @@ export async function createOrder(params: {
       payment_method: params.payment_method ?? "razorpay",
       cod_advance_paid: params.cod_advance_paid ?? false,
       cod_advance_amount: isCod ? quote.cod_advance : null,
+      ...(params.fulfillment === "pickup" ? { fulfillment: "pickup" } : {}),
     } as any)
     .select()
     .single();

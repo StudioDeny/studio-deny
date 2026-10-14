@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { ordersFor, cancelOrder, requestReturn, type Order } from "@/lib/orders";
+import { ordersFor, cancelOrder, requestReturn, isStorePickup, type Order } from "@/lib/orders";
 import { formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { listProducts, type Product } from "@/lib/productsStore";
@@ -212,6 +212,13 @@ function Account() {
                     : o.status === "REFUNDED" ? "bg-purple-100 text-purple-800"
                     : "bg-red-100 text-red-800"
                   }`}>{o.status}</span>
+                  {isStorePickup(o) && o.status !== "CANCELLED" && o.status !== "REFUNDED" && (
+                    <span className="text-mono text-[9px] tracking-widest px-2 py-1 rounded font-semibold bg-foreground text-background">
+                      {o.collectedAt
+                        ? "STORE PICKUP · COLLECTED"
+                        : `STORE PICKUP · COLLECT BY ${o.pickupDueAt ? new Date(o.pickupDueAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" }).toUpperCase() : ""}`}
+                    </span>
+                  )}
                   {o.returnStatus && (
                     <span className="text-mono text-[9px] tracking-widest px-2 py-1 rounded font-semibold bg-purple-100 text-purple-800">
                       {RETURN_STATUS_LABEL[o.returnStatus] ?? o.returnStatus}
@@ -226,10 +233,10 @@ function Account() {
                     <a href={o.returnTrackingUrl} target="_blank" rel="noopener noreferrer" title="Track return" className="text-muted-foreground hover:text-primary"><RotateCcw className="size-4" /></a>
                   )}
                   <Link to="/invoice/$id" params={{ id: o.id }} title="Invoice" className="text-muted-foreground hover:text-primary"><FileText className="size-4" /></Link>
-                  {(o.status === "PLACED" || o.status === "PACKED" || o.status === "SHIPPED") && (
+                  {!isStorePickup(o) && (o.status === "PLACED" || o.status === "PACKED" || o.status === "SHIPPED") && (
                     <button title="Cancel" onClick={() => setCancelTarget(o.id)} className="text-muted-foreground hover:text-primary"><X className="size-4" /></button>
                   )}
-                  {o.status === "DELIVERED" && !o.returnStatus && o.deliveredAt && (Date.now() - o.deliveredAt) / (1000 * 60 * 60 * 24) <= RETURN_WINDOW_DAYS && (
+                  {!isStorePickup(o) && o.status === "DELIVERED" && !o.returnStatus && o.deliveredAt && (Date.now() - o.deliveredAt) / (1000 * 60 * 60 * 24) <= RETURN_WINDOW_DAYS && (
                     <button title="Request return" onClick={() => setReturnTarget(o.id)} className="text-muted-foreground hover:text-primary"><RotateCcw className="size-4" /></button>
                   )}
                   <Link to="/order/$id" params={{ id: o.id }} className="text-mono text-[11px] tracking-widest text-primary hover:underline">VIEW →</Link>
