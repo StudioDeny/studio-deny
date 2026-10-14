@@ -230,17 +230,17 @@ export function Footer() {
         aria-label="Developed and maintained by ARTECHSTUDIO (opens in a new tab)"
       >
         <span className="btn-fill-bg bg-accent" />
-        <span className="relative z-[1] max-w-[1560px] mx-auto px-4 md:px-8 py-8 md:py-12 flex items-end justify-between gap-5">
+        <span className="relative z-[1] max-w-[1560px] mx-auto px-4 md:px-8 py-6 md:py-8 flex items-end justify-between gap-5">
           <span className="min-w-0">
-            <span className="block text-mono text-white/75 font-semibold" style={{ fontSize: "clamp(12px, 1.2vw, 15px)", letterSpacing: "0.3em" }}>
+            <span className="block text-mono text-white/75 font-semibold" style={{ fontSize: "clamp(11px, 1vw, 13px)", letterSpacing: "0.3em" }}>
               ◢ DEVELOPED & MAINTAINED BY
             </span>
-            <span className="block text-display text-white mt-3" style={{ fontSize: "clamp(48px, 12vw, 176px)", lineHeight: 0.85 }}>
+            <span className="block text-display text-white mt-2" style={{ fontSize: "clamp(34px, 6.5vw, 96px)", lineHeight: 0.9 }}>
               ARTECHSTUDIO
             </span>
           </span>
-          <span className="size-12 md:size-20 shrink-0 border border-white/50 group-hover:border-white group-hover:bg-white group-hover:text-accent flex items-center justify-center transition-colors duration-500">
-            <ArrowUpRight className="size-5 md:size-8 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          <span className="size-11 md:size-14 shrink-0 border border-white/50 group-hover:border-white group-hover:bg-white group-hover:text-accent flex items-center justify-center transition-colors duration-500">
+            <ArrowUpRight className="size-5 md:size-6 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </span>
         </span>
       </a>
