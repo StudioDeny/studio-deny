@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { Newsletter } from "./Newsletter";
-import { Instagram, Youtube, MessageCircle } from "lucide-react";
+import { Instagram, Youtube, MessageCircle, ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { NavMenuItem, BrandSettings } from "@/types/database";
 
@@ -220,18 +220,32 @@ export function Footer() {
         </div>
       </div>
 
+      {/* Studio credit: solid black strip, huge white name; the brand red
+          sweeps in from the left on hover (same .btn-fill as the buttons). */}
+      <a
+        href="https://www.artechstudio.co.in/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-fill group block bg-foreground text-white"
+        aria-label="Developed and maintained by ARTECHSTUDIO (opens in a new tab)"
+      >
+        <span className="btn-fill-bg bg-accent" />
+        <span className="relative z-[1] max-w-[1560px] mx-auto px-4 md:px-8 py-8 md:py-12 flex items-end justify-between gap-5">
+          <span className="min-w-0">
+            <span className="block text-mono text-white/75 font-semibold" style={{ fontSize: "clamp(12px, 1.2vw, 15px)", letterSpacing: "0.3em" }}>
+              ◢ DEVELOPED & MAINTAINED BY
+            </span>
+            <span className="block text-display text-white mt-3" style={{ fontSize: "clamp(48px, 12vw, 176px)", lineHeight: 0.85 }}>
+              ARTECHSTUDIO
+            </span>
+          </span>
+          <span className="size-12 md:size-20 shrink-0 border border-white/50 group-hover:border-white group-hover:bg-white group-hover:text-accent flex items-center justify-center transition-colors duration-500">
+            <ArrowUpRight className="size-5 md:size-8 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </span>
+        </span>
+      </a>
+
       <div className="border-t border-border px-4 md:px-8 py-6 flex flex-col md:flex-row flex-wrap gap-3 md:gap-x-6 items-center justify-center md:justify-between" style={{ background: "var(--color-muted)" }}>
-        <div className="w-full md:w-auto min-w-0 text-mono text-muted-foreground text-center md:text-left break-words" style={{ fontSize: "10px", letterSpacing: "0.18em" }}>
-          DEVELOPED & MAINTAINED BY{" "}
-          <a
-            href="https://www.artechstudio.co.in/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-foreground hover:text-primary transition-colors"
-          >
-            ARTECHSTUDIO
-          </a>
-        </div>
         <div className="w-full md:w-auto min-w-0 text-mono text-muted-foreground text-center break-words" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
           © {new Date().getFullYear()} STUDIO DENY · ALL RIGHTS RESERVED
         </div>
