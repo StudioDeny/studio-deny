@@ -11,12 +11,12 @@ import { createOrder, ordersFor, type Order } from "@/lib/orders";
 import { openRazorpay, CouponRejectedError } from "@/lib/razorpay";
 import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { pointsFromOrders, tierFor } from "@/lib/loyalty";
-import { fetchQuote, quoteLines, couponErrorMessage, couponLabel, couponStatus, myWelcomeCoupon, type OrderQuote } from "@/lib/coupons";
-import type { Coupon } from "@/types/database";
+import { fetchQuote, fetchAvailableCoupons, quoteLines, couponErrorMessage, type AvailableCoupon, type OrderQuote } from "@/lib/coupons";
+import { CouponSheet } from "@/components/checkout/CouponSheet";
 import { listAddresses, saveAddress, type SavedAddress } from "@/lib/addresses";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Lock, Sparkles, Truck, Tag, X } from "lucide-react";
+import { Lock, Sparkles, Truck, Tag, X, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
   component: Checkout,
@@ -74,17 +74,18 @@ function Checkout() {
   const tier = tierFor(pointsFromOrders(userOrders));
   const discountPct = settings.discount[tier.name as keyof typeof settings.discount] ?? 0;
 
-  const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
-  const [welcome, setWelcome] = useState<Coupon | null>(null);
   const [quote, setQuote] = useState<OrderQuote | null>(null);
   const [quoteFailed, setQuoteFailed] = useState(false);
-
-  useEffect(() => {
-    if (!user) return;
-    myWelcomeCoupon().then((c) => setWelcome(c && couponStatus(c) === "active" ? c : null));
-  }, [user]);
+  // Coupon list for the "Apply coupon" sheet: undefined = loading, null = failed.
+  const [coupons, setCoupons] = useState<AvailableCoupon[] | null | undefined>(undefined);
+  const [couponSheet, setCouponSheet] = useState(false);
+  // The code being checked by the quote right now (spinner in the sheet), and
+  // the code that was working before it — kept if the new one fails.
+  const [checkingCode, setCheckingCode] = useState<string | null>(null);
+  const checkingRef = useRef<string | null>(null);
+  const fallbackRef = useRef<string | null>(null);
 
   // Re-price whenever the bag or the applied code changes. The server is
   // the only place money is computed.
@@ -96,24 +97,45 @@ function Checkout() {
     fetchQuote(quoteLines(items), appliedCoupon)
       .then((q) => {
         if (cancelled) return;
+        const asked = appliedCoupon !== null && checkingRef.current === appliedCoupon;
+        if (asked) { checkingRef.current = null; setCheckingCode(null); }
         if (appliedCoupon && q.coupon_error) {
-          setCouponMsg(couponErrorMessage(q.coupon_error, q.coupon_min_order));
-          setAppliedCoupon(null);
+          setCouponMsg(couponErrorMessage(q.coupon_error, q.coupon_min_order, q.coupon_scope));
+          setAppliedCoupon(asked ? fallbackRef.current : null);
           return;
         }
+        if (asked) setCouponSheet(false);
         setQuote(q);
       })
-      .catch(() => { if (!cancelled) setQuoteFailed(true); });
+      .catch(() => {
+        if (cancelled) return;
+        checkingRef.current = null;
+        setCheckingCode(null);
+        setQuoteFailed(true);
+      });
     return () => { cancelled = true; };
   }, [user, linesKey, appliedCoupon]);
+
+  useEffect(() => {
+    if (!user || items.length === 0) return;
+    let cancelled = false;
+    fetchAvailableCoupons(quoteLines(items)).then((list) => { if (!cancelled) setCoupons(list); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, linesKey]);
 
   const applyCoupon = (code: string) => {
     const c = code.trim().toUpperCase();
     if (!c) return;
     setCouponMsg(null);
+    if (c === appliedCoupon && quote?.coupon_code === c) { setCouponSheet(false); return; }
+    fallbackRef.current = quote?.coupon_code ?? null;
+    checkingRef.current = c;
+    setCheckingCode(c);
     setAppliedCoupon(c);
   };
-  const removeCoupon = () => { setAppliedCoupon(null); setCouponInput(""); setCouponMsg(null); };
+  const removeCoupon = () => { setAppliedCoupon(null); setCouponMsg(null); };
+  const usableCoupons = (coupons ?? []).filter((c) => !c.error);
 
   const codAvailable = quote?.cod_available ?? false;
 
@@ -228,7 +250,7 @@ function Checkout() {
       } catch (e: any) {
         setPaying(false);
         if (e instanceof CouponRejectedError) {
-          setCouponMsg(couponErrorMessage(e.couponError, e.minOrder));
+          setCouponMsg(couponErrorMessage(e.couponError, e.minOrder, quote?.coupon_scope));
           setAppliedCoupon(null);
           return;
         }
@@ -264,7 +286,7 @@ function Checkout() {
       } catch (e: any) {
         setPaying(false);
         if (e instanceof CouponRejectedError) {
-          setCouponMsg(couponErrorMessage(e.couponError, e.minOrder));
+          setCouponMsg(couponErrorMessage(e.couponError, e.minOrder, quote?.coupon_scope));
           setAppliedCoupon(null);
           return;
         }
@@ -311,7 +333,7 @@ function Checkout() {
       <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-2">◢ STEP 02</div>
       <h1 className="text-display text-5xl md:text-7xl mb-8">CHECKOUT.</h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="grid lg:grid-cols-[1fr_380px] gap-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] gap-8">
         <div className="space-y-8">
           <div>
             <h2 className="text-display text-2xl tracking-wider mb-4">CONTACT</h2>
@@ -428,36 +450,38 @@ function Checkout() {
           {/* Coupon */}
           <div className="border-t border-border mt-4 pt-4">
             {appliedCoupon && quote?.coupon_code ? (
-              <div className="flex items-center justify-between border border-primary/40 bg-primary/5 px-3 h-10">
-                <span className="text-mono text-xs tracking-widest flex items-center gap-2"><Tag className="size-3.5" /> {quote.coupon_code}</span>
+              <div className="flex items-center gap-3 border border-primary/40 bg-primary/5 px-3 py-2.5">
+                <Tag className="size-4 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-mono text-xs tracking-widest font-semibold truncate">{quote.coupon_code} APPLIED</div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">You save {formatINR(quote.coupon_discount)}</div>
+                </div>
+                <button type="button" onClick={() => setCouponSheet(true)} className="text-mono text-[10px] tracking-widest underline underline-offset-4 hover:text-primary">
+                  CHANGE
+                </button>
                 <button type="button" onClick={removeCoupon} aria-label="Remove coupon" className="text-muted-foreground hover:text-primary"><X className="size-4" /></button>
               </div>
             ) : (
-              <>
-                <div className="flex gap-2">
-                  <input
-                    value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCoupon(couponInput); } }}
-                    placeholder="COUPON CODE"
-                    className="flex-1 min-w-0 bg-background border border-border h-10 px-3 text-mono text-xs tracking-widest uppercase focus:border-primary outline-none"
-                  />
-                  <button type="button" onClick={() => applyCoupon(couponInput)} className="border border-border px-4 h-10 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary">
-                    APPLY
-                  </button>
-                </div>
-                {welcome && (
-                  <button
-                    type="button"
-                    onClick={() => applyCoupon(welcome.code)}
-                    className="mt-2 w-full text-left border border-dashed border-primary/50 px-3 py-2 text-xs hover:bg-primary/5"
-                  >
-                    Your welcome offer <span className="text-mono font-semibold">{welcome.code}</span> — {couponLabel(welcome)} · <span className="text-primary">APPLY</span>
-                  </button>
-                )}
-              </>
+              <button
+                type="button"
+                onClick={() => setCouponSheet(true)}
+                className="w-full flex items-center gap-3 border border-border bg-background px-3 py-3 text-left hover:border-primary transition-colors"
+              >
+                <Tag className="size-4 shrink-0" />
+                <span className="flex-1 min-w-0">
+                  <span className="block text-mono text-xs tracking-widest font-semibold">APPLY COUPON</span>
+                  <span className="block text-[11px] text-muted-foreground truncate">
+                    {usableCoupons.length > 0
+                      ? `${usableCoupons.length} available · save up to ${formatINR(usableCoupons[0].discount)}`
+                      : coupons && coupons.length > 0
+                        ? `${coupons.length} coupon${coupons.length > 1 ? "s" : ""} · see how to unlock`
+                        : "Have a code? Enter it here"}
+                  </span>
+                </span>
+                <ChevronRight className="size-4 shrink-0" />
+              </button>
             )}
-            {couponMsg && <p className="text-xs text-primary mt-2">{couponMsg}</p>}
+            {couponMsg && !couponSheet && <p className="text-xs text-primary mt-2">{couponMsg}</p>}
           </div>
 
           <div className="border-t border-border mt-4 pt-4 space-y-2 text-sm text-mono">
@@ -467,13 +491,13 @@ function Checkout() {
               <>
                 <div className="flex justify-between"><span className="text-muted-foreground">SUBTOTAL</span><span>{formatINR(quote.subtotal)}</span></div>
                 {quote.loyalty_discount > 0 && (
-                  <div className="flex justify-between text-secondary">
+                  <div className="flex justify-between text-foreground">
                     <span className="flex items-center gap-1"><Sparkles className="size-3" /> {tier.name} −{discountPct}%</span>
                     <span>−{formatINR(quote.loyalty_discount)}</span>
                   </div>
                 )}
                 {quote.coupon_discount > 0 && (
-                  <div className="flex justify-between text-secondary">
+                  <div className="flex justify-between text-foreground">
                     <span className="flex items-center gap-1"><Tag className="size-3" /> {quote.coupon_code}</span>
                     <span>−{formatINR(quote.coupon_discount)}</span>
                   </div>
@@ -510,6 +534,15 @@ function Checkout() {
           </button>
         </aside>
       </form>
+      <CouponSheet
+        open={couponSheet}
+        onOpenChange={(o) => { setCouponSheet(o); setCouponMsg(null); }}
+        coupons={coupons}
+        appliedCode={quote?.coupon_code ?? null}
+        checkingCode={checkingCode}
+        message={couponMsg}
+        onApply={applyCoupon}
+      />
     </section>
   );
 }

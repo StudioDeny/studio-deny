@@ -56,6 +56,15 @@ export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
   },
 ];
 
+// A slide saved as "video" with a photo uploaded (or the other way round)
+// rendered nothing: a photo can't play in <video>. Trust the file when its
+// URL says what it is (Cloudinary's /image/ or /video/ path, or extension).
+function fileMediaType(src: string, saved: "image" | "video"): "image" | "video" {
+  if (/\/image\/upload\/|\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(src)) return "image";
+  if (/\/video\/upload\/|\.(mp4|webm|mov)(\?|$)/i.test(src)) return "video";
+  return saved;
+}
+
 const AUTOPLAY_MS = 6500;
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -79,7 +88,7 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
 
   const slide = data[Math.min(active, data.length - 1)];
   const mediaSrc = isMobile && slide.mobile_src ? slide.mobile_src : slide.src;
-  const mediaType = isMobile && slide.mobile_src ? (slide.mobile_media_type ?? "image") : slide.media_type;
+  const mediaType = fileMediaType(mediaSrc, isMobile && slide.mobile_src ? (slide.mobile_media_type ?? "image") : slide.media_type);
   const lines = slide.title.split("\n");
   const parallax = Math.min(scrollY * 0.25, 90);
 
@@ -124,7 +133,6 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
 
       <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay pointer-events-none"
         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
-      <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/50 via-black/10 to-black/30 pointer-events-none" />
 
       {/* Text content is bottom-anchored (not vertically centered) — this keeps it
           clear of the fixed marquee+navbar stack regardless of exact bar height,

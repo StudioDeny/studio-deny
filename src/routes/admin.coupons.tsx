@@ -3,6 +3,9 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Coupon, CouponRedemption } from "@/types/database";
 import { couponLabel, couponStatus } from "@/lib/coupons";
+import { listCategories, type Category } from "@/lib/catalog";
+import { listAllAdminProducts, type Product } from "@/lib/productsStore";
+import { CouponScopeEditor, productsInScope, type CouponScope } from "@/components/admin/CouponScopeEditor";
 import { formatINR } from "@/context/CartContext";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
@@ -27,13 +30,15 @@ type Draft = {
   expires_at: string;
   first_order_only: boolean;
   is_active: boolean;
-};
+} & CouponScope;
 
 const BLANK: Draft = {
   kind: "general", code: "", description: "", discount_type: "percent", discount_value: "",
   max_discount: "", min_order: "", max_uses: "", per_user_limit: "1", starts_at: "", expires_at: "",
-  first_order_only: false, is_active: true,
+  first_order_only: false, is_active: true, scope: "all", categoryIds: [], excluded: [],
 };
+
+type ScopeRows = Record<string, { categoryIds: string[]; excluded: string[] }>;
 
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const randomCode = () => "DENY" + Array.from({ length: 6 }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join("");
@@ -47,14 +52,30 @@ const toLocalInput = (iso: string | null) => {
 const fromLocalInput = (v: string) => (v ? new Date(v).toISOString() : null);
 const numOrNull = (v: string) => (v.trim() === "" ? null : Number(v));
 
-const toDraft = (c: Coupon): Draft => ({
+const toDraft = (c: Coupon, scope?: ScopeRows[string]): Draft => ({
   id: c.id, kind: c.kind, code: c.code, description: c.description ?? "",
   discount_type: c.discount_type, discount_value: String(c.discount_value),
   max_discount: c.max_discount?.toString() ?? "", min_order: c.min_order?.toString() ?? "",
   max_uses: c.max_uses?.toString() ?? "", per_user_limit: c.per_user_limit?.toString() ?? "",
   starts_at: toLocalInput(c.starts_at), expires_at: toLocalInput(c.expires_at),
   first_order_only: c.first_order_only, is_active: c.is_active,
+  scope: scope && scope.categoryIds.length > 0 ? "categories" : "all",
+  categoryIds: scope?.categoryIds ?? [], excluded: scope?.excluded ?? [],
 });
+
+// Coupon categories + left-out products for every coupon. Empty if the
+// 20261014000001 migration hasn't been run yet.
+async function loadScopes(): Promise<ScopeRows> {
+  const [cats, excl] = await Promise.all([
+    supabase.from("coupon_categories" as never).select("coupon_id, category_id"),
+    supabase.from("coupon_excluded_products" as never).select("coupon_id, product_slug"),
+  ]);
+  const out: ScopeRows = {};
+  const entry = (id: string) => (out[id] ??= { categoryIds: [], excluded: [] });
+  for (const r of (cats.data ?? []) as { coupon_id: string; category_id: string }[]) entry(r.coupon_id).categoryIds.push(r.category_id);
+  for (const r of (excl.data ?? []) as { coupon_id: string; product_slug: string }[]) entry(r.coupon_id).excluded.push(r.product_slug);
+  return out;
+}
 
 function validate(d: Draft): string | null {
   const code = d.code.trim().toUpperCase();
@@ -80,14 +101,35 @@ function AdminCoupons() {
   const [deleteTarget, setDeleteTarget] = useState<Coupon | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [redemptions, setRedemptions] = useState<Record<string, CouponRedemption[]>>({});
+  const [scopes, setScopes] = useState<ScopeRows>({});
+  const [cats, setCats] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [memberships, setMemberships] = useState<Map<string, Set<string>>>(new Map());
 
   const load = async () => {
-    const { data, error } = await supabase.from("coupons").select("*").order("created_at", { ascending: false }).limit(1000);
+    const [{ data, error }, sc] = await Promise.all([
+      supabase.from("coupons").select("*").order("created_at", { ascending: false }).limit(1000),
+      loadScopes(),
+    ]);
     if (error) toast.error(error.message);
     setRows((data as Coupon[]) ?? []);
+    setScopes(sc);
     setLoading(false);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    listCategories().then(setCats);
+    listAllAdminProducts().then(setProducts);
+    supabase.from("product_categories").select("product_slug, category_id").then(({ data }) => {
+      const m = new Map<string, Set<string>>();
+      for (const r of (data ?? []) as { product_slug: string; category_id: string }[]) {
+        if (!m.has(r.product_slug)) m.set(r.product_slug, new Set());
+        m.get(r.product_slug)!.add(r.category_id);
+      }
+      setMemberships(m);
+    });
+  }, []);
+  const catName = (id: string) => cats.find((c) => c.id === id)?.name ?? "deleted category";
 
   const visible = useMemo(() => rows.filter((c) =>
     (kindFilter === "all" || c.kind === kindFilter) &&
@@ -99,6 +141,12 @@ function AdminCoupons() {
     if (!draft) return;
     const problem = validate(draft);
     if (problem) return toast.error(problem);
+    const limited = draft.kind === "general" && draft.scope === "categories";
+    const inScope = limited ? productsInScope(draft.categoryIds, cats, products, memberships) : [];
+    if (limited && draft.categoryIds.length === 0) return toast.error("Tick at least one category, or choose Whole store");
+    if (limited && inScope.length > 0 && inScope.every((p) => draft.excluded.includes(p.slug))) {
+      return toast.error("Every product is unticked — tick at least one, or the coupon can't be used");
+    }
     setSaving(true);
     const fields = {
       code: draft.code.trim().toUpperCase(),
@@ -114,9 +162,25 @@ function AdminCoupons() {
       first_order_only: draft.first_order_only,
       is_active: draft.is_active,
     };
-    const { error } = draft.id
-      ? await supabase.from("coupons").update(fields).eq("id", draft.id)
-      : await supabase.from("coupons").insert({ ...fields, kind: "general", assigned_user_id: null, welcome_tier_id: null });
+    // Coupon + its categories in one transaction: a coupon saved without its
+    // category limit would work on the whole store.
+    let { error } = await supabase.rpc("save_coupon" as never, {
+      p_id: draft.id ?? null,
+      p_fields: fields,
+      p_categories: limited ? draft.categoryIds : [],
+      p_excluded: limited ? draft.excluded.filter((slug) => inScope.some((p) => p.slug === slug)) : [],
+    } as never);
+    // Before the 20261014000001 SQL is run there is no save_coupon(): whole-store
+    // coupons still save the old way; category limits need the SQL.
+    if (error && /save_coupon/.test(error.message)) {
+      if (limited) {
+        setSaving(false);
+        return toast.error("Category coupons need the new SQL — run supabase/migrations/20261014000001_coupon_scope_and_list.sql in Supabase first");
+      }
+      ({ error } = draft.id
+        ? await supabase.from("coupons").update(fields).eq("id", draft.id)
+        : await supabase.from("coupons").insert({ ...fields, kind: "general", assigned_user_id: null, welcome_tier_id: null }));
+    }
     setSaving(false);
     if (error) return toast.error(error.code === "23505" ? "That code already exists" : error.message);
     toast.success("Coupon saved");
@@ -164,7 +228,7 @@ function AdminCoupons() {
       </div>
 
       {draft && (
-        <div className="border border-border bg-surface p-4 mb-6 max-w-3xl space-y-4">
+        <div className="border border-border bg-surface p-4 mb-6 max-w-4xl space-y-4">
           <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{draft.id ? `EDIT ${draft.kind === "welcome" ? "WELCOME " : ""}COUPON` : "NEW COUPON"}</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="block">
@@ -216,6 +280,17 @@ function AdminCoupons() {
               <input type="datetime-local" value={draft.expires_at} onChange={(e) => set({ expires_at: e.target.value })} className="inp" />
             </label>
           </div>
+          {draft.kind === "general" && (
+            <div className="border-t border-border pt-4">
+              <CouponScopeEditor
+                value={{ scope: draft.scope, categoryIds: draft.categoryIds, excluded: draft.excluded }}
+                onChange={(v) => set(v)}
+                cats={cats}
+                products={products}
+                memberships={memberships}
+              />
+            </div>
+          )}
           <div className="flex flex-wrap gap-6">
             <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={draft.is_active} onChange={(e) => set({ is_active: e.target.checked })} className="size-4" /><span className="lbl !mb-0">ACTIVE</span></label>
             <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={draft.first_order_only} onChange={(e) => set({ first_order_only: e.target.checked })} className="size-4" /><span className="lbl !mb-0">FIRST ORDER ONLY</span></label>
@@ -276,6 +351,12 @@ function AdminCoupons() {
                       {couponLabel(c)}
                       {c.max_discount ? <span className="text-muted-foreground text-xs"> · max {formatINR(c.max_discount)}</span> : null}
                       {c.min_order ? <div className="text-muted-foreground text-xs">min {formatINR(c.min_order)}</div> : null}
+                      {scopes[c.id]?.categoryIds.length ? (
+                        <div className="text-xs mt-0.5">
+                          Only {scopes[c.id].categoryIds.map(catName).join(", ")}
+                          {scopes[c.id].excluded.length > 0 && <span className="text-muted-foreground"> · {scopes[c.id].excluded.length} left out</span>}
+                        </div>
+                      ) : null}
                     </td>
                     <td className="p-3 text-mono text-xs">{c.used_count}{c.max_uses ? ` / ${c.max_uses}` : ""}</td>
                     <td className="p-3 text-xs">{c.expires_at ? new Date(c.expires_at).toLocaleString("en-IN") : "—"}</td>
@@ -285,7 +366,7 @@ function AdminCoupons() {
                       </button>
                     </td>
                     <td className="p-3 text-right whitespace-nowrap">
-                      <button type="button" onClick={() => setDraft(toDraft(c))} className="text-mono text-[10px] tracking-widest hover:text-primary mr-3">EDIT</button>
+                      <button type="button" onClick={() => setDraft(toDraft(c, scopes[c.id]))} className="text-mono text-[10px] tracking-widest hover:text-primary mr-3">EDIT</button>
                       <button type="button" onClick={() => setDeleteTarget(c)} className="text-muted-foreground hover:text-red-500" aria-label={`Delete ${c.code}`}><Trash2 className="size-3.5" /></button>
                     </td>
                   </tr>

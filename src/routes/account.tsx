@@ -14,6 +14,8 @@ import { getMyProfile, updateMyProfile } from "@/lib/profile";
 import { myWelcomeCoupon, couponLabel, couponStatus } from "@/lib/coupons";
 import type { Coupon, CouponRedemption } from "@/types/database";
 import { supabase } from "@/lib/supabase";
+import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
+import { LoyaltyCard } from "@/components/account/LoyaltyCard";
 
 const RETURN_WINDOW_DAYS = 7;
 const RETURN_STATUS_LABEL: Record<string, string> = {
@@ -34,6 +36,8 @@ function Account() {
   const navigate = useNavigate();
   const { slugs, toggle } = useWishlist();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loyaltySettings, setLoyaltySettings] = useState(DEFAULT_LOYALTY_SETTINGS);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
   const [returnTarget, setReturnTarget] = useState<string | null>(null);
   const [returnReason, setReturnReason] = useState("");
@@ -61,7 +65,8 @@ function Account() {
     if (loading) return;
     if (!user) navigate({ to: "/login" });
     else {
-      ordersFor(user.email).then(setOrders);
+      ordersFor(user.email).then((o) => { setOrders(o); setOrdersLoaded(true); });
+      getLoyaltySettings().then(setLoyaltySettings);
       setLegacyCount(countLocalAddresses());
       reloadAddresses();
       getMyProfile().then(setProfile);
@@ -162,6 +167,16 @@ function Account() {
             ? <Link key={label} to={href as "/"} className={cls}>{inner}</Link>
             : <a key={label} href={href} className={cls}>{inner}</a>;
         })}
+      </div>
+
+      {/* Loyalty */}
+      <div id="loyalty" className="scroll-mt-24 mb-14">
+        <h2 className="text-display text-3xl tracking-wider mb-4">LOYALTY</h2>
+        {ordersLoaded ? (
+          <LoyaltyCard orders={orders} settings={loyaltySettings} />
+        ) : (
+          <div className="border border-border bg-surface p-6 text-mono text-xs text-muted-foreground">LOADING…</div>
+        )}
       </div>
 
       {/* Orders */}
