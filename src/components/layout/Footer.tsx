@@ -220,30 +220,39 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Studio credit: solid black strip, huge white name; the brand red
+      {/* Brand strip: solid black, huge white STUDIO DENY; the brand red
           sweeps in from the left on hover (same .btn-fill as the buttons). */}
-      <a
-        href="https://www.artechstudio.co.in/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn-fill group block bg-foreground text-white"
-        aria-label="Developed and maintained by ARTECHSTUDIO (opens in a new tab)"
-      >
+      <Link to="/" className="btn-fill group block bg-foreground text-white" aria-label="STUDIO DENY home">
         <span className="btn-fill-bg bg-accent" />
         <span className="relative z-[1] max-w-[1560px] mx-auto px-4 md:px-8 py-6 md:py-8 flex items-end justify-between gap-5">
-          <span className="min-w-0">
-            <span className="block text-mono text-white/75 font-semibold" style={{ fontSize: "clamp(11px, 1vw, 13px)", letterSpacing: "0.3em" }}>
-              ◢ DEVELOPED & MAINTAINED BY
-            </span>
-            <span className="block text-display text-white mt-2" style={{ fontSize: "clamp(34px, 6.5vw, 96px)", lineHeight: 0.9 }}>
-              ARTECHSTUDIO
-            </span>
+          <span className="block text-display text-white min-w-0" style={{ fontSize: "clamp(40px, 8vw, 120px)", lineHeight: 0.9 }}>
+            STUDIO DENY
           </span>
           <span className="size-11 md:size-14 shrink-0 border border-white/50 group-hover:border-white group-hover:bg-white group-hover:text-accent flex items-center justify-center transition-colors duration-500">
             <ArrowUpRight className="size-5 md:size-6 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </span>
         </span>
-      </a>
+      </Link>
+
+      {/* Studio credit: small line on the black, the studio name as a red tag. */}
+      <div className="bg-foreground border-t border-white/10">
+        <div className="max-w-[1560px] mx-auto px-4 md:px-8 py-3.5 flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-2">
+          <span className="flex items-center gap-2 text-mono text-white/70" style={{ fontSize: "10px", letterSpacing: "0.3em" }}>
+            <span className="size-1.5 rounded-full bg-accent pulse-dot" />
+            MAINTAINED &amp; DEVELOPED BY
+          </span>
+          <a
+            href="https://www.artechstudio.co.in/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-1.5 bg-accent text-white px-2.5 py-1 text-mono font-semibold hover:bg-white hover:text-foreground transition-colors duration-300"
+            style={{ fontSize: "11px", letterSpacing: "0.25em" }}
+          >
+            AR TECH STUDIO
+            <ArrowUpRight className="size-3 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </a>
+        </div>
+      </div>
 
       <div className="border-t border-border px-4 md:px-8 py-6 flex flex-col md:flex-row flex-wrap gap-3 md:gap-x-6 items-center justify-center md:justify-between" style={{ background: "var(--color-muted)" }}>
         <div className="w-full md:w-auto min-w-0 text-mono text-muted-foreground text-center break-words" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
