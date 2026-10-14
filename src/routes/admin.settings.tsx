@@ -58,6 +58,27 @@ function LoyaltyTab() {
 
   return (
     <div className="space-y-6">
+      <section className="border border-border bg-surface p-6 flex items-start justify-between gap-6">
+        <div>
+          <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-1">LOYALTY PROGRAM · {s.enabled ? "ON" : "OFF"}</div>
+          <p className="text-muted-foreground text-xs text-mono max-w-xl">
+            {s.enabled
+              ? "Customers see their tier and points on their account page and get their tier discount at checkout."
+              : "Switched off: no loyalty section on the account page and no tier discount at checkout. Settings below are kept for when you switch it back on."}
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={s.enabled}
+          aria-label="Loyalty program"
+          onClick={() => setS({ ...s, enabled: !s.enabled })}
+          className={`relative shrink-0 h-7 w-12 rounded-full border transition-colors ${s.enabled ? "bg-foreground border-foreground" : "bg-background border-border"}`}
+        >
+          <span className={`absolute top-1/2 -translate-y-1/2 size-5 rounded-full transition-all ${s.enabled ? "left-[calc(100%-22px)] bg-background" : "left-0.5 bg-foreground/40"}`} />
+        </button>
+      </section>
+
       <section className="border border-border bg-surface p-6">
         <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-4">LOYALTY DISCOUNT BY TIER</div>
         <div className="grid sm:grid-cols-2 gap-4">

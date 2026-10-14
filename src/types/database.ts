@@ -379,7 +379,7 @@ export interface Database {
       };
       loyalty_settings: {
         Row: LoyaltySettingsRow;
-        Insert: Omit<LoyaltySettingsRow, "id" | "created_at" | "updated_at">;
+        Insert: Omit<LoyaltySettingsRow, "id" | "created_at" | "updated_at" | "enabled"> & { enabled?: boolean };
         Update: Partial<Omit<LoyaltySettingsRow, "id" | "created_at" | "updated_at">>;
         Relationships: [];
       };
@@ -921,6 +921,8 @@ export type InvoiceSettingsRow = {
 
 export type LoyaltySettingsRow = {
   id: string;
+  /** Program switch (20261014000002); off = no tier discount, no account section. */
+  enabled: boolean;
   discount: { ROOKIE: number; RUNNER: number; RIOT: number; LEGEND: number };
   entry_threshold: number;
   rupees_per_earned_point: number;

@@ -36,7 +36,7 @@ function Account() {
   const navigate = useNavigate();
   const { slugs, toggle } = useWishlist();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loyaltySettings, setLoyaltySettings] = useState(DEFAULT_LOYALTY_SETTINGS);
+  const [loyaltySettings, setLoyaltySettings] = useState<typeof DEFAULT_LOYALTY_SETTINGS | null>(null);
   const [ordersLoaded, setOrdersLoaded] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
   const [returnTarget, setReturnTarget] = useState<string | null>(null);
@@ -169,15 +169,17 @@ function Account() {
         })}
       </div>
 
-      {/* Loyalty */}
-      <div id="loyalty" className="scroll-mt-24 mb-14">
-        <h2 className="text-display text-3xl tracking-wider mb-4">LOYALTY</h2>
-        {ordersLoaded ? (
-          <LoyaltyCard orders={orders} settings={loyaltySettings} />
-        ) : (
-          <div className="border border-border bg-surface p-6 text-mono text-xs text-muted-foreground">LOADING…</div>
-        )}
-      </div>
+      {/* Loyalty — only while the program is switched on (Admin → Settings → Loyalty) */}
+      {loyaltySettings?.enabled && (
+        <div id="loyalty" className="scroll-mt-24 mb-14">
+          <h2 className="text-display text-3xl tracking-wider mb-4">LOYALTY</h2>
+          {ordersLoaded ? (
+            <LoyaltyCard orders={orders} settings={loyaltySettings} />
+          ) : (
+            <div className="border border-border bg-surface p-6 text-mono text-xs text-muted-foreground">LOADING…</div>
+          )}
+        </div>
+      )}
 
       {/* Orders */}
       <div className="mb-14">

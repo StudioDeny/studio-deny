@@ -8,6 +8,8 @@
 import { supabase } from "./supabase";
 
 export type LoyaltySettings = {
+  /** Program on/off. Off: no tier discount at checkout, no loyalty section on the account page. */
+  enabled: boolean;
   discount: { ROOKIE: number; RUNNER: number; RIOT: number; LEGEND: number };
   /** Minimum single-order value (₹) to enter the loyalty pool. Default 5000. */
   entryThreshold: number;
@@ -35,6 +37,7 @@ export type InvoiceTemplate = {
 };
 
 export const DEFAULT_LOYALTY_SETTINGS: LoyaltySettings = {
+  enabled: true,
   discount: { ROOKIE: 0, RUNNER: 5, RIOT: 10, LEGEND: 15 },
   entryThreshold: 5000,
   rupeesPerEarnedPoint: 50,
@@ -48,6 +51,7 @@ export type TierKey = (typeof TIER_KEYS)[number];
 
 type DBLoyaltySettings = {
   id: string;
+  enabled?: boolean; // absent until 20261014000002 is run
   discount: LoyaltySettings["discount"];
   entry_threshold: number;
   rupees_per_earned_point: number;
@@ -64,6 +68,7 @@ export async function getLoyaltySettings(): Promise<LoyaltySettings> {
   }
   const row = data as DBLoyaltySettings;
   return {
+    enabled: row.enabled ?? true,
     discount: row.discount,
     entryThreshold: Number(row.entry_threshold),
     rupeesPerEarnedPoint: Number(row.rupees_per_earned_point),
@@ -74,8 +79,14 @@ export async function getLoyaltySettings(): Promise<LoyaltySettings> {
 }
 
 export async function saveLoyaltySettings(s: LoyaltySettings): Promise<void> {
-  const { data: existing } = await supabase.from("loyalty_settings").select("id").maybeSingle();
+  const { data: existing } = await supabase.from("loyalty_settings").select("*").maybeSingle();
+  // Until 20261014000002 adds the column, save everything else as before.
+  const hasSwitch = !existing || "enabled" in existing;
+  if (!hasSwitch && !s.enabled) {
+    throw new Error("To switch loyalty off, run supabase/migrations/20261014000002_loyalty_enabled_toggle.sql in Supabase first.");
+  }
   const row = {
+    ...(hasSwitch ? { enabled: s.enabled } : {}),
     discount: s.discount,
     entry_threshold: s.entryThreshold,
     rupees_per_earned_point: s.rupeesPerEarnedPoint,
