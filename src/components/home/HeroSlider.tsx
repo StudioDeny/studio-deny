@@ -4,7 +4,6 @@ import { ArrowRight } from "lucide-react";
 import { FillLink } from "@/components/ui/FillLink";
 import { SlideDots } from "@/components/ui/SlideDots";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { blurPlaceholder } from "@/lib/blurPlaceholder";
 
 export type HeroSlide = {
   id: string;
@@ -97,13 +96,15 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
       className="dark-section relative w-full overflow-hidden min-h-[420px]"
       style={{ height: "calc(100vh - var(--topbar-h))" }}
     >
-      {/* Media layers */}
-      <AnimatePresence mode="sync">
+      {/* Media layers — no dark filter, grain or placeholder over the photos.
+          The old slide stays fully visible until the new one has faded in on
+          top of it, so no background shows between slides. */}
+      <AnimatePresence mode="sync" initial={false}>
         <motion.div
           key={slide.id}
           initial={{ opacity: 0, scale: 1.08 }}
           animate={{ opacity: 1, scale: 1, transition: { duration: 1.1, ease: EASE } }}
-          exit={{ opacity: 0, transition: { duration: 0.6, ease: EASE } }}
+          exit={{ opacity: 0, transition: { duration: 0.6, delay: 1.1, ease: EASE } }}
           className="absolute inset-0"
           style={{ transform: `translateY(${parallax}px)` }}
         >
@@ -115,7 +116,6 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
               playsInline
               preload="metadata"
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ filter: "brightness(0.55)" }}
             >
               <source src={mediaSrc} type="video/mp4" />
             </video>
@@ -125,14 +125,10 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
               alt=""
               aria-hidden
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ ...blurPlaceholder(mediaSrc), filter: "brightness(0.55)" }}
             />
           )}
         </motion.div>
       </AnimatePresence>
-
-      <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay pointer-events-none"
-        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
 
       {/* Text content is bottom-anchored (not vertically centered) — this keeps it
           clear of the fixed marquee+navbar stack regardless of exact bar height,
