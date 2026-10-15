@@ -63,12 +63,25 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType> = {
 };
 
 import { useMemo } from "react";
+import { useLocation } from "@tanstack/react-router";
 import { useWebsiteSectionsOrder, useWebsiteSectionConfig } from "@/lib/websiteSections";
+import { sectionAnchor } from "@/lib/siteLinks";
 
 function Index() {
   const allowedKeys = useMemo(() => Object.keys(SECTION_COMPONENTS), []);
   const orderedTypes = useWebsiteSectionsOrder(allowedKeys);
   const { config: heroConfig } = useWebsiteSectionConfig<{ slides?: HeroSlide[] }>("hero", {});
+
+  // Buttons can point at a home page section ("/#new-arrivals"). Sections
+  // load their content after the page renders, so scroll again once they
+  // have had time to grow.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!hash) return;
+    const go = () => document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const timers = [150, 900, 1800].map((ms) => window.setTimeout(go, ms));
+    return () => timers.forEach(clearTimeout);
+  }, [hash, orderedTypes.length]);
 
   return (
     <div className="bg-background text-foreground overflow-x-hidden min-h-screen font-body">
@@ -79,7 +92,11 @@ function Index() {
       {orderedTypes.map((type) => {
         const Section = SECTION_COMPONENTS[type];
         if (!Section) return null;
-        return <Section key={type} />;
+        return (
+          <div key={type} id={sectionAnchor(type)} className="scroll-mt-[var(--topbar-h)]">
+            <Section />
+          </div>
+        );
       })}
     </div>
   );

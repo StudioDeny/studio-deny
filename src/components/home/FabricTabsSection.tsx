@@ -3,6 +3,7 @@ import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { SiteLink } from "@/components/ui/SiteLink";
 import { supabase } from "@/lib/supabase";
 import { useSectionHeading } from "@/lib/sectionHeadings";
 import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
@@ -168,15 +169,15 @@ export function FabricTabsSection() {
                     </div>
 
                     {fabric.href ? (
-                      <Link
-                        to={fabric.href}
+                      <SiteLink
+                        href={fabric.href}
                         onClick={(e) => e.stopPropagation()}
                         aria-label={`Shop ${fabric.name}`}
                         className={`transition-all duration-300 p-2 text-foreground hover:text-primary ${isSelected ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-3 pointer-events-none"
                           }`}
                       >
                         <ArrowRight className="size-6 sm:size-8" />
-                      </Link>
+                      </SiteLink>
                     ) : (
                       <ArrowRight
                         className={`size-6 sm:size-8 transition-all duration-300 ${isSelected ? "opacity-100 translate-x-0 text-primary" : "opacity-0 -translate-x-3 text-muted-foreground"

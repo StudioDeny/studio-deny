@@ -5,6 +5,7 @@ import type { PopupPromo } from "@/types/database";
 import { MediaField, type MediaValue } from "@/components/admin/MediaField";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
+import { LinkPicker } from "@/components/admin/LinkPicker";
 import {
   Loader2, Upload, ChevronDown, Lock, Zap, Gift, Trophy, Truck, RotateCcw,
   ShieldCheck, Star, Sparkles, Heart, Award, Package, Clock, CheckCircle,
@@ -311,10 +312,10 @@ function AdminPopup() {
               <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">PRIMARY BUTTON TEXT</div>
               <input value={row.cta_primary_text} onChange={(e) => update({ cta_primary_text: e.target.value })} className="inp" />
             </label>
-            <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">PRIMARY BUTTON LINK</div>
-              <input value={row.cta_primary_href} onChange={(e) => update({ cta_primary_href: e.target.value })} className="inp" />
-            </label>
+            <div className="block">
+              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">PRIMARY BUTTON GOES TO</div>
+              <LinkPicker value={row.cta_primary_href} onChange={(href) => update({ cta_primary_href: href })} />
+            </div>
           </div>
           <label className="block">
             <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SECONDARY BUTTON TEXT ("LATER")</div>

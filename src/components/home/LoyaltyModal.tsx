@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { SiteLink } from "@/components/ui/SiteLink";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Trophy, ArrowRight, Lock, Zap, Gift, Truck, RotateCcw, ShieldCheck, Star,
@@ -220,14 +221,13 @@ export function LoyaltyModal() {
 
                 {/* CTAs */}
                 <div className="flex gap-3">
-                  <Link
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    to={cfg.cta_primary_href as any}
+                  <SiteLink
+                    href={cfg.cta_primary_href}
                     onClick={dismiss}
                     className="flex-1 bg-white text-black h-11 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest uppercase font-bold hover:bg-white/90 transition-colors"
                   >
                     {cfg.cta_primary_text} <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                  </SiteLink>
                   <button
                     onClick={dismiss}
                     className="border border-white/15 h-11 px-5 text-mono text-xs tracking-widest text-white/50 hover:text-white hover:border-white/40 transition-colors"

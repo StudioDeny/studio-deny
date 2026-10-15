@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Link } from "@tanstack/react-router";
+import { SiteLink } from "@/components/ui/SiteLink";
 import { Newsletter } from "./Newsletter";
 import { Instagram, Youtube, MessageCircle, ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -205,13 +206,13 @@ export function Footer() {
               <ul className="space-y-3">
                 {c.l.map((i) => (
                   <li key={`${i.label}-${i.href}`}>
-                    <Link
-                      to={i.href}
+                    <SiteLink
+                      href={i.href}
                       className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-0.5 inline-block"
                       style={{ fontSize: "13px" }}
                     >
                       {i.label}
-                    </Link>
+                    </SiteLink>
                   </li>
                 ))}
               </ul>

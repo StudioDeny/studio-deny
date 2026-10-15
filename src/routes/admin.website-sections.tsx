@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { MediaField } from "@/components/admin/MediaField";
+import { LinkPicker } from "@/components/admin/LinkPicker";
 import { invalidateWebsiteSectionsCache } from "@/lib/websiteSections";
 
 export const Route = createFileRoute("/admin/website-sections")({
@@ -540,11 +541,11 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
 
               <div className="grid grid-cols-2 gap-3">
                 <F label="BUTTON 1 LABEL"><input value={slide.cta_label} onChange={(e) => updateSlide(i, { cta_label: e.target.value })} className="inp" placeholder="SHOP THE DROP" /></F>
-                <F label="BUTTON 1 URL"><input value={slide.cta_href} onChange={(e) => updateSlide(i, { cta_href: e.target.value })} className="inp" placeholder="/shop" /></F>
+                <F label="BUTTON 1 GOES TO"><LinkPicker value={slide.cta_href} onChange={(href) => updateSlide(i, { cta_href: href })} /></F>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <F label="BUTTON 2 LABEL (optional)"><input value={slide.cta2_label ?? ""} onChange={(e) => updateSlide(i, { cta2_label: e.target.value })} className="inp" placeholder="VIEW LOOKBOOK" /></F>
-                <F label="BUTTON 2 URL (optional)"><input value={slide.cta2_href ?? ""} onChange={(e) => updateSlide(i, { cta2_href: e.target.value })} className="inp" placeholder="/lookbook" /></F>
+                <F label="BUTTON 2 GOES TO (optional)"><LinkPicker allowNone value={slide.cta2_href ?? ""} onChange={(href) => updateSlide(i, { cta2_href: href })} /></F>
               </div>
             </div>
           ))}
@@ -663,7 +664,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
             The heading for this section is managed on the <strong className="text-foreground">Headings</strong> admin page (key: popular_now).
           </div>
-          <F label="VIEW ALL LINK (the tile at the end of the row)"><input value={c.view_all_href ?? ""} onChange={(e) => set("view_all_href", e.target.value)} className="inp" placeholder="/shop" /></F>
+          <F label="VIEW ALL GOES TO (the tile at the end of the row)"><LinkPicker allowNone value={c.view_all_href ?? ""} onChange={(href) => set("view_all_href", href)} /></F>
           {items.length > 0 && (
             <F label="SELECTED — order, and an optional tag (BEST SELLER, NEW ARRIVAL, or any custom text)">
               <div className="border border-border rounded divide-y divide-border">
@@ -746,7 +747,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               <F label="TAB LABEL"><input value={tab.name} onChange={(e) => updateTab(i, { name: e.target.value })} className="inp" placeholder="T-SHIRTS" /></F>
               <F label="HEADLINE"><input value={tab.title} onChange={(e) => updateTab(i, { title: e.target.value })} className="inp" placeholder="300+ GSM HEAVYWEIGHT COTTON" /></F>
               <F label="DESCRIPTION"><textarea rows={3} value={tab.desc} onChange={(e) => updateTab(i, { desc: e.target.value })} className="inp" /></F>
-              <F label="LINK (where the arrow navigates to)"><input value={tab.href ?? ""} onChange={(e) => updateTab(i, { href: e.target.value })} className="inp" placeholder="/collections/tops" /></F>
+              <F label="ARROW GOES TO"><LinkPicker allowNone value={tab.href ?? ""} onChange={(href) => updateTab(i, { href })} /></F>
               <MediaField
                 label="PHOTO"
                 value={{ url: tab.img, type: tab.img_type ?? "image" }}
@@ -867,7 +868,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
                 value={{ url: card.src, type: card.media_type }}
                 onChange={(v) => updateCard(i, { src: v.url, media_type: v.type })}
               />
-              <F label="CTA LINK"><input value={card.cta_href} onChange={(e) => updateCard(i, { cta_href: e.target.value })} className="inp" placeholder="/collections/men" /></F>
+              <F label="CARD GOES TO"><LinkPicker value={card.cta_href} onChange={(href) => updateCard(i, { cta_href: href })} /></F>
             </div>
           ))}
           {cards.length < 3 && (
@@ -943,7 +944,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               )}
               <div className="grid grid-cols-2 gap-3">
                 <F label="BUTTON LABEL (optional)"><input value={slide.cta_label ?? ""} onChange={(e) => updateSlide(i, { cta_label: e.target.value })} className="inp" placeholder="SHOP NOW" /></F>
-                <F label="LINK (collection / shop URL)"><input value={slide.href} onChange={(e) => updateSlide(i, { href: e.target.value })} className="inp" placeholder="/shop?sort=best" /></F>
+                <F label="SLIDE GOES TO"><LinkPicker value={slide.href} onChange={(href) => updateSlide(i, { href })} /></F>
               </div>
             </div>
           ))}
@@ -967,7 +968,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           <F label="DESCRIPTION (use a new line for a line break)"><textarea rows={3} value={c.description ?? ""} onChange={(e) => set("description", e.target.value)} className="inp" /></F>
           <div className="grid grid-cols-2 gap-3">
             <F label="CTA LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="JOIN DENYSPACE" /></F>
-            <F label="CTA LINK"><input value={c.cta_href ?? ""} onChange={(e) => set("cta_href", e.target.value)} className="inp" placeholder="/rewards" /></F>
+            <F label="BUTTON GOES TO"><LinkPicker value={c.cta_href ?? ""} onChange={(href) => set("cta_href", href)} /></F>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <F label="BACKGROUND COLOR (used when no background media is set)"><input type="color" value={c.bg_color ?? "#0d0d0d"} onChange={(e) => set("bg_color", e.target.value)} className="inp h-10 p-1" /></F>

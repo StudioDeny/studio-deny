@@ -179,11 +179,11 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
               transition={{ duration: 0.7, ease: EASE, delay: 0.6 }}
               className="flex flex-col sm:flex-row gap-3 sm:gap-4"
             >
-              <FillLink to={slide.cta_href} tone="light">
+              <FillLink link={slide.cta_href} tone="light">
                 {slide.cta_label} <ArrowRight className="w-4 h-4" />
               </FillLink>
               {slide.cta2_label && slide.cta2_href && (
-                <FillLink to={slide.cta2_href} tone="light">
+                <FillLink link={slide.cta2_href} tone="light">
                   {slide.cta2_label}
                 </FillLink>
               )}

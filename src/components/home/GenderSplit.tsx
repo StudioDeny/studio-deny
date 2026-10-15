@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
+import { SiteLink } from "@/components/ui/SiteLink";
 import { ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { EditorialHeading } from "@/components/ui/EditorialHeading";
@@ -49,7 +50,7 @@ export function GenderSplit() {
           viewport={{ once: true }}
           className="relative group overflow-hidden"
         >
-          <Link to={card.cta_href} className="absolute inset-0 z-10" aria-label={card.label} />
+          <SiteLink href={card.cta_href} className="absolute inset-0 z-10" aria-label={card.label} />
           {card.media_type === "video" ? (
             <video autoPlay loop muted playsInline preload="metadata"
               className="absolute inset-0 w-full h-full object-cover">

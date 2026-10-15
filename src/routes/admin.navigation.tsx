@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import type { NavigationMenu, NavMenuItem, NavLocation } from "@/types/database";
 import { Plus, Trash2, ChevronUp, ChevronDown, Check, X, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { LinkPicker } from "@/components/admin/LinkPicker";
 
 export const Route = createFileRoute("/admin/navigation")({
   component: AdminNavigation,
@@ -166,12 +167,9 @@ function MenuItemRow({
             placeholder="Label"
             className="inp w-36"
           />
-          <input
-            value={draft.href}
-            onChange={(e) => setDraft({ ...draft, href: e.target.value })}
-            placeholder="/path"
-            className="inp flex-1"
-          />
+          <div className="flex-1 min-w-[280px]">
+            <LinkPicker value={draft.href} onChange={(href) => setDraft({ ...draft, href })} />
+          </div>
           {showGroup && (
             <input
               value={draft.group ?? ""}

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Link } from "@tanstack/react-router";
+import { SiteLink } from "@/components/ui/SiteLink";
 import {
   Truck, RotateCcw, ShieldCheck, Gift, Star, Sparkles, Heart, Award,
   Package, Zap, Clock, CheckCircle, ArrowRight, type LucideIcon,
@@ -260,13 +261,13 @@ export function DenySpace() {
           transition={{ duration: 0.6, delay: 0.4 }}
           viewport={{ once: true }}
         >
-          <Link
-            to={cfg.cta_href}
+          <SiteLink
+            href={cfg.cta_href}
             className="inline-flex items-center gap-3 px-8 sm:px-10 py-3.5 sm:py-4 bg-transparent text-white border-2 border-white font-mono text-xs sm:text-sm tracking-[0.2em] font-bold uppercase rounded-none hover:bg-white hover:text-black transition-all duration-300 shadow-2xl active:scale-95 group"
           >
             {cfg.cta_label}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          </SiteLink>
         </motion.div>
       </div>
     </section>

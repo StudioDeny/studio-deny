@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
+import { SiteLink } from "@/components/ui/SiteLink";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { SlideDots } from "@/components/ui/SlideDots";
@@ -61,7 +62,7 @@ export function CategoryCarousel() {
           exit={{ opacity: 0, transition: { duration: 0.5, ease: EASE } }}
           className="absolute inset-0"
         >
-          <Link to={slide.href} className="absolute inset-0 z-[1]" aria-label={slide.label} />
+          <SiteLink href={slide.href} className="absolute inset-0 z-[1]" aria-label={slide.label} />
           {mediaType === "video" ? (
             <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 w-full h-full object-cover">
               <source src={mediaSrc} type="video/mp4" />
@@ -100,12 +101,12 @@ export function CategoryCarousel() {
           exit={{ opacity: 0, y: 10, transition: { duration: 0.3 } }}
           className="absolute z-[3] bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 pointer-events-auto"
         >
-          <Link
-            to={slide.href}
+          <SiteLink
+            href={slide.href}
             className="inline-flex items-center gap-2 px-8 py-3 border-2 border-white bg-black/30 backdrop-blur-md text-white text-xs sm:text-sm font-mono font-bold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all shadow-xl active:scale-95"
           >
             {slide.cta_label || "SHOP COLLECTION →"}
-          </Link>
+          </SiteLink>
         </motion.div>
       </AnimatePresence>
 

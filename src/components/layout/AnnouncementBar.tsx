@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { SiteLink } from "@/components/ui/SiteLink";
 import type { AnnouncementBar } from "@/types/database";
 
 const FALLBACK: AnnouncementBar[] = [
@@ -63,10 +64,10 @@ export function AnnouncementBar() {
                 style={{ background: bar.bg_color, color: bar.text_color }}
               >
                 {bar.cta_href ? (
-                  <a href={bar.cta_href} className="hover:underline">
+                  <SiteLink href={bar.cta_href} className="hover:underline">
                     {bar.message}
                     {bar.cta_label && <span className="ml-2 opacity-70">— {bar.cta_label} →</span>}
-                  </a>
+                  </SiteLink>
                 ) : (
                   bar.message
                 )}

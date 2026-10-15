@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { blurPlaceholder } from "@/lib/blurPlaceholder";
 import { Link } from "@tanstack/react-router";
+import { SiteLink } from "@/components/ui/SiteLink";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight, ShoppingBag, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -191,13 +192,13 @@ export function PopularNowGrid() {
             </EditorialSubheading>
           )}
         </div>
-        <Link
-          to={cfg.view_all_href || "/shop"}
+        <SiteLink
+          href={cfg.view_all_href || "/shop"}
           className="group inline-flex items-center gap-2 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase border-b-2 border-foreground pb-1 hover:border-primary hover:text-primary transition-colors"
         >
           EXPLORE COLLECTION
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        </Link>
+        </SiteLink>
       </div>
 
       <div className="relative">
@@ -224,15 +225,15 @@ export function PopularNowGrid() {
           ))}
 
           {cfg.view_all_href && (
-            <Link
-              to={cfg.view_all_href}
+            <SiteLink
+              href={cfg.view_all_href}
               className={`group relative shrink-0 overflow-hidden bg-foreground text-background border border-foreground flex flex-col items-center justify-center gap-3 ${SIZE_CLASSES[products.length % SIZE_CLASSES.length]}`}
             >
               <span className="text-sm font-semibold uppercase tracking-[0.15em] text-mono text-center px-4">View All</span>
               <span className="size-10 rounded-full border border-background/40 flex items-center justify-center transition-transform group-hover:translate-x-1">
                 <ArrowRight className="size-4" />
               </span>
-            </Link>
+            </SiteLink>
           )}
         </div>
       </div>

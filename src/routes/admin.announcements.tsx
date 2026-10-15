@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import type { AnnouncementBar } from "@/types/database";
 import { Plus, Pencil, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+import { LinkPicker } from "@/components/admin/LinkPicker";
 
 export const Route = createFileRoute("/admin/announcements")({
   component: AdminAnnouncements,
@@ -217,8 +218,8 @@ function AdminAnnouncements() {
                 <F label="CTA LABEL">
                   <input value={modal.cta_label ?? ""} onChange={(e) => setModal({ ...modal, cta_label: e.target.value })} className="inp" />
                 </F>
-                <F label="CTA URL">
-                  <input value={modal.cta_href ?? ""} onChange={(e) => setModal({ ...modal, cta_href: e.target.value })} className="inp" />
+                <F label="BUTTON GOES TO">
+                  <LinkPicker allowNone value={modal.cta_href ?? ""} onChange={(href) => setModal({ ...modal, cta_href: href || null })} />
                 </F>
               </div>
               <div className="grid grid-cols-2 gap-3">
