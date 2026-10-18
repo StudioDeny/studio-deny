@@ -1,25 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
+import { loadSectionHeadings } from "./sectionHeadings";
 import type { WebsiteSection, SectionType } from "@/types/database";
-
-export const DEFAULT_SECTION_ORDER: string[] = [
-  "marquee",
-  "gender_split",
-  "category_carousel",
-  "popular_now",
-  "why_us",
-  "lookbook",
-  "new_arrivals",
-  "fabric_tabs",
-  "denyspace",
-  "influencer_picks",
-  "motion_picture",
-  "community",
-  "contact_support",
-  "testimonials",
-  "newsletter",
-  "faq",
-];
 
 // In-memory cache for all website sections to eliminate N-query waterfall and prevent layout jitter
 let sectionsCache: Record<string, WebsiteSection> | null = null;
@@ -40,11 +22,16 @@ export async function loadAllWebsiteSections(): Promise<Record<string, WebsiteSe
   if (!inflightPromise) {
     inflightPromise = (async () => {
       try {
-        const { data, error } = await supabase
-          .from("website_sections")
-          .select("*")
-          .eq("page_slug", "home")
-          .order("position");
+        // Headings load in the same wait, so a section never shows a
+        // placeholder heading that then swaps to the admin's text.
+        const [{ data, error }] = await Promise.all([
+          supabase
+            .from("website_sections")
+            .select("*")
+            .eq("page_slug", "home")
+            .order("position"),
+          loadSectionHeadings(),
+        ]);
 
         if (error || !data) {
           return sectionsCache;
@@ -85,6 +72,7 @@ export function invalidateWebsiteSectionsCache() {
 /**
  * Hook to get the ordered section types for the homepage.
  * Returns synchronous cached order immediately on back-navigation to prevent layout jumping.
+ * Empty until the admin's order has loaded — nothing built-in renders first.
  */
 export function useWebsiteSectionsOrder(allowedKeys?: string[]): string[] {
   const [types, setTypes] = useState<string[]>(() => {
@@ -93,7 +81,7 @@ export function useWebsiteSectionsOrder(allowedKeys?: string[]): string[] {
         ? orderedTypesCache.filter((t) => allowedKeys.includes(t))
         : orderedTypesCache;
     }
-    return allowedKeys ?? DEFAULT_SECTION_ORDER;
+    return [];
   });
 
   useEffect(() => {
@@ -125,6 +113,8 @@ export function useWebsiteSectionsOrder(allowedKeys?: string[]): string[] {
 /**
  * Hook to get a specific section's configuration and visibility.
  * Returns synchronous cached data if available to prevent flash of content/collapse.
+ * Hidden until the admin's settings have loaded, and hidden when the section
+ * has no row — so new visitors never see built-in content first.
  */
 export function useWebsiteSectionConfig<T>(
   sectionType: SectionType | string,
@@ -142,7 +132,7 @@ export function useWebsiteSectionConfig<T>(
     }
     return {
       config: fallbackConfig,
-      isVisible: true,
+      isVisible: false,
       loaded: false,
     };
   });

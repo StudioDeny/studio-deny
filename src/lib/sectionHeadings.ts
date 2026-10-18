@@ -10,7 +10,7 @@ type HeadingRow = { heading_text: string; text_color: string | null; eyebrow_tex
 let cache: Record<string, HeadingRow> | null = null;
 let inflight: Promise<Record<string, HeadingRow> | null> | null = null;
 
-async function loadHeadings(): Promise<Record<string, HeadingRow> | null> {
+export async function loadSectionHeadings(): Promise<Record<string, HeadingRow> | null> {
   if (cache) return cache;
   if (!inflight) {
     inflight = (async () => {
@@ -30,28 +30,24 @@ export function useSectionHeading(
   fallbackText: string,
   fallbacks?: { eyebrow?: string; subtitle?: string }
 ): SectionHeadingValue {
-  const [value, setValue] = useState<SectionHeadingValue>({
-    text: fallbackText,
-    eyebrow: fallbacks?.eyebrow,
-    subtitle: fallbacks?.subtitle,
-  });
+  const resolve = (row: HeadingRow | undefined): SectionHeadingValue => {
+    if (!row) return { text: fallbackText, eyebrow: fallbacks?.eyebrow, subtitle: fallbacks?.subtitle };
+    return {
+      text: row.heading_text && row.heading_text.trim() !== "" ? row.heading_text : fallbackText,
+      color: row.text_color ?? undefined,
+      eyebrow: row.eyebrow_text && row.eyebrow_text.trim() !== "" ? row.eyebrow_text : fallbacks?.eyebrow,
+      subtitle: row.subtitle_text && row.subtitle_text.trim() !== "" ? row.subtitle_text : fallbacks?.subtitle,
+    };
+  };
+  // Already loaded (home sections wait for headings) → right text on first paint.
+  const [value, setValue] = useState<SectionHeadingValue>(() => resolve(cache?.[key]));
 
   useEffect(() => {
     let cancelled = false;
-    loadHeadings().then((headings) => {
+    loadSectionHeadings().then((headings) => {
       if (cancelled) return;
       const row = headings?.[key];
-      if (row) {
-        const text = row.heading_text && row.heading_text.trim() !== "" ? row.heading_text : fallbackText;
-        const eyebrow = row.eyebrow_text && row.eyebrow_text.trim() !== "" ? row.eyebrow_text : fallbacks?.eyebrow;
-        const subtitle = row.subtitle_text && row.subtitle_text.trim() !== "" ? row.subtitle_text : fallbacks?.subtitle;
-        setValue({
-          text,
-          color: row.text_color ?? undefined,
-          eyebrow,
-          subtitle,
-        });
-      }
+      if (row) setValue(resolve(row));
     });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps

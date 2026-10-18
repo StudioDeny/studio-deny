@@ -3,17 +3,6 @@ import { supabase } from "@/lib/supabase";
 import { SiteLink } from "@/components/ui/SiteLink";
 import type { AnnouncementBar } from "@/types/database";
 
-const FALLBACK: AnnouncementBar[] = [
-  {
-    id: "fb-1", message: "FREE SHIPPING ON ORDERS ABOVE ₹999", cta_label: null, cta_href: null,
-    bg_color: "#0A0A0A", text_color: "#FFFFFF", is_active: true, position: 0, starts_at: null, ends_at: null, created_at: "",
-  },
-  {
-    id: "fb-2", message: "MADE IN INDIA · WORN WORLDWIDE · NO APOLOGIES", cta_label: null, cta_href: null,
-    bg_color: "#0A0A0A", text_color: "#FFFFFF", is_active: true, position: 1, starts_at: null, ends_at: null, created_at: "",
-  },
-];
-
 function isActive(bar: AnnouncementBar): boolean {
   const now = Date.now();
   if (bar.starts_at && new Date(bar.starts_at).getTime() > now) return false;
@@ -22,9 +11,7 @@ function isActive(bar: AnnouncementBar): boolean {
 }
 
 export function AnnouncementBar() {
-  // null = "haven't checked yet" — starting from FALLBACK directly meant a
-  // real, configured announcement would still flash the placeholder text
-  // for a beat on every load, before the fetch resolved and replaced it.
+  // null = "haven't checked yet"; only bars set in Admin → Announcements show.
   const [bars, setBars] = useState<AnnouncementBar[] | null>(null);
 
   useEffect(() => {
@@ -35,11 +22,11 @@ export function AnnouncementBar() {
       .order("position")
       .then(({ data }) => {
         const live = (data ?? []).filter(isActive);
-        setBars(live.length > 0 ? live : FALLBACK);
+        setBars(live);
       });
   }, []);
 
-  if (!bars) return null;
+  if (!bars || bars.length === 0) return null;
 
   // The track itself stays a neutral black base — but each message now
   // actually renders in its own configured bg_color/text_color as a pill,

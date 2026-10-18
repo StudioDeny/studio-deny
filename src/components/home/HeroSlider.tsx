@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { FillLink } from "@/components/ui/FillLink";
 import { SlideDots } from "@/components/ui/SlideDots";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { responsiveImage } from "@/lib/image";
 
 export type HeroSlide = {
   id: string;
@@ -19,42 +20,6 @@ export type HeroSlide = {
   cta2_href?: string;
 };
 
-export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
-  {
-    id: "default-1",
-    media_type: "video",
-    src: "https://studio-deny-demo.vercel.app/assets/hero-video.mp4",
-    title: "IN THE CUT\nNOT IN THE CROWD",
-    subtitle: "Elevated streetwear engineered for creators. Limited drops, premium cuts, and a fit made to stand apart.",
-    cta_label: "SHOP THE DROP",
-    cta_href: "/shop",
-    cta2_label: "VIEW LOOKBOOK",
-    cta2_href: "/lookbook",
-  },
-  {
-    id: "default-2",
-    media_type: "image",
-    src: "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=80&w=1600",
-    title: "BUILT FOR\nTHE STREETS",
-    subtitle: "300+ GSM heavyweight cotton. Engineered pattern making. Made to move with you, not against you.",
-    cta_label: "SHOP NEW ARRIVALS",
-    cta_href: "/shop",
-    cta2_label: "SHOP ALL",
-    cta2_href: "/shop",
-  },
-  {
-    id: "default-3",
-    media_type: "image",
-    src: "https://images.unsplash.com/photo-1506629082955-511b1aa562c8?auto=format&fit=crop&q=80&w=1600",
-    title: "LIMITED\nDROPS ONLY",
-    subtitle: "One qualifying order unlocks Deny Space — earn points on every rupee, redeem real money off your next drop.",
-    cta_label: "JOIN DENY SPACE",
-    cta_href: "/rewards",
-    cta2_label: "SHOP THE DROP",
-    cta2_href: "/shop",
-  },
-];
-
 // A slide saved as "video" with a photo uploaded (or the other way round)
 // rendered nothing: a photo can't play in <video>. Trust the file when its
 // URL says what it is (Cloudinary's /image/ or /video/ path, or extension).
@@ -67,8 +32,7 @@ function fileMediaType(src: string, saved: "image" | "video"): "image" | "video"
 const AUTOPLAY_MS = 6500;
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
-  const data = slides && slides.length > 0 ? slides : DEFAULT_HERO_SLIDES;
+export function HeroSlider({ slides: data }: { slides: HeroSlide[] }) {
   const [active, setActive] = useState(0);
   const [scrollY, setScrollY] = useState(0);
   const isMobile = useIsMobile();
@@ -121,9 +85,10 @@ export function HeroSlider({ slides }: { slides?: HeroSlide[] }) {
             </video>
           ) : (
             <img
-              src={mediaSrc}
+              {...responsiveImage(mediaSrc, { maxWidth: 1920, sizes: "100vw" })}
               alt=""
               aria-hidden
+              fetchPriority={active === 0 ? "high" : "auto"}
               className="absolute inset-0 w-full h-full object-cover"
             />
           )}

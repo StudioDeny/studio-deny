@@ -11,48 +11,19 @@ import { supabase } from "@/lib/supabase";
 import type { PopupPromo } from "@/types/database";
 
 import { useAuth } from "@/context/AuthContext";
+import { responsiveImage, thumbImage } from "@/lib/image";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Lock, Zap, Gift, Trophy, Truck, RotateCcw, ShieldCheck, Star,
   Sparkles, Heart, Award, Package, Clock, CheckCircle,
 };
 
-const DEFAULTS: PopupPromo = {
-  id: "",
-  enabled: true,
-  delay_seconds: 15,
-  bg_type: "none",
-  bg_image_url: null,
-  bg_video_url: null,
-  logo_url: null,
-  badge_text: "DENY WORLD",
-  headline_line1: "EARN WHILE",
-  headline_line2: "YOU DROP.",
-  body_text: "Join Deny World — our private loyalty pool. One qualifying order unlocks you. After that, every rupee earns.",
-  rule_unlock_label: "UNLOCK",
-  rule_earn_label: "EARN",
-  rule_redeem_label: "REDEEM",
-  rule_unlock_icon: "Lock",
-  rule_earn_icon: "Zap",
-  rule_redeem_icon: "Gift",
-  rule_earn_value: "1 PT",
-  rule_unlock_sub: "single order",
-  tier_1_label: "ROOKIE",
-  tier_2_label: "RUNNER",
-  tier_3_label: "RIOT",
-  tier_4_label: "LEGEND",
-  cta_primary_text: "LEARN MORE",
-  cta_primary_href: "/rewards",
-  cta_secondary_text: "LATER",
-  created_at: "",
-  updated_at: "",
-};
-
 /** Loyalty popup for logged-in members — once per account per browser. */
 export function LoyaltyModal() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [cfg, setCfg] = useState<PopupPromo>(DEFAULTS);
+  // Admin → Popup settings; the popup never shows built-in text.
+  const [cfg, setCfg] = useState<PopupPromo | null>(null);
   const [s, setS] = useState(DEFAULT_LOYALTY_SETTINGS);
 
   useEffect(() => { getLoyaltySettings().then(setS); }, []);
@@ -63,14 +34,14 @@ export function LoyaltyModal() {
         const { data } = await supabase.from("popup_promo").select("*").limit(1).maybeSingle();
         if (data) setCfg(data as PopupPromo);
       } catch {
-        // keep DEFAULTS — the popup must still show even if this fetch fails
+        // no settings → no popup
       }
     })();
   }, []);
 
   // Logged-out visitors get the signup popup instead; this one is for members.
   useEffect(() => {
-    if (typeof window === "undefined" || !cfg.enabled || !user) return;
+    if (typeof window === "undefined" || !cfg?.enabled || !user) return;
 
     const seenKey = `deny_popup_seen_${user.id}`;
     if (localStorage.getItem(seenKey)) return;
@@ -81,14 +52,14 @@ export function LoyaltyModal() {
     }, Math.max(0, cfg.delay_seconds) * 1000);
 
     return () => clearTimeout(timer);
-  }, [cfg.enabled, cfg.delay_seconds, user]);
+  }, [cfg?.enabled, cfg?.delay_seconds, user]);
 
   const dismiss = () => {
     if (typeof window !== "undefined" && user) localStorage.setItem(`deny_popup_seen_${user.id}`, "true");
     setOpen(false);
   };
 
-  if (!cfg.enabled) return null;
+  if (!cfg?.enabled) return null;
 
   const tiers = [
     { name: cfg.tier_1_label, color: "bg-white/10" },
@@ -129,7 +100,7 @@ export function LoyaltyModal() {
               {/* Background */}
               {cfg.bg_type === "image" && cfg.bg_image_url ? (
                 <>
-                  <img src={cfg.bg_image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  <img {...responsiveImage(cfg.bg_image_url, { maxWidth: 1080, sizes: "(min-width: 512px) 512px, 100vw" })} alt="" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/65" />
                 </>
               ) : cfg.bg_type === "video" && cfg.bg_video_url ? (
@@ -158,7 +129,7 @@ export function LoyaltyModal() {
 
               <div className="relative p-8 sm:p-10">
                 {cfg.logo_url && (
-                  <img src={cfg.logo_url} alt="" className="h-8 mb-6 object-contain object-left" />
+                  <img src={thumbImage(cfg.logo_url, 480)} alt="" decoding="async" className="h-8 mb-6 object-contain object-left" />
                 )}
 
                 {/* Badge */}

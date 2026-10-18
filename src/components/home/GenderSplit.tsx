@@ -16,14 +16,7 @@ type SplitCard = {
 
 type GenderSplitConfig = { cards: SplitCard[]; explore_label?: string };
 
-const DEFAULTS: GenderSplitConfig = {
-  explore_label: "EXPLORE",
-  cards: [
-    { media_type: "image", src: "https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&q=80&w=1200", label: "MEN", cta_href: "/collections/men" },
-    { media_type: "image", src: "https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&q=80&w=1200", label: "ACCESSORIES", cta_href: "/collections/accessories" },
-    { media_type: "image", src: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&q=80&w=1200", label: "WOMEN", cta_href: "/collections/women" },
-  ],
-};
+const DEFAULTS: GenderSplitConfig = { cards: [] };
 
 const GRID_COLS: Record<number, string> = {
   1: "sm:grid-cols-1",
@@ -33,11 +26,12 @@ const GRID_COLS: Record<number, string> = {
 };
 
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+import { responsiveImage } from "@/lib/image";
 
 export function GenderSplit() {
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<GenderSplitConfig>("gender_split", DEFAULTS);
 
-  if (!visible) return null;
+  if (!visible || cfg.cards.length === 0) return null;
 
   return (
     <section className={`bg-[#E2E2E4] grid grid-cols-1 ${GRID_COLS[cfg.cards.length] ?? "sm:grid-cols-3"} h-screen`}>
@@ -58,9 +52,11 @@ export function GenderSplit() {
             </video>
           ) : (
             <img
-              src={card.src}
+              {...responsiveImage(card.src, { maxWidth: 1600, sizes: "(min-width: 640px) 50vw, 100vw" })}
               style={blurPlaceholder(card.src)}
               alt={card.label}
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 w-full h-full object-cover"
             />
           )}

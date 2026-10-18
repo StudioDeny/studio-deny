@@ -2,16 +2,11 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Mail, MessageCircle, Clock } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { getBrandSettings, whatsappHref } from "@/lib/brand";
 
-type ContactSupport = { enabled: boolean; email: string; whatsapp: string; hours: string };
-const CONTACT_DEFAULTS: ContactSupport = {
-  enabled: true,
-  email: "support@studiodeny.in",
-  whatsapp: "",
-  hours: "Mon–Sat, 10am–7pm IST",
-};
+// Admin → Settings (contact email, WhatsApp, support hours).
+type ContactSupport = { enabled: boolean; email: string; whatsapp: string | null; hours: string };
 
 type ContactCard = { label: string; desc: string };
 const DEFAULT_CARDS: ContactCard[] = [
@@ -24,29 +19,30 @@ type ContactSupportCfg = { cards: ContactCard[]; cta_label: string };
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
 export function ContactSupportSection() {
-  const [contact, setContact] = useState<ContactSupport>(CONTACT_DEFAULTS);
+  const [contact, setContact] = useState<ContactSupport | null>(null);
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<ContactSupportCfg>("contact_support", { cards: DEFAULT_CARDS, cta_label: "VISIT SUPPORT PAGE" });
   const heading = useSectionHeading("contact_support", "CONTACT SUPPORT", { eyebrow: "WE'RE HERE" });
 
   useEffect(() => {
-    supabase
-      .from("brand_settings")
-      .select("contact_email, social_whatsapp, support_hours, support_enabled")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!data) return;
-        setContact({
-          enabled: data.support_enabled ?? true,
-          email: data.contact_email || CONTACT_DEFAULTS.email,
-          whatsapp: data.social_whatsapp || CONTACT_DEFAULTS.whatsapp,
-          hours: data.support_hours || CONTACT_DEFAULTS.hours,
-        });
+    getBrandSettings().then((b) => {
+      setContact({
+        enabled: b.support_enabled ?? true,
+        email: b.contact_email?.trim() ?? "",
+        whatsapp: whatsappHref(b.social_whatsapp),
+        hours: b.support_hours?.trim() ?? "",
       });
+    });
   }, []);
 
-  if (!visible || !contact.enabled) return null;
+  if (!visible || !contact?.enabled) return null;
+
+  const cards = [
+    { icon: Mail, value: contact.email, href: contact.email ? `mailto:${contact.email}` : null, button: null },
+    { icon: MessageCircle, value: "", href: contact.whatsapp, button: "CHAT ON WHATSAPP" },
+    { icon: Clock, value: contact.hours, href: null, button: null },
+  ]
+    .map((item, idx) => ({ ...item, label: cfg.cards[idx]?.label ?? DEFAULT_CARDS[idx].label, desc: cfg.cards[idx]?.desc ?? DEFAULT_CARDS[idx].desc }))
+    .filter((item) => item.value || item.href);
 
   return (
     <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border bg-[#E2E2E4]">
@@ -60,12 +56,8 @@ export function ContactSupportSection() {
             {heading.text}
           </h2>
         </motion.div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
-          {[
-            { icon: Mail, value: contact.email, href: `mailto:${contact.email}` },
-            { icon: MessageCircle, value: contact.whatsapp, href: contact.whatsapp || "https://wa.me/" },
-            { icon: Clock, value: contact.hours, href: null },
-          ].map((item, idx) => ({ ...item, label: cfg.cards[idx]?.label ?? DEFAULT_CARDS[idx].label, desc: cfg.cards[idx]?.desc ?? DEFAULT_CARDS[idx].desc })).map((item, idx) => (
+        <div className={`grid grid-cols-1 ${cards.length === 3 ? "sm:grid-cols-3" : cards.length === 2 ? "sm:grid-cols-2" : ""} gap-5 mb-10`}>
+          {cards.map((item, idx) => (
             <motion.div key={idx} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: idx * 0.1 }} viewport={{ once: true }}
               className="border border-border bg-surface/30 p-6 sm:p-8 flex flex-col items-center text-center gap-4">
               <div className="size-12 border border-border flex items-center justify-center">
@@ -73,7 +65,12 @@ export function ContactSupportSection() {
               </div>
               <div>
                 <div className="text-mono text-[10px] tracking-[0.25em] text-muted-foreground mb-2">{item.label}</div>
-                {item.href ? (
+                {item.button && item.href ? (
+                  <a href={item.href} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 bg-[#25D366] text-white px-5 py-2.5 mb-2 text-mono text-[11px] font-bold tracking-[0.2em] hover:opacity-85 transition-opacity">
+                    <MessageCircle className="size-4" /> {item.button}
+                  </a>
+                ) : item.href ? (
                   <a href={item.href} target="_blank" rel="noopener noreferrer"
                     className="text-sm sm:text-base font-semibold hover:text-primary transition-colors block mb-1">{item.value}</a>
                 ) : (

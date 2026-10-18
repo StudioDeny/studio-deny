@@ -23,16 +23,12 @@ type CarouselSlide = {
 
 type CategoryCarouselConfig = { slides: CarouselSlide[] };
 
-const DEFAULTS: CategoryCarouselConfig = {
-  slides: [
-    { media_type: "image", src: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&q=80&w=1600", label: "BEST SELLERS", href: "/shop?sort=best" },
-    { media_type: "image", src: "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&q=80&w=1600", label: "NEW DROPS", href: "/shop?sort=new" },
-  ],
-};
+const DEFAULTS: CategoryCarouselConfig = { slides: [] };
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+import { responsiveImage } from "@/lib/image";
 
 export function CategoryCarousel() {
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<CategoryCarouselConfig>("category_carousel", DEFAULTS);
@@ -68,7 +64,7 @@ export function CategoryCarousel() {
               <source src={mediaSrc} type="video/mp4" />
             </video>
           ) : (
-            <img src={mediaSrc} style={blurPlaceholder(mediaSrc)} alt={slide.label} className="absolute inset-0 w-full h-full object-cover" />
+            <img {...responsiveImage(mediaSrc, { maxWidth: 1920, sizes: "100vw" })} style={blurPlaceholder(mediaSrc)} alt={slide.label} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
           )}
           <div className="absolute inset-0 bg-black/30" />
         </motion.div>

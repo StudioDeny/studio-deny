@@ -1,3 +1,4 @@
+import { ContactEmailLink } from "@/components/ui/ContactEmailLink";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/returns")({
@@ -21,7 +22,7 @@ function Returns() {
 
           <Section title="HOW TO INITIATE A RETURN">
             <ol className="list-decimal list-inside space-y-2 ml-2">
-              <li>Email <a href="mailto:support@studiodeny.in" className="text-primary hover:underline">support@studiodeny.in</a> with your order number and reason for return.</li>
+              <li>Email <ContactEmailLink /> with your order number and reason for return.</li>
               <li>Our team will confirm eligibility within 24–48 hours.</li>
               <li>Pack the item securely and ship it to the address provided.</li>
               <li>Refund or store credit will be processed within 5–7 business days of receiving the returned item.</li>
@@ -41,7 +42,7 @@ function Returns() {
           </Section>
 
           <Section title="DAMAGED OR INCORRECT ITEMS">
-            <p>If you received a damaged or incorrect item, contact us within <strong className="text-foreground">48 hours of delivery</strong> at <a href="mailto:support@studiodeny.in" className="text-primary hover:underline">support@studiodeny.in</a>. We will arrange a free replacement or full refund.</p>
+            <p>If you received a damaged or incorrect item, contact us within <strong className="text-foreground">48 hours of delivery</strong> at <ContactEmailLink />. We will arrange a free replacement or full refund.</p>
           </Section>
         </div>
 

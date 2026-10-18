@@ -8,6 +8,7 @@ import {
   Package, Zap, Clock, CheckCircle, ArrowRight, type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { responsiveImage, thumbImage } from "@/lib/image";
 
 type Benefit = { icon: string; label: string; desc: string };
 type DenySpaceConfig = {
@@ -28,18 +29,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Package, Zap, Clock, CheckCircle,
 };
 
-const DEFAULTS: DenySpaceConfig = {
-  logo_url: "https://res.cloudinary.com/dsqeawg67/image/upload/v1783356678/WhatsApp_Image_2026-07-03_at_15.50.55-removebg-preview_i8wcnb.png",
-  description: "DenySpace is StudioDeny's evolving cultural platform, created to bring fashion, art, music, movement, and creative expression together. It is a space for emerging voices and boundary-pushing creators who are shaping the culture of tomorrow.\n\nThrough DenySpace Loyalty, every StudioDeny customer becomes part of this world—gaining access to exclusive releases, curated experiences, events, rewards, and opportunities beyond the product.",
-  benefits: [
-    { icon: "Truck", label: "FREE SHIPPING", desc: "On every qualifying order" },
-    { icon: "RotateCcw", label: "EASY RETURNS", desc: "7-day no-questions returns" },
-    { icon: "ShieldCheck", label: "SECURE CHECKOUT", desc: "Your payments, protected" },
-    { icon: "Gift", label: "EARLY ACCESS", desc: "48hr head start on new drops" },
-  ],
-  cta_label: "JOIN DENYSPACE",
-  cta_href: "/rewards",
-};
+const DEFAULTS: DenySpaceConfig = { logo_url: "", description: "", benefits: [], cta_label: "", cta_href: "" };
 
 function PlayableDenyLogo({
   logoUrl,
@@ -150,8 +140,10 @@ function PlayableDenyLogo({
             />
           ) : (
             <img
-              src={logoUrl}
+              src={thumbImage(logoUrl, 640)}
               alt="DenySpace"
+              loading="lazy"
+              decoding="async"
               draggable={false}
               className="w-full max-w-[240px] sm:max-w-[320px] h-auto invert pointer-events-none select-none transition-transform duration-300"
             />
@@ -182,7 +174,7 @@ export function DenySpace() {
         cfg.bg_media_type === "video" ? (
           <video src={cfg.bg_media_url} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" />
         ) : (
-          <img src={cfg.bg_media_url} style={blurPlaceholder(cfg.bg_media_url)} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <img {...responsiveImage(cfg.bg_media_url, { maxWidth: 1920, sizes: "100vw" })} style={blurPlaceholder(cfg.bg_media_url)} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
         )
       )}
 
@@ -201,7 +193,7 @@ export function DenySpace() {
           className="relative flex flex-col items-center mb-1 mt-0"
         >
           {/* Interactive Playable Physics & Magnetic Tilt Logo Component */}
-          <PlayableDenyLogo logoUrl={cfg.logo_url} logoType={cfg.logo_type} />
+          {cfg.logo_url && <PlayableDenyLogo logoUrl={cfg.logo_url} logoType={cfg.logo_type} />}
         </motion.div>
 
         {/* SUB-HEADLINE */}

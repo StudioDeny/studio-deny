@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { buildMeta, buildLinks, SITE_URL } from "@/lib/seo";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Mail, MapPin, MessageCircle } from "lucide-react";
+import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { getBrandSettings, whatsappHref } from "@/lib/brand";
+import type { BrandSettings } from "@/types/database";
 
 export const Route = createFileRoute("/contact")({
   component: Contact,
@@ -29,6 +31,13 @@ type V = z.infer<typeof schema>;
 function Contact() {
   const [sent, setSent] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm<V>({ resolver: zodResolver(schema) });
+  // Contact details from Admin → Settings.
+  const [brand, setBrand] = useState<Partial<BrandSettings> | null>(null);
+  useEffect(() => { getBrandSettings().then(setBrand); }, []);
+  const email = brand?.contact_email?.trim();
+  const phone = brand?.contact_phone?.trim();
+  const whatsapp = whatsappHref(brand?.social_whatsapp);
+  const address = brand?.address?.trim();
 
   return (
     <section className="px-4 md:px-8 mt-8 md:mt-12 max-w-5xl mx-auto">
@@ -37,27 +46,45 @@ function Contact() {
 
       <div className="grid md:grid-cols-2 gap-12 mt-12">
         <div className="space-y-6">
-          <div className="flex gap-3">
-            <Mail className="size-5 text-primary mt-1" />
-            <div>
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground">EMAIL</div>
-              <a href="mailto:hello@studiodeny.com" className="hover:text-primary">hello@studiodeny.com</a>
+          {email && (
+            <div className="flex gap-3">
+              <Mail className="size-5 text-primary mt-1" />
+              <div className="min-w-0">
+                <div className="text-mono text-[10px] tracking-widest text-muted-foreground">EMAIL</div>
+                <a href={`mailto:${email}`} className="hover:text-primary break-words">{email}</a>
+              </div>
             </div>
-          </div>
-          <div className="flex gap-3">
-            <MessageCircle className="size-5 text-primary mt-1" />
-            <div>
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground">WHATSAPP</div>
-              <a href="https://wa.me/919999999999" className="hover:text-primary">+91 99999 99999</a>
+          )}
+          {phone && (
+            <div className="flex gap-3">
+              <Phone className="size-5 text-primary mt-1" />
+              <div>
+                <div className="text-mono text-[10px] tracking-widest text-muted-foreground">PHONE</div>
+                <a href={`tel:${phone.replace(/\s+/g, "")}`} className="hover:text-primary">{phone}</a>
+              </div>
             </div>
-          </div>
-          <div className="flex gap-3">
-            <MapPin className="size-5 text-primary mt-1" />
-            <div>
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground">STUDIO</div>
-              <div>Bandra West, Mumbai, IN</div>
+          )}
+          {whatsapp && (
+            <div className="flex gap-3">
+              <MessageCircle className="size-5 text-primary mt-1" />
+              <div>
+                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">WHATSAPP</div>
+                <a href={whatsapp} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#25D366] text-white px-5 py-2.5 text-mono text-[11px] font-bold tracking-[0.2em] hover:opacity-85 transition-opacity">
+                  <MessageCircle className="size-4" /> CHAT ON WHATSAPP
+                </a>
+              </div>
             </div>
-          </div>
+          )}
+          {address && (
+            <div className="flex gap-3">
+              <MapPin className="size-5 text-primary mt-1" />
+              <div className="min-w-0">
+                <div className="text-mono text-[10px] tracking-widest text-muted-foreground">STUDIO</div>
+                <div className="whitespace-pre-line break-words">{address}</div>
+              </div>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit((d) => { console.log(d); toast.success("Message sent"); setSent(true); reset(); })} className="space-y-4">

@@ -1,3 +1,4 @@
+import { ContactEmailLink } from "@/components/ui/ContactEmailLink";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/privacy")({
@@ -40,7 +41,7 @@ function Privacy() {
           </Section>
 
           <Section title="YOUR RIGHTS">
-            <p>You have the right to access, update, or delete your personal data. To make a request, email <a href="mailto:support@studiodeny.in" className="text-primary hover:underline">support@studiodeny.in</a>.</p>
+            <p>You have the right to access, update, or delete your personal data. To make a request, email <ContactEmailLink />.</p>
           </Section>
 
           <Section title="DATA RETENTION">
@@ -48,7 +49,7 @@ function Privacy() {
           </Section>
 
           <Section title="CONTACT">
-            <p>For privacy-related enquiries, contact us at <a href="mailto:support@studiodeny.in" className="text-primary hover:underline">support@studiodeny.in</a>.</p>
+            <p>For privacy-related enquiries, contact us at <ContactEmailLink />.</p>
           </Section>
         </div>
       </div>

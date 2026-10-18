@@ -9,6 +9,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { getMegaMenu, type MegaMenuCategory } from "@/lib/megaMenu";
 import { MegaMenuPanel } from "@/components/layout/MegaMenuPanel";
 import { useLenis } from "@/components/common/SmoothScroll";
+import { thumbImage } from "@/lib/image";
 
 export function Navbar() {
   const { lenis } = useLenis();
@@ -179,7 +180,7 @@ export function Navbar() {
             }}
             className="hover:opacity-80 transition-opacity justify-self-start sm:justify-self-center"
           >
-            <img src="/logo.png" alt="STUDIO DENY" className="h-8 sm:h-9 lg:h-10 w-auto object-contain" />
+            <span className="block text-display text-black leading-none whitespace-nowrap text-[22px] sm:text-[26px] lg:text-[30px]">STUDIO DENY</span>
           </Link>
 
           {/* Right — icons (desktop) */}
@@ -366,7 +367,7 @@ export function Navbar() {
                           className="flex items-center gap-4 py-2.5 hover:bg-black/5 -mx-3 px-3 rounded-none transition-colors group"
                         >
                           <div className="w-10 h-12 shrink-0 overflow-hidden bg-black/5">
-                            <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <img src={thumbImage(p.image, 120)} alt={p.name} width={40} height={48} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold uppercase tracking-[0.1em] truncate text-black">{p.name}</p>

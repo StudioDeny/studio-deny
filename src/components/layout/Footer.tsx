@@ -5,6 +5,7 @@ import { SiteLink } from "@/components/ui/SiteLink";
 import { Newsletter } from "./Newsletter";
 import { Instagram, Youtube, MessageCircle, ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { getBrandSettings, instagramHref, whatsappHref, outsideHref } from "@/lib/brand";
 import type { NavMenuItem, BrandSettings } from "@/types/database";
 
 type FooterColumn = { h: string; l: NavMenuItem[] };
@@ -89,7 +90,7 @@ function MagneticFooterLogo() {
           className="inline-block"
         >
           <Link to="/" className="inline-block">
-            <img src="/logo.png" alt="STUDIO DENY" className="h-10 w-auto object-contain" />
+            <span className="block text-display text-foreground leading-none whitespace-nowrap" style={{ fontSize: "34px" }}>STUDIO DENY</span>
           </Link>
         </motion.div>
       </motion.div>
@@ -97,44 +98,9 @@ function MagneticFooterLogo() {
   );
 }
 
-const DEFAULT_COLS: FooterColumn[] = [
-  {
-    h: "BRAND",
-    l: [
-      { label: "Shop", href: "/shop" },
-      { label: "Best Sellers", href: "/shop" },
-      { label: "About", href: "/about" },
-      { label: "Lookbook", href: "/lookbook" },
-      { label: "Couriers", href: "/couriers" },
-      { label: "Contact", href: "/contact" },
-      { label: "Rewards", href: "/rewards" },
-    ],
-  },
-  {
-    h: "SUPPORT",
-    l: [
-      { label: "FAQs", href: "/faq" },
-      { label: "Returns & Exchange", href: "/returns" },
-      { label: "T&C's", href: "/terms" },
-      { label: "Privacy Policy", href: "/privacy" },
-      { label: "Track Your Order", href: "/track-order" },
-    ],
-  },
-  {
-    h: "COLLABORATORS",
-    l: [
-      { label: "Art", href: "/collaborators/art" },
-      { label: "Dance", href: "/collaborators/dance" },
-      { label: "Models", href: "/collaborators/models" },
-      { label: "Influencers", href: "/collaborators/influencers" },
-    ],
-  },
-];
-
-const DEFAULT_TAGLINE = "Streetwear for the ones who refuse to blend in.\nMade in India. Worn worldwide.";
-
 export function Footer() {
-  const [cols, setCols] = useState<FooterColumn[]>(DEFAULT_COLS);
+  // Only what's set in Admin → Navigation (footer) and Admin → Settings.
+  const [cols, setCols] = useState<FooterColumn[]>([]);
   const [brand, setBrand] = useState<Partial<BrandSettings>>({});
 
   useEffect(() => {
@@ -145,7 +111,6 @@ export function Footer() {
       .single()
       .then(({ data }) => {
         const items = (data?.items as NavMenuItem[] | undefined) ?? [];
-        if (items.length === 0) return; // keep defaults until an admin actually curates this
         const grouped = new Map<string, NavMenuItem[]>();
         for (const item of items) {
           const key = item.group?.trim() || "MORE";
@@ -155,16 +120,15 @@ export function Footer() {
         setCols(Array.from(grouped.entries()).map(([h, l]) => ({ h, l })));
       });
 
-    supabase
-      .from("brand_settings")
-      .select("*")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => { if (data) setBrand(data); });
+    getBrandSettings().then(setBrand);
   }, []);
 
-  const tagline = brand.tagline?.trim() || DEFAULT_TAGLINE;
+  const tagline = brand.tagline?.trim();
+  const socials = [
+    { href: instagramHref(brand.social_instagram), label: "Instagram", Icon: Instagram },
+    { href: outsideHref(brand.social_youtube), label: "YouTube", Icon: Youtube },
+    { href: whatsappHref(brand.social_whatsapp), label: "WhatsApp", Icon: MessageCircle },
+  ].filter((s): s is { href: string; label: string; Icon: typeof Instagram } => !!s.href);
 
   return (
     <footer className="border-t border-border mt-24" style={{ background: "var(--color-surface)" }}>
@@ -172,29 +136,27 @@ export function Footer() {
         {/* Brand column */}
         <div className="md:w-[280px] lg:w-[340px] shrink-0">
           <MagneticFooterLogo />
-          <p className="mt-4 text-muted-foreground leading-relaxed whitespace-pre-line" style={{ fontSize: "13px", maxWidth: "240px" }}>
-            {tagline}
-          </p>
+          {tagline && (
+            <p className="mt-4 text-muted-foreground leading-relaxed whitespace-pre-line" style={{ fontSize: "13px", maxWidth: "240px" }}>
+              {tagline}
+            </p>
+          )}
 
           <div className="mt-7">
             <div className="text-mono text-primary mb-3" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>◢ DROP ALERTS</div>
             <Newsletter />
           </div>
 
-          <div className="mt-6 flex items-center gap-3">
-            <a href={brand.social_instagram || "https://www.instagram.com/studio.deny?stkn=ZDNlZDc0MzIxNw=="} target="_blank" rel="noopener noreferrer"
-              className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors" aria-label="Instagram">
-              <Instagram className="size-4" />
-            </a>
-            <a href={brand.social_youtube || "https://youtube.com"} target="_blank" rel="noopener noreferrer"
-              className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors" aria-label="YouTube">
-              <Youtube className="size-4" />
-            </a>
-            <a href={brand.social_whatsapp || "https://wa.me/"} target="_blank" rel="noopener noreferrer"
-              className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors" aria-label="WhatsApp">
-              <MessageCircle className="size-4" />
-            </a>
-          </div>
+          {socials.length > 0 && (
+            <div className="mt-6 flex items-center gap-3">
+              {socials.map(({ href, label, Icon }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
+                  className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                  <Icon className="size-4" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Link columns — admin-managed via /admin/navigation (footer tab), grouped by

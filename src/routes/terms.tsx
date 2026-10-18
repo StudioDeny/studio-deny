@@ -1,3 +1,4 @@
+import { ContactEmailLink } from "@/components/ui/ContactEmailLink";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/terms")({
@@ -43,7 +44,7 @@ function Terms() {
           </Section>
 
           <Section title="CONTACT">
-            <p>For questions about these terms, email <a href="mailto:support@studiodeny.in" className="text-primary hover:underline">support@studiodeny.in</a>.</p>
+            <p>For questions about these terms, email <ContactEmailLink />.</p>
           </Section>
         </div>
       </div>

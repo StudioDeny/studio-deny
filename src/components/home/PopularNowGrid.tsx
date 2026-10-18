@@ -13,9 +13,13 @@ import { EditorialHeading, EditorialSubheading } from "@/components/ui/Editorial
 import { responsiveImage } from "@/lib/image";
 
 type PopularNowItem = { slug: string; tag?: string };
-type PopularNowConfig = { items: PopularNowItem[]; view_all_href?: string };
+type PopularNowConfig = { items: PopularNowItem[] };
 
-const DEFAULTS: PopularNowConfig = { items: [], view_all_href: "/shop" };
+const DEFAULTS: PopularNowConfig = { items: [] };
+
+// "Explore collection" and the "View all" tile open the Best Sellers page:
+// every product with "Best Seller" ticked in its product form.
+const BEST_SELLERS_HREF = "/shop?best=1";
 
 // Larger tile shapes cycling every 3
 const SIZE_CLASSES = [
@@ -196,7 +200,7 @@ export function PopularNowGrid() {
           )}
         </div>
         <SiteLink
-          href={cfg.view_all_href || "/shop"}
+          href={BEST_SELLERS_HREF}
           className="group inline-flex items-center gap-2 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase border-b-2 border-foreground pb-1 hover:border-primary hover:text-primary transition-colors"
         >
           EXPLORE COLLECTION
@@ -227,17 +231,15 @@ export function PopularNowGrid() {
             <PopularNowTile key={p.slug} product={p} sizeClass={SIZE_CLASSES[i % SIZE_CLASSES.length]} />
           ))}
 
-          {cfg.view_all_href && (
-            <SiteLink
-              href={cfg.view_all_href}
-              className={`group relative shrink-0 overflow-hidden bg-foreground text-background border border-foreground flex flex-col items-center justify-center gap-3 ${SIZE_CLASSES[products.length % SIZE_CLASSES.length]}`}
-            >
-              <span className="text-sm font-semibold uppercase tracking-[0.15em] text-mono text-center px-4">View All</span>
-              <span className="size-10 rounded-full border border-background/40 flex items-center justify-center transition-transform group-hover:translate-x-1">
-                <ArrowRight className="size-4" />
-              </span>
-            </SiteLink>
-          )}
+          <SiteLink
+            href={BEST_SELLERS_HREF}
+            className={`group relative shrink-0 overflow-hidden bg-foreground text-background border border-foreground flex flex-col items-center justify-center gap-3 ${SIZE_CLASSES[products.length % SIZE_CLASSES.length]}`}
+          >
+            <span className="text-sm font-semibold uppercase tracking-[0.15em] text-mono text-center px-4">View All</span>
+            <span className="size-10 rounded-full border border-background/40 flex items-center justify-center transition-transform group-hover:translate-x-1">
+              <ArrowRight className="size-4" />
+            </span>
+          </SiteLink>
         </div>
       </div>
 

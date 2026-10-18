@@ -70,7 +70,8 @@ import { sectionAnchor } from "@/lib/siteLinks";
 function Index() {
   const allowedKeys = useMemo(() => Object.keys(SECTION_COMPONENTS), []);
   const orderedTypes = useWebsiteSectionsOrder(allowedKeys);
-  const { config: heroConfig } = useWebsiteSectionConfig<{ slides?: HeroSlide[] }>("hero", {});
+  const { config: heroConfig, isVisible: heroVisible, loaded: heroLoaded } = useWebsiteSectionConfig<{ slides?: HeroSlide[] }>("hero", {});
+  const heroSlides = (heroConfig.slides ?? []).filter((s) => s.src);
 
   // Buttons can point at a home page section ("/#new-arrivals"). Sections
   // load their content after the page renders, so scroll again once they
@@ -87,7 +88,13 @@ function Index() {
     <div className="bg-background text-foreground overflow-x-hidden min-h-screen font-body">
       <LoyaltyModal />
 
-      <HeroSlider slides={heroConfig.slides && heroConfig.slides.length > 0 ? heroConfig.slides : undefined} />
+      {/* Only the admin's slides ever show. Until they load, an empty block
+          holds the hero's space so the page doesn't jump. */}
+      {!heroLoaded ? (
+        <div aria-hidden className="min-h-[420px]" style={{ height: "calc(100vh - var(--topbar-h))" }} />
+      ) : heroVisible && heroSlides.length > 0 ? (
+        <HeroSlider slides={heroSlides} />
+      ) : null}
 
       {orderedTypes.map((type) => {
         const Section = SECTION_COMPONENTS[type];

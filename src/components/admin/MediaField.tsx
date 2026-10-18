@@ -17,12 +17,15 @@ export function MediaField({
   label,
   value,
   onChange,
+  defaultSource = "url",
 }: {
   label?: string;
   value: MediaValue;
   onChange: (next: MediaValue) => void;
+  /** Which source tab is open at first. */
+  defaultSource?: "url" | "upload";
 }) {
-  const [source, setSource] = useState<"url" | "upload">("url");
+  const [source, setSource] = useState<"url" | "upload">(defaultSource);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);

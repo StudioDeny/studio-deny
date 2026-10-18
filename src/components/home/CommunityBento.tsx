@@ -7,30 +7,8 @@ import { useSectionHeading } from "@/lib/sectionHeadings";
 import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
 import { BENTO_SLOTS, BENTO_SLOT_COUNT } from "@/lib/communityBento";
 
-const SUPPLEMENTARY_PHOTOS: CommunityPhoto[] = [
-  {
-    id: "supp-1",
-    image_url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=800",
-    handle: "@deny.fits",
-    bento_size: "sm",
-    media_type: "image",
-    is_active: true,
-    position: 10,
-    created_at: "",
-  },
-  {
-    id: "supp-2",
-    image_url: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&q=80&w=800",
-    handle: "@tokyo.deny",
-    bento_size: "sm",
-    media_type: "image",
-    is_active: true,
-    position: 11,
-    created_at: "",
-  },
-];
-
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+import { responsiveImage } from "@/lib/image";
 
 export function CommunityBento() {
   const [photos, setPhotos] = useState<CommunityPhoto[]>([]);
@@ -46,17 +24,10 @@ export function CommunityBento() {
       .then(({ data }) => { if (data) setPhotos(data); });
   }, []);
 
-  if (!visible) return null;
+  if (!visible || photos.length === 0) return null;
 
-  // Target exactly BENTO_SLOT_COUNT items to fill the 4x3 Bento rectangle perfectly (12 slots = 3 full rows)
-  let displayPhotos: CommunityPhoto[] = [];
-  if (photos.length >= BENTO_SLOT_COUNT) {
-    displayPhotos = photos.slice(0, BENTO_SLOT_COUNT);
-  } else if (photos.length > 0) {
-    displayPhotos = [...photos, ...SUPPLEMENTARY_PHOTOS.slice(0, BENTO_SLOT_COUNT - photos.length)];
-  } else {
-    displayPhotos = SUPPLEMENTARY_PHOTOS;
-  }
+  // At most BENTO_SLOT_COUNT photos fill the 4x3 Bento rectangle (12 slots = 3 full rows)
+  const displayPhotos = photos.slice(0, BENTO_SLOT_COUNT);
 
   return (
     <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-16 border-t border-border bg-[#E2E2E4]">
@@ -95,7 +66,7 @@ export function CommunityBento() {
               {photo.media_type === "video" ? (
                 <video src={photo.image_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
               ) : (
-                <img src={photo.image_url} style={blurPlaceholder(photo.image_url)} alt={photo.handle ?? "community"} className="w-full h-full object-cover" loading="lazy" />
+                <img {...responsiveImage(photo.image_url, { maxWidth: 1080, sizes: "(min-width: 640px) 50vw, 100vw" })} style={blurPlaceholder(photo.image_url)} alt={photo.handle ?? "community"} className="w-full h-full object-cover" loading="lazy" decoding="async" />
               )}
 
               {/* Hero Bento Badge */}

@@ -11,43 +11,17 @@ import { EditorialHeading, EditorialSubheading } from "@/components/ui/Editorial
 type FabricTab = { id: string; name: string; title: string; desc: string; img: string; img_type?: "image" | "video"; href?: string };
 type FabricTabsConfig = { tabs: FabricTab[] };
 
-const DEFAULT_FABRIC_TABS: FabricTab[] = [
-  {
-    id: "tshirts",
-    name: "T-SHIRTS",
-    title: "300+ GSM HEAVYWEIGHT COTTON",
-    desc: "Substantial, heavyweight fabric that drapes perfectly and doesn't cling. Pre-shrunk for a consistent fit. Engineered pattern making for the perfect relaxed silhouette with dropped shoulders.",
-    img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=1200",
-    href: "/collections/tops",
-  },
-  {
-    id: "shirts",
-    name: "SHIRTS",
-    title: "PREMIUM OXFORD & FLANNEL",
-    desc: "Double-needle stitching on all stress points. High-density weaves for durability while maintaining breathability. Built to soften and get better with every wash.",
-    img: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&q=80&w=1200",
-    href: "/shop?q=shirts",
-  },
-  {
-    id: "jeans",
-    name: "JEANS",
-    title: "14OZ JAPANESE SELVEDGE",
-    desc: "Raw, unwashed denim that molds to your body over time. Custom branded hardware, reinforced belt loops, and hidden rivets. A modern straight-leg cut that stacks perfectly over sneakers.",
-    img: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=1200",
-    href: "/collections/bottoms",
-  },
-];
-
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+import { responsiveImage } from "@/lib/image";
 
 export function FabricTabsSection() {
-  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<FabricTabsConfig>("fabric_tabs", { tabs: DEFAULT_FABRIC_TABS });
-  const fabricTabs = cfg.tabs && cfg.tabs.length > 0 ? cfg.tabs : DEFAULT_FABRIC_TABS;
-  const [activeFabricId, setActiveFabricId] = useState<string>(fabricTabs[0]?.id || DEFAULT_FABRIC_TABS[0].id);
-  const activeFabric = fabricTabs.find((t) => t.id === activeFabricId) || fabricTabs[0] || DEFAULT_FABRIC_TABS[0];
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<FabricTabsConfig>("fabric_tabs", { tabs: [] });
+  const fabricTabs = cfg.tabs ?? [];
+  const [activeFabricId, setActiveFabricId] = useState<string>("");
+  const activeFabric = fabricTabs.find((t) => t.id === activeFabricId) || fabricTabs[0];
   const productSpecsHeading = useSectionHeading("product_specifications", "PREMIUM FABRIC.", { eyebrow: "THE DETAILS", subtitle: "UNCOMPROMISED QUALITY." });
 
-  if (!visible) return null;
+  if (!visible || !activeFabric) return null;
 
   return (
     <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-y border-border bg-[#E2E2E4]">
@@ -100,11 +74,12 @@ export function FabricTabsSection() {
                     />
                   ) : (
                     <img
-                      src={fabric.img}
+                      {...responsiveImage(fabric.img, { maxWidth: 1280, sizes: "(min-width: 1024px) 50vw, 100vw" })}
                       style={blurPlaceholder(fabric.img)}
                       alt={fabric.name}
                       className="w-full h-full object-cover"
-                      loading="eager"
+                      loading="lazy"
+                      decoding="async"
                     />
                   )}
                 </motion.div>

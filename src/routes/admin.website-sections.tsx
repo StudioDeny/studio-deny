@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { MediaField } from "@/components/admin/MediaField";
+import { MobileMediaField } from "@/components/admin/MobileMediaField";
 import { LinkPicker } from "@/components/admin/LinkPicker";
 import { invalidateWebsiteSectionsCache } from "@/lib/websiteSections";
 
@@ -48,7 +49,7 @@ type PopularNowItem = { slug: string; tag?: string };
 type PopularNowConfig = { items: PopularNowItem[]; view_all_href?: string };
 type FabricTab = { id: string; name: string; title: string; desc: string; img: string; img_type?: "image" | "video"; href?: string };
 type FabricTabsConfig = { tabs: FabricTab[] };
-type MotionPictureConfig = { video_url: string; media_type?: "image" | "video"; subtext: string };
+type MotionPictureConfig = { video_url: string; media_type?: "image" | "video"; mobile_url?: string; mobile_media_type?: "image" | "video"; subtext: string };
 type InfluencerPicksConfig = { explore_label?: string };
 type ContactCard = { label: string; desc: string };
 type ContactSupportConfig = { cards: ContactCard[]; cta_label?: string };
@@ -393,7 +394,10 @@ function AdminWebsiteSections() {
                 <div className="text-[11px] font-semibold tracking-widest text-foreground mb-4">SECTION CONTENT</div>
                 <SectionConfigForm
                   section={editing}
-                  onChange={(c) => setEditing({ ...editing, config: c as import("@/types/database").Json })}
+                  onChange={(c) => setEditing((prev) => prev && {
+                    ...prev,
+                    config: (typeof c === "function" ? c(prev.config) : c) as import("@/types/database").Json,
+                  })}
                 />
               </div>
             </div>
@@ -439,9 +443,13 @@ function AdminWebsiteSections() {
   );
 }
 
-function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onChange: (c: unknown) => void }) {
+// onChange takes the new config, or a function of the latest config. Uploads
+// finish after other edits, so they must build on the latest, not a stale copy.
+type ConfigChange = unknown | ((prev: unknown) => unknown);
+
+function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onChange: (c: ConfigChange) => void }) {
   const cfg = (section.config ?? {}) as Record<string, unknown>;
-  const set = (k: string, v: unknown) => onChange({ ...cfg, [k]: v });
+  const set = (k: string, v: unknown) => onChange((prev: unknown) => ({ ...((prev ?? {}) as Record<string, unknown>), [k]: v }));
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   useEffect(() => { listProducts().then(setAllProducts); }, []);
   const [popularNowSearch, setPopularNowSearch] = useState("");
@@ -453,11 +461,13 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
       const slides: HeroSlide[] = c.slides ?? [];
 
       const setSlides = (next: HeroSlide[]) => set("slides", next);
-      const updateSlide = (i: number, patch: Partial<HeroSlide>) => {
-        const next = [...slides];
-        next[i] = { ...next[i], ...patch };
-        setSlides(next);
-      };
+      const updateSlide = (i: number, patch: Partial<HeroSlide>) =>
+        onChange((prev: unknown) => {
+          const p = (prev ?? {}) as Partial<HeroConfig>;
+          const next = [...(p.slides ?? [])];
+          next[i] = { ...next[i], ...patch };
+          return { ...p, slides: next };
+        });
       const addSlide = () => {
         setSlides([
           ...slides,
@@ -519,25 +529,15 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               <F label="SUBTEXT"><input value={slide.subtitle} onChange={(e) => updateSlide(i, { subtitle: e.target.value })} className="inp" placeholder="Elevated streetwear…" /></F>
 
               <MediaField
-                label="SLIDE MEDIA"
+                label="DESKTOP IMAGE / VIDEO"
                 value={{ url: slide.src, type: slide.media_type }}
                 onChange={(v) => updateSlide(i, { src: v.url, media_type: v.type })}
               />
 
-              <MediaField
-                label="MOBILE OVERRIDE (optional — falls back to the media above on phones if left blank)"
-                value={{ url: slide.mobile_src ?? "", type: slide.mobile_media_type ?? "image" }}
+              <MobileMediaField
+                value={{ url: slide.mobile_src, type: slide.mobile_media_type }}
                 onChange={(v) => updateSlide(i, { mobile_src: v.url, mobile_media_type: v.type })}
               />
-              {slide.mobile_src && (
-                <button
-                  type="button"
-                  onClick={() => updateSlide(i, { mobile_src: "", mobile_media_type: undefined })}
-                  className="text-mono text-[10px] tracking-widest text-red-500 hover:underline"
-                >
-                  CLEAR MOBILE OVERRIDE
-                </button>
-              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <F label="BUTTON 1 LABEL"><input value={slide.cta_label} onChange={(e) => updateSlide(i, { cta_label: e.target.value })} className="inp" placeholder="SHOP THE DROP" /></F>
@@ -664,7 +664,9 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
             The heading for this section is managed on the <strong className="text-foreground">Headings</strong> admin page (key: popular_now).
           </div>
-          <F label="VIEW ALL GOES TO (the tile at the end of the row)"><LinkPicker allowNone value={c.view_all_href ?? ""} onChange={(href) => set("view_all_href", href)} /></F>
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            <strong className="text-foreground">Explore collection</strong> and the <strong className="text-foreground">View all</strong> tile open the Best Sellers page: every product with <strong className="text-foreground">Best Seller</strong> ticked in its product form.
+          </div>
           {items.length > 0 && (
             <F label="SELECTED — order, and an optional tag (BEST SELLER, NEW ARRIVAL, or any custom text)">
               <div className="border border-border rounded divide-y divide-border">
@@ -770,9 +772,13 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
             The heading text/color for this section is managed on the <strong className="text-foreground">Headings</strong> admin page (key: motion_picture). Here you set the background video and the subtext line.
           </div>
           <MediaField
-            label="BACKGROUND MEDIA"
+            label="DESKTOP IMAGE / VIDEO"
             value={{ url: c.video_url ?? "", type: c.media_type ?? "video" }}
-            onChange={(v) => onChange({ ...cfg, video_url: v.url, media_type: v.type })}
+            onChange={(v) => onChange((prev: unknown) => ({ ...((prev ?? {}) as Record<string, unknown>), video_url: v.url, media_type: v.type }))}
+          />
+          <MobileMediaField
+            value={{ url: c.mobile_url, type: c.mobile_media_type }}
+            onChange={(v) => onChange((prev: unknown) => ({ ...((prev ?? {}) as Record<string, unknown>), mobile_url: v.url, mobile_media_type: v.type }))}
           />
           <F label="SUBTEXT"><textarea rows={2} value={c.subtext ?? ""} onChange={(e) => set("subtext", e.target.value)} className="inp" /></F>
         </div>
@@ -884,11 +890,13 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
       const c = cfg as Partial<CategoryCarouselConfig>;
       const slides: CarouselSlide[] = c.slides ?? [];
       const setSlides = (next: CarouselSlide[]) => set("slides", next);
-      const updateSlide = (i: number, patch: Partial<CarouselSlide>) => {
-        const next = [...slides];
-        next[i] = { ...next[i], ...patch };
-        setSlides(next);
-      };
+      const updateSlide = (i: number, patch: Partial<CarouselSlide>) =>
+        onChange((prev: unknown) => {
+          const p = (prev ?? {}) as Partial<CategoryCarouselConfig>;
+          const next = [...(p.slides ?? [])];
+          next[i] = { ...next[i], ...patch };
+          return { ...p, slides: next };
+        });
       const removeSlide = (i: number) => setSlides(slides.filter((_, idx) => idx !== i));
       const moveSlide = (i: number, dir: -1 | 1) => {
         const j = i + dir;
@@ -924,24 +932,14 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               <F label="HEADING"><input value={slide.label} onChange={(e) => updateSlide(i, { label: e.target.value })} className="inp" placeholder="BEST SELLERS" /></F>
               <F label="PARAGRAPH (optional)"><textarea rows={2} value={slide.subtitle ?? ""} onChange={(e) => updateSlide(i, { subtitle: e.target.value })} className="inp" placeholder="Short line under the heading…" /></F>
               <MediaField
-                label="SLIDE MEDIA"
+                label="DESKTOP IMAGE / VIDEO"
                 value={{ url: slide.src, type: slide.media_type }}
                 onChange={(v) => updateSlide(i, { src: v.url, media_type: v.type })}
               />
-              <MediaField
-                label="MOBILE OVERRIDE (optional — falls back to the media above on phones if left blank)"
-                value={{ url: slide.mobile_src ?? "", type: slide.mobile_media_type ?? "image" }}
+              <MobileMediaField
+                value={{ url: slide.mobile_src, type: slide.mobile_media_type }}
                 onChange={(v) => updateSlide(i, { mobile_src: v.url, mobile_media_type: v.type })}
               />
-              {slide.mobile_src && (
-                <button
-                  type="button"
-                  onClick={() => updateSlide(i, { mobile_src: "", mobile_media_type: undefined })}
-                  className="text-mono text-[10px] tracking-widest text-red-500 hover:underline"
-                >
-                  CLEAR MOBILE OVERRIDE
-                </button>
-              )}
               <div className="grid grid-cols-2 gap-3">
                 <F label="BUTTON LABEL (optional)"><input value={slide.cta_label ?? ""} onChange={(e) => updateSlide(i, { cta_label: e.target.value })} className="inp" placeholder="SHOP NOW" /></F>
                 <F label="SLIDE GOES TO"><LinkPicker value={slide.href} onChange={(href) => updateSlide(i, { href })} /></F>

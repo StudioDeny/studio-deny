@@ -12,14 +12,7 @@ type WhyUsConfig = {
 
 const ICONS = [Package, Zap, Shield, CheckCircle];
 
-const DEFAULTS: WhyUsConfig = {
-  features: [
-    { label: "PREMIUM GSM FABRIC", desc: "300+ GSM heavyweight cotton. Structured, substantial, and built to outlast trends by decades." },
-    { label: "LIMITED DROPS ONLY", desc: "Every piece ships in limited quantities. Own something not everyone has — because that's the point." },
-    { label: "BUILT TO LAST", desc: "Reinforced stitching, pre-shrunk cotton, stress-tested hardware. Wear it hard for years." },
-    { label: "RESPONSIBLE CRAFT", desc: "Ethically produced in small-batch facilities. Quality you can feel and a process you can stand behind." },
-  ],
-};
+const DEFAULTS: WhyUsConfig = { features: [] };
 
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
@@ -27,7 +20,7 @@ export function WhyUsSection() {
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<WhyUsConfig>("why_us", DEFAULTS);
   const heading = useSectionHeading("why_us", "BUILT DIFFERENT.", { eyebrow: "WHY STUDIO DENY", subtitle: "STAYS DIFFERENT." });
 
-  if (!visible) return null;
+  if (!visible || cfg.features.length === 0) return null;
 
   return (
     <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border/30 bg-[#E2E2E4]">

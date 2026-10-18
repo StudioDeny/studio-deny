@@ -5,10 +5,12 @@ import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Play, X, Volume2, VolumeX, ChevronUp, ChevronDown, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, ExternalLink, Instagram } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { getBrandSettings, instagramHref } from "@/lib/brand";
 import type { InfluencerPick } from "@/types/database";
 import type { Product } from "@/lib/productsStore";
 import { useSectionHeading } from "@/lib/sectionHeadings";
 import { EditorialHeading } from "@/components/ui/EditorialHeading";
+import { responsiveImage, thumbImage } from "@/lib/image";
 
 type PickWithTags = InfluencerPick & { products: Pick<Product, "slug" | "name" | "image">[] };
 type InfluencerPicksConfig = { explore_label?: string };
@@ -58,9 +60,11 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
               />
             ) : (
               <img
-                src={pick.thumbnail_url}
+                {...responsiveImage(pick.thumbnail_url, { maxWidth: 828, sizes: "(min-width: 1024px) 19vw, (min-width: 640px) 28vw, 65vw" })}
                 style={blurPlaceholder(pick.thumbnail_url)}
                 alt={pick.name}
+                loading="lazy"
+                decoding="async"
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/tile:scale-[1.03]"
               />
             )
@@ -106,7 +110,7 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
             onClick={(e) => e.stopPropagation()}
             className="absolute bottom-3 left-3 right-3 flex items-center gap-2 bg-white/95 hover:bg-white pl-1.5 pr-3 py-1.5 w-fit max-w-full transition-colors"
           >
-            <img src={taggedProduct.image} style={blurPlaceholder(taggedProduct.image)} alt="" className="size-7 object-cover shrink-0" />
+            <img src={thumbImage(taggedProduct.image, 96)} style={blurPlaceholder(taggedProduct.image)} alt="" width={28} height={28} loading="lazy" decoding="async" className="size-7 object-cover shrink-0" />
             <span className="text-xs font-semibold text-black truncate">{taggedProduct.name}</span>
           </Link>
         )}
@@ -195,7 +199,7 @@ function Lightbox({
           // couldn't load it (e.g. a pasted link that isn't a direct video file).
           <>
             {pick.thumbnail_url && (
-              <img src={pick.thumbnail_url} style={blurPlaceholder(pick.thumbnail_url)} alt={pick.name} className="absolute inset-0 w-full h-full object-cover" />
+              <img {...responsiveImage(pick.thumbnail_url, { maxWidth: 1080, sizes: "(min-width: 480px) 440px, 100vw" })} style={blurPlaceholder(pick.thumbnail_url)} alt={pick.name} decoding="async" className="absolute inset-0 w-full h-full object-cover" />
             )}
             <div className="absolute inset-0 bg-black/30" />
             {pick.link_url && (
@@ -246,7 +250,7 @@ function Lightbox({
                 params={{ slug: p.slug }}
                 className="flex items-center gap-3 bg-white/95 hover:bg-white pl-1.5 pr-4 py-1.5 rounded-full w-fit transition-colors"
               >
-                <img src={p.image} style={blurPlaceholder(p.image)} alt="" className="size-8 rounded-full object-cover" />
+                <img src={thumbImage(p.image, 96)} style={blurPlaceholder(p.image)} alt="" width={32} height={32} decoding="async" className="size-8 rounded-full object-cover" />
                 <span className="text-xs font-semibold text-black">{p.name}</span>
               </Link>
             ))}
@@ -289,13 +293,7 @@ export function InfluencerPicksGrid() {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    supabase
-      .from("brand_settings")
-      .select("social_instagram")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => { if (data?.social_instagram) setInstagramUrl(data.social_instagram); });
+    getBrandSettings().then((b) => setInstagramUrl(instagramHref(b.social_instagram)));
   }, []);
 
   useEffect(() => {
@@ -383,20 +381,29 @@ export function InfluencerPicksGrid() {
         </div>
       </div>
 
-      <div className="mt-10 flex flex-col items-center gap-3 text-center">
-        <p className="text-mono text-xs sm:text-sm tracking-[0.2em] uppercase text-muted-foreground">
-          Follow for more content from Studio Deny
-        </p>
-        <a
-          href={instagramUrl || "https://instagram.com"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group inline-flex items-center gap-2 border border-foreground px-5 py-2.5 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase hover:border-primary hover:text-primary transition-colors"
-        >
-          <Instagram className="size-4" />
-          Follow me on Instagram
-        </a>
-      </div>
+      {instagramUrl && (
+        <div className="mt-10 flex flex-col items-center gap-3 text-center">
+          <p className="text-mono text-xs sm:text-sm tracking-[0.2em] uppercase text-muted-foreground">
+            Follow for more content from Studio Deny
+          </p>
+          {/* Same red sweep as the footer's STUDIO DENY strip. */}
+          <a
+            href={instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="STUDIO DENY on Instagram"
+            className="btn-fill relative inline-flex items-center border border-foreground hover:border-accent px-5 py-2.5 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase text-foreground transition-colors duration-500"
+          >
+            <span className="btn-fill-bg bg-accent" aria-hidden="true" />
+            <span className="btn-fill-front inline-flex items-center gap-2">
+              <Instagram className="size-4" /> STUDIO DENY
+            </span>
+            <span className="btn-fill-back inline-flex items-center gap-2 text-white" aria-hidden="true">
+              <Instagram className="size-4" /> STUDIO DENY
+            </span>
+          </a>
+        </div>
+      )}
 
       {lightboxIndex !== null && (
         <Lightbox picks={picks} index={lightboxIndex} onClose={() => setLightboxIndex(null)} onNavigate={setLightboxIndex} />

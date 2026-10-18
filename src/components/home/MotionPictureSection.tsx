@@ -4,35 +4,46 @@ import { supabase } from "@/lib/supabase";
 import { useSectionHeading } from "@/lib/sectionHeadings";
 import { EditorialHeading, EditorialParagraph } from "@/components/ui/EditorialHeading";
 
-type MotionPictureConfig = { video_url: string; media_type?: "image" | "video"; subtext: string };
+// mobile_url: optional phone version; phones fall back to video_url.
+type MotionPictureConfig = {
+  video_url: string;
+  media_type?: "image" | "video";
+  mobile_url?: string;
+  mobile_media_type?: "image" | "video";
+  subtext: string;
+};
 
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+import { responsiveImage } from "@/lib/image";
+import { useIsMobile } from "@/hooks/use-mobile";
 
-const DEFAULTS: MotionPictureConfig = {
-  video_url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-  media_type: "video",
-  subtext: "CAPTURING THE ESSENCE OF THE STREETS. RAW, UNFILTERED, AND IN CONSTANT MOTION.",
-};
+const DEFAULTS: MotionPictureConfig = { video_url: "", media_type: "video", subtext: "" };
 
 export function MotionPictureSection() {
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<MotionPictureConfig>("motion_picture", DEFAULTS);
   const heading = useSectionHeading("motion_picture", "MOTION\nPICTURE");
+  const isMobile = useIsMobile();
+  const onPhone = isMobile && !!cfg.mobile_url;
+  const src = onPhone ? cfg.mobile_url! : cfg.video_url;
+  const mediaType = onPhone ? (cfg.mobile_media_type ?? "image") : cfg.media_type;
 
-  if (!visible) return null;
+  if (!visible || !src) return null;
 
   return (
     <section className="relative h-[80vh] w-full overflow-hidden flex items-center justify-center border-y border-border bg-[#0A0A0A]">
-      {cfg.media_type === "image" ? (
+      {mediaType === "image" ? (
         <img
-          key={cfg.video_url}
-          src={cfg.video_url}
+          key={src}
+          {...responsiveImage(src, { maxWidth: 1920, sizes: "100vw" })}
           alt=""
+          loading="lazy"
+          decoding="async"
           className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105"
         />
       ) : (
-        <video key={cfg.video_url} autoPlay loop muted playsInline preload="none"
+        <video key={src} autoPlay loop muted playsInline preload="none"
           className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105">
-          <source src={cfg.video_url} type="video/mp4" />
+          <source src={src} type="video/mp4" />
         </video>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/70" />

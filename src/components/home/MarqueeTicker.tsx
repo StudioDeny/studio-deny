@@ -2,27 +2,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 type MarqueeConfig = { items: string[]; speed: number };
-const DEFAULTS: MarqueeConfig = {
-  items: [
-    "STUDIO DENY",
-    "NEW DROP LIVE",
-    "FREE SHIPPING ALL INDIA",
-    "HEAVYWEIGHT COTTON",
-    "STREETWEAR FOR THE RESTLESS",
-    "RAW GRAPHICS",
-    "LIMITED EDITION",
-  ],
-  speed: 120,
-};
+const DEFAULTS: MarqueeConfig = { items: [], speed: 120 };
 
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
 export function MarqueeTicker() {
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<MarqueeConfig>("marquee", DEFAULTS);
 
-  if (!visible) return null;
-  const validItems = (cfg.items ?? []).map((s) => s.trim()).filter(Boolean);
-  const items = validItems.length > 0 ? validItems : DEFAULTS.items;
+  const items = (cfg.items ?? []).map((s) => s.trim()).filter(Boolean);
+  if (!visible || items.length === 0) return null;
 
   // Fast, seamless infinite scrolling
   const durationSeconds = Math.max(6, Math.min(14, 1200 / (cfg.speed || 100)));

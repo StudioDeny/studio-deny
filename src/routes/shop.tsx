@@ -74,8 +74,9 @@ function Shop() {
   return (
     <section className="px-4 md:px-8 mt-8 md:mt-12 pb-24">
       <div className="mb-6">
-        <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ ALL DROPS</div>
-        <h1 className="text-display leading-none" style={{ fontSize: "clamp(52px, 8vw, 96px)" }}>SHOP</h1>
+        {/* ?best=1 is the Best Sellers page (home page Best Sellers buttons). */}
+        <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {filters.best ? "MOST WANTED" : "ALL DROPS"}</div>
+        <h1 className="text-display leading-none" style={{ fontSize: "clamp(52px, 8vw, 96px)" }}>{filters.best ? "BEST SELLERS" : "SHOP"}</h1>
       </div>
 
       <ProductFilterBar

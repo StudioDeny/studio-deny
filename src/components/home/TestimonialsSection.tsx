@@ -7,25 +7,13 @@ import { EditorialHeading } from "@/components/ui/EditorialHeading";
 
 type TestimonialItem = { name: string; city: string; quote: string; rating: number };
 
-const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
-  { quote: "Fit is unreal. It feels premium without trying too hard.", name: "Arjun K.", city: "Mumbai", rating: 5 },
-  { quote: "Finally a brand that understands cut, fabric, and movement.", name: "Priya S.", city: "Delhi", rating: 5 },
-  { quote: "Every drop sells out for a reason. Quality is consistent.", name: "Rahul M.", city: "Bangalore", rating: 5 },
-  { quote: "The heavyweight cotton is unmatched. Nothing else comes close.", name: "Sneha D.", city: "Pune", rating: 5 },
-  { quote: "I get compliments every single time I wear Studio Deny.", name: "Vikram T.", city: "Hyderabad", rating: 5 },
-  { quote: "Studio Deny is the only brand I trust for streetwear.", name: "Kiran R.", city: "Chennai", rating: 5 },
-];
-
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
 export function TestimonialsSection() {
-  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<{ fallback_quotes?: { quote: string; name: string; city: string }[] }>("testimonials", { fallback_quotes: DEFAULT_TESTIMONIALS });
-  const [testimonials, setTestimonials] = useState<TestimonialItem[]>(() => {
-    if (cfg.fallback_quotes && cfg.fallback_quotes.length > 0) {
-      return cfg.fallback_quotes.map((q) => ({ ...q, rating: 5 }));
-    }
-    return DEFAULT_TESTIMONIALS;
-  });
+  const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<{ fallback_quotes?: { quote: string; name: string; city: string }[] }>("testimonials", {});
+  // Admin → Testimonials first; else the quotes typed in Website Sections.
+  const [reviews, setReviews] = useState<TestimonialItem[]>([]);
+  const testimonials = reviews.length > 0 ? reviews : (cfg.fallback_quotes ?? []).map((q) => ({ ...q, rating: 5 }));
   const heading = useSectionHeading("testimonials", "WORN IN\nEVERY CITY");
 
   useEffect(() => {
@@ -36,12 +24,12 @@ export function TestimonialsSection() {
       .order("position")
       .then(({ data }) => {
         if (data && data.length > 0) {
-          setTestimonials(data.map((t) => ({ name: t.name, city: t.role ?? "", quote: t.body, rating: t.rating })));
+          setReviews(data.map((t) => ({ name: t.name, city: t.role ?? "", quote: t.body, rating: t.rating })));
         }
       });
   }, []);
 
-  if (!visible) return null;
+  if (!visible || testimonials.length === 0) return null;
 
   return (
     <section className="py-16 sm:py-24 overflow-hidden bg-[#E2E2E4]">

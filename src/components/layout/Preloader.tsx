@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useLenis } from "@/components/common/SmoothScroll";
 import { supabase } from "@/lib/supabase";
-import { AnimatedLogo } from "@/components/layout/AnimatedLogo";
 import type { PreloaderSettings } from "@/types/database";
+import { responsiveImage } from "@/lib/image";
 
 const DEFAULTS: PreloaderSettings = {
   id: "",
@@ -12,7 +12,7 @@ const DEFAULTS: PreloaderSettings = {
   bg_video_url: null,
   bg_color: "#0D0D0D",
   content_type: "text",
-  content_image_url: "/deny-space-preloader.png",
+  content_image_url: "",
   content_text: "STUDIO DENY",
   text_color: "#FFFFFF",
   created_at: "",
@@ -137,11 +137,9 @@ export function Preloader() {
             transition={{ duration: 0.2 }}
             className="dark-section fixed inset-0 z-[99999] bg-[#0D0D0D] flex items-center justify-center pointer-events-auto select-none"
           >
-            <img
-              src="/logo-white.png"
-              alt="STUDIO DENY"
-              className="h-10 sm:h-12 w-auto object-contain"
-            />
+            <span className="text-display text-white leading-none whitespace-nowrap" style={{ fontSize: "clamp(40px, 8vw, 72px)" }}>
+              {brandText}
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -168,7 +166,7 @@ export function Preloader() {
           {/* ════════ ADMIN CONFIGURABLE BACKDROP ════════ */}
           {cfg.bg_type === "image" && cfg.bg_image_url && (
             <img
-              src={cfg.bg_image_url}
+              {...responsiveImage(cfg.bg_image_url, { maxWidth: 1920, sizes: "100vw" })}
               alt=""
               className="absolute inset-0 w-full h-full object-cover pointer-events-none"
             />
@@ -192,8 +190,13 @@ export function Preloader() {
               transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center gap-6 relative"
             >
-              {/* Animated Studio Deny Logo Typography */}
-              <AnimatedLogo className="w-[280px] sm:w-[380px] md:w-[480px]" />
+              {/* STUDIO DENY as plain text */}
+              <span
+                className="text-display leading-none whitespace-nowrap"
+                style={{ fontSize: "clamp(48px, 10vw, 112px)", color: cfg.text_color || "#FFFFFF" }}
+              >
+                {brandText}
+              </span>
 
               {/* Minimal Luxury Progress Bar */}
               <div className="w-44 sm:w-60 h-[2.5px] bg-white/10 overflow-hidden relative rounded-full mt-2">
