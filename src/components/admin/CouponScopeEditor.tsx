@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import type { Category } from "@/lib/catalog";
 import type { Product } from "@/lib/productsStore";
 import { formatINR } from "@/context/CartContext";
+import { thumbImage } from "@/lib/image";
 
 export type CouponScope = { scope: "all" | "categories"; categoryIds: string[]; excluded: string[] };
 
@@ -114,7 +115,7 @@ export function CouponScopeEditor({ value, onChange, cats, products, memberships
                       <li key={p.slug}>
                         <label className={`flex items-center gap-3 px-3 py-2 cursor-pointer ${on ? "" : "opacity-50"}`}>
                           <input type="checkbox" checked={on} onChange={() => setExcluded([p.slug], on)} className="size-4 shrink-0" />
-                          {p.image && <img src={p.image} alt="" className="w-8 h-10 object-cover shrink-0 bg-surface" />}
+                          {p.image && <img src={thumbImage(p.image, 96)} alt="" width={32} height={40} loading="lazy" decoding="async" className="w-8 h-10 object-cover shrink-0 bg-surface" />}
                           <span className="flex-1 min-w-0">
                             <span className="block text-sm truncate">{p.name}</span>
                             <span className="block text-[11px] text-muted-foreground">

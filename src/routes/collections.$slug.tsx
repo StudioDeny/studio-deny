@@ -153,8 +153,13 @@ function CollectionPage() {
           </div>
         ) : (
           <div className={gridClass}>
-            {filtered.map((p) => (
-              <ProductCard key={p.slug} product={p} />
+            {filtered.map((p, i) => (
+              <ProductCard
+                key={p.slug}
+                product={p}
+                priority={i < 4}
+                imageSizes={gridCols === 2 ? "(min-width: 640px) 50vw, 100vw" : undefined}
+              />
             ))}
           </div>
         )}

@@ -4,6 +4,7 @@ import { useCart, formatINR } from "@/context/CartContext";
 import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { Minus, Plus, Trash2, ArrowRight, ShieldCheck, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
+import { thumbImage } from "@/lib/image";
 
 export const Route = createFileRoute("/cart")({
   component: CartPage,
@@ -97,9 +98,11 @@ function CartPage() {
                   style={{ aspectRatio: "4/5" }}
                 >
                   <img
-                    src={it.product.image}
+                    src={thumbImage(it.product.image, 320)}
                     style={blurPlaceholder(it.product.image)}
                     alt={it.product.name}
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 </Link>

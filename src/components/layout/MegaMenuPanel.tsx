@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "framer-motion";
 import type { MegaMenuCategory, MegaMenuProduct } from "@/lib/megaMenu";
 import { formatINR } from "@/context/CartContext";
+import { responsiveImage } from "@/lib/image";
 
 export function MegaMenuPanel({
   category,
@@ -123,8 +124,10 @@ export function MegaMenuPanel({
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 <Link to={p.href as any} onClick={onNavigate} className="group relative min-w-0 h-full w-full overflow-hidden rounded-xs bg-neutral-900 block">
                   <img
-                    src={p.imageUrl}
+                    {...responsiveImage(p.imageUrl, { maxWidth: 828, sizes: "25vw" })}
                     alt={p.label}
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                   {nameOverlay(p)}
@@ -162,8 +165,10 @@ function MobileProductCard({ product, onNavigate }: { product: MegaMenuProduct; 
     <Link to={product.href as any} onClick={onNavigate} className="group block">
       <div className="relative w-full overflow-hidden bg-surface rounded-xs" style={{ aspectRatio: "4/5" }}>
         <img
-          src={product.imageUrl}
+          {...responsiveImage(product.imageUrl, { maxWidth: 828, sizes: "50vw" })}
           alt={product.label}
+          loading="lazy"
+          decoding="async"
           className="absolute inset-0 w-full h-full object-cover"
         />
         {discountPct !== null && (

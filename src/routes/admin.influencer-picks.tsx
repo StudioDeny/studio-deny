@@ -7,6 +7,7 @@ import { listProducts, type Product } from "@/lib/productsStore";
 import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Upload, X, Search } from "lucide-react";
 import { toast } from "sonner";
 import { MediaField } from "@/components/admin/MediaField";
+import { thumbImage } from "@/lib/image";
 
 export const Route = createFileRoute("/admin/influencer-picks")({
   component: InfluencerPicksAdmin,
@@ -198,7 +199,7 @@ function InfluencerPicksAdmin() {
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {r.thumbnail_url ? (
-                      <img src={r.thumbnail_url} alt={r.name} className="w-10 h-12 object-cover flex-shrink-0 border border-border" />
+                      <img src={thumbImage(r.thumbnail_url, 120)} alt={r.name} width={40} height={48} loading="lazy" decoding="async" className="w-10 h-12 object-cover flex-shrink-0 border border-border" />
                     ) : (
                       <div className="w-10 h-12 bg-muted flex items-center justify-center text-mono text-[10px] flex-shrink-0">{r.name.charAt(0).toUpperCase()}</div>
                     )}
@@ -291,7 +292,7 @@ function InfluencerPicksAdmin() {
                           const p = allProducts.find((x) => x.slug === slug);
                           return (
                             <span key={slug} className="inline-flex items-center gap-2 border border-border bg-muted/40 rounded-full pl-1 pr-2 py-1 text-xs">
-                              {p?.image && <img src={p.image} alt="" className="size-5 rounded-full object-cover" />}
+                              {p?.image && <img src={thumbImage(p.image, 64)} alt="" width={20} height={20} loading="lazy" decoding="async" className="size-5 rounded-full object-cover" />}
                               {p?.name ?? slug}
                               <button onClick={() => removeTag(slug)} className="text-muted-foreground hover:text-red-500"><X className="size-3" /></button>
                             </span>
@@ -308,7 +309,7 @@ function InfluencerPicksAdmin() {
                         {matches.map((p) => (
                           <button key={p.slug} onClick={() => addTag(p.slug)} disabled={taggedSlugs.includes(p.slug)}
                             className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/40 text-left disabled:opacity-40">
-                            <img src={p.image} alt="" className="size-8 object-cover" />
+                            <img src={thumbImage(p.image, 96)} alt="" width={32} height={32} loading="lazy" decoding="async" className="size-8 object-cover" />
                             <span className="text-sm flex-1">{p.name}</span>
                             {taggedSlugs.includes(p.slug) ? <span className="text-mono text-[10px] text-muted-foreground">TAGGED</span> : <Plus className="size-3.5" />}
                           </button>

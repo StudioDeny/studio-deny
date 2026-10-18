@@ -7,13 +7,20 @@ import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 
 import { useQuickAdd } from "@/context/QuickAddContext";
+import { responsiveImage } from "@/lib/image";
 
 export function ProductCard({
   product,
-  index = 0
+  index = 0,
+  priority = false,
+  imageSizes = "(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw",
 }: {
   product: Product;
   index?: number;
+  /** First row of a grid: load the main photo eagerly instead of lazily. */
+  priority?: boolean;
+  /** How wide the card renders, for picking the image resolution. */
+  imageSizes?: string;
 }) {
   const { add } = useCart();
   const { openQuickAdd } = useQuickAdd();
@@ -82,10 +89,11 @@ export function ProductCard({
             {desktopPhotos.map((url, i) => (
               <img
                 key={url + i}
-                src={url}
+                {...responsiveImage(url, { maxWidth: 1080, sizes: imageSizes })}
                 style={blurPlaceholder(url)}
                 alt={i === 0 ? product.name : ""}
-                loading={i === 0 ? undefined : "lazy"}
+                loading={i === 0 && priority ? "eager" : "lazy"}
+                decoding="async"
                 className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out ${i === activeDesktopIndex ? "opacity-100 scale-100" : "opacity-0 scale-[1.03] pointer-events-none"
                   }`}
               />
@@ -101,10 +109,11 @@ export function ProductCard({
             {mobilePhotos.map((url, i) => (
               <img
                 key={url + i}
-                src={url}
+                {...responsiveImage(url, { maxWidth: 1080, sizes: imageSizes })}
                 style={blurPlaceholder(url)}
                 alt={i === 0 ? product.name : ""}
-                loading={i === 0 ? undefined : "lazy"}
+                loading={i === 0 && priority ? "eager" : "lazy"}
+                decoding="async"
                 className="w-full h-full object-cover shrink-0 snap-center"
               />
             ))}

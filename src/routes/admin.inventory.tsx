@@ -6,6 +6,7 @@ import { listCategories, type Category } from "@/lib/catalog";
 import { Search, Pencil } from "lucide-react";
 import { StockPanel } from "@/components/admin/StockPanel";
 import { toast } from "sonner";
+import { thumbImage } from "@/lib/image";
 
 export const Route = createFileRoute("/admin/inventory")({
   component: Inventory,
@@ -170,7 +171,7 @@ function Inventory() {
               <tr key={r.key} className="hover:bg-muted/40">
                 <td className="p-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-12 bg-muted overflow-hidden flex-shrink-0"><img src={r.productImage} alt="" className="w-full h-full object-cover" /></div>
+                    <div className="w-10 h-12 bg-muted overflow-hidden flex-shrink-0"><img src={thumbImage(r.productImage, 120)} alt="" width={40} height={48} loading="lazy" decoding="async" className="w-full h-full object-cover" /></div>
                     <div className="font-semibold">{r.productName}</div>
                   </div>
                 </td>

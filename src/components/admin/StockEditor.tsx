@@ -6,6 +6,7 @@ import { Copy, ImagePlus, Loader2, Plus, X } from "lucide-react";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
 import { emptyCard, ONE_SIZE, type ColourCard } from "@/lib/stockEditor";
+import { thumbImage } from "@/lib/image";
 
 export function StockEditor({
   cards,
@@ -284,7 +285,7 @@ function ColourPhotos({ colourName, images, onChange }: {
       <div className="flex flex-wrap gap-2">
         {images.map((url, i) => (
           <div key={`${url}-${i}`} className="relative w-16 h-20 border border-border bg-background">
-            <img src={url} alt="" className="w-full h-full object-cover" />
+            <img src={thumbImage(url, 240)} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
             <button
               type="button"
               aria-label="Remove photo"

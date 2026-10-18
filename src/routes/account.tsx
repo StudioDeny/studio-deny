@@ -16,6 +16,7 @@ import type { Coupon, CouponRedemption } from "@/types/database";
 import { supabase } from "@/lib/supabase";
 import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { LoyaltyCard } from "@/components/account/LoyaltyCard";
+import { responsiveImage, thumbImage } from "@/lib/image";
 
 const RETURN_WINDOW_DAYS = 7;
 const RETURN_STATUS_LABEL: Record<string, string> = {
@@ -199,7 +200,7 @@ function Account() {
                 </div>
                 <div className="flex gap-1">
                   {o.items.slice(0, 4).map((it) => (
-                    <div key={it.slug + it.size} className="w-10 h-12 bg-muted overflow-hidden"><img src={it.image} alt="" className="w-full h-full object-cover" /></div>
+                    <div key={it.slug + it.size} className="w-10 h-12 bg-muted overflow-hidden"><img src={thumbImage(it.image, 120)} alt="" width={40} height={48} loading="lazy" decoding="async" className="w-full h-full object-cover" /></div>
                   ))}
                 </div>
                 <div className="text-mono">{formatINR(o.total)}</div>
@@ -264,7 +265,7 @@ function Account() {
               <div key={p.slug} className="group relative">
                 <Link to="/product/$slug" params={{ slug: p.slug }} className="block">
                   <div className="relative overflow-hidden bg-surface" style={{ aspectRatio: "3/4" }}>
-                    <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img {...responsiveImage(p.image, { maxWidth: 828, sizes: "(min-width: 1024px) 20vw, (min-width: 768px) 25vw, 50vw" })} alt={p.name} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   <div className="mt-2">
                     <p className="text-mono text-[11px] tracking-[0.15em] font-semibold uppercase truncate">{p.name}</p>

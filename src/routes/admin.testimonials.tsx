@@ -5,6 +5,7 @@ import type { Testimonial } from "@/types/database";
 import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Star } from "lucide-react";
 import { toast } from "sonner";
 import { MediaField } from "@/components/admin/MediaField";
+import { thumbImage } from "@/lib/image";
 
 export const Route = createFileRoute("/admin/testimonials")({
   component: AdminTestimonials,
@@ -133,7 +134,7 @@ function AdminTestimonials() {
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {r.avatar ? (
-                      <img src={r.avatar} alt={r.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                      <img src={thumbImage(r.avatar, 108)} alt={r.name} width={36} height={36} loading="lazy" decoding="async" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
                     ) : (
                       <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-mono text-xs flex-shrink-0">
                         {r.name.charAt(0).toUpperCase()}

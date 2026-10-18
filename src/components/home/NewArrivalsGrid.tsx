@@ -9,6 +9,7 @@ import { useCart, formatINR } from "@/context/CartContext";
 import { useSectionHeading } from "@/lib/sectionHeadings";
 import { useQuickAdd } from "@/context/QuickAddContext";
 import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
+import { responsiveImage } from "@/lib/image";
 
 type ArrivalsConfig = { cta_label: string; product_slugs: string[] };
 
@@ -95,9 +96,11 @@ function ArrivalTile({ product, sizeClass }: { product: Product; sizeClass: stri
       {photos.map((src, i) => (
         <img
           key={src + i}
-          src={src}
+          {...responsiveImage(src, { maxWidth: 828, sizes: "(min-width: 768px) 360px, (min-width: 640px) 320px, 260px" })}
           style={blurPlaceholder(src)}
           alt={i === 0 ? product.name : ""}
+          loading="lazy"
+          decoding="async"
           className={`absolute inset-0 w-full h-full object-cover transition-all duration-400 ease-out ${i === activePhotoIndex ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
             }`}
         />

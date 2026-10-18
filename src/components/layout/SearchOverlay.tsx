@@ -4,6 +4,7 @@ import { Search, X, Sparkles, TrendingUp, Clock } from "lucide-react";
 import { listProducts } from "@/lib/productsStore";
 import { listCategories, type Category } from "@/lib/catalog";
 import { formatINR } from "@/context/CartContext";
+import { thumbImage } from "@/lib/image";
 
 const RECENT_KEY = "sd_recent_searches";
 
@@ -176,7 +177,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                     className="flex items-center gap-4 p-3 hover:bg-muted"
                   >
                     <div className="w-14 h-16 bg-muted overflow-hidden shrink-0">
-                      {p.image && <img src={p.image} alt="" className="w-full h-full object-cover" />}
+                      {p.image && <img src={thumbImage(p.image, 160)} alt="" width={56} height={64} loading="lazy" decoding="async" className="w-full h-full object-cover" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{p.name}</div>

@@ -11,6 +11,7 @@ import { MediaField, type MediaValue } from "@/components/admin/MediaField";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { StockModeEditor } from "@/components/admin/StockModeEditor";
 import { singleItemVariant, ONE_SIZE } from "@/lib/singleItem";
+import { thumbImage } from "@/lib/image";
 import {
   cardsFromVariants, colorsFromCards, describeSaveResult, listVariantRows, planSingleSave, validateSingleQty, planStockSave, saveStockPlan,
   validateCards, type ColourCard, type VariantRow,
@@ -361,7 +362,7 @@ export function ProductForm({
                     {item.type === "video" ? (
                       <video src={item.url} className="w-full h-full object-cover" muted />
                     ) : (
-                      <img src={item.url} alt={`gallery-${idx}`} className="w-full h-full object-cover" />
+                      <img src={thumbImage(item.url, 400)} alt={`gallery-${idx}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     )}
                     <button
                       type="button"

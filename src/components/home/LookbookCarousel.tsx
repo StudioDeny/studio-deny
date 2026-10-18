@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
 import { useSectionHeading } from "@/lib/sectionHeadings";
 import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
+import { responsiveImage } from "@/lib/image";
 
 type MiniProduct = { slug: string; name: string; price: number };
 
@@ -369,8 +370,10 @@ export function LookbookCarousel() {
                   />
                 ) : (
                   <img
-                    src={slide.image_url}
+                    {...responsiveImage(slide.image_url, { maxWidth: 828, sizes: "(min-width: 768px) 300px, 200px" })}
                     style={blurPlaceholder(slide.image_url)}
+                    loading="lazy"
+                    decoding="async"
                     alt={product?.name ?? ""}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />

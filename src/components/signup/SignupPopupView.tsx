@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { X, Copy, Check, Loader2 } from "lucide-react";
 import type { SignupPopupConfig } from "@/lib/signupPopup";
 import { fillTokens } from "@/lib/signupPopup";
+import { responsiveImage, thumbImage } from "@/lib/image";
 
 export type SignupValues = { name: string; email: string; phone: string; password: string };
 
@@ -80,11 +81,11 @@ export function SignupPopupView(p: Props) {
 
       {/* Media / brand panel */}
       <div className={`relative overflow-hidden md:w-1/2 md:min-h-[440px] ${mediaClass}`} style={{ background: cfg.bg_color }}>
-        {cfg.bg_type === "image" && cfg.bg_image_url && <img src={cfg.bg_image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />}
+        {cfg.bg_type === "image" && cfg.bg_image_url && <img {...responsiveImage(cfg.bg_image_url, { maxWidth: 1080, sizes: "(min-width: 768px) 50vw, 100vw" })} alt="" decoding="async" className="absolute inset-0 w-full h-full object-cover" />}
         {cfg.bg_type === "video" && cfg.bg_video_url && <video src={cfg.bg_video_url} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" />}
         {cfg.bg_type !== "color" && <div className="absolute inset-0" style={{ background: cfg.overlay_color, opacity: cfg.overlay_opacity / 100 }} />}
         <div className="relative h-full flex flex-col items-center justify-center text-center p-6 md:p-10 gap-3">
-          {cfg.logo_url && <img src={cfg.logo_url} alt="" className="h-10 md:h-14 object-contain" />}
+          {cfg.logo_url && <img src={thumbImage(cfg.logo_url, 480)} alt="" decoding="async" className="h-10 md:h-14 object-contain" />}
           <h2 className="text-display text-2xl md:text-4xl leading-tight" style={{ color: cfg.heading_color }}>{cfg.heading}</h2>
           <p className="text-sm md:text-base" style={{ color: cfg.subheading_color }}>{cfg.subheading}</p>
         </div>

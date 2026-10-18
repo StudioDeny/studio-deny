@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { buildMeta, buildLinks, SITE_URL } from "@/lib/seo";
+import { responsiveImage } from "@/lib/image";
 
 export const Route = createFileRoute("/lookbook")({
   component: Lookbook,
@@ -37,7 +38,7 @@ function Lookbook() {
           ];
           return (
             <div key={p.slug} className={`relative overflow-hidden rounded-none bg-surface group ${spans[i % spans.length]}`}>
-              <img src={p.image} alt={p.name} className="absolute inset-0 w-full h-full object-cover" />
+              <img {...responsiveImage(p.image, { maxWidth: 1280, sizes: "(min-width: 768px) 60vw, 100vw" })} alt={p.name} loading={i < 2 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 w-full h-full object-cover" />
               <div className="absolute bottom-3 left-3 text-display text-2xl text-background bg-foreground px-2 leading-tight">{p.name}</div>
             </div>
           );

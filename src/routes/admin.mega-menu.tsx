@@ -8,6 +8,7 @@ import { MegaMenuPanel } from "@/components/layout/MegaMenuPanel";
 import type { MegaMenuCategoryRow, MegaMenuLinkRow, MegaMenuProductRow } from "@/types/database";
 import { GripVertical, Plus, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
+import { thumbImage } from "@/lib/image";
 
 export const Route = createFileRoute("/admin/mega-menu")({
   component: AdminMegaMenu,
@@ -442,7 +443,7 @@ function ProductRow({ item, product, onRemove }: { item: MegaMenuProductRow; pro
       <div className="flex items-center gap-2 p-2 border border-border bg-background">
         <DragHandle dragControls={dragControls} />
         <div className="size-10 shrink-0 overflow-hidden bg-surface">
-          {product && <img src={product.image} alt={product.name} className="w-full h-full object-cover" />}
+          {product && <img src={thumbImage(product.image, 400)} alt={product.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />}
         </div>
         <span className="flex-1 text-sm font-semibold truncate">{product?.name ?? item.product_slug}</span>
         <button type="button" onClick={onRemove} title="Remove this product" className="shrink-0 border border-border h-9 w-9 inline-flex items-center justify-center hover:border-red-500 hover:text-red-500 transition-all hover:scale-110">
@@ -473,7 +474,7 @@ function ProductAdder({ allProducts, excludeSlugs, onAdd }: { allProducts: Produ
                 onClick={() => { onAdd(p.slug); setSearch(""); }}
                 className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/40 text-left transition-colors"
               >
-                <img src={p.image} alt="" className="size-8 object-cover shrink-0 bg-surface" />
+                <img src={thumbImage(p.image, 96)} alt="" width={32} height={32} loading="lazy" decoding="async" className="size-8 object-cover shrink-0 bg-surface" />
                 <span className="text-sm text-foreground flex-1 truncate">{p.name}</span>
               </button>
             ))

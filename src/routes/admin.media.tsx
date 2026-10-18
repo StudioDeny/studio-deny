@@ -5,6 +5,7 @@ import { uploadToCloudinary, uploadVideoToCloudinary } from "@/lib/cloudinary";
 import type { MediaAsset } from "@/types/database";
 import { Upload, Copy, Trash2, Search, X } from "lucide-react";
 import { toast } from "sonner";
+import { thumbImage } from "@/lib/image";
 
 export const Route = createFileRoute("/admin/media")({
   component: AdminMedia,
@@ -173,7 +174,7 @@ function AdminMedia() {
                   {a.resource_type === "video" ? (
                     <video src={a.secure_url} muted className="w-full h-full object-cover" />
                   ) : (
-                    <img src={a.secure_url} alt={a.alt_text ?? ""} className="w-full h-full object-cover" />
+                    <img src={thumbImage(a.secure_url, 400)} alt={a.alt_text ?? ""} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-end justify-end p-1 opacity-0 group-hover:opacity-100">
                     <span className="text-mono text-[9px] tracking-widest text-white bg-black/70 px-1">{a.format?.toUpperCase()}</span>
@@ -193,7 +194,7 @@ function AdminMedia() {
             {selected.resource_type === "video" ? (
               <video src={selected.secure_url} controls className="w-full aspect-square object-contain bg-muted" />
             ) : (
-              <img src={selected.secure_url} alt={selected.alt_text ?? ""} className="w-full aspect-square object-contain bg-muted" />
+              <img src={thumbImage(selected.secure_url, 800)} alt={selected.alt_text ?? ""} decoding="async" className="w-full aspect-square object-contain bg-muted" />
             )}
             <div className="space-y-2 text-xs">
               <div>

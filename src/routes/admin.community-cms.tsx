@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { MediaField } from "@/components/admin/MediaField";
 import { BENTO_SLOTS, BENTO_SLOT_COUNT } from "@/lib/communityBento";
+import { thumbImage } from "@/lib/image";
 
 export const Route = createFileRoute("/admin/community-cms")({
   component: CommunityCmsAdmin,
@@ -92,7 +93,7 @@ function CommunityCmsAdmin() {
                   photo.media_type === "video" ? (
                     <video src={photo.image_url} className="w-full h-full object-cover" muted playsInline />
                   ) : (
-                    <img src={photo.image_url} alt="" className="w-full h-full object-cover" />
+                    <img src={thumbImage(photo.image_url, 400)} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   )
                 ) : null}
                 <span className="absolute bottom-0.5 left-0.5 bg-black/70 text-white text-[8px] font-mono px-1 tracking-widest">
@@ -113,7 +114,7 @@ function CommunityCmsAdmin() {
                 {photo.media_type === "video" ? (
                   <video src={photo.image_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
                 ) : (
-                  <img src={photo.image_url} alt={photo.handle ?? ""} className="w-full h-full object-cover" />
+                  <img src={thumbImage(photo.image_url, 400)} alt={photo.handle ?? ""} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 )}
                 <button type="button" onClick={() => remove(photo.id)}
                   className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1 hover:bg-red-600 transition-colors">

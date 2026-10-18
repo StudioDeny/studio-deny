@@ -6,6 +6,7 @@ import { Check, FileText, X, Truck, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Loading } from "@/components/ui/loading";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { thumbImage } from "@/lib/image";
 
 const RETURN_WINDOW_DAYS = 7;
 const RETURN_STATUS_LABEL: Record<string, string> = {
@@ -161,7 +162,7 @@ function OrderPage() {
         <ul className="divide-y divide-border">
           {order.items.map((it) => (
             <li key={it.slug + it.size} className="p-4 flex gap-4">
-              <div className="w-16 h-20 bg-muted overflow-hidden shrink-0"><img src={it.image} alt="" className="w-full h-full object-cover" /></div>
+              <div className="w-16 h-20 bg-muted overflow-hidden shrink-0"><img src={thumbImage(it.image, 192)} alt="" width={64} height={80} loading="lazy" decoding="async" className="w-full h-full object-cover" /></div>
               <div className="flex-1">
                 <div className="font-semibold">{it.name}</div>
                 <div className="text-xs text-mono text-muted-foreground">SIZE {it.size} · QTY {it.qty}</div>

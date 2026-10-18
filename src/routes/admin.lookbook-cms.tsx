@@ -7,6 +7,7 @@ import { listAllAdminProducts, type Product } from "@/lib/productsStore";
 import { formatINR } from "@/context/CartContext";
 import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Search, X } from "lucide-react";
 import { toast } from "sonner";
+import { thumbImage } from "@/lib/image";
 
 export const Route = createFileRoute("/admin/lookbook-cms")({
   component: LookbookCmsAdmin,
@@ -38,7 +39,7 @@ function ProductPicker({
   if (picked) {
     return (
       <div className="flex items-center gap-3 border border-border p-2">
-        <img src={picked.image} alt="" className="size-10 object-cover shrink-0" />
+        <img src={thumbImage(picked.image, 120)} alt="" width={40} height={40} decoding="async" className="size-10 object-cover shrink-0" />
         <div className="flex-1 min-w-0">
           <div className="text-sm font-semibold truncate">{picked.name}</div>
           <div className="text-mono text-[10px] text-muted-foreground">{formatINR(picked.price)}</div>
@@ -74,7 +75,7 @@ function ProductPicker({
               onClick={() => { onChange(p.slug); setQuery(""); }}
               className="w-full flex items-center gap-3 p-2 hover:bg-muted/40 text-left"
             >
-              <img src={p.image} alt="" className="size-8 object-cover shrink-0" />
+              <img src={thumbImage(p.image, 96)} alt="" width={32} height={32} loading="lazy" decoding="async" className="size-8 object-cover shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm truncate">{p.name}</div>
                 <div className="text-mono text-[10px] text-muted-foreground">{formatINR(p.price)}</div>
@@ -201,7 +202,7 @@ function LookbookCmsAdmin() {
                     {r.media_type === "video" ? (
                       <video src={r.image_url} muted playsInline className="w-14 h-16 object-cover flex-shrink-0 border border-border" />
                     ) : (
-                      <img src={r.image_url} alt="" className="w-14 h-16 object-cover flex-shrink-0 border border-border" />
+                      <img src={thumbImage(r.image_url, 160)} alt="" width={56} height={64} loading="lazy" decoding="async" className="w-14 h-16 object-cover flex-shrink-0 border border-border" />
                     )}
                     <div>
                       <div className="font-semibold">{productName(r.product_slug) || "— no product picked —"}</div>

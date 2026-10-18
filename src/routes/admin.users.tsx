@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import type { Profile, UserRole, AppRole } from "@/types/database";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
+import { thumbImage } from "@/lib/image";
 
 export const Route = createFileRoute("/admin/users")({
   component: AdminUsers,
@@ -103,7 +104,7 @@ function AdminUsers() {
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {u.avatar_url ? (
-                      <img src={u.avatar_url} alt={u.name ?? ""} className="w-9 h-9 rounded-full object-cover flex-shrink-0 border border-border" />
+                      <img src={thumbImage(u.avatar_url, 108)} alt={u.name ?? ""} width={36} height={36} loading="lazy" decoding="async" className="w-9 h-9 rounded-full object-cover flex-shrink-0 border border-border" />
                     ) : (
                       <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-mono text-xs flex-shrink-0">
                         {(u.name ?? u.email ?? "?").charAt(0).toUpperCase()}

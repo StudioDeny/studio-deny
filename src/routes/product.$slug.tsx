@@ -15,6 +15,7 @@ import { sizeOrderFor, sortSizes } from "@/lib/sizes";
 import { toast } from "sonner";
 import { RichText } from "@/components/ui/RichText";
 import { stripHtml } from "@/lib/richText";
+import { responsiveImage, thumbImage } from "@/lib/image";
 
 type SizeOption = { size: string; inStock: boolean; variantId?: string; price?: number };
 type VariantRow = { id: string; size: string | null; stock: number; price: number | null; color: string | null; color_hex: string | null };
@@ -375,7 +376,7 @@ function PDP() {
     </div>
   );
 
-  const renderGalleryTile = (media: GalleryMediaItem, index: number) => {
+  const renderGalleryTile = (media: GalleryMediaItem, index: number, half = false) => {
     const isFirst = index === 0;
     return (
       <div
@@ -391,11 +392,16 @@ function PDP() {
           />
         ) : (
           <img
-            src={media.url}
+            {...responsiveImage(media.url, {
+              maxWidth: 1600,
+              sizes: half ? "(min-width: 768px) 30vw, 100vw" : "(min-width: 768px) 60vw, 100vw",
+            })}
             style={blurPlaceholder(media.url)}
             alt={`${product.name} view ${index + 1}`}
             className="absolute inset-0 w-full h-full object-cover"
-            loading={isFirst ? undefined : "lazy"}
+            loading={isFirst ? "eager" : "lazy"}
+            fetchPriority={isFirst ? "high" : "auto"}
+            decoding={isFirst ? "auto" : "async"}
           />
         )}
         {isFirst && product.badge && (
@@ -453,7 +459,7 @@ function PDP() {
                   <div key={`half-${rowIdx}`} className="grid grid-cols-2">
                     {row.items.map((media) => {
                       imgIndex += 1;
-                      return renderGalleryTile(media, imgIndex);
+                      return renderGalleryTile(media, imgIndex, true);
                     })}
                   </div>
                 );
@@ -490,7 +496,7 @@ function PDP() {
                     {media.type === "video" ? (
                       <video src={media.url} className="w-full h-full object-cover" muted playsInline />
                     ) : (
-                      <img src={media.url} style={blurPlaceholder(media.url)} alt="" className="w-full h-full object-cover" />
+                      <img src={thumbImage(media.url, 160)} style={blurPlaceholder(media.url)} alt="" width={56} height={56} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     )}
                   </button>
                 ))}

@@ -3,6 +3,7 @@ import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { thumbImage } from "@/lib/image";
 
 export function CartDrawer() {
   const { isOpen, close, items, remove, setQty, subtotal } = useCart();
@@ -106,8 +107,12 @@ export function CartDrawer() {
                   {/* Thumbnail */}
                   <div className="w-20 h-24 overflow-hidden border border-border shrink-0" style={{ background: "var(--color-muted)" }}>
                     <img
-                      src={it.product.image}
+                      src={thumbImage(it.product.image, 240)}
                       alt={it.product.name}
+                      width={80}
+                      height={96}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover"
                     />
                   </div>

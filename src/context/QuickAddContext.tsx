@@ -4,6 +4,7 @@ import { getVariantStock } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, ShoppingBag, Ruler } from "lucide-react";
+import { responsiveImage, thumbImage } from "@/lib/image";
 
 /* ─────────────────────────── Types ──────────────────────────── */
 type QuickAddContextType = {
@@ -201,8 +202,9 @@ function MobileFloatingCard({
           style={{ maxHeight: 180, height: 180 }}
         >
           <img
-            src={product.image}
+            src={thumbImage(product.image, 640)}
             alt={product.name}
+            decoding="async"
             className="h-full w-full block"
             style={{ display: "block", objectFit: "contain" }}
           />
@@ -446,8 +448,9 @@ function DesktopModal({
           style={{ width: "48%", aspectRatio: "3/4", maxHeight: isTablet ? "82vh" : "88vh" }}
         >
           <img
-            src={product.image}
+            {...responsiveImage(product.image, { maxWidth: 1080, sizes: "50vw" })}
             alt={product.name}
+            decoding="async"
             className="w-full h-full object-cover"
           />
         </div>

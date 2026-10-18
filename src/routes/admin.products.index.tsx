@@ -6,6 +6,7 @@ import { formatINR } from "@/context/CartContext";
 import { Plus, Pencil, Eye, EyeOff, Settings2, Search, Trash2, Layers } from "lucide-react";
 import { StockPanel } from "@/components/admin/StockPanel";
 import { toast } from "sonner";
+import { thumbImage } from "@/lib/image";
 
 export const Route = createFileRoute("/admin/products/")({
   component: AdminProducts,
@@ -106,7 +107,7 @@ function AdminProducts() {
               <tr key={p.slug} onClick={() => setStockFor(p)} title="Click to edit colours, sizes and stock" className="hover:bg-muted/40 cursor-pointer">
                 <td className="p-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-12 bg-muted overflow-hidden flex-shrink-0"><img src={p.image} alt="" className="w-full h-full object-cover" /></div>
+                    <div className="w-10 h-12 bg-muted overflow-hidden flex-shrink-0"><img src={thumbImage(p.image, 120)} alt="" width={40} height={48} loading="lazy" decoding="async" className="w-full h-full object-cover" /></div>
                     <div className="min-w-0">
                       <div className="font-semibold truncate">{p.name}</div>
                       <div className="text-mono text-[10px] text-muted-foreground truncate">{p.slug}</div>

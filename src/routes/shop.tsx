@@ -116,7 +116,7 @@ function Shop() {
         ) : (
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              {items.map((p, i) => <ProductCard key={p.slug} product={p} index={i} />)}
+              {items.map((p, i) => <ProductCard key={p.slug} product={p} index={i} priority={i < 4} />)}
             </div>
 
             {totalPages > 1 && (

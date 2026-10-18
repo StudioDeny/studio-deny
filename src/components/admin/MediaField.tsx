@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Upload, Loader2, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { uploadToCloudinary, uploadVideoToCloudinary } from "@/lib/cloudinary";
+import { thumbImage } from "@/lib/image";
 
 export type MediaType = "image" | "video";
 export type MediaValue = { url: string; type: MediaType };
@@ -121,7 +122,7 @@ export function MediaField({
           {value.type === "video" ? (
             <video src={value.url} className="h-full w-full object-cover" muted playsInline />
           ) : (
-            <img src={value.url} alt="Preview" className="h-full w-full object-cover" />
+            <img src={thumbImage(value.url, 640)} alt="Preview" decoding="async" className="h-full w-full object-cover" />
           )}
         </div>
       )}

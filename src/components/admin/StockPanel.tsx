@@ -10,6 +10,7 @@ import { singleItemVariant } from "@/lib/singleItem";
 import { listSizesForCategory } from "@/lib/sizes";
 import { supabase } from "@/lib/supabase";
 import type { Product } from "@/lib/productsStore";
+import { thumbImage } from "@/lib/image";
 import {
   cardsFromVariants, colorsFromCards, describeSaveResult, listVariantRows, planSingleSave, validateSingleQty, planStockSave, saveStockPlan,
   validateCards, type ColourCard, type VariantRow,
@@ -100,7 +101,7 @@ export function StockPanel({
             <SheetHeader>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-14 bg-muted overflow-hidden shrink-0">
-                  <img src={product.image} alt="" className="w-full h-full object-cover" />
+                  <img src={thumbImage(product.image, 240)} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 </div>
                 <div className="min-w-0">
                   <SheetTitle className="text-display text-2xl truncate">{product.name.toUpperCase()}</SheetTitle>

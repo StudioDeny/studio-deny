@@ -63,6 +63,7 @@ export function cloudinaryUrl(publicId: string, opts: { w?: number; h?: number; 
   const transforms = [
     opts.w && `w_${opts.w}`,
     opts.h && `h_${opts.h}`,
+    (opts.w || opts.h) && "c_limit",
     opts.q ? `q_${opts.q}` : "q_auto",
     "f_auto",
   ]
