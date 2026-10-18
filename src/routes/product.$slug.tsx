@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { blurPlaceholder } from "@/lib/blurPlaceholder";
+import { skeletonStyle } from "@/lib/skeleton";
 import { buildMeta, buildLinks, SITE_URL, productJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { useState, useEffect, useRef } from "react";
 import { listProducts, getStoredProduct as getProduct, type Product, type GalleryItem, type Color } from "@/lib/productsStore";
@@ -397,7 +397,7 @@ function PDP() {
               sizes: half ? "(min-width: 768px) 30vw, 100vw" : "(min-width: 768px) 60vw, 100vw",
               upscale: true,
             })}
-            style={blurPlaceholder(media.url)}
+            style={skeletonStyle}
             alt={`${product.name} view ${index + 1}`}
             className="absolute inset-0 w-full h-full object-cover"
             loading={isFirst ? "eager" : "lazy"}
@@ -497,7 +497,7 @@ function PDP() {
                     {media.type === "video" ? (
                       <video src={media.url} className="w-full h-full object-cover" muted playsInline />
                     ) : (
-                      <img src={thumbImage(media.url, 192)} style={blurPlaceholder(media.url)} alt="" width={56} height={56} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      <img src={thumbImage(media.url, 192)} style={skeletonStyle} alt="" width={56} height={56} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     )}
                   </button>
                 ))}

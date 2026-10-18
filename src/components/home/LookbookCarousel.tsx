@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { blurPlaceholder } from "@/lib/blurPlaceholder";
+import { skeletonStyle } from "@/lib/skeleton";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
@@ -377,7 +377,7 @@ export function LookbookCarousel() {
                 ) : (
                   <img
                     {...responsiveImage(slide.image_url, { maxWidth: 1080, sizes: "(min-width: 1024px) 410px, (min-width: 768px) 350px, 280px" })}
-                    style={blurPlaceholder(slide.image_url)}
+                    style={skeletonStyle}
                     loading="lazy"
                     decoding="async"
                     alt={product?.name ?? ""}

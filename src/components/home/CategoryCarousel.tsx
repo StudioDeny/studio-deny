@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { blurPlaceholder } from "@/lib/blurPlaceholder";
+import { skeletonStyle } from "@/lib/skeleton";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { SiteLink } from "@/components/ui/SiteLink";
@@ -64,7 +64,7 @@ export function CategoryCarousel() {
               <source src={mediaSrc} type="video/mp4" />
             </video>
           ) : (
-            <img {...responsiveImage(mediaSrc, { maxWidth: 3200, sizes: "100vw" })} style={blurPlaceholder(mediaSrc)} alt={slide.label} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+            <img {...responsiveImage(mediaSrc, { maxWidth: 3200, sizes: "100vw" })} style={skeletonStyle} alt={slide.label} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
           )}
           <div className="absolute inset-0 bg-black/30" />
         </motion.div>

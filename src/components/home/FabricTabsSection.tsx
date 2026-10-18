@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { blurPlaceholder } from "@/lib/blurPlaceholder";
+import { skeletonStyle } from "@/lib/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -75,7 +75,7 @@ export function FabricTabsSection() {
                   ) : (
                     <img
                       {...responsiveImage(fabric.img, { maxWidth: 1920, sizes: "(min-width: 1024px) 50vw, 100vw", upscale: true })}
-                      style={blurPlaceholder(fabric.img)}
+                      style={skeletonStyle}
                       alt={fabric.name}
                       className="w-full h-full object-cover"
                       loading="lazy"

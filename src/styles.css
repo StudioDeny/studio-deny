@@ -406,6 +406,156 @@ html.lenis body {
     transform-origin: left center;
   }
 
+  /* Route loading screen: continuous life behind the quote.
+     A soft sheen drifts across the grey on a long, slow loop, so the screen
+     is never truly still even while a quote holds for seven seconds. Big,
+     slow and low-contrast on purpose — it should register as the light
+     moving, not as an animation competing with the type. */
+  .quote-loader__sheen {
+    position: absolute;
+    inset: -25%;
+    pointer-events: none;
+    background:
+      radial-gradient(42% 38% at 30% 36%, rgba(255, 255, 255, 0.95), transparent 66%),
+      radial-gradient(34% 30% at 74% 68%, rgba(0, 0, 0, 0.05), transparent 70%);
+    animation: quote-loader-drift 9s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  @keyframes quote-loader-drift {
+    from {
+      transform: translate3d(-5%, -3%, 0) scale(1);
+    }
+
+    to {
+      transform: translate3d(7%, 5%, 0) scale(1.18);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+
+    .quote-loader__sheen,
+    .quote-loader__float {
+      animation: none;
+    }
+  }
+
+  /* A slow highlight passing through the quote once it has settled.
+     The gradient is painted on the text itself via background-clip, so the
+     letters lighten as it crosses rather than anything moving over them —
+     at this size a moving overlay would read as a glare, not as light. */
+  .quote-loader__line {
+    background-image: linear-gradient(100deg,
+        var(--foreground) 42%,
+        rgba(17, 17, 17, 0.18) 50%,
+        var(--foreground) 58%);
+    background-size: 240% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    /* Linear and unbroken: the earlier version held at both ends, which left
+       the screen genuinely motionless for most of each cycle. */
+    animation: quote-loader-pass 3.2s linear 0.9s infinite;
+  }
+
+  @keyframes quote-loader-pass {
+    from {
+      background-position: 140% 0;
+    }
+
+    to {
+      background-position: -40% 0;
+    }
+  }
+
+  /* The block itself drifts, so there is always movement even between
+     highlight passes. Applied to a wrapper, not the animated blockquote —
+     framer-motion owns that element's transform. */
+  .quote-loader__float {
+    animation: quote-loader-float 7s ease-in-out infinite alternate;
+  }
+
+  @keyframes quote-loader-float {
+    from {
+      transform: translateY(-7px);
+    }
+
+    to {
+      transform: translateY(7px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+
+    .quote-loader__line {
+      animation: none;
+      background: none;
+      color: var(--foreground);
+    }
+  }
+
+  /* Indeterminate bar on the route loading screen (ui/QuoteLoader.tsx).
+     A short segment running an endless lap of a hairline track: the quote
+     itself is still after it lands, so this is what keeps saying "loading". */
+  .quote-loader__track {
+    position: relative;
+    width: 320px;
+    height: 1px;
+    overflow: hidden;
+    background: var(--border);
+  }
+
+  .quote-loader__bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 30%;
+    background: var(--foreground);
+    animation: quote-loader-sweep 1.7s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  @keyframes quote-loader-sweep {
+    from {
+      transform: translateX(-100%);
+    }
+
+    to {
+      transform: translateX(394%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+
+    .quote-loader__bar {
+      animation: none;
+      width: 100%;
+      opacity: 0.4;
+    }
+  }
+
+  /* Loading skeleton for images.
+     Painted as the <img>'s own background, which the browser shows until the
+     real pixels arrive — no wrapper element and no JS. The sweep is capped at
+     a finite iteration count so a slow or failed image never leaves an
+     animation running forever. */
+  @keyframes skeleton-sweep {
+    from {
+      background-position: 180% 0;
+    }
+
+    to {
+      background-position: -80% 0;
+    }
+  }
+
+  /* The style attribute carries the animation inline (see lib/skeleton.ts),
+     so reduced-motion is honoured by matching on it. */
+  @media (prefers-reduced-motion: reduce) {
+
+    [style*="skeleton-sweep"] {
+      animation: none !important;
+    }
+  }
+
   /* Editorial Image Reveal (Fade + Scale 1.05 -> 1) */
   .img-editorial-reveal {
     animation: img-editorial-reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { blurPlaceholder } from "@/lib/blurPlaceholder";
+import { skeletonStyle } from "@/lib/skeleton";
 import { Link } from "@tanstack/react-router";
 import { SiteLink } from "@/components/ui/SiteLink";
 import { motion } from "framer-motion";
@@ -95,7 +95,7 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
         <img
           key={src + i}
           {...responsiveImage(src, { maxWidth: 828, sizes: "(min-width: 768px) 360px, (min-width: 640px) 320px, 260px" })}
-          style={blurPlaceholder(src)}
+          style={skeletonStyle}
           alt={i === 0 ? product.name : ""}
           loading="lazy"
           decoding="async"

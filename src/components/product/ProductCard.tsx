@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { blurPlaceholder } from "@/lib/blurPlaceholder";
+import { skeletonStyle } from "@/lib/skeleton";
 import { useRef, useState, useEffect } from "react";
 import { Heart, ShoppingBag, Check } from "lucide-react";
 import { getVariantStock, type Product, type VariantStock } from "@/lib/productsStore";
@@ -90,7 +90,7 @@ export function ProductCard({
               <img
                 key={url + i}
                 {...responsiveImage(url, { maxWidth: 1280, sizes: imageSizes })}
-                style={blurPlaceholder(url)}
+                style={skeletonStyle}
                 alt={i === 0 ? product.name : ""}
                 loading={i === 0 && priority ? "eager" : "lazy"}
                 decoding="async"
@@ -110,7 +110,7 @@ export function ProductCard({
               <img
                 key={url + i}
                 {...responsiveImage(url, { maxWidth: 1280, sizes: imageSizes })}
-                style={blurPlaceholder(url)}
+                style={skeletonStyle}
                 alt={i === 0 ? product.name : ""}
                 loading={i === 0 && priority ? "eager" : "lazy"}
                 decoding="async"

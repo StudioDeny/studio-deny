@@ -15,7 +15,9 @@ import {
 } from "@/lib/productFilters";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductFilterBar, useFilterFacts } from "@/components/product/ProductFilterBar";
-import { Skeleton } from "@/components/ui/skeleton";
+import { QuoteLoader } from "@/components/ui/QuoteLoader";
+import { preloadResponsive } from "@/lib/preload";
+import { responsiveImage } from "@/lib/image";
 import { buildMeta, buildLinks, SITE_URL, collectionJsonLd } from "@/lib/seo";
 
 const COL_DESC: Record<string, string> = {
@@ -57,10 +59,17 @@ function CollectionPage() {
   useEffect(() => {
     let cancelled = false;
     setLoaded(false);
-    productsInCategory(slug).then((r) => {
+    productsInCategory(slug).then(async (r) => {
       if (cancelled) return;
       setItems(r);
-      setLoaded(true);
+      // Hold the loading screen until the first screenful of photos is warm,
+      // so the grid arrives complete instead of filling in tile by tile.
+      await preloadResponsive(
+        r.slice(0, 12).map((item) =>
+          responsiveImage(item.image, { maxWidth: 1280, sizes: "(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw" }),
+        ),
+      );
+      if (!cancelled) setLoaded(true);
     });
     return () => { cancelled = true; };
   }, [slug]);
@@ -135,11 +144,15 @@ function CollectionPage() {
 
       <div className="mt-6">
         {!loaded ? (
-          <div className={gridClass}>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="aspect-[3/4] w-full" />
-            ))}
-          </div>
+          <>
+            <QuoteLoader />
+            {/* The loader is fixed and portalled, so it adds no height. With
+                the grid empty the document collapses to header + filters +
+                footer, and the scroll position carried over from the last
+                page lands the visitor at the bottom of it. This holds the
+                page open at its normal height until the grid arrives. */}
+            <div className="min-h-screen" aria-hidden />
+          </>
         ) : filtered.length === 0 ? (
           <div className="py-20 text-center border border-dashed border-border p-8">
             <p className="text-mono text-sm text-muted-foreground uppercase tracking-widest mb-4">
