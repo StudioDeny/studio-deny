@@ -29,7 +29,7 @@ export async function getMegaMenu(): Promise<MegaMenuCategory[]> {
 
   const slugsNeeded = Array.from(new Set(productRows.map((p) => p.product_slug)));
   const { data: products } = slugsNeeded.length > 0
-    ? await supabase.from("products").select("slug, name, image, price, compare_at").in("slug", slugsNeeded)
+    ? await supabase.from("products").select("slug, name, image, price, compare_at").eq("store_exclusive", false).in("slug", slugsNeeded)
     : { data: [] as { slug: string; name: string; image: string; price: number; compare_at: number | null }[] };
   const productBySlug = new Map((products ?? []).map((p) => [p.slug, p]));
 

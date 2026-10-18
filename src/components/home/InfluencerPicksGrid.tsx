@@ -307,7 +307,7 @@ export function InfluencerPicksGrid() {
       const slugsNeeded = Array.from(new Set((tags ?? []).map((t) => t.product_slug)));
       let productMap: Record<string, Pick<Product, "slug" | "name" | "image">> = {};
       if (slugsNeeded.length > 0) {
-        const { data: products } = await supabase.from("products").select("slug,name,image").in("slug", slugsNeeded);
+        const { data: products } = await supabase.from("products").select("slug,name,image").eq("store_exclusive", false).in("slug", slugsNeeded);
         productMap = Object.fromEntries((products ?? []).map((p) => [p.slug, p]));
       }
 

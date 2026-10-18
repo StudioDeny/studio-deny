@@ -125,6 +125,7 @@ export async function listProducts(): Promise<Product[]> {
     .from("products")
     .select("*")
     .eq("is_active", true)
+    .eq("store_exclusive", false)
     .order("created_at", { ascending: false });
   if (error) {
     console.error("listProducts:", error.message);

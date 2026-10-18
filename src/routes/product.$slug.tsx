@@ -22,7 +22,7 @@ type VariantRow = { id: string; size: string | null; stock: number; price: numbe
 export const Route = createFileRoute("/product/$slug")({
   loader: async ({ params }) => {
     const product = await getProduct(params.slug);
-    if (!product) throw notFound();
+    if (!product || product.storeExclusive) throw notFound();
     return { product };
   },
   head: ({ loaderData }) => {

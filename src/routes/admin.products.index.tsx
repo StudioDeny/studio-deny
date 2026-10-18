@@ -122,8 +122,8 @@ function AdminProducts() {
                     {stockTotals[p.slug] === undefined && (
                       <span className="text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold bg-amber-100 text-amber-800">NEEDS SIZE COUNTS</span>
                     )}
-                    <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${(p.is_active ?? true) ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-700"}`}>
-                      {(p.is_active ?? true) ? "LIVE ON SITE" : "HIDDEN"}
+                    <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${!(p.is_active ?? true) ? "bg-red-100 text-red-700" : p.storeExclusive ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>
+                      {!(p.is_active ?? true) ? "HIDDEN" : p.storeExclusive ? "STORE ONLY" : "LIVE ON SITE"}
                     </span>
                     <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${
                       stock > 5

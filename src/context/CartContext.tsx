@@ -81,7 +81,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             .maybeSingle();
           if (!variant) continue;
           const product = await getStoredProduct(variant.product_id);
-          if (!product) continue;
+          if (!product || product.storeExclusive) continue;
           dbItems.push({ product, size: variant.size ?? "", qty: row.qty, variantId: row.variant_id, stock: variant.stock });
         }
       }

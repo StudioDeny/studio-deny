@@ -133,7 +133,7 @@ export function ProductForm({
   }, [initial?.slug]);
 
   const set = <K extends keyof Product>(k: K, v: Product[K]) =>
-    setP({ ...p, [k]: v });
+    setP((prev) => ({ ...prev, [k]: v }));
   const slugify = (s: string) =>
     s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
@@ -251,7 +251,7 @@ export function ProductForm({
             onChange={(ids, primaryId) => {
               setCategoryIds(ids);
               const primary = cats.find((c) => c.id === primaryId);
-              setP({ ...p, categoryId: primaryId, category: primary?.name ?? "" });
+              setP((prev) => ({ ...prev, categoryId: primaryId, category: primary?.name ?? "" }));
             }}
             onCategoriesChange={setCats}
           />
@@ -336,14 +336,14 @@ export function ProductForm({
         <MediaField
           label="PRODUCT IMAGE"
           value={{ url: p.image, type: p.imageType ?? "image" }}
-          onChange={(v) => setP({ ...p, image: v.url, imageType: v.type })}
+          onChange={(v) => setP((prev) => ({ ...prev, image: v.url, imageType: v.type }))}
         />
 
         {/* HOVER IMAGE */}
         <MediaField
           label="HOVER IMAGE"
           value={{ url: p.hoverImage, type: p.hoverImageType ?? "image" }}
-          onChange={(v) => setP({ ...p, hoverImage: v.url, hoverImageType: v.type })}
+          onChange={(v) => setP((prev) => ({ ...prev, hoverImage: v.url, hoverImageType: v.type }))}
         />
 
         {/* GALLERY IMAGES */}

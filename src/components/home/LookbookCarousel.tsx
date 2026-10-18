@@ -49,7 +49,7 @@ export function LookbookCarousel() {
         setSlides(withProduct);
         const slugs = withProduct.map((s) => s.product_slug).filter((s): s is string => !!s);
         if (slugs.length > 0) {
-          const { data: prods } = await supabase.from("products").select("slug,name,price").in("slug", slugs);
+          const { data: prods } = await supabase.from("products").select("slug,name,price").eq("store_exclusive", false).in("slug", slugs);
           if (prods) {
             const map: Record<string, MiniProduct> = {};
             (prods as MiniProduct[]).forEach((p) => { map[p.slug] = p; });
