@@ -358,7 +358,13 @@ export function LookbookCarousel() {
                 }}
                 className="relative w-full h-full overflow-hidden rounded-none bg-neutral-900 shadow-xl border border-black/10 block"
               >
-                {/* 100% Full-Bleed Image/Video */}
+                {/* 100% Full-Bleed Image/Video.
+                    `sizes` is the card's *rendered* width, not its layout
+                    width: the centre card is transform: scale(1.50) (plus
+                    scale-105 on hover), so a 260px box paints at ~410px.
+                    Transforms don't feed srcset selection, so the declared
+                    width has to account for the scale or the browser picks a
+                    file far too small and upscales it. */}
                 {slide.media_type === "video" ? (
                   <video
                     src={slide.image_url}
@@ -370,7 +376,7 @@ export function LookbookCarousel() {
                   />
                 ) : (
                   <img
-                    {...responsiveImage(slide.image_url, { maxWidth: 828, sizes: "(min-width: 768px) 300px, 200px" })}
+                    {...responsiveImage(slide.image_url, { maxWidth: 1080, sizes: "(min-width: 1024px) 410px, (min-width: 768px) 350px, 280px" })}
                     style={blurPlaceholder(slide.image_url)}
                     loading="lazy"
                     decoding="async"

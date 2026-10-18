@@ -174,7 +174,7 @@ export function DenySpace() {
         cfg.bg_media_type === "video" ? (
           <video src={cfg.bg_media_url} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" />
         ) : (
-          <img {...responsiveImage(cfg.bg_media_url, { maxWidth: 1920, sizes: "100vw" })} style={blurPlaceholder(cfg.bg_media_url)} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+          <img {...responsiveImage(cfg.bg_media_url, { maxWidth: 3200, sizes: "100vw" })} style={blurPlaceholder(cfg.bg_media_url)} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
         )
       )}
 

@@ -64,7 +64,7 @@ export function CategoryCarousel() {
               <source src={mediaSrc} type="video/mp4" />
             </video>
           ) : (
-            <img {...responsiveImage(mediaSrc, { maxWidth: 1920, sizes: "100vw" })} style={blurPlaceholder(mediaSrc)} alt={slide.label} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+            <img {...responsiveImage(mediaSrc, { maxWidth: 3200, sizes: "100vw" })} style={blurPlaceholder(mediaSrc)} alt={slide.label} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
           )}
           <div className="absolute inset-0 bg-black/30" />
         </motion.div>

@@ -202,7 +202,7 @@ function LookbookCmsAdmin() {
                     {r.media_type === "video" ? (
                       <video src={r.image_url} muted playsInline className="w-14 h-16 object-cover flex-shrink-0 border border-border" />
                     ) : (
-                      <img src={thumbImage(r.image_url, 160)} alt="" width={56} height={64} loading="lazy" decoding="async" className="w-14 h-16 object-cover flex-shrink-0 border border-border" />
+                      <img src={thumbImage(r.image_url, 192)} alt="" width={56} height={64} loading="lazy" decoding="async" className="w-14 h-16 object-cover flex-shrink-0 border border-border" />
                     )}
                     <div>
                       <div className="font-semibold">{productName(r.product_slug) || "— no product picked —"}</div>

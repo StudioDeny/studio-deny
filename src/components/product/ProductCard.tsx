@@ -89,7 +89,7 @@ export function ProductCard({
             {desktopPhotos.map((url, i) => (
               <img
                 key={url + i}
-                {...responsiveImage(url, { maxWidth: 1080, sizes: imageSizes })}
+                {...responsiveImage(url, { maxWidth: 1280, sizes: imageSizes })}
                 style={blurPlaceholder(url)}
                 alt={i === 0 ? product.name : ""}
                 loading={i === 0 && priority ? "eager" : "lazy"}
@@ -109,7 +109,7 @@ export function ProductCard({
             {mobilePhotos.map((url, i) => (
               <img
                 key={url + i}
-                {...responsiveImage(url, { maxWidth: 1080, sizes: imageSizes })}
+                {...responsiveImage(url, { maxWidth: 1280, sizes: imageSizes })}
                 style={blurPlaceholder(url)}
                 alt={i === 0 ? product.name : ""}
                 loading={i === 0 && priority ? "eager" : "lazy"}

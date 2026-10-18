@@ -66,7 +66,7 @@ export function CommunityBento() {
               {photo.media_type === "video" ? (
                 <video src={photo.image_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
               ) : (
-                <img {...responsiveImage(photo.image_url, { maxWidth: 1080, sizes: "(min-width: 640px) 50vw, 100vw" })} style={blurPlaceholder(photo.image_url)} alt={photo.handle ?? "community"} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                <img {...responsiveImage(photo.image_url, { maxWidth: 1600, sizes: "(min-width: 640px) 50vw, 100vw" })} style={blurPlaceholder(photo.image_url)} alt={photo.handle ?? "community"} className="w-full h-full object-cover" loading="lazy" decoding="async" />
               )}
 
               {/* Hero Bento Badge */}

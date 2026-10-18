@@ -489,7 +489,7 @@ function Checkout() {
             {items.map((it, idx) => (
               <li key={it.product.slug + it.size} className="flex gap-3 text-sm">
                 <div className="w-14 h-16 bg-muted overflow-hidden shrink-0">
-                  <img src={thumbImage(it.product.image, 160)} alt="" width={56} height={64} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  <img src={thumbImage(it.product.image, 192)} alt="" width={56} height={64} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="truncate text-xs">{it.product.name}</div>

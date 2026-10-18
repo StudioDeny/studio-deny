@@ -34,7 +34,7 @@ export function MotionPictureSection() {
       {mediaType === "image" ? (
         <img
           key={src}
-          {...responsiveImage(src, { maxWidth: 1920, sizes: "100vw" })}
+          {...responsiveImage(src, { maxWidth: 3200, sizes: "100vw" })}
           alt=""
           loading="lazy"
           decoding="async"

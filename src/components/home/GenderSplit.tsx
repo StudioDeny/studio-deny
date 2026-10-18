@@ -52,7 +52,7 @@ export function GenderSplit() {
             </video>
           ) : (
             <img
-              {...responsiveImage(card.src, { maxWidth: 1600, sizes: "(min-width: 640px) 50vw, 100vw" })}
+              {...responsiveImage(card.src, { maxWidth: 1920, sizes: "(min-width: 640px) 50vw, 100vw", upscale: true })}
               style={blurPlaceholder(card.src)}
               alt={card.label}
               loading="lazy"

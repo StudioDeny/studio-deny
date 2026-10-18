@@ -68,7 +68,7 @@ export function QuickViewModal({ product, open, onClose }: Props) {
         <div className="grid sm:grid-cols-2">
           {/* Image */}
           <div className="relative hidden sm:block" style={{ aspectRatio: "4/5", background: "var(--color-surface)" }}>
-            <img {...responsiveImage(product.image, { maxWidth: 828, sizes: "340px" })} style={blurPlaceholder(product.image)} alt={product.name} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+            <img {...responsiveImage(product.image, { maxWidth: 1080, sizes: "340px" })} style={blurPlaceholder(product.image)} alt={product.name} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
             {(product.badge || product.isBestSeller) && (
               <div className="absolute top-3 left-3 flex flex-col items-start gap-1">
                 {product.isBestSeller && (

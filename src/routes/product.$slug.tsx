@@ -395,6 +395,7 @@ function PDP() {
             {...responsiveImage(media.url, {
               maxWidth: 1600,
               sizes: half ? "(min-width: 768px) 30vw, 100vw" : "(min-width: 768px) 60vw, 100vw",
+              upscale: true,
             })}
             style={blurPlaceholder(media.url)}
             alt={`${product.name} view ${index + 1}`}
@@ -496,7 +497,7 @@ function PDP() {
                     {media.type === "video" ? (
                       <video src={media.url} className="w-full h-full object-cover" muted playsInline />
                     ) : (
-                      <img src={thumbImage(media.url, 160)} style={blurPlaceholder(media.url)} alt="" width={56} height={56} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      <img src={thumbImage(media.url, 192)} style={blurPlaceholder(media.url)} alt="" width={56} height={56} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     )}
                   </button>
                 ))}

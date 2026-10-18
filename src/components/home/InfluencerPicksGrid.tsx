@@ -199,7 +199,7 @@ function Lightbox({
           // couldn't load it (e.g. a pasted link that isn't a direct video file).
           <>
             {pick.thumbnail_url && (
-              <img {...responsiveImage(pick.thumbnail_url, { maxWidth: 1080, sizes: "(min-width: 480px) 440px, 100vw" })} style={blurPlaceholder(pick.thumbnail_url)} alt={pick.name} decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+              <img {...responsiveImage(pick.thumbnail_url, { maxWidth: 1280, sizes: "(min-width: 480px) 440px, 100vw" })} style={blurPlaceholder(pick.thumbnail_url)} alt={pick.name} decoding="async" className="absolute inset-0 w-full h-full object-cover" />
             )}
             <div className="absolute inset-0 bg-black/30" />
             {pick.link_url && (

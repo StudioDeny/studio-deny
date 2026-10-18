@@ -164,7 +164,7 @@ export function Preloader() {
           {/* ════════ ADMIN CONFIGURABLE BACKDROP ════════ */}
           {cfg.bg_type === "image" && cfg.bg_image_url && (
             <img
-              {...responsiveImage(cfg.bg_image_url, { maxWidth: 1920, sizes: "100vw" })}
+              {...responsiveImage(cfg.bg_image_url, { maxWidth: 2560, sizes: "100vw" })}
               alt=""
               className="absolute inset-0 w-full h-full object-cover pointer-events-none"
             />

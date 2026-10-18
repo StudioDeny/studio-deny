@@ -81,7 +81,7 @@ export function SignupPopupView(p: Props) {
 
       {/* Media / brand panel */}
       <div className={`relative overflow-hidden md:w-1/2 md:min-h-[440px] ${mediaClass}`} style={{ background: cfg.bg_color }}>
-        {cfg.bg_type === "image" && cfg.bg_image_url && <img {...responsiveImage(cfg.bg_image_url, { maxWidth: 1080, sizes: "(min-width: 768px) 50vw, 100vw" })} alt="" decoding="async" className="absolute inset-0 w-full h-full object-cover" />}
+        {cfg.bg_type === "image" && cfg.bg_image_url && <img {...responsiveImage(cfg.bg_image_url, { maxWidth: 1280, sizes: "(min-width: 768px) 50vw, 100vw" })} alt="" decoding="async" className="absolute inset-0 w-full h-full object-cover" />}
         {cfg.bg_type === "video" && cfg.bg_video_url && <video src={cfg.bg_video_url} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" />}
         {cfg.bg_type !== "color" && <div className="absolute inset-0" style={{ background: cfg.overlay_color, opacity: cfg.overlay_opacity / 100 }} />}
         <div className="relative h-full flex flex-col items-center justify-center text-center p-6 md:p-10 gap-3">
