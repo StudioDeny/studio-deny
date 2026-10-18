@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Menu, X, Search, ArrowRight, User, Heart, ShoppingBag, ChevronDown } from "lucide-react";
@@ -180,7 +181,7 @@ export function Navbar() {
             }}
             className="hover:opacity-80 transition-opacity justify-self-start sm:justify-self-center"
           >
-            <span className="block text-display text-black leading-none whitespace-nowrap text-[22px] sm:text-[26px] lg:text-[30px]">STUDIO DENY</span>
+            <BrandLogo className="text-[16px] sm:text-[18px] lg:text-[20px]" />
           </Link>
 
           {/* Right — icons (desktop) */}

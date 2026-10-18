@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { SiteLink } from "@/components/ui/SiteLink";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Newsletter } from "./Newsletter";
 import { Instagram, Youtube, MessageCircle, ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -90,7 +91,7 @@ function MagneticFooterLogo() {
           className="inline-block"
         >
           <Link to="/" className="inline-block">
-            <span className="block text-display text-foreground leading-none whitespace-nowrap" style={{ fontSize: "34px" }}>STUDIO DENY</span>
+            <BrandLogo style={{ fontSize: "24px" }} />
           </Link>
         </motion.div>
       </motion.div>
@@ -132,67 +133,69 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border mt-24" style={{ background: "var(--color-surface)" }}>
-      <div className="px-4 md:px-8 py-12 md:py-16 flex flex-col md:flex-row gap-12 md:gap-16 lg:gap-24 max-w-[1560px] mx-auto">
-        {/* Brand column */}
-        <div className="md:w-[280px] lg:w-[340px] shrink-0">
-          <MagneticFooterLogo />
-          {tagline && (
-            <p className="mt-4 text-muted-foreground leading-relaxed whitespace-pre-line" style={{ fontSize: "13px", maxWidth: "240px" }}>
-              {tagline}
-            </p>
-          )}
+      {/* Upper footer: the brand red sweeps in from the left on hover, like the
+          STUDIO DENY strip below; text turns white on the red. */}
+      <div className="btn-fill group/top">
+        <span className="btn-fill-bg bg-accent" aria-hidden="true" />
+        <div className="relative z-[1] px-4 md:px-8 py-12 md:py-16 flex flex-col md:flex-row gap-12 md:gap-16 lg:gap-24 max-w-[1560px] mx-auto">
+          {/* Brand column */}
+          <div className="md:w-[280px] lg:w-[340px] shrink-0">
+            <MagneticFooterLogo />
+            {tagline && (
+              <p className="mt-4 text-muted-foreground group-hover/top:text-white/85 transition-colors duration-500 leading-relaxed whitespace-pre-line" style={{ fontSize: "13px", maxWidth: "240px" }}>
+                {tagline}
+              </p>
+            )}
 
-          <div className="mt-7">
-            <div className="text-mono text-primary mb-3" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>◢ DROP ALERTS</div>
-            <Newsletter />
+            <div className="mt-7">
+              <div className="text-mono text-primary group-hover/top:text-white transition-colors duration-500 mb-3" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>◢ DROP ALERTS</div>
+              <Newsletter />
+            </div>
+
+            {socials.length > 0 && (
+              <div className="mt-6 flex items-center gap-3">
+                {socials.map(({ href, label, Icon }) => (
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
+                    className="size-9 border border-border flex items-center justify-center text-muted-foreground group-hover/top:border-white/60 group-hover/top:text-white hover:!border-white hover:bg-white hover:!text-accent transition-colors duration-500">
+                    <Icon className="size-4" />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
-          {socials.length > 0 && (
-            <div className="mt-6 flex items-center gap-3">
-              {socials.map(({ href, label, Icon }) => (
-                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
-                  className="size-9 border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                  <Icon className="size-4" />
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Link columns — admin-managed via /admin/navigation (footer tab), grouped by
-            each item's "group" field. Adding a new group there creates a whole new column. */}
-        <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-8 md:gap-12">
-          {cols.map((c) => (
-            <div key={c.h}>
-              <div className="text-mono text-primary mb-5" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>{c.h}</div>
-              <ul className="space-y-3">
-                {c.l.map((i) => (
-                  <li key={`${i.label}-${i.href}`}>
-                    <SiteLink
-                      href={i.href}
-                      className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-0.5 inline-block"
-                      style={{ fontSize: "13px" }}
-                    >
-                      {i.label}
-                    </SiteLink>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Link columns — admin-managed via /admin/navigation (footer tab), grouped by
+              each item's "group" field. Adding a new group there creates a whole new column. */}
+          <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-8 md:gap-12">
+            {cols.map((c) => (
+              <div key={c.h}>
+                <div className="text-mono text-primary group-hover/top:text-white transition-colors duration-500 mb-5" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>{c.h}</div>
+                <ul className="space-y-3">
+                  {c.l.map((i) => (
+                    <li key={`${i.label}-${i.href}`}>
+                      <SiteLink
+                        href={i.href}
+                        className="text-muted-foreground group-hover/top:text-white/85 hover:!text-white hover:underline underline-offset-4 transition-colors duration-500 hover:translate-x-0.5 inline-block"
+                        style={{ fontSize: "13px" }}
+                      >
+                        {i.label}
+                      </SiteLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Brand strip: solid black, huge white STUDIO DENY; the brand red
+      {/* Brand strip: solid black, huge white "Studio Deny." in the logo lettering; the brand red
           sweeps in from the left on hover (same .btn-fill as the buttons). */}
       <Link to="/" className="btn-fill group block bg-foreground text-white" aria-label="STUDIO DENY home">
         <span className="btn-fill-bg bg-accent" />
-        <span className="relative z-[1] max-w-[1560px] mx-auto px-4 md:px-8 py-6 md:py-8 flex items-end justify-between gap-5">
-          <span className="block text-display text-white min-w-0" style={{ fontSize: "clamp(40px, 8vw, 120px)", lineHeight: 0.9 }}>
-            STUDIO DENY
-          </span>
-          <span className="size-11 md:size-14 shrink-0 border border-white/50 group-hover:border-white group-hover:bg-white group-hover:text-accent flex items-center justify-center transition-colors duration-500">
-            <ArrowUpRight className="size-5 md:size-6 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        <span className="relative z-[1] block max-w-[1560px] mx-auto px-4 md:px-8 py-6 md:py-8">
+          <span className="block brand-logo-type text-white min-w-0" style={{ fontSize: "clamp(44px, 9vw, 136px)" }}>
+            Studio Deny.
           </span>
         </span>
       </Link>

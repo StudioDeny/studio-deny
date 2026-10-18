@@ -1,10 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@700&display=swap');
 
 @import "tailwindcss";
 @source "../src";
 @import "tw-animate-css";
 
 @theme inline {
+  --font-logo: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-display: 'Anton', 'Bebas Neue', system-ui, sans-serif;
   --font-body: 'Barlow', system-ui, sans-serif;
   --font-mono: 'Barlow', system-ui, sans-serif;
@@ -293,6 +294,27 @@ html.lenis body {
 
   /* Fill-sweep button: border/ghost button that fills solid on hover,
      with the label clip-swapping so text stays legible through the sweep. */
+  /* Studio Deny logo: white bold "Studio Deny." on a black block (components/ui/BrandLogo). */
+  .brand-logo-type {
+    font-family: var(--font-logo);
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .brand-logo {
+    font-family: var(--font-logo);
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    white-space: nowrap;
+    display: inline-block;
+    background: #000000;
+    color: #ffffff;
+    padding: 0.4em 0.85em 0.42em;
+  }
+
   .btn-fill {
     position: relative;
     isolation: isolate;

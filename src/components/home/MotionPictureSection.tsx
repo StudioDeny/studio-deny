@@ -38,15 +38,14 @@ export function MotionPictureSection() {
           alt=""
           loading="lazy"
           decoding="async"
-          className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105"
+          className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (
         <video key={src} autoPlay loop muted playsInline preload="none"
-          className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105">
+          className="absolute inset-0 w-full h-full object-cover">
           <source src={src} type="video/mp4" />
         </video>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/70" />
       <div className="relative z-10 text-center px-4 max-w-5xl mx-auto flex flex-col items-center">
         <EditorialHeading
           className="text-[clamp(4rem,12vw,10rem)] leading-none font-display uppercase tracking-[-0.04em] text-white whitespace-pre-line"

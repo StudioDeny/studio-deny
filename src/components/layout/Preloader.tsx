@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useLenis } from "@/components/common/SmoothScroll";
 import { supabase } from "@/lib/supabase";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import type { PreloaderSettings } from "@/types/database";
 import { responsiveImage } from "@/lib/image";
 
@@ -124,7 +125,6 @@ export function Preloader() {
   }, [loading, dismissPreloader]);
 
   const isTextContent = cfg.content_type === "text";
-  const brandText = cfg.content_text || "STUDIO DENY";
 
   if (shouldReduceMotion) {
     return (
@@ -137,9 +137,7 @@ export function Preloader() {
             transition={{ duration: 0.2 }}
             className="dark-section fixed inset-0 z-[99999] bg-[#0D0D0D] flex items-center justify-center pointer-events-auto select-none"
           >
-            <span className="text-display text-white leading-none whitespace-nowrap" style={{ fontSize: "clamp(40px, 8vw, 72px)" }}>
-              {brandText}
-            </span>
+            <BrandLogo style={{ fontSize: "clamp(28px, 5vw, 48px)" }} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -190,13 +188,8 @@ export function Preloader() {
               transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center gap-6 relative"
             >
-              {/* STUDIO DENY as plain text */}
-              <span
-                className="text-display leading-none whitespace-nowrap"
-                style={{ fontSize: "clamp(48px, 10vw, 112px)", color: cfg.text_color || "#FFFFFF" }}
-              >
-                {brandText}
-              </span>
+              {/* Studio Deny logo (text) */}
+              <BrandLogo style={{ fontSize: "clamp(32px, 6vw, 64px)" }} />
 
               {/* Minimal Luxury Progress Bar */}
               <div className="w-44 sm:w-60 h-[2.5px] bg-white/10 overflow-hidden relative rounded-full mt-2">
