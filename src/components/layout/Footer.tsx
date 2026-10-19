@@ -203,19 +203,19 @@ export function Footer() {
       {/* Studio credit: small line on the black, the studio name as a red tag. */}
       <div className="bg-foreground border-t border-white/10">
         <div className="max-w-[1560px] mx-auto px-4 md:px-8 py-3.5 flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-2">
-          <span className="flex items-center gap-2 text-mono text-white/70" style={{ fontSize: "10px", letterSpacing: "0.3em" }}>
-            <span className="size-1.5 rounded-full bg-accent pulse-dot" />
+          <span className="flex items-center gap-2 text-mono text-white/70" style={{ fontSize: "12px", letterSpacing: "0.3em" }}>
+            <span className="size-2 rounded-full bg-accent pulse-dot" />
             MAINTAINED &amp; DEVELOPED BY
           </span>
           <a
             href="https://www.artechstudio.co.in/"
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center gap-1.5 bg-accent text-white px-2.5 py-1 text-mono font-semibold hover:bg-white hover:text-foreground transition-colors duration-300"
-            style={{ fontSize: "11px", letterSpacing: "0.25em" }}
+            className="group inline-flex items-center gap-2 bg-accent text-white px-3.5 py-1.5 text-mono font-semibold hover:bg-white hover:text-foreground transition-colors duration-300"
+            style={{ fontSize: "15px", letterSpacing: "0.25em" }}
           >
             AR TECH STUDIO
-            <ArrowUpRight className="size-3 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </a>
         </div>
       </div>
