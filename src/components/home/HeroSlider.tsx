@@ -53,6 +53,8 @@ export function HeroSlider({ slides: data }: { slides: HeroSlide[] }) {
   const mediaSrc = isMobile && slide.mobile_src ? slide.mobile_src : slide.src;
   const mediaType = fileMediaType(mediaSrc, isMobile && slide.mobile_src ? (slide.mobile_media_type ?? "image") : slide.media_type);
   const lines = slide.title.split("\n");
+  const hasCta1 = !!slide.cta_label?.trim() && !!slide.cta_href;
+  const hasCta2 = !!slide.cta2_label?.trim() && !!slide.cta2_href;
   const parallax = Math.min(scrollY * 0.25, 90);
 
   return (
@@ -133,22 +135,27 @@ export function HeroSlider({ slides: data }: { slides: HeroSlide[] }) {
               {slide.subtitle}
             </motion.p>
 
-            <motion.div
-              key={`${slide.id}-cta`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: EASE, delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4"
-            >
-              <FillLink link={slide.cta_href} tone="light">
-                {slide.cta_label} <ArrowRight className="w-4 h-4" />
-              </FillLink>
-              {slide.cta2_label && slide.cta2_href && (
-                <FillLink link={slide.cta2_href} tone="light">
-                  {slide.cta2_label}
-                </FillLink>
-              )}
-            </motion.div>
+            {/* Both buttons are optional: one shows only with a label and a link. */}
+            {(hasCta1 || hasCta2) && (
+              <motion.div
+                key={`${slide.id}-cta`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: EASE, delay: 0.6 }}
+                className="flex flex-col sm:flex-row gap-3 sm:gap-4"
+              >
+                {hasCta1 && (
+                  <FillLink link={slide.cta_href} tone="light">
+                    {slide.cta_label} <ArrowRight className="w-4 h-4" />
+                  </FillLink>
+                )}
+                {hasCta2 && (
+                  <FillLink link={slide.cta2_href!} tone="light">
+                    {slide.cta2_label}
+                  </FillLink>
+                )}
+              </motion.div>
+            )}
           </div>
         </div>
       </div>

@@ -540,8 +540,8 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
               />
 
               <div className="grid grid-cols-2 gap-3">
-                <F label="BUTTON 1 LABEL"><input value={slide.cta_label} onChange={(e) => updateSlide(i, { cta_label: e.target.value })} className="inp" placeholder="SHOP THE DROP" /></F>
-                <F label="BUTTON 1 GOES TO"><LinkPicker value={slide.cta_href} onChange={(href) => updateSlide(i, { cta_href: href })} /></F>
+                <F label="BUTTON 1 LABEL (optional)"><input value={slide.cta_label ?? ""} onChange={(e) => updateSlide(i, { cta_label: e.target.value })} className="inp" placeholder="SHOP THE DROP" /></F>
+                <F label="BUTTON 1 GOES TO (optional)"><LinkPicker allowNone value={slide.cta_href ?? ""} onChange={(href) => updateSlide(i, { cta_href: href })} /></F>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <F label="BUTTON 2 LABEL (optional)"><input value={slide.cta2_label ?? ""} onChange={(e) => updateSlide(i, { cta2_label: e.target.value })} className="inp" placeholder="VIEW LOOKBOOK" /></F>
