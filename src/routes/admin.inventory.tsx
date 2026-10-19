@@ -7,6 +7,7 @@ import { Search, Pencil } from "lucide-react";
 import { StockPanel } from "@/components/admin/StockPanel";
 import { toast } from "sonner";
 import { thumbImage } from "@/lib/image";
+import { fetchAllRows } from "@/lib/fetchAll";
 
 export const Route = createFileRoute("/admin/inventory")({
   component: Inventory,
@@ -40,7 +41,9 @@ function Inventory() {
   const load = async () => {
     const [productsData, { data: variantData }, cats] = await Promise.all([
       listAllAdminProducts(),
-      supabase.from("product_variants").select("id, product_id, size, color, stock").order("size"),
+      fetchAllRows((from, to) =>
+        supabase.from("product_variants").select("id, product_id, size, color, stock").order("size").order("id").range(from, to),
+      ),
       listCategories(),
     ]);
     setProducts(productsData);

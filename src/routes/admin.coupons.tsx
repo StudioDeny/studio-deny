@@ -11,6 +11,7 @@ import { formatINR } from "@/context/CartContext";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2, Shuffle, ChevronDown } from "lucide-react";
+import { fetchAllRows } from "@/lib/fetchAll";
 
 export const Route = createFileRoute("/admin/coupons")({
   component: AdminCoupons,
@@ -109,7 +110,9 @@ function AdminCoupons() {
 
   const load = async () => {
     const [{ data, error }, sc] = await Promise.all([
-      supabase.from("coupons").select("*").order("created_at", { ascending: false }).limit(1000),
+      fetchAllRows((from, to) =>
+        supabase.from("coupons").select("*").order("created_at", { ascending: false }).order("id").range(from, to),
+      ),
       loadScopes(),
     ]);
     if (error) toast.error(error.message);
@@ -121,7 +124,9 @@ function AdminCoupons() {
     load();
     listCategories().then(setCats);
     listAllAdminProducts().then(setProducts);
-    supabase.from("product_categories").select("product_slug, category_id").then(({ data }) => {
+    fetchAllRows((from, to) =>
+      supabase.from("product_categories").select("product_slug, category_id").order("id").range(from, to),
+    ).then(({ data }) => {
       const m = new Map<string, Set<string>>();
       for (const r of (data ?? []) as { product_slug: string; category_id: string }[]) {
         if (!m.has(r.product_slug)) m.set(r.product_slug, new Set());

@@ -2,6 +2,7 @@ import { supabase } from "./supabase";
 import type { GalleryItem } from "@/types/database";
 import { singleItemVariant } from "./singleItem";
 import { sizeOrderFor, sortSizes } from "./sizes";
+import { fetchAllRows } from "@/lib/fetchAll";
 
 // images: optional photos for this colour (product form → colour card). The
 // product page shows them when the colour is picked; none = main photos.
@@ -121,12 +122,16 @@ function toDB(p: Product): Omit<DBProduct, "created_at" | "updated_at"> {
 }
 
 export async function listProducts(): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("is_active", true)
-    .eq("store_exclusive", false)
-    .order("created_at", { ascending: false });
+  const { data, error } = await fetchAllRows((from, to) =>
+    supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .eq("store_exclusive", false)
+      .order("created_at", { ascending: false })
+      .order("slug")
+      .range(from, to),
+  );
   if (error) {
     console.error("listProducts:", error.message);
     return [];
@@ -205,10 +210,9 @@ export async function getVariantStock(slug: string, fallbackSizes: string[], cat
 }
 
 export async function listAllAdminProducts(): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const { data, error } = await fetchAllRows((from, to) =>
+    supabase.from("products").select("*").order("created_at", { ascending: false }).order("slug").range(from, to),
+  );
   if (error) {
     console.error("listAllAdminProducts:", error.message);
     return [];
@@ -224,7 +228,9 @@ export async function listAllAdminProducts(): Promise<Product[]> {
 // stock; a product with no entry here has no variants, so callers should
 // fall back to product.stock.
 export async function getVariantStockTotals(): Promise<Record<string, number>> {
-  const { data, error } = await supabase.from("product_variants").select("product_id, stock");
+  const { data, error } = await fetchAllRows((from, to) =>
+    supabase.from("product_variants").select("product_id, stock").order("id").range(from, to),
+  );
   if (error) {
     console.error("getVariantStockTotals:", error.message);
     return {};

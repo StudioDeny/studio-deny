@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { Cake, ChevronDown, Loader2 } from "lucide-react";
+import { fetchAllRows } from "@/lib/fetchAll";
 
 // Admin → Coupons: pick a birth month, tick customers, release one personal
 // single-use code to each (issue_birthday_coupons). Customers see it under
@@ -28,8 +29,12 @@ export function BirthdayCoupons({ onReleased }: { onReleased: () => void }) {
   const load = async () => {
     const year = istPart("year");
     const [people, sent] = await Promise.all([
-      supabase.from("profiles").select("user_id, name, email, phone, dob").not("dob", "is", null),
-      supabase.from("coupons").select("assigned_user_id").eq("kind", "birthday").gte("created_at", `${year}-01-01T00:00:00+05:30`),
+      fetchAllRows((from, to) =>
+        supabase.from("profiles").select("id, user_id, name, email, phone, dob").not("dob", "is", null).order("id").range(from, to),
+      ),
+      fetchAllRows((from, to) =>
+        supabase.from("coupons").select("id, assigned_user_id").eq("kind", "birthday").gte("created_at", `${year}-01-01T00:00:00+05:30`).order("id").range(from, to),
+      ),
     ]);
     if (people.error) {
       setLoadError("Birthdays aren't set up in the database yet (the 20261019000001 update hasn't been applied).");

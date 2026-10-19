@@ -6,6 +6,7 @@ import type { MediaAsset } from "@/types/database";
 import { Upload, Copy, Trash2, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { thumbImage } from "@/lib/image";
+import { fetchAllRows } from "@/lib/fetchAll";
 
 export const Route = createFileRoute("/admin/media")({
   component: AdminMedia,
@@ -31,10 +32,9 @@ function AdminMedia() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
-    const { data, error } = await supabase
-      .from("media_assets")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await fetchAllRows((from, to) =>
+      supabase.from("media_assets").select("*").order("created_at", { ascending: false }).order("id").range(from, to),
+    );
     if (error) toast.error(error.message);
     else setAssets(data ?? []);
     setLoading(false);

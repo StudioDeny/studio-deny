@@ -2,6 +2,7 @@
 // for categories.
 import { listProducts } from "./productsStore";
 import { supabase } from "./supabase";
+import { fetchAllRows } from "@/lib/fetchAll";
 
 export type Category = { id: string; slug: string; name: string; parentId: string | null };
 export type Brand = { id: string; slug: string; name: string };
@@ -65,10 +66,9 @@ export async function productsInCategory(catSlug: string) {
   if (!cat) return [];
   const children = await listChildCategories(catSlug);
   const ids = [cat.id, ...children.map((c) => c.id)];
-  const { data: memberships, error } = await supabase
-    .from("product_categories")
-    .select("product_slug")
-    .in("category_id", ids);
+  const { data: memberships, error } = await fetchAllRows((from, to) =>
+    supabase.from("product_categories").select("product_slug").in("category_id", ids).order("id").range(from, to),
+  );
   if (error) {
     console.error("productsInCategory:", error.message);
     return [];

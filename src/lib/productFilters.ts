@@ -7,6 +7,7 @@ import type { Product } from "./productsStore";
 import type { Category } from "./catalog";
 import { listAllSizes, sortSizes, type Size } from "./sizes";
 import { stripHtml } from "./richText";
+import { fetchAllRows as fetchPages } from "@/lib/fetchAll";
 
 export type Sort = "new" | "low" | "high" | "discount" | "name";
 export const SORTS: { v: Sort; label: string }[] = [
@@ -156,21 +157,13 @@ export type FilterFacts = {
 
 export const EMPTY_FACTS: FilterFacts = { loaded: false, variants: new Map(), memberships: new Map(), sizes: [] };
 
-const PAGE_ROWS = 1000;
-async function fetchAllRows<T>(
-  page: (from: number, to: number) => PromiseLike<{ data: unknown; error: { message: string } | null }>,
-): Promise<T[] | null> {
-  const rows: T[] = [];
-  for (let from = 0; ; from += PAGE_ROWS) {
-    const { data, error } = await page(from, from + PAGE_ROWS - 1);
-    if (error) {
-      console.error("loadFilterFacts:", error.message);
-      return null;
-    }
-    const batch = (data ?? []) as T[];
-    rows.push(...batch);
-    if (batch.length < PAGE_ROWS) return rows;
+async function fetchAllRows<T>(page: Parameters<typeof fetchPages<T>>[0]): Promise<T[] | null> {
+  const { data, error } = await fetchPages<T>(page);
+  if (error) {
+    console.error("loadFilterFacts:", error.message);
+    return null;
   }
+  return data;
 }
 
 export async function loadFilterFacts(): Promise<FilterFacts> {

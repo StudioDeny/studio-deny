@@ -11,6 +11,7 @@ import type {
 } from "@/types/database";
 import { RefreshCw, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { fetchAllRows } from "@/lib/fetchAll";
 
 export const Route = createFileRoute("/admin/notifications")({
   component: AdminNotifications,
@@ -459,7 +460,9 @@ function UsageTab() {
   const [rate, setRate] = useState<string>(() => (typeof window !== "undefined" ? localStorage.getItem(RATE_KEY) ?? "" : ""));
 
   useEffect(() => {
-    supabase.from("whatsapp_logs").select("created_at").eq("status", "sent").then(({ data, error }) => {
+    fetchAllRows((from, to) =>
+      supabase.from("whatsapp_logs").select("created_at").eq("status", "sent").order("id").range(from, to),
+    ).then(({ data, error }) => {
       if (error) toast.error(error.message);
       else setLogs(data ?? []);
       setLoading(false);

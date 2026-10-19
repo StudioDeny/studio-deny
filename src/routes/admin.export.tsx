@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Download, Database, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { fetchAllRows } from "@/lib/fetchAll";
 
 export const Route = createFileRoute("/admin/export")({
   component: ExportPage,
@@ -28,7 +29,11 @@ function toCSV(rows: Record<string, unknown>[]): string {
 }
 
 async function fetchAll(table: string, select = "*") {
-  const { data, error } = await supabase.from(table).select(select);
+  // Paged by the table's unique key (products are keyed by slug, the rest by id).
+  const key = table === "products" ? "slug" : "id";
+  const { data, error } = await fetchAllRows((from, to) =>
+    supabase.from(table as never).select(select).order(key as never).range(from, to),
+  );
   if (error) { toast.error(`${table}: ${error.message}`); return []; }
   return data ?? [];
 }

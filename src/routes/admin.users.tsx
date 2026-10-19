@@ -5,6 +5,7 @@ import type { Profile, UserRole, AppRole } from "@/types/database";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
 import { thumbImage } from "@/lib/image";
+import { fetchAllRows } from "@/lib/fetchAll";
 
 export const Route = createFileRoute("/admin/users")({
   component: AdminUsers,
@@ -25,14 +26,13 @@ function AdminUsers() {
   const [q, setQ] = useState("");
 
   const load = async () => {
-    const { data: profiles, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data: profiles, error } = await fetchAllRows((from, to) =>
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }).order("id").range(from, to),
+    );
 
     if (error) { toast.error(error.message); setLoading(false); return; }
 
-    const { data: roles } = await supabase.from("user_roles").select("*");
+    const { data: roles } = await fetchAllRows((from, to) => supabase.from("user_roles").select("*").order("id").range(from, to));
 
     const roleMap = new Map<string, UserRole>((roles ?? []).map((r) => [r.user_id, r]));
 

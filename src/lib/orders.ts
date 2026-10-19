@@ -2,6 +2,7 @@ import type { CartItem } from "@/context/CartContext";
 import { supabase } from "@/lib/supabase";
 import type { DBOrder } from "@/types/database";
 import type { OrderQuote } from "@/lib/coupons";
+import { fetchAllRows } from "@/lib/fetchAll";
 
 export type OrderStatus =
   | "PLACED"
@@ -135,7 +136,9 @@ function patchToRow(patch: Partial<Order>): Record<string, unknown> {
 }
 
 export async function listOrders(): Promise<Order[]> {
-  const { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
+  const { data, error } = await fetchAllRows((from, to) =>
+    supabase.from("orders").select("*").order("created_at", { ascending: false }).order("id").range(from, to),
+  );
   if (error) { console.warn("listOrders:", error.message); return []; }
   return (data ?? []).map(mapRow);
 }
