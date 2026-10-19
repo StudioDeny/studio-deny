@@ -2,8 +2,8 @@ import { stripHtml } from "@/lib/richText";
 
 export const SITE_URL = "https://studiodeny.com";
 export const SITE_NAME = "STUDIO DENY";
-export const DEFAULT_OG =
-  "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/04e730b6-aeba-4b7e-9dd1-6d17fd50bd0d/id-preview-e756d3f8--448be5e7-43c6-474c-9b04-a818e2322d4d.lovable.app-1778439509223.png";
+// public/og-image.png — same image index.html gives link previews.
+export const DEFAULT_OG = "https://www.studiodeny.com/og-image.png?v=1";
 
 type MetaTag =
   | { title: string }
