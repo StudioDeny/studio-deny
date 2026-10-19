@@ -91,7 +91,7 @@ function MagneticFooterLogo() {
           className="inline-block"
         >
           <Link to="/" className="inline-block">
-            <BrandLogo style={{ fontSize: "24px" }} />
+            <BrandLogo className="transition-colors duration-500 group-hover/top:bg-white group-hover/top:text-black" style={{ fontSize: "24px" }} />
           </Link>
         </motion.div>
       </motion.div>
@@ -133,10 +133,10 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border mt-24" style={{ background: "var(--color-surface)" }}>
-      {/* Upper footer: the brand red sweeps in from the left on hover, like the
-          STUDIO DENY strip below; text turns white on the red. */}
+      {/* Upper footer: the logo's black sweeps in from the left on hover; text
+          turns white and the logo block flips to white so it stays visible. */}
       <div className="btn-fill group/top">
-        <span className="btn-fill-bg bg-accent" aria-hidden="true" />
+        <span className="btn-fill-bg bg-foreground" aria-hidden="true" />
         <div className="relative z-[1] px-4 md:px-8 py-12 md:py-16 flex flex-col md:flex-row gap-12 md:gap-16 lg:gap-24 max-w-[1560px] mx-auto">
           {/* Brand column */}
           <div className="md:w-[280px] lg:w-[340px] shrink-0">
@@ -156,7 +156,7 @@ export function Footer() {
               <div className="mt-6 flex items-center gap-3">
                 {socials.map(({ href, label, Icon }) => (
                   <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
-                    className="size-9 border border-border flex items-center justify-center text-muted-foreground group-hover/top:border-white/60 group-hover/top:text-white hover:!border-white hover:bg-white hover:!text-accent transition-colors duration-500">
+                    className="size-9 border border-border flex items-center justify-center text-muted-foreground group-hover/top:border-white/60 group-hover/top:text-white hover:!border-white hover:bg-white hover:!text-foreground transition-colors duration-500">
                     <Icon className="size-4" />
                   </a>
                 ))}
@@ -189,12 +189,12 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Brand strip: solid black, huge white "Studio Deny." in the logo lettering; the brand red
-          sweeps in from the left on hover (same .btn-fill as the buttons). */}
+      {/* Brand strip: solid black, huge white "Studio Deny." in the logo lettering; on hover
+          white sweeps in from the left and the letters turn black — the logo inverted. */}
       <Link to="/" className="btn-fill group block bg-foreground text-white" aria-label="STUDIO DENY home">
-        <span className="btn-fill-bg bg-accent" />
+        <span className="btn-fill-bg bg-white" />
         <span className="relative z-[1] block max-w-[1560px] mx-auto px-4 md:px-8 py-6 md:py-8">
-          <span className="block brand-logo-type text-white min-w-0" style={{ fontSize: "clamp(44px, 9vw, 136px)" }}>
+          <span className="block brand-logo-type text-white group-hover:text-foreground transition-colors duration-500 min-w-0" style={{ fontSize: "clamp(44px, 9vw, 136px)" }}>
             Studio Deny.
           </span>
         </span>

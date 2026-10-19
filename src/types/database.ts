@@ -582,6 +582,8 @@ export type Profile = {
   name: string | null;
   email: string | null;
   phone: string | null;
+  /** Date of birth, "YYYY-MM-DD". Set once by the customer; staff can change it. */
+  dob: string | null;
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
@@ -732,7 +734,7 @@ export type LoyaltyTransaction = {
 export type Coupon = {
   id: string;
   code: string;
-  kind: "general" | "welcome";
+  kind: "general" | "welcome" | "birthday";
   assigned_user_id: string | null;
   welcome_tier_id: string | null;
   description: string | null;

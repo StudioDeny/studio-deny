@@ -5,13 +5,13 @@ import { ordersFor, cancelOrder, requestReturn, isStorePickup, type Order } from
 import { formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { listProducts, type Product } from "@/lib/productsStore";
-import { LogOut, ShieldCheck, FileText, X, Heart, MapPin, Truck, RefreshCw, Plus, Trash2, Star, RotateCcw, Pencil, Tag, Copy } from "lucide-react";
+import { LogOut, ShieldCheck, FileText, X, Heart, MapPin, Truck, RefreshCw, Plus, Trash2, Star, RotateCcw, Pencil, Tag, Copy, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { Loading } from "@/components/ui/loading";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { listAddresses, saveAddress, deleteAddress, setDefaultAddress, importLocalAddresses, countLocalAddresses, discardLocalAddresses, validateAddress, type SavedAddress, type AddressInput } from "@/lib/addresses";
-import { getMyProfile, updateMyProfile } from "@/lib/profile";
-import { myWelcomeCoupon, couponLabel, couponStatus } from "@/lib/coupons";
+import { getMyProfile, updateMyProfile, profileProblem, changeMyPassword, passwordProblem, todayIst, type MyProfile } from "@/lib/profile";
+import { myCoupons, personalCouponTitle, couponLabel, couponStatus } from "@/lib/coupons";
 import type { Coupon, CouponRedemption } from "@/types/database";
 import { supabase } from "@/lib/supabase";
 import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
@@ -46,12 +46,19 @@ function Account() {
   const BLANK: AddressInput = { label: "", name: "", phone: "", line1: "", city: "", state: "", pincode: "" };
   const [addresses, setAddresses] = useState<SavedAddress[]>([]);
   const [addrForm, setAddrForm] = useState<(AddressInput & { id?: string }) | null>(null);
-  const [profile, setProfile] = useState({ name: "", phone: "" });
+  const [profile, setProfile] = useState<MyProfile>({ name: "", phone: "", dob: "" });
+  // The date of birth as saved — once set, the customer can't change it.
+  const [savedDob, setSavedDob] = useState("");
+  const [dobReady, setDobReady] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
-  const [welcome, setWelcome] = useState<Coupon | null>(null);
+  const [confirmProfile, setConfirmProfile] = useState(false);
+  const [pw, setPw] = useState<{ next: string; again: string } | null>(null);
+  const [confirmPw, setConfirmPw] = useState(false);
+  const [mine, setMine] = useState<Coupon[]>([]);
   const [used, setUsed] = useState<CouponRedemption[]>([]);
 
   const reloadAddresses = () => listAddresses().then(setAddresses);
+  const reloadProfile = () => getMyProfile().then(({ dobReady: ready, ...p }) => { setProfile(p); setSavedDob(p.dob); setDobReady(ready); });
   // Addresses the old page kept in this browser — imported only if the customer says so.
   const [legacyCount, setLegacyCount] = useState(0);
   const importLegacy = async () => {
@@ -70,8 +77,8 @@ function Account() {
       getLoyaltySettings().then(setLoyaltySettings);
       setLegacyCount(countLocalAddresses());
       reloadAddresses();
-      getMyProfile().then(setProfile);
-      myWelcomeCoupon().then(setWelcome);
+      reloadProfile();
+      myCoupons().then(setMine);
       supabase.from("coupon_redemptions").select("*").order("created_at", { ascending: false }).then(({ data }) => setUsed((data as CouponRedemption[]) ?? []));
       listProducts().then(setAllProducts);
     }
@@ -96,10 +103,35 @@ function Account() {
   const makeDefault = async (id: string) => {
     try { await setDefaultAddress(id); reloadAddresses(); } catch (e) { toast.error(e instanceof Error ? e.message : "Could not update"); }
   };
-  const saveProfile = async () => {
-    try { await updateMyProfile(profile); setEditingProfile(false); toast.success("Profile updated"); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "Could not update profile"); }
+  // SAVE → "are you sure?" → save → done.
+  const askSaveProfile = () => {
+    const problem = profileProblem(profile, savedDob);
+    if (problem) return toast.error(problem);
+    setConfirmProfile(true);
   };
+  const saveProfile = async () => {
+    try {
+      await updateMyProfile(profile, savedDob);
+      setEditingProfile(false);
+      toast.success("Done — profile updated");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Could not update profile"); }
+    reloadProfile();
+  };
+  const askSavePassword = () => {
+    if (!pw) return;
+    const problem = passwordProblem(pw.next, pw.again);
+    if (problem) return toast.error(problem);
+    setConfirmPw(true);
+  };
+  const savePassword = async () => {
+    if (!pw) return;
+    try {
+      await changeMyPassword(pw.next, pw.again);
+      setPw(null);
+      toast.success("Done — password changed");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Could not change password"); }
+  };
+  const dobLabel = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
 
   const confirmCancelOrder = async () => {
     if (!cancelTarget || !user) return;
@@ -148,8 +180,8 @@ function Account() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-14">
         {[
           { href: "#wishlist", Icon: Heart, label: "WISHLIST", meta: `${slugs.length} ITEMS`, color: "hover:border-pink-500/60 hover:text-pink-400" },
-          { href: "#profile", Icon: Pencil, label: "PROFILE", meta: "NAME · PHONE", color: "hover:border-primary hover:text-primary" },
-          { href: "#coupons", Icon: Tag, label: "MY COUPONS", meta: welcome && couponStatus(welcome) === "active" ? "1 TO USE" : "—", color: "hover:border-primary hover:text-primary" },
+          { href: "#profile", Icon: Pencil, label: "PROFILE", meta: "NAME · PHONE · BIRTHDAY", color: "hover:border-primary hover:text-primary" },
+          { href: "#coupons", Icon: Tag, label: "MY COUPONS", meta: (() => { const n = mine.filter((c) => couponStatus(c) === "active").length; return n > 0 ? `${n} TO USE` : "—"; })(), color: "hover:border-primary hover:text-primary" },
           { href: "#addresses", Icon: MapPin, label: "SAVED ADDRESSES", meta: `${addresses.length} SAVED`, color: "hover:border-primary hover:text-primary" },
           { href: "/track-order", Icon: Truck, label: "TRACK ORDER", meta: "CHECK STATUS", color: "hover:border-primary hover:text-primary", external: true },
           { href: "/returns", Icon: RefreshCw, label: "RETURNS", meta: "& EXCHANGES", color: "hover:border-primary hover:text-primary", external: true },
@@ -289,52 +321,104 @@ function Account() {
       <div id="profile" className="scroll-mt-24 mb-12">
         <div className="flex items-baseline justify-between gap-4 mb-4 flex-wrap">
           <h2 className="text-display text-3xl tracking-wider">PROFILE</h2>
-          {!editingProfile && (
-            <button onClick={() => setEditingProfile(true)} className="inline-flex items-center gap-2 border border-border px-4 h-9 text-mono text-[11px] tracking-widest hover:border-primary hover:text-primary">
-              <Pencil className="size-3.5" /> EDIT
-            </button>
+          {!editingProfile && !pw && (
+            <div className="flex gap-2 flex-wrap">
+              <button onClick={() => setEditingProfile(true)} className="inline-flex items-center gap-2 border border-border px-4 h-9 text-mono text-[11px] tracking-widest hover:border-primary hover:text-primary">
+                <Pencil className="size-3.5" /> EDIT
+              </button>
+              <button onClick={() => setPw({ next: "", again: "" })} className="inline-flex items-center gap-2 border border-border px-4 h-9 text-mono text-[11px] tracking-widest hover:border-primary hover:text-primary">
+                <KeyRound className="size-3.5" /> CHANGE PASSWORD
+              </button>
+            </div>
           )}
         </div>
         {editingProfile ? (
           <div className="border border-border bg-surface p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
             <input value={profile.name} onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))} placeholder="Full name" className="bg-background border border-border h-10 px-3 text-sm focus:border-primary outline-none" />
             <input value={profile.phone} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} placeholder="10-digit phone" inputMode="numeric" className="bg-background border border-border h-10 px-3 text-sm focus:border-primary outline-none" />
+            {dobReady && <label className="sm:col-span-2 block">
+              <span className="block text-mono text-[10px] tracking-widest text-muted-foreground mb-1">DATE OF BIRTH</span>
+              <input
+                type="date"
+                value={profile.dob}
+                min="1900-01-01"
+                max={todayIst()}
+                disabled={!!savedDob}
+                onChange={(e) => setProfile((p) => ({ ...p, dob: e.target.value }))}
+                className="w-full sm:w-1/2 bg-background border border-border h-10 px-3 text-sm focus:border-primary outline-none disabled:opacity-60"
+              />
+              <span className="block text-xs text-muted-foreground mt-1">
+                {savedDob ? "Saved — contact us if it needs changing." : "We'll send you a birthday offer. You can set this once."}
+              </span>
+            </label>}
             <div className="sm:col-span-2 flex gap-3">
-              <button onClick={saveProfile} className="bg-foreground text-background px-6 h-10 text-mono text-[11px] tracking-widest hover:bg-primary hover:text-primary-foreground">SAVE</button>
-              <button onClick={() => { setEditingProfile(false); getMyProfile().then(setProfile); }} className="border border-border px-6 h-10 text-mono text-[11px] tracking-widest">CANCEL</button>
+              <button onClick={askSaveProfile} className="bg-foreground text-background px-6 h-10 text-mono text-[11px] tracking-widest hover:bg-primary hover:text-primary-foreground">SAVE</button>
+              <button onClick={() => { setEditingProfile(false); reloadProfile(); }} className="border border-border px-6 h-10 text-mono text-[11px] tracking-widest">CANCEL</button>
             </div>
             <p className="sm:col-span-2 text-xs text-muted-foreground">Email: {user.email} (can't be changed here)</p>
+          </div>
+        ) : pw ? (
+          <div className="border border-border bg-surface p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
+            <input type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw((p) => p && { ...p, next: e.target.value })} placeholder="New password" className="bg-background border border-border h-10 px-3 text-sm focus:border-primary outline-none" />
+            <input type="password" autoComplete="new-password" value={pw.again} onChange={(e) => setPw((p) => p && { ...p, again: e.target.value })} placeholder="Re-enter new password" className="bg-background border border-border h-10 px-3 text-sm focus:border-primary outline-none" />
+            {pw.again !== "" && pw.again !== pw.next && <p className="sm:col-span-2 text-xs text-primary">Passwords don't match</p>}
+            <div className="sm:col-span-2 flex gap-3">
+              <button onClick={askSavePassword} className="bg-foreground text-background px-6 h-10 text-mono text-[11px] tracking-widest hover:bg-primary hover:text-primary-foreground">UPDATE PASSWORD</button>
+              <button onClick={() => setPw(null)} className="border border-border px-6 h-10 text-mono text-[11px] tracking-widest">CANCEL</button>
+            </div>
+            <p className="sm:col-span-2 text-xs text-muted-foreground">At least 6 characters.</p>
           </div>
         ) : (
           <div className="border border-border bg-surface p-5 text-sm max-w-2xl">
             <div className="font-semibold">{profile.name || user.name}</div>
             <div className="text-muted-foreground">{profile.phone || "No phone added"}</div>
             <div className="text-muted-foreground">{user.email}</div>
+            {dobReady && <div className="text-muted-foreground">{profile.dob ? `Birthday: ${dobLabel(profile.dob)}` : "Add your birthday to get a birthday offer"}</div>}
           </div>
         )}
       </div>
 
+      <ConfirmDialog
+        open={confirmProfile}
+        onOpenChange={setConfirmProfile}
+        title="SAVE CHANGES?"
+        description={!savedDob && profile.dob
+          ? `Your date of birth (${dobLabel(profile.dob)}) can't be changed after this.`
+          : "Your name and phone number will be updated."}
+        confirmLabel="YES, SAVE"
+        onConfirm={saveProfile}
+      />
+      <ConfirmDialog
+        open={confirmPw}
+        onOpenChange={setConfirmPw}
+        title="CHANGE PASSWORD?"
+        description="You'll use the new password the next time you log in."
+        confirmLabel="YES, CHANGE"
+        onConfirm={savePassword}
+      />
+
       {/* My coupons */}
       <div id="coupons" className="scroll-mt-24 mb-12">
         <h2 className="text-display text-3xl tracking-wider mb-4">MY COUPONS</h2>
-        {!welcome && used.length === 0 ? (
+        {mine.length === 0 && used.length === 0 ? (
           <div className="border border-dashed border-border p-8 text-center text-muted-foreground">No coupons yet.</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl">
-            {welcome && (
-              <div className={`border p-5 ${couponStatus(welcome) === "active" ? "border-primary" : "border-border opacity-70"}`}>
-                <div className="text-mono text-[10px] tracking-[0.25em] text-muted-foreground mb-2">WELCOME OFFER · {couponLabel(welcome)}</div>
+            {mine.map((c) => (
+              <div key={c.id} className={`border p-5 ${couponStatus(c) === "active" ? "border-primary" : "border-border opacity-70"}`}>
+                <div className="text-mono text-[10px] tracking-[0.25em] text-muted-foreground mb-2">{personalCouponTitle(c)} · {couponLabel(c)}</div>
                 <div className="flex items-center gap-3">
-                  <span className="text-mono text-xl tracking-[0.2em]">{welcome.code}</span>
-                  {couponStatus(welcome) === "active" && (
-                    <button onClick={() => navigator.clipboard?.writeText(welcome.code).then(() => toast.success("Code copied"))} aria-label="Copy code" className="text-muted-foreground hover:text-primary"><Copy className="size-4" /></button>
+                  <span className="text-mono text-xl tracking-[0.2em]">{c.code}</span>
+                  {couponStatus(c) === "active" && (
+                    <button onClick={() => navigator.clipboard?.writeText(c.code).then(() => toast.success("Code copied"))} aria-label="Copy code" className="text-muted-foreground hover:text-primary"><Copy className="size-4" /></button>
                   )}
                 </div>
                 <div className="text-xs text-muted-foreground mt-2">
-                  {couponStatus(welcome) === "active" ? (welcome.expires_at ? `Valid till ${new Date(welcome.expires_at).toLocaleDateString("en-IN")}` : "No expiry") : couponStatus(welcome).toUpperCase()}
+                  {couponStatus(c) === "active" ? (c.expires_at ? `Valid till ${new Date(c.expires_at).toLocaleDateString("en-IN")}` : "No expiry") : couponStatus(c).toUpperCase()}
+                  {couponStatus(c) === "active" && c.min_order ? ` · on orders of ${formatINR(c.min_order)}+` : ""}
                 </div>
               </div>
-            )}
+            ))}
             {used.map((r) => (
               <div key={r.id} className="border border-border p-5 text-sm">
                 <div className="flex items-center gap-2 text-mono"><Tag className="size-3.5" /> {r.code}</div>

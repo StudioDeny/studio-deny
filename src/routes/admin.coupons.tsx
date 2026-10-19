@@ -6,6 +6,7 @@ import { couponLabel, couponStatus } from "@/lib/coupons";
 import { listCategories, type Category } from "@/lib/catalog";
 import { listAllAdminProducts, type Product } from "@/lib/productsStore";
 import { CouponScopeEditor, productsInScope, type CouponScope } from "@/components/admin/CouponScopeEditor";
+import { BirthdayCoupons } from "@/components/admin/BirthdayCoupons";
 import { formatINR } from "@/context/CartContext";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
@@ -93,7 +94,7 @@ function validate(d: Draft): string | null {
 function AdminCoupons() {
   const [rows, setRows] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
-  const [kindFilter, setKindFilter] = useState<"all" | "general" | "welcome">("general");
+  const [kindFilter, setKindFilter] = useState<"all" | "general" | "welcome" | "birthday">("general");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "used" | "expired" | "inactive">("all");
   const [search, setSearch] = useState("");
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -229,12 +230,12 @@ function AdminCoupons() {
 
       {draft && (
         <div className="border border-border bg-surface p-4 mb-6 max-w-4xl space-y-4">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{draft.id ? `EDIT ${draft.kind === "welcome" ? "WELCOME " : ""}COUPON` : "NEW COUPON"}</div>
+          <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{draft.id ? `EDIT ${draft.kind !== "general" ? `${draft.kind.toUpperCase()} ` : ""}COUPON` : "NEW COUPON"}</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="block">
               <div className="lbl">CODE</div>
               <div className="flex gap-2">
-                <input value={draft.code} onChange={(e) => set({ code: e.target.value.toUpperCase() })} className="inp uppercase" disabled={draft.kind === "welcome"} />
+                <input value={draft.code} onChange={(e) => set({ code: e.target.value.toUpperCase() })} className="inp uppercase" disabled={draft.kind !== "general"} />
                 {draft.kind === "general" && (
                   <button type="button" title="Random code" onClick={() => set({ code: randomCode() })} className="border border-border h-10 px-3 hover:border-primary hover:text-primary"><Shuffle className="size-4" /></button>
                 )}
@@ -304,10 +305,13 @@ function AdminCoupons() {
         </div>
       )}
 
+      <BirthdayCoupons onReleased={load} />
+
       <div className="flex flex-wrap gap-3 mb-4">
         <select value={kindFilter} onChange={(e) => setKindFilter(e.target.value as typeof kindFilter)} className="inp !w-auto">
           <option value="general">GENERAL</option>
           <option value="welcome">WELCOME</option>
+          <option value="birthday">BIRTHDAY</option>
           <option value="all">ALL KINDS</option>
         </select>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)} className="inp !w-auto">
@@ -345,7 +349,7 @@ function AdminCoupons() {
                       <button type="button" onClick={() => toggleOpen(c)} className="text-mono font-semibold inline-flex items-center gap-1 hover:text-primary">
                         <ChevronDown className={`size-3 transition-transform ${openId === c.id ? "rotate-180" : ""}`} /> {c.code}
                       </button>
-                      <div className="text-[11px] text-muted-foreground">{c.kind === "welcome" ? "WELCOME" : c.description}</div>
+                      <div className="text-[11px] text-muted-foreground">{c.kind === "general" ? c.description : c.kind.toUpperCase()}</div>
                     </td>
                     <td className="p-3">
                       {couponLabel(c)}

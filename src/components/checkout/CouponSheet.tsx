@@ -114,7 +114,7 @@ export function CouponSheet({ open, onOpenChange, coupons, appliedCode, checking
                       </span>
                       <span className="block text-sm font-medium mt-2">
                         {couponLabel(c)}
-                        {c.kind === "welcome" && <span className="text-muted-foreground font-normal"> · your welcome offer</span>}
+                        {c.kind !== "general" && <span className="text-muted-foreground font-normal"> · your {c.kind} offer</span>}
                       </span>
                       {terms && <span className="block text-xs text-muted-foreground mt-0.5">{terms}</span>}
                       {reason && <span className="block text-xs text-primary mt-1.5">{reason}</span>}

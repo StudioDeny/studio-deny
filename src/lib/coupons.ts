@@ -164,6 +164,18 @@ export async function myWelcomeCoupon(): Promise<Coupon | null> {
   return (data as Coupon | null) ?? null;
 }
 
+/** The signed-in customer's own codes (welcome + birthday), newest first. */
+export async function myCoupons(): Promise<Coupon[]> {
+  const { data: u } = await supabase.auth.getUser();
+  if (!u.user) return [];
+  // Filter by owner explicitly: staff can read every coupon through RLS.
+  const { data } = await supabase.from("coupons").select("*").eq("assigned_user_id", u.user.id).order("created_at", { ascending: false });
+  return (data as Coupon[] | null) ?? [];
+}
+
+export const personalCouponTitle = (c: Pick<Coupon, "kind">): string =>
+  c.kind === "birthday" ? "BIRTHDAY OFFER" : "WELCOME OFFER";
+
 export function couponStatus(c: Coupon): "active" | "used" | "expired" | "inactive" {
   if (c.max_uses != null && c.used_count >= c.max_uses) return "used";
   if (c.expires_at && new Date(c.expires_at).getTime() <= Date.now()) return "expired";

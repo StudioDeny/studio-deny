@@ -39,7 +39,7 @@ type WhyUsFeature = { label: string; desc: string };
 type WhyUsConfig = { features: WhyUsFeature[] };
 type NewsletterConfig = { cta_label: string; success_heading?: string; success_body?: string };
 type FaqConfig = { view_all_label?: string };
-type SplitCard = { media_type: "image" | "video"; src: string; label: string; cta_href: string };
+type SplitCard = { media_type: "image" | "video"; src: string; mobile_src?: string; mobile_media_type?: "image" | "video"; label: string; cta_href: string };
 type GenderSplitConfig = { cards: SplitCard[]; explore_label?: string };
 type CarouselSlide = { media_type: "image" | "video"; src: string; mobile_src?: string; mobile_media_type?: "image" | "video"; label: string; href: string; subtitle?: string; cta_label?: string };
 type CategoryCarouselConfig = { slides: CarouselSlide[] };
@@ -873,6 +873,10 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
                 label="CARD MEDIA"
                 value={{ url: card.src, type: card.media_type }}
                 onChange={(v) => updateCard(i, { src: v.url, media_type: v.type })}
+              />
+              <MobileMediaField
+                value={{ url: card.mobile_src, type: card.mobile_media_type }}
+                onChange={(v) => updateCard(i, { mobile_src: v.url, mobile_media_type: v.type })}
               />
               <F label="CARD GOES TO"><LinkPicker value={card.cta_href} onChange={(href) => updateCard(i, { cta_href: href })} /></F>
             </div>
