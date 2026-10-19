@@ -109,14 +109,13 @@ function InfluencerPicksAdmin() {
     if (!modal) return;
     if (!modal.name?.trim()) return toast.error("Name is required");
     if (!modal.video_url?.trim()) return toast.error("Upload a video");
-    if (!modal.link_url?.trim()) return toast.error("Paste the Instagram reel link");
     setSaving(true);
     const payload = {
       name: modal.name,
       handle: modal.handle || null,
       video_source: "upload" as const,
       video_url: modal.video_url || null,
-      link_url: modal.link_url || null,
+      link_url: modal.link_url?.trim() || null,
       thumbnail_url: modal.thumbnail_url || null,
       thumbnail_type: modal.thumbnail_type ?? "image",
       quote: modal.quote || null,
@@ -165,7 +164,7 @@ function InfluencerPicksAdmin() {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-display text-4xl md:text-5xl">INFLUENCER PICKS.</h1>
-          <p className="text-muted-foreground text-sm mt-1">Upload a video and paste the Instagram reel link, then tag the products worn in it.</p>
+          <p className="text-muted-foreground text-sm mt-1">Upload a video, add the Instagram reel link if there is one, then tag the products worn in it.</p>
         </div>
         <button onClick={() => openModal(null)} className="bg-primary text-primary-foreground px-4 h-10 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:glow-primary">
           <Plus className="size-4" /> NEW
@@ -212,7 +211,7 @@ function InfluencerPicksAdmin() {
                 <td className="p-3 hidden md:table-cell text-mono text-[10px] uppercase text-muted-foreground">
                   <span className={r.video_url ? "text-emerald-600" : "text-red-500"}>{r.video_url ? "VIDEO ✓" : "VIDEO ✗"}</span>
                   {"  ·  "}
-                  <span className={r.link_url ? "text-emerald-600" : "text-red-500"}>{r.link_url ? "REEL ✓" : "REEL ✗"}</span>
+                  <span className={r.link_url ? "text-emerald-600" : "text-muted-foreground"}>{r.link_url ? "REEL ✓" : "NO REEL"}</span>
                 </td>
                 <td className="p-3">
                   <button onClick={() => toggle(r.id, !r.is_active)} className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}>
@@ -265,7 +264,7 @@ function InfluencerPicksAdmin() {
                 </div>
               </F>
 
-              <F label="INSTAGRAM REEL LINK * (opens in a new tab from the Instagram icon on the card)">
+              <F label="INSTAGRAM REEL LINK — OPTIONAL (when added, an Instagram icon on the card opens it)">
                 <input value={modal.link_url ?? ""} onChange={(e) => setModal({ ...modal, link_url: e.target.value })} className="inp" placeholder="https://instagram.com/reel/…" />
               </F>
 
