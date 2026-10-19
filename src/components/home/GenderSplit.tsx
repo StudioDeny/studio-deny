@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { blurPlaceholder } from "@/lib/blurPlaceholder";
+import { skeletonStyle } from "@/lib/skeleton";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { SiteLink } from "@/components/ui/SiteLink";
@@ -52,8 +52,8 @@ export function GenderSplit() {
             </video>
           ) : (
             <img
-              {...responsiveImage(card.src, { maxWidth: 1600, sizes: "(min-width: 640px) 50vw, 100vw" })}
-              style={blurPlaceholder(card.src)}
+              {...responsiveImage(card.src, { maxWidth: 1920, sizes: "(min-width: 640px) 50vw, 100vw", upscale: true })}
+              style={skeletonStyle}
               alt={card.label}
               loading="lazy"
               decoding="async"

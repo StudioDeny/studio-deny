@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { blurPlaceholder } from "@/lib/blurPlaceholder";
+import { skeletonStyle } from "@/lib/skeleton";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
@@ -61,7 +61,7 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
             ) : (
               <img
                 {...responsiveImage(pick.thumbnail_url, { maxWidth: 828, sizes: "(min-width: 1024px) 19vw, (min-width: 640px) 28vw, 65vw" })}
-                style={blurPlaceholder(pick.thumbnail_url)}
+                style={skeletonStyle}
                 alt={pick.name}
                 loading="lazy"
                 decoding="async"
@@ -110,7 +110,7 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
             onClick={(e) => e.stopPropagation()}
             className="absolute bottom-3 left-3 right-3 flex items-center gap-2 bg-white/95 hover:bg-white pl-1.5 pr-3 py-1.5 w-fit max-w-full transition-colors"
           >
-            <img src={thumbImage(taggedProduct.image, 96)} style={blurPlaceholder(taggedProduct.image)} alt="" width={28} height={28} loading="lazy" decoding="async" className="size-7 object-cover shrink-0" />
+            <img src={thumbImage(taggedProduct.image, 96)} style={skeletonStyle} alt="" width={28} height={28} loading="lazy" decoding="async" className="size-7 object-cover shrink-0" />
             <span className="text-xs font-semibold text-black truncate">{taggedProduct.name}</span>
           </Link>
         )}
@@ -199,7 +199,7 @@ function Lightbox({
           // couldn't load it (e.g. a pasted link that isn't a direct video file).
           <>
             {pick.thumbnail_url && (
-              <img {...responsiveImage(pick.thumbnail_url, { maxWidth: 1080, sizes: "(min-width: 480px) 440px, 100vw" })} style={blurPlaceholder(pick.thumbnail_url)} alt={pick.name} decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+              <img {...responsiveImage(pick.thumbnail_url, { maxWidth: 1280, sizes: "(min-width: 480px) 440px, 100vw" })} style={skeletonStyle} alt={pick.name} decoding="async" className="absolute inset-0 w-full h-full object-cover" />
             )}
             <div className="absolute inset-0 bg-black/30" />
             {pick.link_url && (
@@ -250,7 +250,7 @@ function Lightbox({
                 params={{ slug: p.slug }}
                 className="flex items-center gap-3 bg-white/95 hover:bg-white pl-1.5 pr-4 py-1.5 rounded-full w-fit transition-colors"
               >
-                <img src={thumbImage(p.image, 96)} style={blurPlaceholder(p.image)} alt="" width={32} height={32} decoding="async" className="size-8 rounded-full object-cover" />
+                <img src={thumbImage(p.image, 96)} style={skeletonStyle} alt="" width={32} height={32} decoding="async" className="size-8 rounded-full object-cover" />
                 <span className="text-xs font-semibold text-black">{p.name}</span>
               </Link>
             ))}

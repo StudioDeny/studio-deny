@@ -100,7 +100,7 @@ export function LoyaltyModal() {
               {/* Background */}
               {cfg.bg_type === "image" && cfg.bg_image_url ? (
                 <>
-                  <img {...responsiveImage(cfg.bg_image_url, { maxWidth: 1080, sizes: "(min-width: 512px) 512px, 100vw" })} alt="" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+                  <img {...responsiveImage(cfg.bg_image_url, { maxWidth: 1280, sizes: "(min-width: 512px) 512px, 100vw" })} alt="" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/65" />
                 </>
               ) : cfg.bg_type === "video" && cfg.bg_video_url ? (

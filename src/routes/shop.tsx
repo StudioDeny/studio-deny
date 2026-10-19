@@ -15,7 +15,9 @@ import {
 } from "@/lib/productFilters";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductFilterBar, useFilterFacts } from "@/components/product/ProductFilterBar";
-import { Skeleton } from "@/components/ui/skeleton";
+import { QuoteLoader } from "@/components/ui/QuoteLoader";
+import { preloadResponsive } from "@/lib/preload";
+import { responsiveImage } from "@/lib/image";
 
 export const Route = createFileRoute("/shop")({
   validateSearch: validateFilterSearch,
@@ -41,7 +43,19 @@ function Shop() {
   const [loyaltySettings, setLoyaltySettings] = useState(DEFAULT_LOYALTY_SETTINGS);
   const facts = useFilterFacts();
 
-  useEffect(() => { listProducts().then((p) => { setProducts(p); setLoaded(true); }); }, []);
+  useEffect(() => {
+    listProducts().then(async (p) => {
+      setProducts(p);
+      // Hold the loading screen until the first screenful of photos is warm,
+      // so the grid arrives complete instead of filling in tile by tile.
+      await preloadResponsive(
+        p.slice(0, ITEMS_PER_PAGE).map((item) =>
+          responsiveImage(item.image, { maxWidth: 1280, sizes: "(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw" }),
+        ),
+      );
+      setLoaded(true);
+    });
+  }, []);
   useEffect(() => { listCategories().then(setCategories); }, []);
   useEffect(() => { getLoyaltySettings().then(setLoyaltySettings); }, []);
 
@@ -91,11 +105,15 @@ function Shop() {
 
       <div className="mt-6">
         {!loaded ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="aspect-[3/4] w-full" />
-            ))}
-          </div>
+          <>
+            <QuoteLoader />
+            {/* The loader is fixed and portalled, so it adds no height. With
+                the grid empty the document collapses to header + filters +
+                footer, and the scroll position carried over from the last
+                page lands the visitor at the bottom of it. This holds the
+                page open at its normal height until the grid arrives. */}
+            <div className="min-h-screen" aria-hidden />
+          </>
         ) : items.length === 0 ? (
           <div className="py-32 text-center">
             <div className="text-display text-muted-foreground/30" style={{ fontSize: "clamp(48px, 8vw, 96px)" }}>

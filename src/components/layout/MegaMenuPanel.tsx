@@ -165,7 +165,7 @@ function MobileProductCard({ product, onNavigate }: { product: MegaMenuProduct; 
     <Link to={product.href as any} onClick={onNavigate} className="group block">
       <div className="relative w-full overflow-hidden bg-surface rounded-xs" style={{ aspectRatio: "4/5" }}>
         <img
-          {...responsiveImage(product.imageUrl, { maxWidth: 828, sizes: "50vw" })}
+          {...responsiveImage(product.imageUrl, { maxWidth: 1280, sizes: "50vw" })}
           alt={product.label}
           loading="lazy"
           decoding="async"

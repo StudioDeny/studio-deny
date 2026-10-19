@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { blurPlaceholder } from "@/lib/blurPlaceholder";
+import { skeletonStyle } from "@/lib/skeleton";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { SiteLink } from "@/components/ui/SiteLink";
@@ -174,7 +174,7 @@ export function DenySpace() {
         cfg.bg_media_type === "video" ? (
           <video src={cfg.bg_media_url} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" />
         ) : (
-          <img {...responsiveImage(cfg.bg_media_url, { maxWidth: 1920, sizes: "100vw" })} style={blurPlaceholder(cfg.bg_media_url)} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+          <img {...responsiveImage(cfg.bg_media_url, { maxWidth: 3200, sizes: "100vw" })} style={skeletonStyle} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
         )
       )}
 

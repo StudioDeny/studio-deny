@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { blurPlaceholder } from "@/lib/blurPlaceholder";
+import { skeletonStyle } from "@/lib/skeleton";
 import { useCart, formatINR } from "@/context/CartContext";
 import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { Minus, Plus, Trash2, ArrowRight, ShieldCheck, ShoppingBag } from "lucide-react";
@@ -99,7 +99,7 @@ function CartPage() {
                 >
                   <img
                     src={thumbImage(it.product.image, 320)}
-                    style={blurPlaceholder(it.product.image)}
+                    style={skeletonStyle}
                     alt={it.product.name}
                     loading="lazy"
                     decoding="async"

@@ -85,7 +85,7 @@ export function HeroSlider({ slides: data }: { slides: HeroSlide[] }) {
             </video>
           ) : (
             <img
-              {...responsiveImage(mediaSrc, { maxWidth: 1920, sizes: "100vw" })}
+              {...responsiveImage(mediaSrc, { maxWidth: 3200, sizes: "100vw" })}
               alt=""
               aria-hidden
               fetchPriority={active === 0 ? "high" : "auto"}

@@ -448,7 +448,7 @@ function DesktopModal({
           style={{ width: "48%", aspectRatio: "3/4", maxHeight: isTablet ? "82vh" : "88vh" }}
         >
           <img
-            {...responsiveImage(product.image, { maxWidth: 1080, sizes: "50vw" })}
+            {...responsiveImage(product.image, { maxWidth: 1600, sizes: "50vw" })}
             alt={product.name}
             decoding="async"
             className="w-full h-full object-cover"

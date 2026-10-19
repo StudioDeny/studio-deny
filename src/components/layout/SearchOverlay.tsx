@@ -177,7 +177,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                     className="flex items-center gap-4 p-3 hover:bg-muted"
                   >
                     <div className="w-14 h-16 bg-muted overflow-hidden shrink-0">
-                      {p.image && <img src={thumbImage(p.image, 160)} alt="" width={56} height={64} loading="lazy" decoding="async" className="w-full h-full object-cover" />}
+                      {p.image && <img src={thumbImage(p.image, 192)} alt="" width={56} height={64} loading="lazy" decoding="async" className="w-full h-full object-cover" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{p.name}</div>
