@@ -17,4 +17,4 @@ Disallow: /
 User-agent: anthropic-ai
 Disallow: /
 
-Sitemap: https://studiodeny.com/sitemap.xml
+Sitemap: https://www.studiodeny.com/sitemap.xml

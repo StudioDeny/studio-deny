@@ -1,4 +1,4 @@
-import { Outlet, Link, createRootRoute, useLocation } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, useLocation, HeadContent } from "@tanstack/react-router";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
@@ -26,6 +26,11 @@ function NotFoundComponent() {
 
 export const Route = createRootRoute({
   head: () => ({
+    // Defaults; a page's own head() overrides them.
+    meta: [
+      { title: "STUDIO DENY — Streetwear For The Restless" },
+      { name: "description", content: "Studio Deny — heavyweight streetwear, raw graphics, made in India. Hoodies, tees, cargos, outerwear." },
+    ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -53,7 +58,6 @@ function RootContent() {
 
   useEffect(() => {
     seedIfEmpty();
-    document.title = "STUDIO DENY";
   }, []);
 
   useEffect(() => {
@@ -74,6 +78,8 @@ function RootContent() {
 
   return (
     <AuthProvider>
+      {/* Each page's title, description, canonical and JSON-LD (route head()). */}
+      <HeadContent />
       <Preloader />
       <WishlistProvider>
         <CartProvider>

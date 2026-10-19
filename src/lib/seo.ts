@@ -1,6 +1,6 @@
 import { stripHtml } from "@/lib/richText";
 
-export const SITE_URL = "https://studiodeny.com";
+export const SITE_URL = "https://www.studiodeny.com";
 export const SITE_NAME = "STUDIO DENY";
 // public/og-image.png — same image index.html gives link previews.
 export const DEFAULT_OG = "https://www.studiodeny.com/og-image.png?v=1";
@@ -13,9 +13,6 @@ type MetaTag =
 export function buildMeta({
   title,
   description,
-  image = DEFAULT_OG,
-  url,
-  type = "website",
   noIndex = false,
 }: {
   title: string;
@@ -29,22 +26,13 @@ export function buildMeta({
     ? title
     : `${title} — STUDIO DENY`;
 
+  // image/url/type are accepted for callers but unused: og/twitter tags live
+  // in index.html (link-preview apps don't run the page's JS).
   const tags: MetaTag[] = [
     { title: fullTitle },
     { name: "description", content: description },
-    { property: "og:title", content: fullTitle },
-    { property: "og:description", content: description },
-    { property: "og:type", content: type },
-    { property: "og:image", content: image },
-    { property: "og:site_name", content: SITE_NAME },
-    { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:site", content: "@studiodeny" },
-    { name: "twitter:title", content: fullTitle },
-    { name: "twitter:description", content: description },
-    { name: "twitter:image", content: image },
   ];
 
-  if (url) tags.push({ property: "og:url", content: url });
   if (noIndex) tags.push({ name: "robots", content: "noindex, nofollow" });
 
   return tags;

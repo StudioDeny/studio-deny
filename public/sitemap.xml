@@ -3,79 +3,79 @@
 
   <!-- Core pages -->
   <url>
-    <loc>https://studiodeny.com/</loc>
+    <loc>https://www.studiodeny.com/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/shop</loc>
+    <loc>https://www.studiodeny.com/shop</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/lookbook</loc>
+    <loc>https://www.studiodeny.com/lookbook</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/about</loc>
+    <loc>https://www.studiodeny.com/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/contact</loc>
+    <loc>https://www.studiodeny.com/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/faq</loc>
+    <loc>https://www.studiodeny.com/faq</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/size-guide</loc>
+    <loc>https://www.studiodeny.com/size-guide</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/policies</loc>
+    <loc>https://www.studiodeny.com/policies</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/rewards</loc>
+    <loc>https://www.studiodeny.com/rewards</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
 
   <!-- Collections -->
   <url>
-    <loc>https://studiodeny.com/collections/men</loc>
+    <loc>https://www.studiodeny.com/collections/men</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/collections/women</loc>
+    <loc>https://www.studiodeny.com/collections/women</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/collections/accessories</loc>
+    <loc>https://www.studiodeny.com/collections/accessories</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/collections/tops</loc>
+    <loc>https://www.studiodeny.com/collections/tops</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/collections/bottoms</loc>
+    <loc>https://www.studiodeny.com/collections/bottoms</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://studiodeny.com/collections/outerwear</loc>
+    <loc>https://www.studiodeny.com/collections/outerwear</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
