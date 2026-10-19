@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { buildMeta, buildLinks, SITE_URL } from "@/lib/seo";
+import { buildMeta, buildLinks, SITE_URL, storeJsonLd } from "@/lib/seo";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +18,7 @@ export const Route = createFileRoute("/contact")({
       url: `${SITE_URL}/contact`,
     }),
     links: buildLinks(`${SITE_URL}/contact`),
+    scripts: [{ type: "application/ld+json", children: storeJsonLd() }],
   }),
 });
 

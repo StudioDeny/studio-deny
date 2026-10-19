@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
-import { buildMeta, buildLinks, SITE_URL, orgJsonLd, websiteJsonLd } from "@/lib/seo";
+import { buildMeta, buildLinks, SITE_URL, orgJsonLd, websiteJsonLd, storeJsonLd } from "@/lib/seo";
 import { useState, useEffect } from "react";
 import { LoyaltyModal } from "@/components/home/LoyaltyModal";
 import { HeroSlider, type HeroSlide } from "@/components/home/HeroSlider";
@@ -33,6 +33,7 @@ export const Route = createFileRoute("/")({
     scripts: [
       { type: "application/ld+json", children: orgJsonLd() },
       { type: "application/ld+json", children: websiteJsonLd() },
+      { type: "application/ld+json", children: storeJsonLd() },
     ],
   }),
 });
