@@ -91,7 +91,7 @@ function MagneticFooterLogo() {
           className="inline-block"
         >
           <Link to="/" className="inline-block">
-            <BrandLogo className="transition-colors duration-500 group-hover/top:bg-white group-hover/top:text-black" style={{ fontSize: "24px" }} />
+            <BrandLogo className="text-foreground transition-colors duration-500 group-hover/top:text-white" style={{ fontSize: "28px" }} />
           </Link>
         </motion.div>
       </motion.div>

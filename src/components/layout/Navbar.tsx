@@ -192,7 +192,7 @@ export function Navbar() {
             // HeroLogo flies into this slot on the home page and measures it.
             data-nav-logo
           >
-            <BrandLogo className="text-[16px] sm:text-[18px] lg:text-[20px]" />
+            <BrandLogo className="text-[21px] sm:text-[24px] lg:text-[28px]" />
           </Link>
 
           {/* Right — icons (desktop) */}
