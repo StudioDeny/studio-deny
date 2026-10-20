@@ -8,10 +8,9 @@ import { usePreloaderDone } from "@/lib/preloaderStore";
 const INTRO_MS = 950;
 
 /** Share of the hero's height the visitor scrolls before the logo docks. */
-const DOCK_AT = 0.55;
+const DOCK_AT = 1;
 
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 4);
-const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
@@ -123,7 +122,9 @@ export function HeroLogo({ hasHero }: { hasHero: boolean | undefined }) {
       const base = mix(startPose, rest, easeOut(introT));
 
       // Scroll carries it from the hero into the navbar.
-      const scrollT = hasHero ? easeInOut(clamp01(window.scrollY / (heroH * DOCK_AT))) : 0;
+      // Linear: the logo moves at a constant rate per pixel scrolled — no
+      // easing — so it travels exactly in step with the page.
+      const scrollT = hasHero ? clamp01(window.scrollY / (heroH * DOCK_AT)) : 0;
       const pose = hasHero ? mix(base, navPose, scrollT) : base;
 
       const docked = hasHero ? scrollT >= 1 : introT >= 1 && hasHero === false;
