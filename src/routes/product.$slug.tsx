@@ -2,6 +2,8 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { skeletonStyle } from "@/lib/skeleton";
 import { buildMeta, buildLinks, SITE_URL, productJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { useState, useEffect, useRef } from "react";
+import { QuoteLoader } from "@/components/ui/QuoteLoader";
+import { preloadResponsive } from "@/lib/preload";
 import { listProducts, getStoredProduct as getProduct, type Product, type GalleryItem, type Color } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -53,6 +55,11 @@ export const Route = createFileRoute("/product/$slug")({
     };
   },
   component: PDP,
+  // The quote screen from the moment the product link is clicked, while the
+  // loader above fetches. pendingMs 0: the router's default only shows a
+  // pending screen after a full second, leaving the old page sitting there.
+  pendingComponent: () => <QuoteLoader />,
+  pendingMs: 0,
   notFoundComponent: () => (
     <div className="px-4 py-32 text-center min-h-[70vh] flex flex-col items-center justify-center">
       <h1 className="text-display text-muted-foreground/30 leading-none" style={{ fontSize: "clamp(60px, 12vw, 160px)" }}>NOT FOUND</h1>
@@ -230,6 +237,28 @@ function PDP() {
   // Mobile ignores standalone/half — every image is just one slide in a swipe carousel.
   const galleryFlat: GalleryMediaItem[] = galleryRows.flatMap((row) => (row.type === "standalone" ? [row.item] : row.items));
 
+  // Keep the quote screen up until the photos at the top of the page are in,
+  // so the page is revealed complete rather than filling in after. Keyed on
+  // the product, not the gallery: picking another colour swaps the photos
+  // too, and that should not throw a full-screen loader over the page.
+  const [photosReady, setPhotosReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    setPhotosReady(false);
+    const first = galleryRows[0];
+    const above = !first ? [] : first.type === "standalone" ? [first.item] : first.items;
+    const sizes = first?.type === "half" ? "(min-width: 768px) 30vw, 100vw" : "(min-width: 768px) 60vw, 100vw";
+    preloadResponsive(
+      above.filter((m) => m.type !== "video").map((m) => responsiveImage(m.url, { maxWidth: 1600, sizes })),
+    ).then(() => {
+      if (!cancelled) setPhotosReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- per product, see above
+  }, [product.slug]);
+
   // A new set of photos starts from the first one.
   const galleryKey = galleryFlat.map((m) => m.url).join("|");
   useEffect(() => {
@@ -395,7 +424,6 @@ function PDP() {
             {...responsiveImage(media.url, {
               maxWidth: 1600,
               sizes: half ? "(min-width: 768px) 30vw, 100vw" : "(min-width: 768px) 60vw, 100vw",
-              upscale: true,
             })}
             style={skeletonStyle}
             alt={`${product.name} view ${index + 1}`}
@@ -423,6 +451,10 @@ function PDP() {
 
   return (
     <div className="pb-24">
+      {/* Continues the pending screen's quote without a seam, and fades out
+          once the photos are in (see QuoteLoader). */}
+      <QuoteLoader active={!photosReady} />
+
       {/* Breadcrumbs */}
       <div className="px-4 md:px-8 pt-6 pb-2">
         <nav className="text-mono text-muted-foreground" style={{ fontSize: "10px", letterSpacing: "0.25em" }}>
