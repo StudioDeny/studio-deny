@@ -315,6 +315,9 @@ html.lenis body {
     display: inline-block;
   }
 
+  /* .btn-fill-trigger: put it on a parent to play a button's fill from
+     hovering (or focusing into) the parent — for buttons that sit under a
+     whole-card link and so can never be hovered themselves. */
   .btn-fill {
     position: relative;
     isolation: isolate;
@@ -331,7 +334,9 @@ html.lenis body {
   }
 
   .btn-fill:hover .btn-fill-bg,
-  .btn-fill:focus-visible .btn-fill-bg {
+  .btn-fill:focus-visible .btn-fill-bg,
+  .btn-fill-trigger:hover .btn-fill-bg,
+  .btn-fill-trigger:focus-within .btn-fill-bg {
     transform: scaleX(1);
   }
 
@@ -356,12 +361,16 @@ html.lenis body {
   }
 
   .btn-fill:hover .btn-fill-front,
-  .btn-fill:focus-visible .btn-fill-front {
+  .btn-fill:focus-visible .btn-fill-front,
+  .btn-fill-trigger:hover .btn-fill-front,
+  .btn-fill-trigger:focus-within .btn-fill-front {
     clip-path: inset(0 0 0 100%);
   }
 
   .btn-fill:hover .btn-fill-back,
-  .btn-fill:focus-visible .btn-fill-back {
+  .btn-fill:focus-visible .btn-fill-back,
+  .btn-fill-trigger:hover .btn-fill-back,
+  .btn-fill-trigger:focus-within .btn-fill-back {
     clip-path: inset(0 0 0 0);
   }
 

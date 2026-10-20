@@ -99,9 +99,14 @@ export function CategoryCarousel() {
         >
           <SiteLink
             href={slide.href}
-            className="inline-flex items-center gap-2 px-8 py-3 border-2 border-white bg-black/30 backdrop-blur-md text-white text-xs sm:text-sm font-mono font-bold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all shadow-xl active:scale-95"
+            // Same fill as the Men/Women buttons, replacing an instant colour swap.
+            className="btn-fill group inline-flex items-center px-8 py-3 border-2 border-white bg-black/30 backdrop-blur-md text-xs sm:text-sm font-mono font-bold tracking-[0.2em] uppercase shadow-xl transition-transform active:scale-95"
           >
-            {slide.cta_label || "SHOP COLLECTION →"}
+            <span className="btn-fill-bg bg-white" aria-hidden />
+            <span className="btn-fill-front inline-flex items-center gap-2 text-white">{slide.cta_label || "SHOP COLLECTION →"}</span>
+            <span className="btn-fill-back inline-flex items-center gap-2 text-black" aria-hidden>
+              {slide.cta_label || "SHOP COLLECTION →"}
+            </span>
           </SiteLink>
         </motion.div>
       </AnimatePresence>

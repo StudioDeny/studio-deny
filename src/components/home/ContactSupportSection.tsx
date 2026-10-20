@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Mail, MessageCircle, Clock } from "lucide-react";
+import { ArrowRight, Mail, Clock } from "lucide-react";
+import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useSectionHeading } from "@/lib/sectionHeadings";
 import { getBrandSettings, whatsappHref } from "@/lib/brand";
 
@@ -38,7 +39,7 @@ export function ContactSupportSection() {
 
   const cards = [
     { icon: Mail, value: contact.email, href: contact.email ? `mailto:${contact.email}` : null, button: null },
-    { icon: MessageCircle, value: "", href: contact.whatsapp, button: "CHAT ON WHATSAPP" },
+    { icon: WhatsAppIcon, value: "", href: contact.whatsapp, button: "CHAT ON WHATSAPP" },
     { icon: Clock, value: contact.hours, href: null, button: null },
   ]
     .map((item, idx) => ({ ...item, label: cfg.cards[idx]?.label ?? DEFAULT_CARDS[idx].label, desc: cfg.cards[idx]?.desc ?? DEFAULT_CARDS[idx].desc }))
@@ -68,7 +69,7 @@ export function ContactSupportSection() {
                 {item.button && item.href ? (
                   <a href={item.href} target="_blank" rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 bg-[#25D366] text-white px-5 py-2.5 mb-2 text-mono text-[11px] font-bold tracking-[0.2em] hover:opacity-85 transition-opacity">
-                    <MessageCircle className="size-4" /> {item.button}
+                    <WhatsAppIcon className="size-4" /> {item.button}
                   </a>
                 ) : item.href ? (
                   <a href={item.href} target="_blank" rel="noopener noreferrer"

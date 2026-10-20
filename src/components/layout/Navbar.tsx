@@ -130,11 +130,20 @@ export function Navbar() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="relative z-[100] flex flex-col bg-white text-black border-b border-black/10"
+        className="relative z-[100] flex flex-col text-black border-b border-black/[0.08]"
       >
+        {/* Glass. On its own layer rather than on the <nav>: backdrop-filter
+            makes an element the containing block for its fixed descendants,
+            and the mobile menu and mega-menu backdrop below are fixed
+            full-screen layers — blurring the <nav> itself would shrink them
+            to the bar. Mostly-opaque fallback where blur isn't supported. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-white/90 supports-[backdrop-filter]:bg-white/60 supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150"
+        />
         {/* Main bar — left: category dropdowns, center: logo, right: icons — ALWAYS z-[100] ON TOP */}
         <div
-          className="relative z-[100] flex sm:grid sm:grid-cols-[1fr_auto_1fr] items-center justify-between px-4 sm:px-8 lg:px-16 py-2.5 sm:py-3 bg-white"
+          className="relative z-[100] flex sm:grid sm:grid-cols-[1fr_auto_1fr] items-center justify-between px-4 sm:px-8 lg:px-16 py-2.5 sm:py-3"
           onMouseLeave={handleMouseLeaveNav}
         >
           {/* Left — category nav (desktop only) */}

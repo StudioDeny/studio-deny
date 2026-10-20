@@ -142,13 +142,13 @@ export function Footer() {
           <div className="md:w-[280px] lg:w-[340px] shrink-0">
             <MagneticFooterLogo />
             {tagline && (
-              <p className="mt-4 text-muted-foreground group-hover/top:text-white/85 transition-colors duration-500 leading-relaxed whitespace-pre-line" style={{ fontSize: "13px", maxWidth: "240px" }}>
+              <p className="mt-4 font-medium text-foreground/75 group-hover/top:text-white/85 transition-colors duration-500 leading-relaxed whitespace-pre-line" style={{ fontSize: "15px", maxWidth: "260px" }}>
                 {tagline}
               </p>
             )}
 
             <div className="mt-7">
-              <div className="text-mono text-primary group-hover/top:text-white transition-colors duration-500 mb-3" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>◢ DROP ALERTS</div>
+              <div className="text-mono font-semibold text-primary group-hover/top:text-white transition-colors duration-500 mb-3" style={{ fontSize: "12px", letterSpacing: "0.28em" }}>◢ DROP ALERTS</div>
               <Newsletter />
             </div>
 
@@ -169,14 +169,14 @@ export function Footer() {
           <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-8 md:gap-12">
             {cols.map((c) => (
               <div key={c.h}>
-                <div className="text-mono text-primary group-hover/top:text-white transition-colors duration-500 mb-5" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>{c.h}</div>
+                <div className="text-mono font-semibold text-primary group-hover/top:text-white transition-colors duration-500 mb-5" style={{ fontSize: "12px", letterSpacing: "0.28em" }}>{c.h}</div>
                 <ul className="space-y-3">
                   {c.l.map((i) => (
                     <li key={`${i.label}-${i.href}`}>
                       <SiteLink
                         href={i.href}
-                        className="text-muted-foreground group-hover/top:text-white/85 hover:!text-white hover:underline underline-offset-4 transition-colors duration-500 hover:translate-x-0.5 inline-block"
-                        style={{ fontSize: "13px" }}
+                        className="font-medium text-foreground/80 group-hover/top:text-white/85 hover:!text-white hover:underline underline-offset-4 transition-colors duration-500 hover:translate-x-0.5 inline-block"
+                        style={{ fontSize: "15px" }}
                       >
                         {i.label}
                       </SiteLink>
@@ -200,31 +200,42 @@ export function Footer() {
         </span>
       </Link>
 
-      {/* Studio credit: small line on the black, the studio name as a red tag. */}
-      <div className="bg-foreground border-t border-white/10">
-        <div className="max-w-[1560px] mx-auto px-4 md:px-8 py-3.5 flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-2">
-          <span className="flex items-center gap-2 text-mono text-white/70" style={{ fontSize: "12px", letterSpacing: "0.3em" }}>
-            <span className="size-2 rounded-full bg-accent pulse-dot" />
+      {/* Studio credit, set as a signature rather than a badge: a quiet label,
+          a hairline, and the studio name in the wordmark's typeface. It
+          continues the black of the brand strip above so the two read as one
+          block, and stays deliberately smaller than the brand it sits under. */}
+      <div className="bg-foreground border-t border-white/[0.08]">
+        <div className="max-w-[1560px] mx-auto px-4 md:px-8 py-5 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2.5 sm:gap-4">
+          <span className="text-mono font-medium text-white/60" style={{ fontSize: "11px", letterSpacing: "0.28em" }}>
             MAINTAINED &amp; DEVELOPED BY
           </span>
+          <span aria-hidden className="hidden sm:block h-px w-8 bg-white/25" />
           <a
             href="https://www.artechstudio.co.in/"
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center gap-2 bg-accent text-white px-3.5 py-1.5 text-mono font-semibold hover:bg-white hover:text-foreground transition-colors duration-300"
-            style={{ fontSize: "15px", letterSpacing: "0.25em" }}
+            className="group relative inline-flex items-center gap-1.5 brand-logo-type text-white"
+            style={{ fontSize: "15px" }}
           >
-            AR TECH STUDIO
-            <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            AR Tech Studio
+            <ArrowUpRight
+              className="size-3.5 text-white/50 transition-all duration-300 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              strokeWidth={1.75}
+            />
+            {/* Underline draws in from the left on hover. */}
+            <span
+              aria-hidden
+              className="absolute left-0 right-5 -bottom-1 h-px bg-white origin-left scale-x-0 transition-transform duration-500 ease-out group-hover:scale-x-100"
+            />
           </a>
         </div>
       </div>
 
       <div className="border-t border-border px-4 md:px-8 py-6 flex flex-col md:flex-row flex-wrap gap-3 md:gap-x-6 items-center justify-center md:justify-between" style={{ background: "var(--color-muted)" }}>
-        <div className="w-full md:w-auto min-w-0 text-mono text-muted-foreground text-center break-words" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
+        <div className="w-full md:w-auto min-w-0 text-mono font-medium text-foreground/75 text-center break-words" style={{ fontSize: "11px", letterSpacing: "0.2em" }}>
           © {new Date().getFullYear()} STUDIO DENY · ALL RIGHTS RESERVED
         </div>
-        <div className="w-full md:w-auto flex flex-wrap justify-center items-center gap-5 sm:gap-6 text-mono text-muted-foreground" style={{ fontSize: "10px", letterSpacing: "0.2em" }}>
+        <div className="w-full md:w-auto flex flex-wrap justify-center items-center gap-5 sm:gap-6 text-mono font-medium text-foreground/75" style={{ fontSize: "11px", letterSpacing: "0.2em" }}>
           <Link to="/privacy" className="hover:text-foreground transition-colors">PRIVACY</Link>
           <Link to="/terms" className="hover:text-foreground transition-colors">TERMS</Link>
         </div>

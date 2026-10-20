@@ -51,7 +51,9 @@ export function GenderSplit() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: idx * 0.12 }}
           viewport={{ once: true }}
-          className="relative group overflow-hidden"
+          // Hovering anywhere on the card plays the button's fill: the card
+          // is the link, so the button itself is never hovered.
+          className="relative group overflow-hidden btn-fill-trigger"
         >
           <SiteLink href={card.cta_href} className="absolute inset-0 z-10" aria-label={card.label} />
           {mediaType === "video" ? (
@@ -74,8 +76,17 @@ export function GenderSplit() {
             <EditorialHeading as="h3" className="text-white text-[clamp(1.75rem,4vw,3rem)] text-display uppercase tracking-wider mb-4" delay={idx * 0.1}>
               {card.label}
             </EditorialHeading>
-            <span className="inline-flex items-center gap-2 px-6 py-2.5 border border-white text-white text-xs tracking-[0.14em] uppercase text-mono">
-              {cfg.explore_label ?? "EXPLORE"} <ArrowRight className="size-3.5" />
+            {/* White sweeps in from the left; the label wipes to black. */}
+            <span className="btn-fill inline-flex items-center px-6 py-2.5 border border-white text-xs tracking-[0.14em] uppercase text-mono">
+              <span className="btn-fill-bg bg-white" aria-hidden />
+              <span className="btn-fill-front inline-flex items-center gap-2 text-white">
+                {cfg.explore_label ?? "EXPLORE"}
+                <ArrowRight className="size-3.5 transition-transform duration-500 group-hover:translate-x-1" />
+              </span>
+              <span className="btn-fill-back inline-flex items-center gap-2 text-black" aria-hidden>
+                {cfg.explore_label ?? "EXPLORE"}
+                <ArrowRight className="size-3.5 transition-transform duration-500 group-hover:translate-x-1" />
+              </span>
             </span>
           </div>
         </motion.div>
