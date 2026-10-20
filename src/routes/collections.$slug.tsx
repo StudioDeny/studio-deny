@@ -143,16 +143,15 @@ function CollectionPage() {
       />
 
       <div className="mt-6">
+        {/* Stays mounted and is told when to leave, so it can hold for its
+            minimum time and fade out over the finished grid. */}
+        <QuoteLoader active={!loaded} />
         {!loaded ? (
-          <>
-            <QuoteLoader />
-            {/* The loader is fixed and portalled, so it adds no height. With
-                the grid empty the document collapses to header + filters +
-                footer, and the scroll position carried over from the last
-                page lands the visitor at the bottom of it. This holds the
-                page open at its normal height until the grid arrives. */}
-            <div className="min-h-screen" aria-hidden />
-          </>
+          // The loader is fixed and portalled, so it adds no height. With the
+          // grid empty the document collapses to header + filters + footer,
+          // and the scroll position carried over from the last page lands the
+          // visitor at the bottom of it. This holds the page at normal height.
+          <div className="min-h-screen" aria-hidden />
         ) : filtered.length === 0 ? (
           <div className="py-20 text-center border border-dashed border-border p-8">
             <p className="text-mono text-sm text-muted-foreground uppercase tracking-widest mb-4">

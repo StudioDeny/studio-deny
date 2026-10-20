@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useLocation } from "@tanstack/react-router";
 import { useLenis } from "@/components/common/SmoothScroll";
+import { markPreloaderDone } from "@/lib/preloaderStore";
 import { supabase } from "@/lib/supabase";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import type { PreloaderSettings } from "@/types/database";
@@ -27,8 +29,14 @@ export function Preloader() {
   const shouldReduceMotion = useReducedMotion();
   const { lenis } = useLenis();
 
+  // On the home page the logo shown here is drawn by HeroLogo instead, which
+  // sits exactly over this spot and then carries on to the hero — so this one
+  // keeps its space (the progress bar stays put) but is not painted.
+  const handsOffLogo = useLocation().pathname === "/" && !shouldReduceMotion;
+
   const dismissPreloader = useCallback(() => {
     setLoading(false);
+    markPreloaderDone();
   }, []);
 
   /* ─── 1. Fetch CMS Preloader Settings ─── */
@@ -134,10 +142,10 @@ export function Preloader() {
             key="preloader-reduced"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
             className="dark-section fixed inset-0 z-[99999] bg-[#0D0D0D] flex items-center justify-center pointer-events-auto select-none"
           >
-            <BrandLogo style={{ fontSize: "clamp(28px, 5vw, 48px)" }} />
+            <BrandLogo className="text-white" style={{ fontSize: "clamp(28px, 5vw, 48px)" }} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -151,9 +159,12 @@ export function Preloader() {
           key="studio-deny-luxury-preloader"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          // Long and symmetrical so the dark screen dissolves rather than
+          // cuts; roughly the length of the logo's glide to the hero, so the
+          // two finish together.
           transition={{
-            duration: 0.35,
-            ease: "easeInOut",
+            duration: 1,
+            ease: [0.37, 0, 0.63, 1],
           }}
           className="dark-section fixed inset-0 z-[99999] flex flex-col items-center justify-center pointer-events-auto select-none overflow-hidden touch-none cursor-pointer"
           style={{
@@ -185,11 +196,17 @@ export function Preloader() {
             <motion.div
               initial={{ opacity: 0, y: 16, scale: 0.94 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
+              // Leaves ahead of the backdrop, so the long fade isn't carrying
+              // a half-transparent progress bar across the hero.
+              exit={{ opacity: 0, transition: { duration: 0.4, ease: "easeOut" } }}
               transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center gap-6 relative"
             >
-              {/* Studio Deny logo (text) */}
-              <BrandLogo style={{ fontSize: "clamp(32px, 6vw, 64px)" }} />
+              {/* Studio Deny logo (text). HeroLogo measures this element to
+                  know where to draw itself while the preloader runs. */}
+              <span data-preloader-logo className={handsOffLogo ? "invisible" : undefined}>
+                <BrandLogo className="text-white" style={{ fontSize: "clamp(32px, 6vw, 64px)" }} />
+              </span>
 
               {/* Minimal Luxury Progress Bar */}
               <div className="w-44 sm:w-60 h-[2.5px] bg-white/10 overflow-hidden relative rounded-full mt-2">
@@ -205,7 +222,10 @@ export function Preloader() {
           </div>
 
           {/* ════════ MINIMAL LUXURY FOOTER METRICS ════════ */}
-          <div className="absolute bottom-6 left-6 right-6 z-20 flex items-center justify-between pointer-events-none">
+          <motion.div
+            exit={{ opacity: 0, transition: { duration: 0.4, ease: "easeOut" } }}
+            className="absolute bottom-6 left-6 right-6 z-20 flex items-center justify-between pointer-events-none"
+          >
             <div className="flex items-center gap-2.5">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               <span className="text-mono text-[10px] tracking-[0.3em] text-white/70 uppercase">
@@ -221,7 +241,7 @@ export function Preloader() {
                 CLICK ANYWHERE TO SKIP
               </span>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

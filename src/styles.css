@@ -303,6 +303,9 @@ html.lenis body {
     white-space: nowrap;
   }
 
+  /* Text-only wordmark: no block behind it, and it takes the colour of
+     wherever it sits — black in the navbar, white on the preloader and over
+     the hero. */
   .brand-logo {
     font-family: var(--font-logo);
     font-weight: 700;
@@ -310,9 +313,6 @@ html.lenis body {
     line-height: 1;
     white-space: nowrap;
     display: inline-block;
-    background: #000000;
-    color: #ffffff;
-    padding: 0.4em 0.85em 0.42em;
   }
 
   .btn-fill {

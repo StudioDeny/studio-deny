@@ -74,7 +74,7 @@ export function FabricTabsSection() {
                     />
                   ) : (
                     <img
-                      {...responsiveImage(fabric.img, { maxWidth: 1920, sizes: "(min-width: 1024px) 50vw, 100vw", upscale: true })}
+                      {...responsiveImage(fabric.img, { maxWidth: 1920, sizes: "(min-width: 1024px) 50vw, 100vw" })}
                       style={skeletonStyle}
                       alt={fabric.name}
                       className="w-full h-full object-cover"

@@ -61,7 +61,7 @@ export function GenderSplit() {
             </video>
           ) : (
             <img
-              {...responsiveImage(src, { maxWidth: 1920, sizes: "(min-width: 640px) 50vw, 100vw", upscale: true })}
+              {...responsiveImage(src, { maxWidth: 1920, sizes: "(min-width: 640px) 50vw, 100vw" })}
               style={skeletonStyle}
               alt={card.label}
               loading="lazy"

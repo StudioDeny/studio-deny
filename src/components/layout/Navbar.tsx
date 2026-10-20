@@ -180,6 +180,8 @@ export function Navbar() {
               }
             }}
             className="hover:opacity-80 transition-opacity justify-self-start sm:justify-self-center"
+            // HeroLogo flies into this slot on the home page and measures it.
+            data-nav-logo
           >
             <BrandLogo className="text-[16px] sm:text-[18px] lg:text-[20px]" />
           </Link>

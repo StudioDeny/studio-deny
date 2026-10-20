@@ -66,6 +66,7 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType> = {
 import { useMemo } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { useWebsiteSectionsOrder, useWebsiteSectionConfig } from "@/lib/websiteSections";
+import { HeroLogo } from "@/components/home/HeroLogo";
 import { sectionAnchor } from "@/lib/siteLinks";
 
 function Index() {
@@ -88,6 +89,10 @@ function Index() {
   return (
     <div className="bg-background text-foreground overflow-x-hidden min-h-screen font-body">
       <LoyaltyModal />
+
+      {/* Carries the preloader's logo to the hero centre, then into the
+          navbar on scroll. Undefined until we know whether there is a hero. */}
+      <HeroLogo hasHero={heroLoaded ? heroVisible && heroSlides.length > 0 : undefined} />
 
       {/* Only the admin's slides ever show. Until they load, an empty block
           holds the hero's space so the page doesn't jump. */}

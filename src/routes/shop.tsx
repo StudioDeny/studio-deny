@@ -104,16 +104,15 @@ function Shop() {
       />
 
       <div className="mt-6">
+        {/* Stays mounted and is told when to leave, so it can hold for its
+            minimum time and fade out over the finished grid. */}
+        <QuoteLoader active={!loaded} />
         {!loaded ? (
-          <>
-            <QuoteLoader />
-            {/* The loader is fixed and portalled, so it adds no height. With
-                the grid empty the document collapses to header + filters +
-                footer, and the scroll position carried over from the last
-                page lands the visitor at the bottom of it. This holds the
-                page open at its normal height until the grid arrives. */}
-            <div className="min-h-screen" aria-hidden />
-          </>
+          // The loader is fixed and portalled, so it adds no height. With the
+          // grid empty the document collapses to header + filters + footer,
+          // and the scroll position carried over from the last page lands the
+          // visitor at the bottom of it. This holds the page at normal height.
+          <div className="min-h-screen" aria-hidden />
         ) : items.length === 0 ? (
           <div className="py-32 text-center">
             <div className="text-display text-muted-foreground/30" style={{ fontSize: "clamp(48px, 8vw, 96px)" }}>
