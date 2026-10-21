@@ -146,7 +146,13 @@ export function HeroLogo({ hasHero }: { hasHero: boolean | undefined }) {
       el.style.color = `rgb(${shade}, ${shade}, ${shade})`;
       // A soft shadow keeps white type legible on bright hero photos; it
       // fades out as the logo darkens on its way to the white navbar.
-      el.style.textShadow = `0 2px 28px rgba(0, 0, 0, ${(0.35 * whiteness).toFixed(3)})`;
+      // Three layers: a tight edge that separates the letterforms from a
+      // light photo, a mid halo, and a wide soft glow. A single wide blur
+      // alone (the earlier version) was too diffuse to read on bright
+      // images. All three scale with `whiteness`, so they fade away as the
+      // logo turns black in the navbar.
+      const a = (n: number) => (n * whiteness).toFixed(3);
+      el.style.textShadow = `0 1px 2px rgba(0,0,0,${a(0.5)}), 0 0 14px rgba(0,0,0,${a(0.4)}), 0 6px 60px rgba(0,0,0,${a(0.45)})`;
       el.style.opacity = String(fadeIn);
       el.style.visibility = docked ? "hidden" : "visible";
 

@@ -97,19 +97,31 @@ export function HeroSlider({ slides: data }: { slides: HeroSlide[] }) {
         </motion.div>
       </AnimatePresence>
 
+      {/* A soft, wide shading where the travelling logo rests (the hero's
+          centre), so white type stays legible on bright campaign photos.
+          Faint and elliptical on purpose — it reads as light falloff in the
+          photo, not as a dark filter over it. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[1]"
+        style={{ background: "radial-gradient(ellipse 46% 30% at 50% 50%, rgba(0,0,0,0.32), rgba(0,0,0,0.12) 55%, transparent 80%)" }}
+      />
+
       {/* Text content is bottom-anchored (not vertically centered) — this keeps it
           clear of the fixed marquee+navbar stack regardless of exact bar height,
           and matches the reference layout. */}
       <div className="relative z-10 h-full flex flex-col justify-end px-4 sm:px-8 lg:px-16 pb-12 sm:pb-16">
         <div className="max-w-[1320px] mx-auto w-full">
-          <div className="space-y-4 sm:space-y-6">
+          {/* Bottom centre on every screen. At the bottom rather than the
+              middle: the travelling logo (HeroLogo) rests at the hero's centre. */}
+          <div className="flex flex-col items-center text-center space-y-4 sm:space-y-6">
             <h1 className="text-[clamp(2.25rem,8vw,6rem)] leading-[0.95] tracking-[-0.03em] uppercase max-w-5xl text-display text-white">
               {slide.title.split("\n").map((line, lineIdx) => (
                 <span key={`${slide.id}-line-${lineIdx}`} className="block overflow-hidden py-1">
                   {line.split(" ").map((word, wordIdx) => (
                     <motion.span
                       key={`${word}-${wordIdx}`}
-                      className="inline-block mr-[0.25em]"
+                      className="inline-block mx-[0.125em]"
                       initial={{ opacity: 0, y: "120%" }}
                       animate={{ opacity: 1, y: "0%" }}
                       transition={{
@@ -130,7 +142,7 @@ export function HeroSlider({ slides: data }: { slides: HeroSlide[] }) {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.45 }}
-              className="text-base sm:text-lg leading-relaxed max-w-xl text-mono text-white/80"
+              className="text-base sm:text-lg leading-relaxed max-w-xl text-mono text-white/80 mx-auto"
             >
               {slide.subtitle}
             </motion.p>
@@ -142,7 +154,7 @@ export function HeroSlider({ slides: data }: { slides: HeroSlide[] }) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, ease: EASE, delay: 0.6 }}
-                className="flex flex-col sm:flex-row gap-3 sm:gap-4"
+                className="flex flex-col items-center sm:flex-row gap-3 sm:gap-4 justify-center"
               >
                 {hasCta1 && (
                   <FillLink link={slide.cta_href} tone="light">
