@@ -333,11 +333,22 @@ html.lenis body {
     transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .btn-fill:hover .btn-fill-bg,
+  /* Keyboard focus plays the fill on every device. */
   .btn-fill:focus-visible .btn-fill-bg,
-  .btn-fill-trigger:hover .btn-fill-bg,
   .btn-fill-trigger:focus-within .btn-fill-bg {
     transform: scaleX(1);
+  }
+
+  /* Hover only where hover really exists. On touch screens a tap leaves
+     :hover stuck on, and Tailwind's hover: utilities are already disabled
+     there — so a sweep that still ran would pair with text that never
+     changed colour: dark-on-black in the footer, white-on-white in the
+     brand strip. */
+  @media (hover: hover) {
+    .btn-fill:hover .btn-fill-bg,
+    .btn-fill-trigger:hover .btn-fill-bg {
+      transform: scaleX(1);
+    }
   }
 
   .btn-fill-front,
@@ -360,18 +371,30 @@ html.lenis body {
     clip-path: inset(0 0 0 0);
   }
 
-  .btn-fill:hover .btn-fill-front,
   .btn-fill:focus-visible .btn-fill-front,
-  .btn-fill-trigger:hover .btn-fill-front,
   .btn-fill-trigger:focus-within .btn-fill-front {
     clip-path: inset(0 0 0 100%);
   }
 
-  .btn-fill:hover .btn-fill-back,
+  /* Hover-capable devices only — see above. */
+  @media (hover: hover) {
+    .btn-fill:hover .btn-fill-front,
+    .btn-fill-trigger:hover .btn-fill-front {
+      clip-path: inset(0 0 0 100%);
+    }
+  }
+
   .btn-fill:focus-visible .btn-fill-back,
-  .btn-fill-trigger:hover .btn-fill-back,
   .btn-fill-trigger:focus-within .btn-fill-back {
     clip-path: inset(0 0 0 0);
+  }
+
+  /* Hover-capable devices only — see above. */
+  @media (hover: hover) {
+    .btn-fill:hover .btn-fill-back,
+    .btn-fill-trigger:hover .btn-fill-back {
+      clip-path: inset(0 0 0 0);
+    }
   }
 
   .btn-fill--light .btn-fill-bg {

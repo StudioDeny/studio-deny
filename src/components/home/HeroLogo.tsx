@@ -8,14 +8,19 @@ import { usePreloaderDone } from "@/lib/preloaderStore";
 const INTRO_MS = 950;
 
 /** Share of the hero's height the visitor scrolls before the logo docks. */
-const DOCK_AT = 1;
+const DOCK_AT = 0.55;
 
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 4);
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
 type Pose = { x: number; y: number; w: number };
-const mix = (a: Pose, b: Pose, t: number): Pose => ({ x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), w: lerp(a.w, b.w, t) });
+const mix = (a: Pose, b: Pose, t: number): Pose => ({
+  x: lerp(a.x, b.x, t),
+  y: lerp(a.y, b.y, t),
+  w: lerp(a.w, b.w, t),
+});
 
 /** Centre and width of an element's box on screen, transforms included. */
 function poseOf(el: Element | null): Pose | null {
@@ -100,7 +105,8 @@ export function HeroLogo({ hasHero }: { hasHero: boolean | undefined }) {
 
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const topbarH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--topbar-h")) || 0;
+      const topbarH =
+        parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--topbar-h")) || 0;
       const heroH = Math.max(420, vh - topbarH); // HeroSlider: calc(100vh - topbar), min 420px
 
       const heroPose: Pose = { x: vw / 2, y: topbarH + heroH / 2, w: naturalW };
@@ -122,9 +128,7 @@ export function HeroLogo({ hasHero }: { hasHero: boolean | undefined }) {
       const base = mix(startPose, rest, easeOut(introT));
 
       // Scroll carries it from the hero into the navbar.
-      // Linear: the logo moves at a constant rate per pixel scrolled — no
-      // easing — so it travels exactly in step with the page.
-      const scrollT = hasHero ? clamp01(window.scrollY / (heroH * DOCK_AT)) : 0;
+      const scrollT = hasHero ? easeInOut(clamp01(window.scrollY / (heroH * DOCK_AT))) : 0;
       const pose = hasHero ? mix(base, navPose, scrollT) : base;
 
       const docked = hasHero ? scrollT >= 1 : introT >= 1 && hasHero === false;
