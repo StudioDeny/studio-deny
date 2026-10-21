@@ -45,6 +45,27 @@ export function MegaMenuPanel({
     },
   };
 
+  // Phone menu: links rise in one after another once the menu has opened,
+  // then the product cards follow. Slower and longer than the desktop
+  // stagger — on a phone this is the whole screen, so the cascade is the
+  // entrance rather than a detail.
+  const mobileList = {
+    hidden: {},
+    show: { transition: { staggerChildren: shouldReduceMotion ? 0 : 0.045, delayChildren: shouldReduceMotion ? 0 : 0.18 } },
+  };
+  const mobileLink = {
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 14 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const } },
+  };
+  const mobileCards = {
+    hidden: {},
+    show: { transition: { staggerChildren: shouldReduceMotion ? 0 : 0.08, delayChildren: shouldReduceMotion ? 0 : 0.3 } },
+  };
+  const mobileCard = {
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 20, scale: shouldReduceMotion ? 1 : 0.97 },
+    show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const } },
+  };
+
   const nameOverlay = (product: MegaMenuProduct) => (
     <>
       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
@@ -99,14 +120,17 @@ export function MegaMenuPanel({
         </motion.div>
       ) : (
         category.links.length > 0 && (
-          <div className="flex flex-col gap-1 px-4 pt-4">
+          <motion.div variants={mobileList} initial="hidden" animate="show" className="flex flex-col gap-1 px-4 pt-4">
             {category.links.map((l) => (
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              <Link key={l.id} to={l.href as any} onClick={onNavigate} className="py-2 text-sm tracking-wide font-medium hover:text-primary hover:translate-x-1 transition-all duration-200 w-fit capitalize">
-                {l.label}
-              </Link>
+              <motion.div key={l.id} variants={mobileLink}>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                <Link to={l.href as any} onClick={onNavigate} className="group inline-flex items-center gap-2 py-2 text-sm tracking-wide font-medium active:opacity-60 transition-opacity w-fit capitalize">
+                  {l.label}
+                  <span aria-hidden className="text-black/30 transition-transform duration-300 group-active:translate-x-1">→</span>
+                </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )
       )}
 
@@ -136,9 +160,13 @@ export function MegaMenuPanel({
             ))}
           </motion.div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 px-4 pb-4">
-            {category.products.map((p) => <MobileProductCard key={p.id} product={p} onNavigate={onNavigate} />)}
-          </div>
+          <motion.div variants={mobileCards} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 px-4 pb-4">
+            {category.products.map((p) => (
+              <motion.div key={p.id} variants={mobileCard}>
+                <MobileProductCard product={p} onNavigate={onNavigate} />
+              </motion.div>
+            ))}
+          </motion.div>
         )
       ) : (
         isDesktop && (
@@ -169,7 +197,7 @@ function MobileProductCard({ product, onNavigate }: { product: MegaMenuProduct; 
           alt={product.label}
           loading="lazy"
           decoding="async"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-active:scale-[1.03]"
         />
         {discountPct !== null && (
           <span className="absolute top-2 left-2 bg-black text-white font-bold px-1.5 py-0.5 rounded-xs" style={{ fontSize: "10px" }}>

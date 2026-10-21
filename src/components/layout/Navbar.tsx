@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Menu, X, Search, ArrowRight, User, Heart, ShoppingBag, ChevronDown } from "lucide-react";
+import { X, Search, ArrowRight, User, Heart, ShoppingBag, ChevronDown } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { useCart, formatINR } from "@/context/CartContext";
@@ -22,6 +22,9 @@ export function Navbar() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [megaMenu, setMegaMenu] = useState<MegaMenuCategory[]>([]);
   const [mobileActiveTab, setMobileActiveTab] = useState<string | null>(null);
+  // +1 when the newly picked tab is to the right of the last one, -1 to the
+  // left: the panel content slides in from the side the visitor tapped.
+  const [tabDirection, setTabDirection] = useState(1);
   const [scrolled, setScrolled] = useState(false);
   const { user } = useAuth();
   const { count: cartCount } = useCart();
@@ -274,10 +277,12 @@ export function Navbar() {
             </Link>
             <button
               type="button"
+              aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileNavOpen}
               className="flex h-11 w-11 items-center justify-center rounded-sm -mr-1.5 hover:opacity-60 transition-opacity shrink-0"
               onClick={() => { setMobileNavOpen((o) => !o); closeSearch(); }}
             >
-              {mobileNavOpen ? <X className="h-6 w-6" strokeWidth={1.5} /> : <Menu className="h-6 w-6" strokeWidth={1.5} />}
+              <MenuMorphIcon open={mobileNavOpen} />
             </button>
           </div>
         </div>
@@ -411,46 +416,91 @@ export function Navbar() {
         <AnimatePresence>
           {mobileNavOpen && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              // Wipes down from the top like a curtain, and back up on close.
+              // clip-path rather than a slide: the panel stays put while its
+              // visible edge travels, so nothing inside it moves on entry.
+              initial={shouldReduceMotion ? { opacity: 0 } : { clipPath: "inset(0 0 100% 0)" }}
+              animate={shouldReduceMotion ? { opacity: 1 } : { clipPath: "inset(0 0 0% 0)" }}
+              exit={
+                shouldReduceMotion
+                  ? { opacity: 0, transition: { duration: 0.15 } }
+                  : { clipPath: "inset(0 0 100% 0)", transition: { duration: 0.4, ease: [0.76, 0, 0.24, 1] } }
+              }
+              transition={{ duration: shouldReduceMotion ? 0.15 : 0.55, ease: [0.76, 0, 0.24, 1] }}
               data-overlay
               className="fixed inset-0 z-[110] sm:hidden bg-white text-black flex flex-col"
             >
               <div className="flex items-center justify-between px-4 h-14 border-b border-black/10 shrink-0">
                 <div className="flex items-center gap-5 overflow-x-auto no-scrollbar">
-                  {megaMenu.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setMobileActiveTab(cat.id)}
-                      className={`shrink-0 text-sm tracking-wide uppercase pb-1 border-b-2 font-bold transition-colors ${
-                        mobileActiveTab === cat.id ? "border-black text-black font-extrabold" : "border-transparent text-black/60"
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
+                  {megaMenu.map((cat, i) => {
+                    const active = mobileActiveTab === cat.id;
+                    return (
+                      <motion.button
+                        key={cat.id}
+                        type="button"
+                        initial={shouldReduceMotion ? false : { opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: shouldReduceMotion ? 0 : 0.2 + i * 0.05 }}
+                        onClick={() => {
+                          const from = megaMenu.findIndex((c) => c.id === mobileActiveTab);
+                          setTabDirection(i >= from ? 1 : -1);
+                          setMobileActiveTab(cat.id);
+                        }}
+                        aria-pressed={active}
+                        className={`relative shrink-0 text-sm tracking-wide uppercase pb-1 font-bold transition-colors duration-300 ${
+                          active ? "text-black font-extrabold" : "text-black/50"
+                        }`}
+                      >
+                        {cat.label}
+                        {/* One underline that slides between tabs. */}
+                        {active && (
+                          <motion.span
+                            layoutId="mobile-tab-underline"
+                            transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                            className="absolute inset-x-0 -bottom-px h-0.5 bg-black"
+                          />
+                        )}
+                      </motion.button>
+                    );
+                  })}
                 </div>
-                <button
+                <motion.button
                   type="button"
                   aria-label="Close menu"
                   onClick={() => setMobileNavOpen(false)}
+                  initial={shouldReduceMotion ? false : { opacity: 0, rotate: -90 }}
+                  animate={{ opacity: 1, rotate: 0 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: shouldReduceMotion ? 0 : 0.25 }}
                   className="shrink-0 ml-3 flex items-center justify-center size-9 hover:opacity-60 transition-opacity"
                 >
                   <X className="size-5" strokeWidth={1.5} />
-                </button>
+                </motion.button>
               </div>
 
               <div className="flex-1 overflow-y-auto">
-                {megaMenu
-                  .filter((cat) => cat.id === mobileActiveTab)
-                  .map((cat) => (
-                    <MegaMenuPanel key={cat.id} category={cat} onNavigate={() => setMobileNavOpen(false)} variant="mobile" />
-                  ))}
+                <AnimatePresence mode="wait" initial={false} custom={tabDirection}>
+                  {megaMenu
+                    .filter((cat) => cat.id === mobileActiveTab)
+                    .map((cat) => (
+                      <motion.div
+                        key={cat.id}
+                        custom={tabDirection}
+                        initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: 28 * tabDirection }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -20 * tabDirection }}
+                        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                      >
+                        <MegaMenuPanel category={cat} onNavigate={() => setMobileNavOpen(false)} variant="mobile" />
+                      </motion.div>
+                    ))}
+                </AnimatePresence>
 
-                <div className="px-4 pb-6 pt-2 border-t border-black/10 mt-2">
+                <motion.div
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: shouldReduceMotion ? 0 : 0.5 }}
+                  className="px-4 pb-6 pt-2 border-t border-black/10 mt-2"
+                >
                   {user ? (
                     <Link to="/account" onClick={() => setMobileNavOpen(false)} className="block py-3 text-sm font-bold tracking-wide uppercase text-black">ACCOUNT</Link>
                   ) : (
@@ -459,12 +509,41 @@ export function Navbar() {
                   <Link to="/wishlist" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-between py-3 text-sm font-bold tracking-wide uppercase text-black">
                     WISHLIST {wishSlugs.length > 0 && <span className="text-mono text-xs text-black/60 font-bold">({wishSlugs.length})</span>}
                   </Link>
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </motion.nav>
     </>
+  );
+}
+
+/**
+ * Hamburger that morphs into a close cross: the top and bottom bars rotate
+ * into an X while the middle one shrinks away, and back again. Drawn from
+ * three bars rather than swapping two icons, so it moves instead of popping.
+ */
+function MenuMorphIcon({ open }: { open: boolean }) {
+  const reduce = useReducedMotion();
+  const t = { duration: reduce ? 0 : 0.35, ease: [0.76, 0, 0.24, 1] as const };
+  return (
+    <span aria-hidden className="relative block h-6 w-6">
+      <motion.span
+        className="absolute left-[3px] right-[3px] top-[6px] h-[1.5px] bg-current origin-center"
+        animate={open ? { y: 5.25, rotate: 45 } : { y: 0, rotate: 0 }}
+        transition={t}
+      />
+      <motion.span
+        className="absolute left-[3px] right-[3px] top-[11.25px] h-[1.5px] bg-current"
+        animate={open ? { opacity: 0, scaleX: 0.2 } : { opacity: 1, scaleX: 1 }}
+        transition={t}
+      />
+      <motion.span
+        className="absolute left-[3px] right-[3px] top-[16.5px] h-[1.5px] bg-current origin-center"
+        animate={open ? { y: -5.25, rotate: -45 } : { y: 0, rotate: 0 }}
+        transition={t}
+      />
+    </span>
   );
 }
