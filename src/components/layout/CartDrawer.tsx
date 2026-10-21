@@ -33,6 +33,7 @@ export function CartDrawer() {
       <aside
         role="dialog"
         aria-label="Shopping cart"
+        data-overlay={isOpen ? "" : undefined}
         className={`fixed top-0 right-0 z-50 h-full w-full sm:w-[420px] flex flex-col transition-transform duration-300 ease-out border-l border-border ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}

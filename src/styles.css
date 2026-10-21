@@ -618,3 +618,13 @@ html.lenis body {
     }
   }
 }
+
+/* The home page's travelling logo (components/home/HeroLogo.tsx) has to sit
+   above everything to cover the preloader — which also put it on top of the
+   mobile menu, search, cart drawer and popups. Every overlay root carries
+   data-overlay; while one exists, the logo steps aside. !important because
+   HeroLogo writes its opacity and visibility inline every frame. */
+body:has([data-overlay]) .hero-logo {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}

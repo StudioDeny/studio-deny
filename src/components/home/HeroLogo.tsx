@@ -184,7 +184,7 @@ export function HeroLogo({ hasHero }: { hasHero: boolean | undefined }) {
       aria-hidden
       // flex, not block: as a block the inline logo sits on a text line with
       // descender space below it, which offsets the transform's centre.
-      className="pointer-events-none fixed left-0 top-0 flex origin-center will-change-transform"
+      className="hero-logo pointer-events-none fixed left-0 top-0 flex origin-center will-change-transform"
       style={{ opacity: 0, zIndex: 100000 }}
     >
       <BrandLogo style={{ fontSize: "clamp(44px, 8.5vw, 120px)" }} />

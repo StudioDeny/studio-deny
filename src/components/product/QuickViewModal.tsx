@@ -49,6 +49,7 @@ export function QuickViewModal({ product, open, onClose }: Props) {
 
   return createPortal(
     <div
+      data-overlay
       className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-6"
       onClick={onClose}
     >

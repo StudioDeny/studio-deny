@@ -89,7 +89,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md animate-in fade-in duration-200">
+    <div data-overlay className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md animate-in fade-in duration-200">
       <div className="px-4 md:px-8 pt-6 max-w-3xl mx-auto">
         <div className="flex items-center gap-3 border-b-2 border-primary pb-3">
           <Search className="size-5 text-primary" />

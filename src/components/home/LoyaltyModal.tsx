@@ -80,6 +80,7 @@ export function LoyaltyModal() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             onClick={dismiss}
+            data-overlay
             className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm"
           />
 

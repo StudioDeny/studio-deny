@@ -135,7 +135,7 @@ export function SignupPopupView(p: Props) {
 
   if (p.preview) return <div className="flex justify-center p-4 bg-black/60">{card}</div>;
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 md:p-6 bg-black/60" onClick={(e) => { if (e.target === e.currentTarget) p.onClose(); }}>
+    <div data-overlay className="fixed inset-0 z-[200] flex items-center justify-center p-3 md:p-6 bg-black/60" onClick={(e) => { if (e.target === e.currentTarget) p.onClose(); }}>
       {card}
     </div>
   );

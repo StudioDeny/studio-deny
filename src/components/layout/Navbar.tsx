@@ -120,6 +120,7 @@ export function Navbar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
+            data-overlay
             className="fixed inset-0 z-[99] bg-black/30 backdrop-blur-[2px]"
             onClick={closeSearch}
           />
@@ -192,7 +193,7 @@ export function Navbar() {
             // HeroLogo flies into this slot on the home page and measures it.
             data-nav-logo
           >
-            <BrandLogo className="text-[21px] sm:text-[24px] lg:text-[28px]" />
+            <BrandLogo className="text-[18px] sm:text-[21px] lg:text-[24px]" />
           </Link>
 
           {/* Right — icons (desktop) */}
@@ -294,6 +295,7 @@ export function Navbar() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
+                  data-overlay
                   className="fixed inset-x-0 bottom-0 top-[84px] z-[80] bg-black/25 backdrop-blur-[2px] pointer-events-auto"
                   onClick={() => setOpenDropdown(null)}
                 />
@@ -413,6 +415,7 @@ export function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
+              data-overlay
               className="fixed inset-0 z-[110] sm:hidden bg-white text-black flex flex-col"
             >
               <div className="flex items-center justify-between px-4 h-14 border-b border-black/10 shrink-0">
