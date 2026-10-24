@@ -1,7 +1,7 @@
 import { useCart, formatINR } from "@/context/CartContext";
 import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { thumbImage } from "@/lib/image";
 
@@ -18,12 +18,20 @@ export function CartDrawer() {
   const pct = Math.min(100, (subtotal / FREE_SHIP) * 100);
   const shipping = subtotal >= FREE_SHIP ? 0 : 99;
 
+  // Leaving the page (logo, a nav link, back button) closes the bag, so it
+  // never stays open over the page the visitor just went to.
+  const { pathname } = useLocation();
+  useEffect(() => { close(); }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop. z-[110], like the mobile menu: above the fixed top bar
+          (z-[100]), which otherwise covers the drawer's header and close
+          button — on a phone, where the drawer is full width, that left no
+          way out. */}
       <div
         onClick={close}
-        className={`fixed inset-0 z-50 bg-black/75 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[110] bg-black/75 backdrop-blur-sm transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         aria-hidden="true"
@@ -34,7 +42,7 @@ export function CartDrawer() {
         role="dialog"
         aria-label="Shopping cart"
         data-overlay={isOpen ? "" : undefined}
-        className={`fixed top-0 right-0 z-50 h-full w-full sm:w-[420px] flex flex-col transition-transform duration-300 ease-out border-l border-border ${
+        className={`fixed top-0 right-0 z-[110] h-full w-full sm:w-[420px] flex flex-col transition-transform duration-300 ease-out border-l border-border ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
         style={{ background: "var(--color-surface)" }}
