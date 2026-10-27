@@ -8,6 +8,7 @@ import { useWishlist } from "@/context/WishlistContext";
 
 import { useQuickAdd } from "@/context/QuickAddContext";
 import { responsiveImage } from "@/lib/image";
+import { useTouchHover } from "@/hooks/useTouchHover";
 
 export function ProductCard({
   product,
@@ -25,7 +26,10 @@ export function ProductCard({
   const { add } = useCart();
   const { openQuickAdd } = useQuickAdd();
   const { has, toggle } = useWishlist();
-  const [hover, setHover] = useState(false);
+  const [mouseHover, setHover] = useState(false);
+  // Phones: touching the card and scrolling counts as hovering it.
+  const { ref: cardRef, touchHover, clear: clearTouchHover } = useTouchHover<HTMLDivElement>({ verticalOnly: true });
+  const hover = mouseHover || touchHover;
   const wished = has(product.slug);
   const [showSizes, setShowSizes] = useState(false);
   const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
@@ -40,8 +44,16 @@ export function ProductCard({
   const handleMobileScroll = () => {
     const el = mobileScrollerRef.current;
     if (!el || el.clientWidth === 0) return;
-    setMobilePhotoIndex(Math.round(el.scrollLeft / el.clientWidth));
+    const i = Math.round(el.scrollLeft / el.clientWidth);
+    setMobilePhotoIndex(i);
+    if (i > 0) clearTouchHover(); // swiping the photos takes over from the hover photo
   };
+  // Touch-hover on a phone shows the second photo over the first, like the
+  // desktop hover. Mounted on first use so it doesn't load for every card.
+  const [touchPhotoUsed, setTouchPhotoUsed] = useState(false);
+  useEffect(() => { if (touchHover) setTouchPhotoUsed(true); }, [touchHover]);
+  const touchPhotoOn = touchHover && mobilePhotoIndex === 0 && mobilePhotos.length > 1;
+  const shownMobileIndex = touchPhotoOn ? 1 : mobilePhotoIndex;
 
   const hasDiscount = product.compareAt && product.compareAt > product.price;
   const discountPct = hasDiscount ? Math.round(((product.compareAt! - product.price) / product.compareAt!) * 100) : 0;
@@ -68,6 +80,7 @@ export function ProductCard({
 
   return (
     <div
+      ref={cardRef}
       className="group relative animate-in fade-in slide-in-from-bottom-3 duration-600"
       style={{ animationDelay: `${index * 80}ms`, animationFillMode: "both" }}
       onMouseEnter={() => setHover(true)}
@@ -118,12 +131,21 @@ export function ProductCard({
               />
             ))}
           </div>
+          {touchPhotoUsed && mobilePhotos.length > 1 && (
+            <img
+              {...responsiveImage(mobilePhotos[1], { maxWidth: 1280, sizes: imageSizes })}
+              alt=""
+              aria-hidden
+              decoding="async"
+              className={`md:hidden absolute inset-0 w-full h-full object-cover pointer-events-none transition-all duration-500 ease-out ${touchPhotoOn ? "opacity-100 scale-100" : "opacity-0 scale-[1.03]"}`}
+            />
+          )}
           {mobilePhotos.length > 1 && (
             <div className="md:hidden absolute bottom-2 inset-x-0 flex items-center justify-center gap-1 z-[1]">
               {mobilePhotos.map((_, i) => (
                 <span
                   key={i}
-                  className={`size-1.5 rounded-full transition-colors ${i === mobilePhotoIndex ? "bg-white" : "bg-white/40"}`}
+                  className={`size-1.5 rounded-full transition-colors ${i === shownMobileIndex ? "bg-white" : "bg-white/40"}`}
                 />
               ))}
             </div>

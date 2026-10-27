@@ -9,7 +9,7 @@ import {
   Loader, Boxes, LifeBuoy, TicketPercent, Gift, UserPlus, Store,
 } from "lucide-react";
 import { listOrders, type Order } from "@/lib/orders";
-import { getLastSeen, markSeen } from "@/lib/notifications";
+import { getLastSeen, markSeen, SEEN_EVENT } from "@/lib/notifications";
 import { formatINR } from "@/context/CartContext";
 import { AdminSearchConsole } from "@/components/admin/AdminSearchConsole";
 
@@ -34,16 +34,21 @@ function AdminLayout() {
   }, [user, loading, navigate]);
 
   useEffect(() => {
+    let orders: Order[] = [];
+    // Re-filter the last fetched list against the (cached) seen time — runs
+    // straight away when anything marks orders seen.
+    const refilter = async () => {
+      const last = await getLastSeen();
+      setUnseenOrders(orders.filter((o) => o.createdAt > last));
+    };
     const tick = async () => {
-      const last = getLastSeen();
-      const all = await listOrders();
-      setUnseenOrders(all.filter((o) => o.createdAt > last));
+      orders = await listOrders();
+      await refilter();
     };
     tick();
     const id = setInterval(tick, 5000);
-    const onStorage = () => tick();
-    window.addEventListener("storage", onStorage);
-    return () => { clearInterval(id); window.removeEventListener("storage", onStorage); };
+    window.addEventListener(SEEN_EVENT, refilter);
+    return () => { clearInterval(id); window.removeEventListener(SEEN_EVENT, refilter); };
   }, []);
 
   useEffect(() => {
@@ -115,7 +120,11 @@ function AdminLayout() {
     { to: "/admin/users", label: "USERS", icon: UserCheck },
   ];
 
-  const markAllSeen = () => { markSeen(); setUnseenOrders([]); setNotifOpen(false); };
+  const markAllSeen = () => {
+    markSeen(Math.max(0, ...unseenOrders.map((o) => o.createdAt)));
+    setUnseenOrders([]);
+    setNotifOpen(false);
+  };
 
   const navLink = (l: { to: string; label: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean; badge?: number }) => (
     <Link

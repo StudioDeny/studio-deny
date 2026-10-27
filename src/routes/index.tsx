@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 import { buildMeta, buildLinks, SITE_URL, orgJsonLd, websiteJsonLd, storeJsonLd } from "@/lib/seo";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useScrollAnchor } from "@/hooks/useScrollAnchor";
 import { LoyaltyModal } from "@/components/home/LoyaltyModal";
 import { HeroSlider, type HeroSlide } from "@/components/home/HeroSlider";
 import { MarqueeTicker } from "@/components/home/MarqueeTicker";
@@ -74,6 +75,9 @@ function Index() {
   const orderedTypes = useWebsiteSectionsOrder(allowedKeys);
   const { config: heroConfig, isVisible: heroVisible, loaded: heroLoaded } = useWebsiteSectionConfig<{ slides?: HeroSlide[] }>("hero", {});
   const heroSlides = (heroConfig.slides ?? []).filter((s) => s.src);
+  // Sections that load in above the visitor don't push them into another one.
+  const pageRef = useRef<HTMLDivElement>(null);
+  useScrollAnchor(pageRef);
 
   // Buttons can point at a home page section ("/#new-arrivals"). Sections
   // load their content after the page renders, so scroll again once they
@@ -87,7 +91,7 @@ function Index() {
   }, [hash, orderedTypes.length]);
 
   return (
-    <div className="bg-background text-foreground overflow-x-hidden min-h-screen font-body">
+    <div ref={pageRef} className="bg-background text-foreground overflow-x-hidden min-h-screen font-body">
       <LoyaltyModal />
 
       {/* Carries the preloader's logo to the hero centre, then into the

@@ -17,6 +17,8 @@ interface SmoothScrollProps {
   wheelMultiplier?: number;
   touchMultiplier?: number;
   smoothWheel?: boolean;
+  /** Off: no Lenis (admin), but the children stay mounted. */
+  enabled?: boolean;
 }
 
 export function SmoothScroll({
@@ -26,6 +28,7 @@ export function SmoothScroll({
   wheelMultiplier = 1.0,
   touchMultiplier = 1.5,
   smoothWheel = true,
+  enabled = true,
 }: SmoothScrollProps) {
   const [lenisInstance, setLenisInstance] = useState<Lenis | null>(null);
   const location = useLocation();
@@ -34,7 +37,7 @@ export function SmoothScroll({
   useEffect(() => {
     // Accessibility check: honor user's reduced-motion preference
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) {
+    if (prefersReducedMotion || !enabled) {
       return;
     }
 
@@ -63,7 +66,7 @@ export function SmoothScroll({
       lenis.destroy();
       setLenisInstance(null);
     };
-  }, [duration, lerp, wheelMultiplier, touchMultiplier, smoothWheel]);
+  }, [duration, lerp, wheelMultiplier, touchMultiplier, smoothWheel, enabled]);
 
   const isPopStateRef = useRef(false);
 

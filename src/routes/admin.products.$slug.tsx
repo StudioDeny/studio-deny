@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getStoredProduct, upsertProduct, type Product } from "@/lib/productsStore";
 import { toast } from "sonner";
 import { ProductForm } from "./admin.products.new";
+import { returnToListPosition } from "@/lib/adminProductsList";
 
 export const Route = createFileRoute("/admin/products/$slug")({
   component: EditProduct,
@@ -23,7 +24,7 @@ function EditProduct() {
     <ProductForm
       initial={p}
       onSave={upsertProduct}
-      onSaved={() => { toast.success("Saved"); nav({ to: "/admin/products" }); }}
+      onSaved={() => { toast.success("Saved"); returnToListPosition(); nav({ to: "/admin/products" }); }}
     />
   );
 }

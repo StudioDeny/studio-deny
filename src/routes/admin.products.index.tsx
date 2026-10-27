@@ -7,6 +7,7 @@ import { Plus, Pencil, Eye, EyeOff, Settings2, Search, Trash2, Layers } from "lu
 import { StockPanel } from "@/components/admin/StockPanel";
 import { toast } from "sonner";
 import { thumbImage } from "@/lib/image";
+import { rememberListPosition, pendingListPosition, clearListPosition } from "@/lib/adminProductsList";
 
 export const Route = createFileRoute("/admin/products/")({
   component: AdminProducts,
@@ -15,15 +16,25 @@ export const Route = createFileRoute("/admin/products/")({
 function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [stockTotals, setStockTotals] = useState<Record<string, number>>({});
-  const [active, setActive] = useState<string>("ALL");
-  const [q, setQ] = useState("");
+  // Back from saving an edit: same tab, search and scroll as when it was opened.
+  const [returning] = useState(pendingListPosition);
+  const [active, setActive] = useState<string>(returning?.active ?? "ALL");
+  const [q, setQ] = useState(returning?.q ?? "");
   const [stockFor, setStockFor] = useState<Product | null>(null);
   const refresh = async () => {
     const [data, totals] = await Promise.all([listAllAdminProducts(), getVariantStockTotals()]);
     setProducts(data);
     setStockTotals(totals);
   };
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => {
+    refresh().then(() => {
+      if (!returning) return;
+      clearListPosition();
+      // After the rows have painted, so the page is tall enough to get there.
+      requestAnimationFrame(() => window.scrollTo(0, returning.y));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [cats, setCats] = useState<Category[]>([]);
   useEffect(() => { listCategories().then(setCats); }, []);
@@ -58,7 +69,9 @@ function AdminProducts() {
   };
 
   return (
-    <div>
+    // Any click here (the edit pencil, or FULL EDIT in the side panel, which
+    // bubbles through its portal) records where the list is.
+    <div onClickCapture={() => rememberListPosition({ active, q, y: window.scrollY })}>
       <StockPanel product={stockFor} onClose={() => setStockFor(null)} onSaved={refresh} />
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 className="text-display text-4xl md:text-5xl">PRODUCTS.</h1>

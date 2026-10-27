@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Truck, Loader2 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { markSeenUpTo } from "@/lib/notifications";
 
 export const Route = createFileRoute("/admin/orders")({
   component: AdminOrders,
@@ -19,15 +20,18 @@ function AdminOrders() {
   const [refundTarget, setRefundTarget] = useState<{ id: string; amount: number } | null>(null);
 
   useEffect(() => {
-    listOrders().then(setOrders);
+    // Opening the orders list clears the new-order bell and badge.
+    const load = () => listOrders().then((all) => {
+      setOrders(all);
+      if (all.length) markSeenUpTo(Math.max(...all.map((o) => o.createdAt)));
+    });
+    load();
     // Shiprocket's webhook updates the orders row server-side as the parcel
     // moves — without this, the admin only sees that change on a manual
     // page refresh.
     const channel = supabase
       .channel("admin-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
-        listOrders().then(setOrders);
-      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);

@@ -146,15 +146,19 @@ export function MegaMenuPanel({
             {category.products.map((p) => (
               <motion.div key={p.id} variants={productVariants} className="h-full w-full">
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                <Link to={p.href as any} onClick={onNavigate} className="group relative min-w-0 h-full w-full overflow-hidden rounded-xs bg-neutral-900 block">
-                  <img
-                    {...responsiveImage(p.imageUrl, { maxWidth: 828, sizes: "25vw" })}
-                    alt={p.label}
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  {nameOverlay(p)}
+                <Link to={p.href as any} onClick={onNavigate} className="group min-w-0 h-full w-full flex items-center justify-center">
+                  {/* Whole photo, fitted to the space (never cropped); the
+                      name sits on the photo itself, not the empty sides. */}
+                  <span className="relative h-full max-w-full overflow-hidden rounded-xs">
+                    <img
+                      {...responsiveImage(p.imageUrl, { maxWidth: 828, sizes: "25vw" })}
+                      alt={p.label}
+                      loading="lazy"
+                      decoding="async"
+                      className="block h-full w-auto max-w-full object-contain"
+                    />
+                    {nameOverlay(p)}
+                  </span>
                 </Link>
               </motion.div>
             ))}
@@ -197,7 +201,7 @@ function MobileProductCard({ product, onNavigate }: { product: MegaMenuProduct; 
           alt={product.label}
           loading="lazy"
           decoding="async"
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-active:scale-[1.03]"
+          className="absolute inset-0 w-full h-full object-contain transition-transform duration-500 group-active:scale-[1.03]"
         />
         {discountPct !== null && (
           <span className="absolute top-2 left-2 bg-black text-white font-bold px-1.5 py-0.5 rounded-xs" style={{ fontSize: "10px" }}>

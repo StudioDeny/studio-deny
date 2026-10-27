@@ -44,7 +44,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       try {
         if (session?.user) {
-          setUser(await toAppUser(session.user));
+          const next = await toAppUser(session.user);
+          // Keep the same object when nothing shown changed (e.g. the admin's
+          // notification seen-time saved to user_metadata) — no app-wide re-render.
+          setUser((prev) =>
+            prev && prev.id === next.id && prev.email === next.email && prev.name === next.name && prev.role === next.role ? prev : next,
+          );
         } else {
           setUser(null);
         }

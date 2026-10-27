@@ -386,11 +386,12 @@ export function LookbookCarousel() {
                 )}
 
                 {/* Black Gradient Overlay — Fades in ONLY when mouse hovers onto the card */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className={`absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isCenter ? "[@media(hover:none)]:opacity-100" : ""}`} />
 
                 {/* Bottom Text Overlay — Slides UP from bottom ONLY when mouse hovers onto the card */}
                 {product && (
-                  <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4 z-10 flex items-center justify-between gap-2 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto">
+                  // Touch screens have no hover: the centre card always shows it.
+                  <div className={`absolute inset-x-0 bottom-0 p-3.5 sm:p-4 z-10 flex items-center justify-between gap-2 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto ${isCenter ? "[@media(hover:none)]:opacity-100 [@media(hover:none)]:translate-y-0" : ""}`}>
                     <span className="font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-white truncate">
                       {product.name}
                     </span>

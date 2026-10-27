@@ -139,12 +139,12 @@ function RootComponent() {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/admin");
 
-  if (isAdmin) {
-    return <RootContent />;
-  }
-
+  // One tree for the store and the admin, with smooth scrolling just switched
+  // off on admin pages. Two different trees remounted everything on BACK TO
+  // STORE — the preloader started over and glitched against the home logo,
+  // which already knew it had finished.
   return (
-    <SmoothScroll duration={1.2} lerp={0.1} wheelMultiplier={1.0} touchMultiplier={1.5}>
+    <SmoothScroll enabled={!isAdmin} duration={1.2} lerp={0.1} wheelMultiplier={1.0} touchMultiplier={1.5}>
       <RootContent />
     </SmoothScroll>
   );

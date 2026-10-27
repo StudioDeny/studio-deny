@@ -462,7 +462,7 @@ export function ProductForm({
           )}
         </div>
 
-        <Field label="DESCRIPTION (select text to bold or color it)">
+        <Field label="DESCRIPTION (select text to bold or color it)" plain>
           <RichTextEditor
             value={p.description}
             onChange={(html) => set("description", html)}
@@ -470,7 +470,7 @@ export function ProductForm({
           />
         </Field>
 
-        <Field label="MATERIAL COMPOSITION (select text to bold or color it)">
+        <Field label="MATERIAL COMPOSITION (select text to bold or color it)" plain>
           <RichTextEditor
             value={p.material}
             onChange={(html) => set("material", html)}
@@ -479,7 +479,7 @@ export function ProductForm({
           />
         </Field>
 
-        <Field label="MATERIAL CARE INSTRUCTIONS (select text to bold or color it)">
+        <Field label="MATERIAL CARE INSTRUCTIONS (select text to bold or color it)" plain>
           <RichTextEditor
             value={p.materialCare ?? ""}
             onChange={(html) => set("materialCare", html)}
@@ -506,16 +506,21 @@ export function ProductForm({
 function Field({
   label,
   children,
+  plain,
 }: {
   label: string;
   children: React.ReactNode;
+  /** Not a <label>: a click anywhere inside a label also clicks its first
+   *  button — in the rich-text fields that was Bold, so every click toggled it. */
+  plain?: boolean;
 }) {
+  const Wrap = plain ? "div" : "label";
   return (
-    <label className="block">
+    <Wrap className="block">
       <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">
         {label}
       </div>
       {children}
-    </label>
+    </Wrap>
   );
 }

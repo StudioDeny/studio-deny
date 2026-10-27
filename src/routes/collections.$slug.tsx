@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useScrollAnchor } from "@/hooks/useScrollAnchor";
 import { productsInCategory, listCategories } from "@/lib/catalog";
 import type { Category } from "@/lib/catalog";
 import type { Product } from "@/lib/productsStore";
@@ -55,6 +56,8 @@ function CollectionPage() {
   const [all, setAll] = useState<Category[]>([]);
   const [loyaltySettings, setLoyaltySettings] = useState(DEFAULT_LOYALTY_SETTINGS);
   const facts = useFilterFacts();
+  const pageRef = useRef<HTMLElement>(null);
+  useScrollAnchor(pageRef);
 
   useEffect(() => {
     let cancelled = false;
@@ -126,7 +129,7 @@ function CollectionPage() {
   const gridClass = `grid gap-4 sm:gap-6 ${gridCols === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"}`;
 
   return (
-    <section className="px-4 md:px-8 mt-4 md:mt-8 pb-16 max-w-[1700px] mx-auto">
+    <section ref={pageRef} className="px-4 md:px-8 mt-4 md:mt-8 pb-16 max-w-[1700px] mx-auto">
       <div className="mb-6">
         <div className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2">COLLECTION</div>
         <h1 className="text-display text-5xl md:text-7xl">{title}.</h1>

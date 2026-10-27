@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { buildMeta, buildLinks, SITE_URL } from "@/lib/seo";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useScrollAnchor } from "@/hooks/useScrollAnchor";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { listCategories, type Category } from "@/lib/catalog";
 import { getLoyaltySettings, DEFAULT_LOYALTY_SETTINGS } from "@/lib/settings";
@@ -42,6 +43,8 @@ function Shop() {
   const [loaded, setLoaded] = useState(false);
   const [loyaltySettings, setLoyaltySettings] = useState(DEFAULT_LOYALTY_SETTINGS);
   const facts = useFilterFacts();
+  const pageRef = useRef<HTMLElement>(null);
+  useScrollAnchor(pageRef);
 
   useEffect(() => {
     listProducts().then(async (p) => {
@@ -86,7 +89,7 @@ function Shop() {
   };
 
   return (
-    <section className="px-4 md:px-8 mt-8 md:mt-12 pb-24">
+    <section ref={pageRef} className="px-4 md:px-8 mt-8 md:mt-12 pb-24">
       <div className="mb-6">
         {/* ?best=1 is the Best Sellers page (home page Best Sellers buttons). */}
         <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {filters.best ? "MOST WANTED" : "ALL DROPS"}</div>

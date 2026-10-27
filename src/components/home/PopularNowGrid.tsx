@@ -11,6 +11,7 @@ import { useSectionHeading } from "@/lib/sectionHeadings";
 import { useQuickAdd } from "@/context/QuickAddContext";
 import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
 import { responsiveImage } from "@/lib/image";
+import { useTouchHover } from "@/hooks/useTouchHover";
 
 type PopularNowItem = { slug: string; tag?: string };
 type PopularNowConfig = { items: PopularNowItem[] };
@@ -31,7 +32,10 @@ const SIZE_CLASSES = [
 function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: string }; sizeClass: string }) {
   const { add } = useCart();
   const { openQuickAdd } = useQuickAdd();
-  const [hover, setHover] = useState(false);
+  const [mouseHover, setHover] = useState(false);
+  // Phones: touching the tile and scrolling counts as hovering it.
+  const { ref: tileRef, touchHover } = useTouchHover<HTMLAnchorElement>();
+  const hover = mouseHover || touchHover;
   const [showSizes, setShowSizes] = useState(false);
   const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
   const [added, setAdded] = useState(false);
@@ -54,13 +58,18 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
       setActivePhotoIndex(0);
       return;
     }
+    // Phone touch-hover: straight to the second photo, and it stays.
+    if (touchHover && !mouseHover) {
+      setActivePhotoIndex(1);
+      return;
+    }
 
     const interval = setInterval(() => {
       setActivePhotoIndex((prev) => (prev + 1) % photos.length);
     }, 1400);
 
     return () => clearInterval(interval);
-  }, [hover, photos.length]);
+  }, [hover, touchHover, mouseHover, photos.length]);
 
   // Scrub through photos as mouse moves across the card width
   const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -85,6 +94,7 @@ function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: str
     <Link
       to="/product/$slug"
       params={{ slug: product.slug }}
+      ref={tileRef}
       className={`group relative shrink-0 overflow-hidden bg-surface ${sizeClass}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => { setHover(false); setShowSizes(false); setActivePhotoIndex(0); }}

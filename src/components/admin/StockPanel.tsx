@@ -1,5 +1,6 @@
-// Right-side panel opened from the products list: the product's colours,
-// sizes and stock in the same colour-card editor as the product form.
+// Right-side panel opened from the products list: the product's main price,
+// and its colours, sizes and stock in the same colour-card editor as the
+// product form.
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Loader2, Pencil } from "lucide-react";
@@ -33,8 +34,14 @@ export function StockPanel({
   const [dirty, setDirty] = useState(false);
   const [single, setSingle] = useState(false);
   const [singleQty, setSingleQty] = useState("");
+  // The product's main price (cards, shop, product page). `base` is what is
+  // saved; `price`/`compareAt` are the boxes. A colour card's own price only
+  // overrides it for that colour.
+  const [base, setBase] = useState<{ price: number; compareAt?: number }>({ price: 0 });
+  const [price, setPrice] = useState("");
+  const [compareAt, setCompareAt] = useState("");
 
-  const load = async (p: Product) => {
+  const load = async (p: Product, saved: { price: number; compareAt?: number } = { price: p.price, compareAt: p.compareAt }) => {
     setLoading(true);
     try {
       const [r, sizes] = await Promise.all([
@@ -45,7 +52,10 @@ export function StockPanel({
       const one = singleItemVariant(r);
       setSingle(!!one);
       setSingleQty(one ? String(one.stock) : "");
-      setCards(cardsFromVariants(one ? r.filter((x) => x !== one) : r, p.colors, p.price, p.compareAt));
+      setCards(cardsFromVariants(one ? r.filter((x) => x !== one) : r, p.colors, saved.price, saved.compareAt));
+      setBase(saved);
+      setPrice(String(saved.price));
+      setCompareAt(saved.compareAt ? String(saved.compareAt) : "");
       setSizeLabels(sizes.map((s) => s.label));
       setDirty(false);
     } catch (e) {
@@ -61,31 +71,42 @@ export function StockPanel({
   }, [product?.slug]);
 
   const close = () => {
-    if (dirty && !confirm("You have unsaved stock changes. Close without saving?")) return;
+    if (dirty && !confirm("You have unsaved changes. Close without saving?")) return;
     onClose();
   };
 
   const save = async () => {
     if (!product) return;
-    const problem = single ? validateSingleQty(singleQty) : validateCards(cards, product.is_active ?? true);
+    const isMoney = (v: string) => /^\d+(\.\d{1,2})?$/.test(v.trim());
+    if (!isMoney(price)) return toast.error("Main price must be a number.");
+    if (compareAt.trim() && !isMoney(compareAt)) return toast.error("Compare-at price must be a number.");
+    const saved = { price: Number(price), compareAt: Number(compareAt) || undefined };
+    const stocked = !!product.categoryId;
+    const problem = !stocked ? null : single ? validateSingleQty(singleQty) : validateCards(cards, product.is_active ?? true);
     if (problem) return toast.error(problem);
     setSaving(true);
     try {
-      const plan = single
-        ? planSingleSave(rows, Number(singleQty), product.price, product.compareAt)
-        : planStockSave(rows, cards, product.price, product.compareAt);
-      // Keep the storefront colour swatches in step with the colour cards.
+      const plan = !stocked
+        ? null
+        : single
+        ? planSingleSave(rows, Number(singleQty), saved.price, saved.compareAt)
+        : planStockSave(rows, cards, saved.price, saved.compareAt);
+      // Main price, and the storefront colour swatches kept in step with the
+      // colour cards.
       const { error } = await supabase
         .from("products")
-        .update({ colors: single ? [] : colorsFromCards(cards) })
+        .update({
+          price: saved.price,
+          compare_at: saved.compareAt ?? null,
+          ...(stocked ? { colors: single ? [] : colorsFromCards(cards) } : {}),
+        })
         .eq("slug", product.slug);
       if (error) throw new Error(error.message);
-      const result = await saveStockPlan(product.slug, plan);
-      const note = describeSaveResult(result);
-      await load(product);
+      const note = plan ? describeSaveResult(await saveStockPlan(product.slug, plan)) : null;
+      await load(product, saved);
       onSaved();
       if (note) toast.warning(note, { duration: 10000 });
-      else toast.success("Stock saved");
+      else toast.success("Saved");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
     } finally {
@@ -106,39 +127,69 @@ export function StockPanel({
                 <div className="min-w-0">
                   <SheetTitle className="text-display text-2xl truncate">{product.name.toUpperCase()}</SheetTitle>
                   <SheetDescription className="text-mono text-[10px] tracking-widest">
-                    {product.category || "NO CATEGORY"} · ₹{product.price}
+                    {product.category || "NO CATEGORY"} · ₹{base.price}
                   </SheetDescription>
                 </div>
               </div>
             </SheetHeader>
 
             <div className="mt-6 space-y-4">
-              {!product.categoryId ? (
-                <p className="text-mono text-[11px] text-muted-foreground">
-                  This product has no category, so there are no sizes to stock. Open the full edit form to pick one.
-                </p>
-              ) : loading ? (
+              {loading ? (
                 <p className="text-mono text-[11px] text-muted-foreground flex items-center gap-2">
                   <Loader2 className="size-3 animate-spin" /> Loading stock…
                 </p>
               ) : (
                 <>
-                  {rows.length === 0 && !dirty && (
-                    <p className="text-mono text-[11px] bg-amber-100 text-amber-800 p-2">
-                      NEEDS SIZE COUNTS — this product only has one overall stock number. Tap each size and enter how many you have, or switch on SINGLE ITEM if it has no colours or sizes.
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="block">
+                      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">MAIN PRICE ₹</div>
+                      <input
+                        type="number"
+                        min={0}
+                        value={price}
+                        onChange={(e) => { setPrice(e.target.value); setDirty(true); }}
+                        className="bg-background border border-border h-10 px-3 w-full text-mono text-sm"
+                      />
+                    </label>
+                    <label className="block">
+                      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COMPARE AT ₹ (blank = none)</div>
+                      <input
+                        type="number"
+                        min={0}
+                        value={compareAt}
+                        onChange={(e) => { setCompareAt(e.target.value); setDirty(true); }}
+                        className="bg-background border border-border h-10 px-3 w-full text-mono text-sm"
+                      />
+                    </label>
+                  </div>
+                  <p className="text-mono text-[10px] text-muted-foreground">
+                    The price shown everywhere on the store. A colour's own price below only overrides it for that colour.
+                  </p>
+
+                  {!product.categoryId ? (
+                    <p className="text-mono text-[11px] text-muted-foreground">
+                      This product has no category, so there are no sizes to stock. Open the full edit form to pick one.
                     </p>
+                  ) : (
+                    <>
+                      {rows.length === 0 && !dirty && (
+                        <p className="text-mono text-[11px] bg-amber-100 text-amber-800 p-2">
+                          NEEDS SIZE COUNTS — this product only has one overall stock number. Tap each size and enter how many you have, or switch on SINGLE ITEM if it has no colours or sizes.
+                        </p>
+                      )}
+                      <StockModeEditor
+                        single={single}
+                        onSingleChange={(v) => { setSingle(v); setDirty(true); }}
+                        singleQty={singleQty}
+                        onSingleQtyChange={(q) => { setSingleQty(q); setDirty(true); }}
+                        cards={cards}
+                        onCardsChange={(c) => { setCards(c); setDirty(true); }}
+                        sizeLabels={sizeLabels}
+                        productPrice={Number(price) || base.price}
+                        productCompareAt={Number(compareAt) || undefined}
+                      />
+                    </>
                   )}
-                  <StockModeEditor
-                    single={single}
-                    onSingleChange={(v) => { setSingle(v); setDirty(true); }}
-                    singleQty={singleQty}
-                    onSingleQtyChange={(q) => { setSingleQty(q); setDirty(true); }}
-                    cards={cards}
-                    onCardsChange={(c) => { setCards(c); setDirty(true); }}
-                    sizeLabels={sizeLabels}
-                    productPrice={product.price}
-                    productCompareAt={product.compareAt}
-                  />
                   <div className="flex gap-2 sticky bottom-0 bg-background py-3 border-t border-border">
                     <button
                       type="button"
@@ -147,7 +198,7 @@ export function StockPanel({
                       className="flex-1 bg-primary text-primary-foreground h-11 text-mono text-xs tracking-widest disabled:opacity-50 inline-flex items-center justify-center gap-2"
                     >
                       {saving && <Loader2 className="size-4 animate-spin" />}
-                      {saving ? "SAVING…" : dirty ? "SAVE STOCK" : "NO CHANGES"}
+                      {saving ? "SAVING…" : dirty ? "SAVE" : "NO CHANGES"}
                     </button>
                     <Link
                       to="/admin/products/$slug"
