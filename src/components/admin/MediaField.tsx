@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Upload, Loader2, Link as LinkIcon } from "lucide-react";
+import { Upload, Loader2, Link as LinkIcon, X } from "lucide-react";
 import { toast } from "sonner";
 import { uploadImage, uploadVideo } from "@/lib/mediaUpload";
 import { thumbImage } from "@/lib/image";
@@ -121,11 +121,22 @@ export function MediaField({
       )}
 
       {value.url && (
-        <div className="mt-2 h-24 w-24 border border-border rounded overflow-hidden bg-muted/30 shrink-0">
+        <div className="relative mt-2 h-24 w-24 border border-border rounded overflow-hidden bg-muted/30 shrink-0">
           {value.type === "video" ? (
             <video src={value.url} className="h-full w-full object-cover" muted playsInline />
           ) : (
             <img src={thumbImage(value.url, 640)} alt="Preview" decoding="async" className="h-full w-full object-cover" />
+          )}
+          {!uploading && (
+            <button
+              type="button"
+              aria-label={`Remove ${value.type}`}
+              title={`Remove ${value.type}`}
+              onClick={() => onChange({ url: "", type: value.type })}
+              className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5 hover:bg-red-500"
+            >
+              <X className="size-3" />
+            </button>
           )}
         </div>
       )}

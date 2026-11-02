@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { LinkPicker } from "@/components/admin/LinkPicker";
 import {
   Loader2, Upload, ChevronDown, Lock, Zap, Gift, Trophy, Truck, RotateCcw,
-  ShieldCheck, Star, Sparkles, Heart, Award, Package, Clock, CheckCircle,
+  ShieldCheck, Star, Sparkles, Heart, Award, Package, Clock, CheckCircle, X,
   type LucideIcon,
 } from "lucide-react";
 
@@ -119,8 +119,19 @@ function LogoField({ value, onChange }: { value: string | null; onChange: (url: 
         </button>
       </div>
       {value && (
-        <div className="mt-2 h-16 w-16 border border-border rounded overflow-hidden bg-muted/30">
+        <div className="relative mt-2 h-16 w-16 border border-border rounded overflow-hidden bg-muted/30">
           <img src={value} alt="Logo preview" className="h-full w-full object-contain" />
+          {!uploading && (
+            <button
+              type="button"
+              aria-label="Remove logo"
+              title="Remove logo"
+              onClick={() => onChange(null)}
+              className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5 hover:bg-red-500"
+            >
+              <X className="size-3" />
+            </button>
+          )}
         </div>
       )}
     </div>

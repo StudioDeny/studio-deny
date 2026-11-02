@@ -5,7 +5,7 @@ import type { PreloaderSettings } from "@/types/database";
 import { MediaField, type MediaValue } from "@/components/admin/MediaField";
 import { uploadImage } from "@/lib/mediaUpload";
 import { toast } from "sonner";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, X } from "lucide-react";
 
 export const Route = createFileRoute("/admin/preloader")({
   component: AdminPreloader,
@@ -48,8 +48,19 @@ function ImageField({ value, onChange }: { value: string; onChange: (url: string
         </button>
       </div>
       {value && (
-        <div className="mt-2 h-16 w-16 border border-border rounded overflow-hidden bg-muted/30">
+        <div className="relative mt-2 h-16 w-16 border border-border rounded overflow-hidden bg-muted/30">
           <img src={value} alt="Preview" className="h-full w-full object-contain" />
+          {!uploading && (
+            <button
+              type="button"
+              aria-label="Remove image"
+              title="Remove image"
+              onClick={() => onChange("")}
+              className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5 hover:bg-red-500"
+            >
+              <X className="size-3" />
+            </button>
+          )}
         </div>
       )}
     </div>
