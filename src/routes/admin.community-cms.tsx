@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { CommunityPhoto } from "@/types/database";
 import { toast } from "sonner";
-import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { MediaField } from "@/components/admin/MediaField";
 import { BENTO_SLOTS, BENTO_SLOT_COUNT } from "@/lib/communityBento";
 import { thumbImage } from "@/lib/image";
@@ -12,6 +12,10 @@ export const Route = createFileRoute("/admin/community-cms")({
   component: CommunityCmsAdmin,
   head: () => ({ meta: [{ title: "Community — STUDIO DENY" }] }),
 });
+
+// Slots added on this page get a temporary id until SAVE inserts them.
+const DRAFT_PREFIX = "draft-";
+const isDraft = (id: string) => id.startsWith(DRAFT_PREFIX);
 
 function CommunityCmsAdmin() {
   const [rows, setRows] = useState<CommunityPhoto[]>([]);
@@ -36,7 +40,31 @@ function CommunityCmsAdmin() {
     setDirty(true);
   };
 
+  // A slot added here exists only on this page until SAVE inserts it. Without
+  // this, deleting every photo left the page with nothing to click and the
+  // homepage section hidden for good (it renders only with photos).
+  const addSlot = () => {
+    setRows((r) => [
+      ...r,
+      {
+        id: `${DRAFT_PREFIX}${crypto.randomUUID()}`,
+        image_url: "",
+        media_type: "image",
+        handle: null,
+        bento_size: "md",
+        is_active: true,
+        position: r.length,
+        created_at: "",
+      },
+    ]);
+    setDirty(true);
+  };
+
   const remove = async (id: string) => {
+    if (isDraft(id)) {
+      setRows((r) => r.filter((x) => x.id !== id).map((x, i) => ({ ...x, position: i })));
+      return;
+    }
     if (!confirm("Delete this photo?")) return;
     const { error } = await supabase.from("community_photos").delete().eq("id", id);
     if (error) return toast.error(error.message);
@@ -54,20 +82,33 @@ function CommunityCmsAdmin() {
   };
 
   const save = async () => {
+    if (rows.some((r) => !r.image_url.trim())) return toast.error("Add a photo or video to every slot before saving.");
     setSaving(true);
-    const results = await Promise.all(
-      rows.map((r) =>
-        supabase
-          .from("community_photos")
-          .update({ handle: r.handle, image_url: r.image_url, media_type: r.media_type, position: r.position })
-          .eq("id", r.id)
-      )
-    );
+    const drafts = rows.filter((r) => isDraft(r.id));
+    const results = await Promise.all([
+      ...rows
+        .filter((r) => !isDraft(r.id))
+        .map((r) =>
+          supabase
+            .from("community_photos")
+            .update({ handle: r.handle, image_url: r.image_url, media_type: r.media_type, position: r.position })
+            .eq("id", r.id)
+        ),
+      ...(drafts.length
+        ? [
+            supabase.from("community_photos").insert(
+              drafts.map((r) => ({ handle: r.handle, image_url: r.image_url, media_type: r.media_type, bento_size: r.bento_size, position: r.position, is_active: true }))
+            ),
+          ]
+        : []),
+    ]);
     setSaving(false);
     const failed = results.find((res) => res.error);
     if (failed?.error) return toast.error(failed.error.message);
-    setDirty(false);
     toast.success("Saved");
+    // New rows need their real ids before they can be edited or deleted again.
+    if (drafts.length) await load();
+    else setDirty(false);
   };
 
   if (loading) return <div className="text-mono text-xs">LOADING…</div>;
@@ -77,8 +118,9 @@ function CommunityCmsAdmin() {
       <h1 className="text-display text-4xl md:text-5xl mb-2">COMMUNITY.</h1>
       <p className="text-muted-foreground text-sm mb-8">
         Manage the "Worn By Our Community" bento grid. The layout itself is fixed — exactly {BENTO_SLOT_COUNT}
-        {" "}slots, each a fixed shape (hero / tall / wide / standard) — so there's nothing to add, only which
-        photo sits in which position. Reorder to change what shows where.
+        {" "}slots, each a fixed shape (hero / tall / wide / standard) — so you choose which photo sits in which
+        position. Reorder to change what shows where. The section stays hidden on the homepage until at least
+        one photo is saved.
       </p>
 
       {/* Live-layout preview — same shapes/order as the real homepage section */}
@@ -89,7 +131,7 @@ function CommunityCmsAdmin() {
             const photo = rows[idx];
             return (
               <div key={idx} className={`relative overflow-hidden border border-border/60 bg-muted/30 ${slot.className}`}>
-                {photo ? (
+                {photo?.image_url ? (
                   photo.media_type === "video" ? (
                     <video src={photo.image_url} className="w-full h-full object-cover" muted playsInline />
                   ) : (
@@ -111,7 +153,11 @@ function CommunityCmsAdmin() {
           return (
             <div key={photo.id} className="relative border border-border overflow-hidden bg-surface">
               <div className="relative aspect-square">
-                {photo.media_type === "video" ? (
+                {!photo.image_url ? (
+                  <div className="w-full h-full flex items-center justify-center text-mono text-[10px] tracking-widest text-muted-foreground">
+                    UPLOAD BELOW
+                  </div>
+                ) : photo.media_type === "video" ? (
                   <video src={photo.image_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
                 ) : (
                   <img src={thumbImage(photo.image_url, 400)} alt={photo.handle ?? ""} loading="lazy" decoding="async" className="w-full h-full object-cover" />
@@ -149,6 +195,18 @@ function CommunityCmsAdmin() {
             </div>
           );
         })}
+        {rows.length < BENTO_SLOT_COUNT && (
+          <button
+            type="button"
+            onClick={addSlot}
+            className="aspect-square border border-dashed border-border flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+          >
+            <Plus className="size-5" />
+            <span className="text-mono text-[10px] tracking-widest">
+              ADD {BENTO_SLOTS[rows.length].shape.toUpperCase()} PHOTO
+            </span>
+          </button>
+        )}
       </div>
 
       <div className="flex items-center gap-3">
