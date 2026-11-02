@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { uploadToCloudinary, uploadVideoToCloudinary } from "@/lib/cloudinary";
+import { uploadImage, uploadVideo } from "@/lib/mediaUpload";
 import type { MediaAsset } from "@/types/database";
 import { Upload, Copy, Trash2, Search, X } from "lucide-react";
 import { toast } from "sonner";
@@ -61,11 +61,11 @@ function AdminMedia() {
         setProgress(0);
         const isVideo = file.type.startsWith("video/");
         const result = isVideo
-          ? await uploadVideoToCloudinary(file, setProgress)
-          : await uploadToCloudinary(file, setProgress);
+          ? await uploadVideo(file, setProgress)
+          : await uploadImage(file, setProgress);
         await supabase.from("media_assets").insert({
-          public_id: result.public_id,
-          secure_url: result.secure_url,
+          public_id: result.path,
+          secure_url: result.url,
           alt_text: null,
           folder: result.folder || null,
           width: result.width,

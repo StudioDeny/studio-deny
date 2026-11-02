@@ -3,7 +3,7 @@
 // product form and the products-list stock panel.
 import { useEffect, useRef, useState } from "react";
 import { Copy, ImagePlus, Loader2, Plus, X } from "lucide-react";
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { uploadImage } from "@/lib/mediaUpload";
 import { toast } from "sonner";
 import { emptyCard, ONE_SIZE, type ColourCard } from "@/lib/stockEditor";
 import { thumbImage } from "@/lib/image";
@@ -266,7 +266,7 @@ function ColourPhotos({ colourName, images, onChange }: {
     try {
       const urls: string[] = [];
       for (const f of Array.from(files).slice(0, MAX_COLOUR_PHOTOS - images.length)) {
-        urls.push((await uploadToCloudinary(f)).secure_url);
+        urls.push((await uploadImage(f)).url);
       }
       onChange([...images, ...urls]);
     } catch (e) {

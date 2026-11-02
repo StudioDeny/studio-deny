@@ -22,7 +22,8 @@ export type HeroSlide = {
 
 // A slide saved as "video" with a photo uploaded (or the other way round)
 // rendered nothing: a photo can't play in <video>. Trust the file when its
-// URL says what it is (Cloudinary's /image/ or /video/ path, or extension).
+// URL says what it is (the file extension, or an older Cloudinary link's
+// /image/ or /video/ path).
 function fileMediaType(src: string, saved: "image" | "video"): "image" | "video" {
   if (/\/image\/upload\/|\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(src)) return "image";
   if (/\/video\/upload\/|\.(mp4|webm|mov)(\?|$)/i.test(src)) return "video";

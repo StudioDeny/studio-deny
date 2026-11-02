@@ -388,11 +388,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 | Dashboard | `supabase.com/dashboard/project/ablejcrtuiohdrapgacb` |
 | Anon Key | in `.env` → `VITE_SUPABASE_ANON_KEY` |
 
-### Cloudinary
+### Media (Supabase Storage)
 | Field | Value |
 |-------|-------|
-| Cloud Name | `dslsygx32` |
-| Upload Preset | `studiodeny_unsigned` |
+| Bucket | `media` (public) — migration `20261102000001_media_storage_bucket.sql` |
+| Upload | `src/lib/mediaUpload.ts` (admin session; RLS: admin/staff/PRODUCTS) |
+| Resizing | `src/lib/image.ts` → `/storage/v1/render/image/…` (Pro plan; keep Spend Cap off) |
+| Fallback | `src/lib/imageFallback.ts` — failed resized copy retries the original |
+
+Older uploads were on Cloudinary (`dslsygx32`); `image.ts` still optimises any such URL that remains.
 
 ### All Edge Functions to deploy
 ```bash

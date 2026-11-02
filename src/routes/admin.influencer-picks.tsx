@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { InfluencerPick } from "@/types/database";
-import { uploadVideoToCloudinary } from "@/lib/cloudinary";
+import { uploadVideo } from "@/lib/mediaUpload";
 import { listProducts, type Product } from "@/lib/productsStore";
 import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Upload, X, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -93,8 +93,8 @@ function InfluencerPicksAdmin() {
     setUploadingVideo(true);
     setVideoProgress(0);
     try {
-      const result = await uploadVideoToCloudinary(file, setVideoProgress);
-      setModal((m) => (m ? { ...m, video_url: result.secure_url } : m));
+      const result = await uploadVideo(file, setVideoProgress);
+      setModal((m) => (m ? { ...m, video_url: result.url } : m));
       toast.success("Video uploaded");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Video upload failed");

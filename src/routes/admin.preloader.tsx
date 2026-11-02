@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { PreloaderSettings } from "@/types/database";
 import { MediaField, type MediaValue } from "@/components/admin/MediaField";
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { uploadImage } from "@/lib/mediaUpload";
 import { toast } from "sonner";
 import { Loader2, Upload } from "lucide-react";
 
@@ -20,8 +20,8 @@ function ImageField({ value, onChange }: { value: string; onChange: (url: string
     setUploading(true);
     setProgress(0);
     try {
-      const result = await uploadToCloudinary(file, setProgress);
-      onChange(result.secure_url);
+      const result = await uploadImage(file, setProgress);
+      onChange(result.url);
       toast.success("Uploaded");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed");

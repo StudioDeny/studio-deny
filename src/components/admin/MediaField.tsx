@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Upload, Loader2, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
-import { uploadToCloudinary, uploadVideoToCloudinary } from "@/lib/cloudinary";
+import { uploadImage, uploadVideo } from "@/lib/mediaUpload";
 import { thumbImage } from "@/lib/image";
 
 export type MediaType = "image" | "video";
@@ -35,9 +35,9 @@ export function MediaField({
     setProgress(0);
     try {
       const result = value.type === "video"
-        ? await uploadVideoToCloudinary(file, setProgress)
-        : await uploadToCloudinary(file, setProgress);
-      onChange({ url: result.secure_url, type: value.type });
+        ? await uploadVideo(file, setProgress)
+        : await uploadImage(file, setProgress);
+      onChange({ url: result.url, type: value.type });
       toast.success("Uploaded");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed");
