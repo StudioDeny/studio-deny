@@ -606,13 +606,57 @@ html.lenis body {
     }
   }
 
+  /* Search results: each row rises and fades in, staggered by its index
+     (set inline via --search-i). Suggestions and the empty note just fade. */
+  .search-result-in {
+    animation: search-result-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--search-i, 0) * 45ms);
+    will-change: transform, opacity;
+  }
+
+  .search-fade-in {
+    animation: search-fade-in 260ms ease-out both;
+  }
+
+  .search-thumb-in {
+    animation: img-editorial-reveal 500ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: calc(var(--search-i, 0) * 45ms + 120ms);
+  }
+
+  @keyframes search-result-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes search-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
 
     .btn-fill-bg,
     .btn-fill-front,
     .btn-fill-back,
     .editorial-nav-link::after,
-    .img-editorial-reveal {
+    .img-editorial-reveal,
+    .search-result-in,
+    .search-fade-in,
+    .search-thumb-in {
       animation: none !important;
       transition: none !important;
     }

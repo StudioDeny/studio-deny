@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { BrandLogo } from "@/components/ui/BrandLogo";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type CSSProperties } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { X, Search, ArrowRight, User, Heart, ShoppingBag, ChevronDown } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -366,19 +366,23 @@ export function Navbar() {
               </form>
 
               {/* Results list */}
-              <div className="max-h-[min(55vh,420px)] overflow-y-auto">
+              <div data-lenis-prevent className="max-h-[min(55vh,420px)] overflow-y-auto overscroll-contain">
                 {!searchQ.trim() ? (
                   <p className="px-4 sm:px-8 lg:px-16 py-4 text-mono text-[11px] tracking-widest text-black/60 font-bold">
                     START TYPING TO SEARCH
                   </p>
                 ) : searchResults.length === 0 ? (
-                  <p className="px-4 sm:px-8 lg:px-16 py-4 text-mono text-[11px] tracking-widest text-black/60 font-bold">
+                  <p className="px-4 sm:px-8 lg:px-16 py-4 text-mono text-[11px] tracking-widest text-black/60 font-bold search-fade-in">
                     NO RESULTS FOR "{searchQ.toUpperCase()}"
                   </p>
                 ) : (
                   <ul className="px-4 sm:px-8 lg:px-16 py-2">
-                    {searchResults.map((p) => (
-                      <li key={p.slug}>
+                    {searchResults.map((p, i) => (
+                      <li
+                        key={p.slug}
+                        className="search-result-in"
+                        style={{ "--search-i": i } as CSSProperties}
+                      >
                         <Link
                           to="/product/$slug"
                           params={{ slug: p.slug }}
@@ -386,7 +390,7 @@ export function Navbar() {
                           className="flex items-center gap-4 py-2.5 hover:bg-black/5 -mx-3 px-3 rounded-none transition-colors group"
                         >
                           <div className="w-10 h-12 shrink-0 overflow-hidden bg-black/5">
-                            <img src={thumbImage(p.image, 120)} alt={p.name} width={40} height={48} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <img src={thumbImage(p.image, 120)} alt={p.name} width={40} height={48} loading="lazy" decoding="async" className="search-thumb-in w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold uppercase tracking-[0.1em] truncate text-black">{p.name}</p>
@@ -397,7 +401,10 @@ export function Navbar() {
                         </Link>
                       </li>
                     ))}
-                    <li className="border-t border-black/10 mt-1 pt-1">
+                    <li
+                      className="border-t border-black/10 mt-1 pt-1 search-fade-in"
+                      style={{ animationDelay: `${searchResults.length * 45 + 80}ms` }}
+                    >
                       <button
                         onClick={handleSearch}
                         className="w-full text-left py-2.5 text-mono text-[11px] tracking-widest text-black font-bold hover:underline"
