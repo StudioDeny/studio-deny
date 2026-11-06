@@ -313,7 +313,7 @@ export function Navbar() {
                   transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] as const }}
                   onMouseEnter={handleMouseEnterPanel}
                   onMouseLeave={handleMouseLeaveNav}
-                  className="absolute top-full left-0 right-0 w-full z-[90] bg-white border-b border-black/10 overflow-y-auto overscroll-contain h-[360px] lg:h-[380px]"
+                  className="absolute top-full left-0 right-0 w-full z-[90] bg-white border-b border-black/10 overflow-y-auto overscroll-contain min-h-[320px] max-h-[calc(100dvh-var(--topbar-h))]"
                   data-lenis-prevent
                 >
                   {/* Invisible hover bridge connecting nav tab row to dropdown container */}
@@ -327,7 +327,7 @@ export function Navbar() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -8 }}
                       transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] as const }}
-                      className="h-full w-full"
+                      className="w-full"
                     >
                       <MegaMenuPanel category={activeCat} onNavigate={() => setOpenDropdown(null)} variant="desktop" />
                     </motion.div>

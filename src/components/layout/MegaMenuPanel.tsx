@@ -84,14 +84,14 @@ export function MegaMenuPanel({
   );
 
   return (
-    <div className={isDesktop ? "flex items-stretch h-full w-full bg-white text-black" : "flex flex-col gap-6 bg-white text-black"}>
+    <div className={isDesktop ? "flex items-stretch min-h-[320px] w-full bg-white text-black" : "flex flex-col gap-6 bg-white text-black"}>
       {/* Navigation Links Column (Width 220–240px, Minimal Luxury Typography) */}
       {isDesktop ? (
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="w-[220px] lg:w-[240px] shrink-0 h-full overflow-y-auto overscroll-contain custom-scrollbar p-6 lg:px-8 flex flex-col border-r border-black/5 bg-white"
+          className="w-[220px] lg:w-[240px] shrink-0 overflow-y-auto overscroll-contain custom-scrollbar p-6 lg:px-8 flex flex-col border-r border-black/5 bg-white"
           data-lenis-prevent
         >
           <div className="flex flex-col gap-1.5 my-auto">
@@ -141,21 +141,23 @@ export function MegaMenuPanel({
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="grid grid-cols-2 flex-1 min-w-0 h-full self-stretch p-5 gap-5 bg-white"
+            className="grid grid-cols-2 items-center flex-1 min-w-0 p-5 gap-5 bg-white"
           >
             {category.products.map((p) => (
-              <motion.div key={p.id} variants={productVariants} className="h-full w-full">
+              <motion.div key={p.id} variants={productVariants} className="w-full">
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                <Link to={p.href as any} onClick={onNavigate} className="group min-w-0 h-full w-full flex items-center justify-center">
-                  {/* Whole photo, fitted to the space (never cropped); the
-                      name sits on the photo itself, not the empty sides. */}
-                  <span className="relative h-full max-w-full overflow-hidden rounded-xs">
+                <Link to={p.href as any} onClick={onNavigate} className="group min-w-0 w-full flex items-center justify-center">
+                  {/* Whole photo at its own aspect ratio, never cropped: the
+                      panel grows to fit it (up to 460px, less on short
+                      screens) instead of the photo being cut to a fixed
+                      panel height. The name sits on the photo itself. */}
+                  <span className="relative max-w-full overflow-hidden rounded-xs">
                     <img
                       {...responsiveImage(p.imageUrl, { maxWidth: 828, sizes: "25vw" })}
                       alt={p.label}
                       loading="lazy"
                       decoding="async"
-                      className="block h-full w-auto max-w-full object-contain"
+                      className="block w-auto h-auto max-w-full max-h-[min(460px,calc(100dvh-var(--topbar-h)-40px))]"
                     />
                     {nameOverlay(p)}
                   </span>
