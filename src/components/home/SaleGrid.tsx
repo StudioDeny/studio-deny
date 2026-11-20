@@ -16,7 +16,7 @@ const DEFAULTS: SaleConfig = { cta_label: "" };
 const SALE_HREF = "/shop?onsale=1";
 
 // Same uniform tile size as the Best Sellers section.
-const TILE_SIZE_CLASS = "w-[260px] sm:w-[320px] md:w-[360px] h-[390px] sm:h-[460px]";
+const TILE_SIZE_CLASS = "w-[220px] sm:w-[260px] md:w-[290px] h-[330px] sm:h-[380px]";
 
 export function SaleGrid() {
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<SaleConfig>("sale", DEFAULTS);

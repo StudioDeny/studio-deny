@@ -23,7 +23,7 @@ const DEFAULTS: PopularNowConfig = { items: [] };
 const BEST_SELLERS_HREF = "/shop?best=1";
 
 // Every bestseller tile (and the "View All" tile) uses this one uniform size.
-const TILE_SIZE_CLASS = "w-[260px] sm:w-[320px] md:w-[360px] h-[390px] sm:h-[460px]";
+const TILE_SIZE_CLASS = "w-[220px] sm:w-[260px] md:w-[290px] h-[330px] sm:h-[380px]";
 
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 import { ProductTile } from "./ProductTile";
