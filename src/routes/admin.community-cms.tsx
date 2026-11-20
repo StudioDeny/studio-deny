@@ -125,7 +125,7 @@ function CommunityCmsAdmin() {
 
       {/* Live-layout preview — same shapes/order as the real homepage section */}
       <div className="mb-8">
-        <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">PREVIEW — MATCHES THE HOMEPAGE LAYOUT</div>
+        <div className="text-mono text-xs tracking-widest text-muted-foreground mb-2">PREVIEW — MATCHES THE HOMEPAGE LAYOUT</div>
         <div className="grid grid-cols-4 auto-rows-[70px] gap-1.5 max-w-md border border-border bg-surface p-2">
           {BENTO_SLOTS.map((slot, idx) => {
             const photo = rows[idx];
@@ -138,7 +138,7 @@ function CommunityCmsAdmin() {
                     <img src={thumbImage(photo.image_url, 400)} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   )
                 ) : null}
-                <span className="absolute bottom-0.5 left-0.5 bg-black/70 text-white text-[8px] font-mono px-1 tracking-widest">
+                <span className="absolute bottom-0.5 left-0.5 bg-black/70 text-white text-xs font-mono px-1 tracking-widest">
                   {slot.shape.toUpperCase()}
                 </span>
               </div>
@@ -154,7 +154,7 @@ function CommunityCmsAdmin() {
             <div key={photo.id} className="relative border border-border overflow-hidden bg-surface">
               <div className="relative aspect-square">
                 {!photo.image_url ? (
-                  <div className="w-full h-full flex items-center justify-center text-mono text-[10px] tracking-widest text-muted-foreground">
+                  <div className="w-full h-full flex items-center justify-center text-mono text-xs tracking-widest text-muted-foreground">
                     UPLOAD BELOW
                   </div>
                 ) : photo.media_type === "video" ? (
@@ -176,7 +176,7 @@ function CommunityCmsAdmin() {
                     <ChevronRight className="size-3" />
                   </button>
                 </div>
-                <span className="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] font-mono px-1.5 py-0.5 tracking-widest">
+                <span className="absolute bottom-1 left-1 bg-black/70 text-white text-xs font-mono px-1.5 py-0.5 tracking-widest">
                   {slot ? slot.shape.toUpperCase() : "NOT SHOWN"}
                 </span>
               </div>
@@ -202,7 +202,7 @@ function CommunityCmsAdmin() {
             className="aspect-square border border-dashed border-border flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
           >
             <Plus className="size-5" />
-            <span className="text-mono text-[10px] tracking-widest">
+            <span className="text-mono text-xs tracking-widest">
               ADD {BENTO_SLOTS[rows.length].shape.toUpperCase()} PHOTO
             </span>
           </button>
@@ -219,7 +219,7 @@ function CommunityCmsAdmin() {
           {saving ? "SAVING…" : "SAVE CHANGES"}
         </button>
         {dirty && !saving && (
-          <span className="text-mono text-[10px] tracking-widest text-muted-foreground">UNSAVED CHANGES</span>
+          <span className="text-mono text-xs tracking-widest text-muted-foreground">UNSAVED CHANGES</span>
         )}
       </div>
     </div>

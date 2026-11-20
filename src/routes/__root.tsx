@@ -119,8 +119,8 @@ function RootContent() {
                 toast: "!rounded-none !border !border-border !bg-background !text-foreground !shadow-xl !font-body",
                 title: "!text-foreground !text-xs !tracking-[0.15em] !uppercase !font-bold",
                 description: "!text-muted-foreground !text-xs !tracking-wide",
-                actionButton: "!rounded-none !bg-foreground !text-background !text-[10px] !tracking-widest !uppercase",
-                cancelButton: "!rounded-none !bg-surface !text-muted-foreground !text-[10px] !tracking-widest !uppercase",
+                actionButton: "!rounded-none !bg-foreground !text-background !text-xs !tracking-widest !uppercase",
+                cancelButton: "!rounded-none !bg-surface !text-muted-foreground !text-xs !tracking-widest !uppercase",
                 closeButton: "!rounded-none !border-border !text-muted-foreground hover:!text-foreground",
                 success: "!border-l-4 !border-l-emerald-500",
                 error: "!border-l-4 !border-l-red-500",
@@ -144,7 +144,7 @@ function RootComponent() {
   // STORE — the preloader started over and glitched against the home logo,
   // which already knew it had finished.
   return (
-    <SmoothScroll enabled={!isAdmin} duration={1.2} lerp={0.1} wheelMultiplier={1.0} touchMultiplier={1.5}>
+    <SmoothScroll>
       <RootContent />
     </SmoothScroll>
   );

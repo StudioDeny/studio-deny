@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@700&display=swap');
 
 @import "tailwindcss";
 @source "../src";
@@ -52,25 +52,6 @@
   :root {
     --topbar-h: 160px;
   }
-}
-
-/* Lenis Smooth Scroll Base Rules */
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-
-.lenis.lenis-stopped {
-  /* Prevent scroll lock on root */
-  touch-action: auto;
 }
 
 @layer base {
@@ -180,6 +161,44 @@ html.lenis body {
 }
 
 @layer utilities {
+  /* Type scale. Use these roles instead of inventing sizes.
+     T1 display · T2 page title (H1) · T3 section (H2) · T4 subsection (H3)
+     Body and UI text use Tailwind's text-sm / text-base; small labels use text-xs. */
+  .type-display {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 9vw, 6rem);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+
+  .type-h1 {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 8vw, 5rem);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+
+  /* The one heading style for every storefront section title and page title. */
+  .type-h2 {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 400;
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .type-h3 {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 3rem);
+    line-height: 1;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+  }
+
   .text-display {
     font-family: var(--font-display);
     font-weight: 400;

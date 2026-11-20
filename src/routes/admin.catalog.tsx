@@ -150,7 +150,7 @@ function AdminCatalog() {
             placeholder={newCatParent ? `New subcategory under ${cats.find((c) => c.id === newCatParent)?.name ?? "…"}` : "New main category name"}
           />
           <label className="block mb-2">
-            <span className="text-mono text-[10px] tracking-widest text-muted-foreground">ADD IT UNDER</span>
+            <span className="text-mono text-xs tracking-widest text-muted-foreground">ADD IT UNDER</span>
             <select value={newCatParent} onChange={(e) => setNewCatParent(e.target.value)}
               className="mt-1 bg-background border border-border h-9 px-2 text-xs w-full">
               <option value="">Nothing — make it a main category</option>
@@ -159,7 +159,7 @@ function AdminCatalog() {
               ))}
             </select>
           </label>
-          <p className="text-[11px] text-muted-foreground mb-4">
+          <p className="text-xs text-muted-foreground mb-4">
             Or tap <Plus className="size-3 inline -mt-0.5" /> next to a category to add a subcategory under it.
           </p>
           <List
@@ -198,7 +198,7 @@ function AdminCatalog() {
                   <button
                     type="button"
                     onClick={() => addSub(it.slug)}
-                    className="bg-foreground text-background px-3 h-8 inline-flex items-center gap-1 text-mono text-[10px] tracking-widest hover:opacity-80 transition-opacity shrink-0"
+                    className="bg-foreground text-background px-3 h-8 inline-flex items-center gap-1 text-mono text-xs tracking-widest hover:opacity-80 transition-opacity shrink-0"
                   >
                     <Plus className="size-3" /> ADD
                   </button>
@@ -229,7 +229,7 @@ function AdminCatalog() {
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="border border-border bg-surface p-5">
-      <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-4">{title}</div>
+      <div className="text-mono text-xs tracking-[0.25em] text-primary mb-4">{title}</div>
       {children}
     </section>
   );
@@ -298,7 +298,7 @@ function List({ items, onEdit, onDelete, editing, setEditing, onSaveEdit, onAddC
                       {it.name}
                       {it.meta && <span className="font-normal text-muted-foreground"> ({it.meta})</span>}
                     </div>
-                    <div className="text-mono text-[10px] text-muted-foreground">{it.slug}</div>
+                    <div className="text-mono text-xs text-muted-foreground">{it.slug}</div>
                   </div>
                   {it.canHaveChildren && onAddChild && (
                     <button type="button" title="Add subcategory" aria-label={`Add subcategory under ${it.name}`} onClick={() => onAddChild(it)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary"><Plus className="size-3.5" /></button>

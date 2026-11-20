@@ -117,7 +117,7 @@ function AdminFaq() {
           <button
             key={c}
             onClick={() => setFilterCat(c)}
-            className={`text-mono text-[10px] tracking-widest px-3 h-8 border ${filterCat === c ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}
+            className={`text-mono text-xs tracking-widest px-3 h-8 border ${filterCat === c ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}
           >
             {c.toUpperCase()}
           </button>
@@ -126,7 +126,7 @@ function AdminFaq() {
 
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm min-w-[560px]">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">ORDER</th>
               <th className="text-left p-3">QUESTION</th>
@@ -155,14 +155,14 @@ function AdminFaq() {
                   <div className="text-muted-foreground text-xs mt-0.5 truncate max-w-[280px]">{r.answer}</div>
                 </td>
                 <td className="p-3 hidden md:table-cell">
-                  <span className="text-mono text-[10px] tracking-widest px-2 py-1 border border-border text-muted-foreground">
+                  <span className="text-mono text-xs tracking-widest px-2 py-1 border border-border text-muted-foreground">
                     {r.category.toUpperCase()}
                   </span>
                 </td>
                 <td className="p-3">
                   <button
                     onClick={() => toggle(r.id, !r.is_active)}
-                    className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
+                    className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
                   >
                     {r.is_active ? "ACTIVE" : "INACTIVE"}
                   </button>
@@ -190,7 +190,7 @@ function AdminFaq() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="bg-background border border-border w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-border">
-              <div className="text-mono text-[11px] tracking-[0.25em] text-primary">{modal.id ? "EDIT" : "NEW"} FAQ ITEM</div>
+              <div className="text-mono text-xs tracking-[0.25em] text-primary">{modal.id ? "EDIT" : "NEW"} FAQ ITEM</div>
               <button onClick={() => setModal(null)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
             </div>
             <div className="p-5 space-y-4">
@@ -207,7 +207,7 @@ function AdminFaq() {
               </F>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={modal.is_active ?? true} onChange={(e) => setModal({ ...modal, is_active: e.target.checked })} className="w-4 h-4" />
-                <span className="text-mono text-[11px] tracking-widest">ACTIVE</span>
+                <span className="text-mono text-xs tracking-widest">ACTIVE</span>
               </label>
             </div>
             <div className="flex gap-3 p-5 border-t border-border">
@@ -228,7 +228,7 @@ function AdminFaq() {
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">{label}</div>
+      <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">{label}</div>
       {children}
     </label>
   );

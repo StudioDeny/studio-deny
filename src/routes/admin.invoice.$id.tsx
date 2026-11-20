@@ -37,7 +37,7 @@ function EditInvoice() {
 
   return (
     <div className="max-w-3xl">
-      <Link to="/admin/invoices" className="text-mono text-[11px] tracking-widest text-muted-foreground hover:text-primary">← BACK</Link>
+      <Link to="/admin/invoices" className="text-mono text-xs tracking-widest text-muted-foreground hover:text-primary">← BACK</Link>
       <h1 className="text-display text-4xl md:text-5xl mt-3 mb-6">INVOICE {o.invoiceNo}</h1>
 
       <div className="border border-border bg-surface p-5 space-y-4">
@@ -67,8 +67,8 @@ function EditInvoice() {
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground">EXTRA LINES</div>
-            <button onClick={addLine} className="text-mono text-[10px] text-primary inline-flex items-center gap-1"><Plus className="size-3" /> ADD</button>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground">EXTRA LINES</div>
+            <button onClick={addLine} className="text-mono text-xs text-primary inline-flex items-center gap-1"><Plus className="size-3" /> ADD</button>
           </div>
           <div className="space-y-2">
             {o.extraLines.map((l, i) => (
@@ -104,5 +104,5 @@ function Row({ k, v, bold }: { k: string; v: string; bold?: boolean }) {
   return <div className={`flex justify-between ${bold ? "text-base pt-2 border-t border-border" : "text-muted-foreground"}`}><span>{k}</span><span>{v}</span></div>;
 }
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="block"><div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">{label}</div>{children}</label>;
+  return <label className="block"><div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">{label}</div>{children}</label>;
 }

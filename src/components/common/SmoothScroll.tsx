@@ -1,73 +1,9 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useLocation } from "@tanstack/react-router";
-import Lenis from "lenis";
 
-interface SmoothScrollContextType {
-  lenis: Lenis | null;
-}
-
-const SmoothScrollContext = createContext<SmoothScrollContextType>({ lenis: null });
-
-export const useLenis = () => useContext(SmoothScrollContext);
-
-interface SmoothScrollProps {
-  children: ReactNode;
-  duration?: number;
-  lerp?: number;
-  wheelMultiplier?: number;
-  touchMultiplier?: number;
-  smoothWheel?: boolean;
-  /** Off: no Lenis (admin), but the children stay mounted. */
-  enabled?: boolean;
-}
-
-export function SmoothScroll({
-  children,
-  duration = 1.2,
-  lerp = 0.1,
-  wheelMultiplier = 1.0,
-  touchMultiplier = 1.5,
-  smoothWheel = true,
-  enabled = true,
-}: SmoothScrollProps) {
-  const [lenisInstance, setLenisInstance] = useState<Lenis | null>(null);
+// Native browser scrolling only (no inertia).
+export function SmoothScroll({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const reqIdRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    // Accessibility check: honor user's reduced-motion preference
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion || !enabled) {
-      return;
-    }
-
-    const lenis = new Lenis({
-      duration,
-      lerp,
-      wheelMultiplier,
-      touchMultiplier,
-      smoothWheel,
-      autoResize: true,
-    });
-
-    setLenisInstance(lenis);
-
-    function raf(time: number) {
-      lenis.raf(time);
-      reqIdRef.current = requestAnimationFrame(raf);
-    }
-
-    reqIdRef.current = requestAnimationFrame(raf);
-
-    return () => {
-      if (reqIdRef.current) {
-        cancelAnimationFrame(reqIdRef.current);
-      }
-      lenis.destroy();
-      setLenisInstance(null);
-    };
-  }, [duration, lerp, wheelMultiplier, touchMultiplier, smoothWheel, enabled]);
-
   const isPopStateRef = useRef(false);
 
   useEffect(() => {
@@ -78,25 +14,14 @@ export function SmoothScroll({
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  // Route change handler: reset scroll position only on forward/push navigation, preserve on back/forward
+  // Forward/push navigation starts at the top; back/forward keeps the restored position.
   useEffect(() => {
-    if (lenisInstance) {
-      if (isPopStateRef.current) {
-        // Back/forward navigation: do not force top, let scroll restoration maintain exact position
-        isPopStateRef.current = false;
-        // Sync Lenis with restored window scroll position
-        requestAnimationFrame(() => {
-          lenisInstance.resize();
-        });
-      } else {
-        lenisInstance.scrollTo(0, { immediate: true });
-      }
+    if (isPopStateRef.current) {
+      isPopStateRef.current = false;
+      return;
     }
-  }, [location.pathname, lenisInstance]);
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [location.pathname]);
 
-  return (
-    <SmoothScrollContext.Provider value={{ lenis: lenisInstance }}>
-      {children}
-    </SmoothScrollContext.Provider>
-  );
+  return <>{children}</>;
 }

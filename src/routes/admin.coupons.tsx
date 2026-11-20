@@ -226,7 +226,7 @@ function AdminCoupons() {
       <div className="flex items-end justify-between gap-4 flex-wrap mb-6">
         <div>
           <h1 className="text-display text-4xl md:text-5xl mb-2">COUPONS.</h1>
-          <p className="text-mono text-[11px] tracking-widest text-muted-foreground">CREATE, LIMIT, SWITCH OFF AND DELETE CODES. WELCOME CODES ARE ISSUED AUTOMATICALLY.</p>
+          <p className="text-mono text-xs tracking-widest text-muted-foreground">CREATE, LIMIT, SWITCH OFF AND DELETE CODES. WELCOME CODES ARE ISSUED AUTOMATICALLY.</p>
         </div>
         <button type="button" onClick={() => setDraft({ ...BLANK, code: randomCode() })} className="h-10 px-4 bg-primary text-primary-foreground text-mono text-xs tracking-widest inline-flex items-center gap-2">
           <Plus className="size-3.5" /> NEW COUPON
@@ -235,7 +235,7 @@ function AdminCoupons() {
 
       {draft && (
         <div className="border border-border bg-surface p-4 mb-6 max-w-4xl space-y-4">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{draft.id ? `EDIT ${draft.kind !== "general" ? `${draft.kind.toUpperCase()} ` : ""}COUPON` : "NEW COUPON"}</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground">{draft.id ? `EDIT ${draft.kind !== "general" ? `${draft.kind.toUpperCase()} ` : ""}COUPON` : "NEW COUPON"}</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="block">
               <div className="lbl">CODE</div>
@@ -331,7 +331,7 @@ function AdminCoupons() {
 
       <div className="border border-border overflow-x-auto">
         <table className="w-full text-sm min-w-[760px]">
-          <thead className="bg-surface text-mono text-[10px] tracking-widest text-muted-foreground">
+          <thead className="bg-surface text-mono text-xs tracking-widest text-muted-foreground">
             <tr>
               <th className="text-left p-3">CODE</th>
               <th className="text-left p-3">DISCOUNT</th>
@@ -354,7 +354,7 @@ function AdminCoupons() {
                       <button type="button" onClick={() => toggleOpen(c)} className="text-mono font-semibold inline-flex items-center gap-1 hover:text-primary">
                         <ChevronDown className={`size-3 transition-transform ${openId === c.id ? "rotate-180" : ""}`} /> {c.code}
                       </button>
-                      <div className="text-[11px] text-muted-foreground">{c.kind === "general" ? c.description : c.kind.toUpperCase()}</div>
+                      <div className="text-xs text-muted-foreground">{c.kind === "general" ? c.description : c.kind.toUpperCase()}</div>
                     </td>
                     <td className="p-3">
                       {couponLabel(c)}
@@ -370,12 +370,12 @@ function AdminCoupons() {
                     <td className="p-3 text-mono text-xs">{c.used_count}{c.max_uses ? ` / ${c.max_uses}` : ""}</td>
                     <td className="p-3 text-xs">{c.expires_at ? new Date(c.expires_at).toLocaleString("en-IN") : "—"}</td>
                     <td className="p-3">
-                      <button type="button" onClick={() => toggleActive(c)} className={`text-mono text-[10px] tracking-widest px-2 py-1 border ${status === "active" ? "border-emerald-500 text-emerald-600" : "border-border text-muted-foreground"}`} title="Click to switch on/off">
+                      <button type="button" onClick={() => toggleActive(c)} className={`text-mono text-xs tracking-widest px-2 py-1 border ${status === "active" ? "border-emerald-500 text-emerald-600" : "border-border text-muted-foreground"}`} title="Click to switch on/off">
                         {status.toUpperCase()}
                       </button>
                     </td>
                     <td className="p-3 text-right whitespace-nowrap">
-                      <button type="button" onClick={() => setDraft(toDraft(c, scopes[c.id]))} className="text-mono text-[10px] tracking-widest hover:text-primary mr-3">EDIT</button>
+                      <button type="button" onClick={() => setDraft(toDraft(c, scopes[c.id]))} className="text-mono text-xs tracking-widest hover:text-primary mr-3">EDIT</button>
                       <button type="button" onClick={() => setDeleteTarget(c)} className="text-muted-foreground hover:text-red-500" aria-label={`Delete ${c.code}`}><Trash2 className="size-3.5" /></button>
                     </td>
                   </tr>

@@ -67,26 +67,16 @@ import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
 export function NewsletterSection() {
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<NewsletterConfig>("newsletter", DEFAULTS);
-  const heading = useSectionHeading("newsletter", "READY FOR THE NEXT DROP?", { eyebrow: "DROP ALERTS", subtitle: "Be first in line when new pieces launch. No spam, just early access." });
+  const heading = useSectionHeading("newsletter", "READY FOR THE NEXT DROP?");
 
   if (!visible) return null;
 
   return (
-    <section id="cta-end" className="py-20 sm:py-28 border-t border-border/30 bg-[#E2E2E4]">
+    <section id="cta-end" className="py-16 sm:py-24 border-t border-border/30 bg-[#E2E2E4]">
       <div className="max-w-[760px] mx-auto px-4 sm:px-8 text-center flex flex-col items-center">
-        {heading.eyebrow && (
-          <div className="text-mono text-primary mb-3 text-xs tracking-[0.35em]">
-            ◢ {heading.eyebrow}
-          </div>
-        )}
-        <EditorialHeading className="text-display leading-[0.88]" style={heading.color ? { fontSize: "clamp(2.3rem,9vw,6rem)", color: heading.color } : { fontSize: "clamp(2.3rem,9vw,6rem)" }}>
+        <EditorialHeading className="type-h2" style={heading.color ? { color: heading.color } : undefined}>
           {heading.text}
         </EditorialHeading>
-        {heading.subtitle && (
-          <EditorialSubheading className="mt-4 opacity-80 max-w-md mx-auto text-mono text-sm sm:text-base" delay={0.2}>
-            {heading.subtitle}
-          </EditorialSubheading>
-        )}
         <Form ctaLabel={cfg.cta_label} successHeading={cfg.success_heading} successBody={cfg.success_body} />
       </div>
     </section>

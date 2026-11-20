@@ -185,7 +185,7 @@ function MenuItemRow({
         <>
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-sm">{item.label}</div>
-            <div className="text-mono text-[10px] text-muted-foreground">
+            <div className="text-mono text-xs text-muted-foreground">
               {item.href}{showGroup && item.group ? ` · ${item.group}` : ""}
             </div>
           </div>

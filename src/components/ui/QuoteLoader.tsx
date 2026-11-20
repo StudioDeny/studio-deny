@@ -165,7 +165,7 @@ export function QuoteLoader({
                 {/* The highlight sweep lives on the <p>: background-clip only
                 reaches text inside the element carrying the gradient, so the
                 line stays one unbroken run rather than a span per word. */}
-                <p className="quote-loader__line text-display uppercase leading-[0.95] text-[clamp(1.75rem,5vw,4rem)]">
+                <p className="quote-loader__line text-display uppercase leading-[0.95] text-[clamp(1.75rem,4vw,3rem)]">
                   {quote.line}
                 </p>
 
@@ -173,7 +173,7 @@ export function QuoteLoader({
                   initial={reduceMotion || settled ? false : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, ease: EASE, delay: 0.75 }}
-                  className="mt-8 text-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground"
+                  className="mt-8 text-mono text-xs uppercase tracking-[0.3em] text-muted-foreground"
                 >
                   — {quote.author}
                 </motion.footer>

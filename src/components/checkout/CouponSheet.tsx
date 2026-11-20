@@ -63,7 +63,7 @@ export function CouponSheet({ open, onOpenChange, coupons, appliedCode, checking
                 type="button"
                 disabled={!typed.trim() || busy}
                 onClick={() => onApply(typed)}
-                className="border border-foreground px-4 h-11 text-mono text-[11px] tracking-widest hover:bg-foreground hover:text-background disabled:opacity-40 disabled:pointer-events-none"
+                className="border border-foreground px-4 h-11 text-mono text-xs tracking-widest hover:bg-foreground hover:text-background disabled:opacity-40 disabled:pointer-events-none"
               >
                 CHECK
               </button>
@@ -112,14 +112,14 @@ export function CouponSheet({ open, onOpenChange, coupons, appliedCode, checking
                           <span className="text-mono text-xs font-semibold whitespace-nowrap">SAVE {formatINR(c.discount)}</span>
                         )}
                       </span>
-                      <span className="block text-sm font-medium mt-2">
+                      <span className="block text-sm font-semibold mt-2">
                         {couponLabel(c)}
                         {c.kind !== "general" && <span className="text-muted-foreground font-normal"> · your {c.kind} offer</span>}
                       </span>
                       {terms && <span className="block text-xs text-muted-foreground mt-0.5">{terms}</span>}
                       {reason && <span className="block text-xs text-primary mt-1.5">{reason}</span>}
                       {c.code === appliedCode && usable && (
-                        <span className="inline-flex items-center gap-1 mt-1.5 text-mono text-[10px] tracking-widest"><Tag className="size-3" /> APPLIED</span>
+                        <span className="inline-flex items-center gap-1 mt-1.5 text-mono text-xs tracking-widest"><Tag className="size-3" /> APPLIED</span>
                       )}
                     </span>
                   </button>
@@ -130,7 +130,7 @@ export function CouponSheet({ open, onOpenChange, coupons, appliedCode, checking
 
           <div className="border-t border-border px-5 py-4 flex items-center justify-between gap-4 shrink-0">
             <div>
-              <div className="text-[11px] text-muted-foreground">You save</div>
+              <div className="text-xs text-muted-foreground">You save</div>
               <div className="text-mono font-semibold">{formatINR(pickedCoupon?.discount ?? 0)}</div>
             </div>
             <button

@@ -32,7 +32,7 @@ export const AuthField = forwardRef<
       <div className="relative flex items-end">
         {prefix && (
           <span
-            className="pb-2.5 pr-2 text-base font-medium text-foreground/50 select-none"
+            className="pb-2.5 pr-2 text-base font-semibold text-foreground/50 select-none"
             aria-hidden
           >
             {prefix}
@@ -46,17 +46,17 @@ export const AuthField = forwardRef<
           placeholder=" "
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className={`peer w-full bg-transparent pb-2.5 pt-1 text-base font-medium text-foreground outline-none ${isPassword ? "pr-10" : ""} ${className ?? ""}`}
+          className={`peer w-full bg-transparent pb-2.5 pt-1 text-base font-semibold text-foreground outline-none ${isPassword ? "pr-10" : ""} ${className ?? ""}`}
         />
         <label
           htmlFor={id}
           className={`pointer-events-none absolute origin-left text-mono uppercase tracking-[0.22em] transition-all duration-300 ease-out
             ${
               prefix
-                ? "left-0 -top-5 text-[10px] text-foreground/60"
-                : `left-0 -top-5 text-[10px] text-foreground/60
-            peer-placeholder-shown:top-1 peer-placeholder-shown:text-[12px] peer-placeholder-shown:text-foreground/45
-            peer-focus:-top-5 peer-focus:text-[10px] peer-focus:text-foreground`
+                ? "left-0 -top-5 text-xs text-foreground/60"
+                : `left-0 -top-5 text-xs text-foreground/60
+            peer-placeholder-shown:top-1 peer-placeholder-shown:text-xs peer-placeholder-shown:text-foreground/45
+            peer-focus:-top-5 peer-focus:text-xs peer-focus:text-foreground`
             }
             ${error ? "!text-accent" : ""}`}
         >
@@ -88,7 +88,7 @@ export const AuthField = forwardRef<
         />
       </div>
       {error ? (
-        <p id={`${id}-error`} role="alert" className="mt-2 text-xs font-medium text-accent">
+        <p id={`${id}-error`} role="alert" className="mt-2 text-xs font-semibold text-accent">
           {error}
         </p>
       ) : hint ? (
@@ -121,7 +121,7 @@ export function PasswordStrength({ value }: { value: string }) {
           />
         ))}
       </div>
-      <span className="w-14 text-right text-mono text-[10px] uppercase tracking-[0.2em] text-foreground/55">
+      <span className="w-14 text-right text-mono text-xs uppercase tracking-[0.2em] text-foreground/55">
         {label}
       </span>
     </div>
@@ -202,7 +202,7 @@ export function AuthDivider() {
   return (
     <div className="my-8 flex items-center gap-4" aria-hidden>
       <span className="h-px flex-1 bg-foreground/10" />
-      <span className="text-mono text-[10px] tracking-[0.3em] text-foreground/45">
+      <span className="text-mono text-xs tracking-[0.3em] text-foreground/45">
         OR WITH EMAIL
       </span>
       <span className="h-px flex-1 bg-foreground/10" />
@@ -214,7 +214,7 @@ export function LockoutNotice({ children }: { children: ReactNode }) {
   return (
     <div
       role="status"
-      className="mb-6 border-l-2 border-accent bg-accent/5 px-4 py-3 text-mono text-[11px] tracking-[0.15em] text-foreground/75"
+      className="mb-6 border-l-2 border-accent bg-accent/5 px-4 py-3 text-mono text-xs tracking-[0.15em] text-foreground/75"
     >
       {children}
     </div>

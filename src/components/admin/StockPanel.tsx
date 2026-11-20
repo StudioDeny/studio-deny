@@ -126,7 +126,7 @@ export function StockPanel({
                 </div>
                 <div className="min-w-0">
                   <SheetTitle className="text-display text-2xl truncate">{product.name.toUpperCase()}</SheetTitle>
-                  <SheetDescription className="text-mono text-[10px] tracking-widest">
+                  <SheetDescription className="text-mono text-xs tracking-widest">
                     {product.category || "NO CATEGORY"} · ₹{base.price}
                   </SheetDescription>
                 </div>
@@ -135,14 +135,14 @@ export function StockPanel({
 
             <div className="mt-6 space-y-4">
               {loading ? (
-                <p className="text-mono text-[11px] text-muted-foreground flex items-center gap-2">
+                <p className="text-mono text-xs text-muted-foreground flex items-center gap-2">
                   <Loader2 className="size-3 animate-spin" /> Loading stock…
                 </p>
               ) : (
                 <>
                   <div className="grid grid-cols-2 gap-3">
                     <label className="block">
-                      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">MAIN PRICE ₹</div>
+                      <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">MAIN PRICE ₹</div>
                       <input
                         type="number"
                         min={0}
@@ -152,7 +152,7 @@ export function StockPanel({
                       />
                     </label>
                     <label className="block">
-                      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COMPARE AT ₹ (blank = none)</div>
+                      <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">COMPARE AT ₹ (blank = none)</div>
                       <input
                         type="number"
                         min={0}
@@ -162,18 +162,18 @@ export function StockPanel({
                       />
                     </label>
                   </div>
-                  <p className="text-mono text-[10px] text-muted-foreground">
+                  <p className="text-mono text-xs text-muted-foreground">
                     The price shown everywhere on the store. A colour's own price below only overrides it for that colour.
                   </p>
 
                   {!product.categoryId ? (
-                    <p className="text-mono text-[11px] text-muted-foreground">
+                    <p className="text-mono text-xs text-muted-foreground">
                       This product has no category, so there are no sizes to stock. Open the full edit form to pick one.
                     </p>
                   ) : (
                     <>
                       {rows.length === 0 && !dirty && (
-                        <p className="text-mono text-[11px] bg-amber-100 text-amber-800 p-2">
+                        <p className="text-mono text-xs bg-amber-100 text-amber-800 p-2">
                           NEEDS SIZE COUNTS — this product only has one overall stock number. Tap each size and enter how many you have, or switch on SINGLE ITEM if it has no colours or sizes.
                         </p>
                       )}

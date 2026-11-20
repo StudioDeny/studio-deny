@@ -129,10 +129,10 @@ function CollectionPage() {
   const gridClass = `grid gap-4 sm:gap-6 ${gridCols === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"}`;
 
   return (
-    <section ref={pageRef} className="px-4 md:px-8 mt-4 md:mt-8 pb-16 max-w-[1700px] mx-auto">
+    <section ref={pageRef} className="px-4 sm:px-8 lg:px-16 mt-4 md:mt-8 pb-16 max-w-[1700px] mx-auto">
       <div className="mb-6">
-        <div className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2">COLLECTION</div>
-        <h1 className="text-display text-5xl md:text-7xl">{title}.</h1>
+        <div className="text-mono text-xs tracking-[0.3em] text-primary mb-2">COLLECTION</div>
+        <h1 className="type-h2">{title}.</h1>
       </div>
 
       <ProductFilterBar

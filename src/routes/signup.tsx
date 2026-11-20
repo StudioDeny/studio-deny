@@ -83,7 +83,7 @@ function Signup() {
       eyebrow="JOIN THE CULT"
       title="Sign up."
       aside={
-        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-mono text-[11px] uppercase tracking-[0.25em] text-white/80">
+        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-mono text-xs uppercase tracking-[0.25em] text-white/80">
           {["Save your wishlist", "Track every order", "Birthday rewards"].map((perk) => (
             <li key={perk} className="flex items-center gap-2">
               <span className="size-1 bg-white" aria-hidden />

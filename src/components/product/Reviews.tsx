@@ -5,8 +5,7 @@ export function Reviews({ slug }: { slug: string }) {
   const reviews = reviewsFor(slug);
   const { avg, count } = averageRating(slug);
   return (
-    <section className="px-4 md:px-8 mt-24">
-      <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-2">◢ THE FIELD REPORT</div>
+    <section className="px-4 sm:px-8 lg:px-16 mt-24">
       <div className="flex items-end justify-between flex-wrap gap-3 mb-6">
         <h2 className="text-display text-4xl md:text-6xl">REVIEWS.</h2>
         <div className="flex items-center gap-2 text-mono text-sm">
@@ -21,7 +20,7 @@ export function Reviews({ slug }: { slug: string }) {
             <Stars value={r.rating} />
             <h3 className="font-bold mt-3">{r.title}</h3>
             <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{r.body}</p>
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mt-4">
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mt-4">
               — {r.author.toUpperCase()} · {r.date}
             </div>
           </li>

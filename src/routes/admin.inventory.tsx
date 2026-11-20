@@ -133,7 +133,7 @@ function Inventory() {
       <div className="flex flex-wrap gap-2 mb-4">
         {FILTERS.map((f) => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`text-mono text-[10px] tracking-widest px-3 h-8 inline-flex items-center gap-2 border ${filter === f ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}>
+            className={`text-mono text-xs tracking-widest px-3 h-8 inline-flex items-center gap-2 border ${filter === f ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}>
             {f} <span className="opacity-60">({counts[f]})</span>
           </button>
         ))}
@@ -160,7 +160,7 @@ function Inventory() {
       <StockPanel product={stockFor} onClose={() => setStockFor(null)} onSaved={load} />
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm min-w-[520px]">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">PRODUCT</th>
               <th className="text-left p-3">SIZE / COLOR</th>
@@ -184,7 +184,7 @@ function Inventory() {
                     <button
                       type="button"
                       onClick={() => setStockFor(products.find((x) => x.slug === r.productSlug) ?? null)}
-                      className="text-mono text-[10px] tracking-widest px-2 h-9 border border-amber-500 text-amber-800 hover:bg-amber-50"
+                      className="text-mono text-xs tracking-widest px-2 h-9 border border-amber-500 text-amber-800 hover:bg-amber-50"
                     >
                       ENTER SIZE COUNTS
                     </button>
@@ -202,7 +202,7 @@ function Inventory() {
                   )}
                 </td>
                 <td className="p-3">
-                  <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${
+                  <span className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${
                     r.stock > 5 ? "bg-emerald-100 text-emerald-800" : r.stock > 0 ? "bg-amber-100 text-amber-800" : "bg-red-100 text-red-700"
                   }`}>
                     {r.stock > 5 ? "IN STOCK" : r.stock > 0 ? "LOW STOCK" : "SOLD OUT"}

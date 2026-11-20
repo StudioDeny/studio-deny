@@ -52,7 +52,7 @@ function AdminHeadings() {
   return (
     <div>
       <h1 className="text-display text-4xl md:text-5xl mb-2">HEADINGS.</h1>
-      <p className="text-mono text-[11px] tracking-widest text-muted-foreground mb-6">
+      <p className="text-mono text-xs tracking-widest text-muted-foreground mb-6">
         EVERY MAJOR SECTION HEADING SITE-WIDE — RENAME OR RECOLOR WITHOUT TOUCHING CODE.
       </p>
 
@@ -63,7 +63,7 @@ function AdminHeadings() {
       ) : (
         <div className="max-w-2xl">
           <label className="block mb-5">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SECTION</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">SECTION</div>
             <select
               value={activeKey ?? ""}
               onChange={(e) => setActiveKey(e.target.value)}
@@ -78,7 +78,7 @@ function AdminHeadings() {
           {rows.filter((row) => row.key === activeKey).map((row) => (
             <div key={row.key} className="border border-border bg-surface p-4 space-y-3">
               <label className="block">
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">EYEBROW (small label above the heading, optional)</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">EYEBROW (small label above the heading, optional)</div>
                 <input
                   value={row.eyebrow_text ?? ""}
                   onChange={(e) => update(row.key, { eyebrow_text: e.target.value || null })}
@@ -86,7 +86,7 @@ function AdminHeadings() {
                 />
               </label>
               <label className="block">
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">HEADING TEXT</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">HEADING TEXT</div>
                 <textarea
                   value={row.heading_text}
                   onChange={(e) => update(row.key, { heading_text: e.target.value })}
@@ -95,7 +95,7 @@ function AdminHeadings() {
                 />
               </label>
               <label className="block">
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SUBTITLE (optional)</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">SUBTITLE (optional)</div>
                 <input
                   value={row.subtitle_text ?? ""}
                   onChange={(e) => update(row.key, { subtitle_text: e.target.value || null })}
@@ -104,7 +104,7 @@ function AdminHeadings() {
               </label>
               <div className="flex items-end gap-3">
                 <label className="block">
-                  <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">TEXT COLOR</div>
+                  <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">TEXT COLOR</div>
                   <input
                     type="color"
                     value={row.text_color ?? "#000000"}
@@ -116,7 +116,7 @@ function AdminHeadings() {
                   <button
                     type="button"
                     onClick={() => update(row.key, { text_color: null })}
-                    className="h-10 px-3 border border-border text-mono text-[10px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary"
+                    className="h-10 px-3 border border-border text-mono text-xs tracking-widest text-muted-foreground hover:border-primary hover:text-primary"
                   >
                     RESET TO THEME
                   </button>

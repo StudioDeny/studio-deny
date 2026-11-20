@@ -24,7 +24,7 @@ export function Newsletter() {
         placeholder="you@street.com"
         className="flex-1 bg-transparent px-3 h-11 outline-none text-sm placeholder:text-muted-foreground/60"
       />
-      <button disabled={busy} className="bg-primary text-primary-foreground text-mono text-[11px] tracking-widest px-4 hover:glow-primary disabled:opacity-50">
+      <button disabled={busy} className="bg-primary text-primary-foreground text-mono text-xs tracking-widest px-4 hover:glow-primary disabled:opacity-50">
         {busy ? "…" : "JOIN →"}
       </button>
     </form>

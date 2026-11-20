@@ -273,7 +273,7 @@ function AdminMegaMenu() {
 
         {/* LIVE PREVIEW */}
         <div className="lg:sticky lg:top-6 self-start">
-          <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-1">LIVE PREVIEW</div>
+          <div className="text-mono text-xs tracking-[0.25em] text-primary mb-1">LIVE PREVIEW</div>
           <p className="text-xs text-muted-foreground mb-3">This is exactly what shoppers see for the tab you're managing below.</p>
           <div className="border border-border bg-background">
             <div className="flex items-center gap-5 px-5 h-14 border-b border-border overflow-x-auto no-scrollbar">
@@ -302,7 +302,7 @@ function AdminMegaMenu() {
 function Panel({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
     <section className="border border-border bg-surface p-5">
-      <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-1">{title}</div>
+      <div className="text-mono text-xs tracking-[0.25em] text-primary mb-1">{title}</div>
       <p className="text-xs text-muted-foreground mb-4 max-w-lg">{description}</p>
       {children}
     </section>
@@ -315,7 +315,7 @@ function RowActions({ onAdd, addLabel, onSave, saving }: { onAdd: () => void; ad
       <button
         type="button"
         onClick={onAdd}
-        className="flex items-center gap-1.5 border border-dashed border-border h-9 px-3 text-mono text-[11px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+        className="flex items-center gap-1.5 border border-dashed border-border h-9 px-3 text-mono text-xs tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors"
       >
         <Plus className="size-3.5" /> {addLabel}
       </button>
@@ -365,7 +365,7 @@ function CategoryRow({
             <option key={c.id} value={c.id}>{categoryLabel(c, options)}</option>
           ))}
         </select>
-        <label title="Uncheck to hide this tab from the navbar without deleting it" className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
+        <label title="Uncheck to hide this tab from the navbar without deleting it" className="flex items-center gap-1.5 shrink-0 text-mono text-xs tracking-widest text-muted-foreground">
           <input type="checkbox" checked={cat.is_active} onChange={(e) => onChange({ is_active: e.target.checked })} />
           SHOWN
         </label>
@@ -373,7 +373,7 @@ function CategoryRow({
           type="button"
           onClick={onSelect}
           title="Edit this tab's links and featured products"
-          className={`shrink-0 border h-9 px-3 text-mono text-[10px] tracking-widest whitespace-nowrap transition-all hover:scale-[1.03] ${
+          className={`shrink-0 border h-9 px-3 text-mono text-xs tracking-widest whitespace-nowrap transition-all hover:scale-[1.03] ${
             selected ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary hover:text-primary"
           }`}
         >
@@ -401,7 +401,7 @@ function LinkRow({
       <div className="flex items-center gap-2 p-2.5 border border-border bg-background">
         <DragHandle dragControls={dragControls} />
         <span className="flex-1 text-sm font-semibold">{label}</span>
-        <label title="Uncheck to hide this link without deleting it" className="flex items-center gap-1.5 shrink-0 text-mono text-[10px] tracking-widest text-muted-foreground">
+        <label title="Uncheck to hide this link without deleting it" className="flex items-center gap-1.5 shrink-0 text-mono text-xs tracking-widest text-muted-foreground">
           <input type="checkbox" checked={item.is_active} onChange={(e) => onToggleActive(e.target.checked)} />
           SHOWN
         </label>
@@ -428,7 +428,7 @@ function CategoryAdder({ options, allCategories, onAdd }: { options: Category[];
         type="button"
         onClick={() => { if (value) { onAdd(value); setValue(""); } }}
         disabled={!value}
-        className="flex items-center gap-1.5 border border-border h-9 px-3 text-mono text-[11px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-all hover:scale-[1.03] disabled:opacity-40 disabled:hover:scale-100 shrink-0"
+        className="flex items-center gap-1.5 border border-border h-9 px-3 text-mono text-xs tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-all hover:scale-[1.03] disabled:opacity-40 disabled:hover:scale-100 shrink-0"
       >
         <Plus className="size-3.5" /> ADD LINK
       </button>

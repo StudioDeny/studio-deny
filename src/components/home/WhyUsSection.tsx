@@ -43,10 +43,7 @@ export function WhyUsSection() {
     "why_us",
     DEFAULTS,
   );
-  const heading = useSectionHeading("why_us", "BUILT DIFFERENT.", {
-    eyebrow: "WHY STUDIO DENY",
-    subtitle: "STAYS DIFFERENT.",
-  });
+  const heading = useSectionHeading("why_us", "BUILT DIFFERENT.");
 
   const [api, setApi] = useState<CarouselApi>();
   const [progress, setProgress] = useState(0);
@@ -157,7 +154,7 @@ export function WhyUsSection() {
             {feature.label}
           </h3>
           <p
-            className="mt-4 font-medium leading-relaxed text-foreground/70 transition-colors duration-500 group-hover/card:text-white/75"
+            className="mt-4 font-semibold leading-relaxed text-foreground/70 transition-colors duration-500 group-hover/card:text-white/75"
             style={{ fontSize: "15px" }}
           >
             {feature.desc}
@@ -173,30 +170,13 @@ export function WhyUsSection() {
   return (
     <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border/30 bg-[#E2E2E4] overflow-hidden">
       <div>
-        <div className="mb-10 sm:mb-12 flex flex-col">
-          {heading.eyebrow && (
-            <span className="text-mono text-primary mb-3 text-xs tracking-[0.35em]">
-              ◢ {heading.eyebrow}
-            </span>
-          )}
+        <div className="mb-8 sm:mb-12 flex flex-col">
           <EditorialHeading
-            className="text-display leading-none"
-            style={
-              heading.color
-                ? { fontSize: "clamp(36px, 7vw, 80px)", color: heading.color }
-                : { fontSize: "clamp(36px, 7vw, 80px)" }
-            }
+            className="type-h2"
+            style={heading.color ? { color: heading.color } : undefined}
           >
             {heading.text}
           </EditorialHeading>
-          {heading.subtitle && (
-            <EditorialSubheading
-              className="mt-2 text-mono text-xl sm:text-2xl font-bold tracking-tight text-foreground/75"
-              delay={0.2}
-            >
-              {heading.subtitle}
-            </EditorialSubheading>
-          )}
         </div>
 
         <motion.div

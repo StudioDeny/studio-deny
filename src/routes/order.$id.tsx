@@ -40,8 +40,8 @@ function OrderPage() {
   if (loading) return <Loading className="py-24" />;
   if (!order) {
     return (
-      <section className="px-4 md:px-8 py-24 text-center">
-        <h1 className="text-display text-5xl">ORDER NOT FOUND</h1>
+      <section className="px-4 sm:px-8 lg:px-16 py-24 text-center">
+        <h1 className="type-h2">ORDER NOT FOUND</h1>
         <Link to="/shop" className="mt-6 inline-block text-mono text-xs tracking-widest text-primary hover:underline">→ SHOP</Link>
       </section>
     );
@@ -71,18 +71,17 @@ function OrderPage() {
   };
 
   return (
-    <section className="px-4 md:px-8 mt-8 md:mt-12 max-w-3xl mx-auto">
+    <section className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-12 max-w-3xl mx-auto">
       <div className="size-16 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center mb-6 glow-lime">
         <Check className="size-8" />
       </div>
-      <div className="text-mono text-[11px] tracking-[0.3em] text-secondary mb-2">◢ ORDER {order.status}</div>
-      <h1 className="text-display text-5xl md:text-7xl">{order.status === "CANCELLED" ? "CANCELLED." : order.status === "REFUNDED" ? "REFUNDED." : "YOU'RE IN."}</h1>
+      <h1 className="type-h2">{order.status === "CANCELLED" ? "CANCELLED." : order.status === "REFUNDED" ? "REFUNDED." : "YOU'RE IN."}</h1>
       <p className="text-muted-foreground mt-3">Order <span className="text-mono text-foreground">{order.order_number ?? order.id}</span> — confirmation sent to <span className="text-foreground">{order.userEmail}</span>.</p>
 
       <div className="mt-10 grid md:grid-cols-2 gap-6">
         {pickup ? (
           <div className="border border-border p-5 bg-surface">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">STORE PICKUP</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-2">STORE PICKUP</div>
             <div className="font-semibold">STUDIO DENY</div>
             <div className="text-sm text-muted-foreground">{order.address.line1.replace(/^STORE PICKUP — /, "")}</div>
             <div className="text-sm mt-2">
@@ -94,7 +93,7 @@ function OrderPage() {
           </div>
         ) : (
           <div className="border border-border p-5 bg-surface">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">SHIPPING TO</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-2">SHIPPING TO</div>
             <div className="font-semibold">{order.address.name}</div>
             <div className="text-sm text-muted-foreground">{order.address.line1}</div>
             <div className="text-sm text-muted-foreground">{order.address.city}, {order.address.state} {order.address.pincode}</div>
@@ -102,7 +101,7 @@ function OrderPage() {
           </div>
         )}
         <div className="border border-border p-5 bg-surface">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">PAYMENT</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-2">PAYMENT</div>
           <div className="font-semibold">Razorpay</div>
           <div className="text-sm text-muted-foreground text-mono break-all">{order.paymentId}</div>
           <div className="text-sm text-muted-foreground mt-1">Status: <span className="text-secondary">{order.status}</span></div>
@@ -113,7 +112,7 @@ function OrderPage() {
       {order.awbNumber && (
         <div className="mt-6 border border-border p-5 bg-surface flex items-center justify-between flex-wrap gap-4">
           <div>
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><Truck className="size-3.5" /> SHIPPING</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><Truck className="size-3.5" /> SHIPPING</div>
             <div className="font-semibold">{order.courierName ?? "Courier assigned"}</div>
             <div className="text-sm text-muted-foreground text-mono">AWB {order.awbNumber}</div>
           </div>
@@ -133,7 +132,7 @@ function OrderPage() {
       {order.returnStatus && (
         <div className="mt-6 border border-border p-5 bg-surface flex items-center justify-between flex-wrap gap-4">
           <div>
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><RotateCcw className="size-3.5" /> RETURN</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><RotateCcw className="size-3.5" /> RETURN</div>
             <div className="font-semibold">{RETURN_STATUS_LABEL[order.returnStatus] ?? order.returnStatus}</div>
             {order.returnAwbNumber && <div className="text-sm text-muted-foreground text-mono">AWB {order.returnAwbNumber}</div>}
           </div>

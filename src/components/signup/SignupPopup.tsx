@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/context/AuthContext";
 import { myWelcomeCoupon, couponLabel } from "@/lib/coupons";
 import {
-  DEFAULT_SIGNUP_POPUP, fetchSignupPopup, readDismissedAt, shouldShowSignupPopup, writeDismissedAt,
-  type SignupPopupConfig,
+  DEFAULT_SIGNUP_POPUP, MIN_SHOW_DELAY_SECONDS, fetchSignupPopup, markShownThisSession, readDismissedAt,
+  shouldShowSignupPopup, wasShownThisSession, writeDismissedAt, type SignupPopupConfig,
 } from "@/lib/signupPopup";
 import { SignupPopupView, type SignupValues } from "./SignupPopupView";
 
@@ -33,8 +33,13 @@ export function SignupPopup() {
   // Schedule the popup for logged-out visitors on allowed pages.
   useEffect(() => {
     if (!loaded || loading || user || open || closedThisVisit || !cfg.enabled) return;
+    if (wasShownThisSession()) return;
     if (!shouldShowSignupPopup({ pathname, showOn: cfg.show_on, dismissedAt: readDismissedAt(), reshowAfterHours: cfg.reshow_after_hours, now: Date.now() })) return;
-    const t = setTimeout(() => setOpen(true), Math.max(0, cfg.delay_seconds) * 1000);
+    const delay = Math.max(MIN_SHOW_DELAY_SECONDS, cfg.delay_seconds);
+    const t = setTimeout(() => {
+      markShownThisSession();
+      setOpen(true);
+    }, delay * 1000);
     return () => clearTimeout(t);
   }, [loaded, loading, user, open, closedThisVisit, cfg, pathname]);
 

@@ -79,7 +79,7 @@ function AdminWelcomeOffer() {
   return (
     <div>
       <h1 className="text-display text-4xl md:text-5xl mb-2">WELCOME OFFER.</h1>
-      <p className="text-mono text-[11px] tracking-widest text-muted-foreground mb-6">
+      <p className="text-mono text-xs tracking-widest text-muted-foreground mb-6">
         EVERY NEW ACCOUNT GETS ONE UNIQUE CODE. THE DISCOUNT IS PICKED AT RANDOM USING YOUR TARGET SPLIT.
       </p>
 
@@ -103,19 +103,19 @@ function AdminWelcomeOffer() {
             <input type="checkbox" checked={settings.first_order_only} onChange={(e) => setS({ first_order_only: e.target.checked })} className="size-4" />
             <span className="lbl !mb-0">ONLY ON THE CUSTOMER'S FIRST ORDER</span>
           </label>
-          <p className="text-[11px] text-muted-foreground">Changes apply to codes issued from now on. Codes already handed out keep their original terms (edit them under Coupons).</p>
+          <p className="text-xs text-muted-foreground">Changes apply to codes issued from now on. Codes already handed out keep their original terms (edit them under Coupons).</p>
         </div>
 
         <div className="border border-border bg-surface p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="lbl !mb-0">DISCOUNT TIERS</div>
-            <div className={`text-mono text-[11px] tracking-widest ${Math.abs(activeTotal - 100) < 0.001 ? "text-emerald-600" : "text-red-500"}`}>
+            <div className={`text-mono text-xs tracking-widest ${Math.abs(activeTotal - 100) < 0.001 ? "text-emerald-600" : "text-red-500"}`}>
               TARGETS TOTAL {activeTotal}% {Math.abs(activeTotal - 100) < 0.001 ? "✓" : "— MUST BE 100%"}
             </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[640px]">
-              <thead className="text-mono text-[10px] tracking-widest text-muted-foreground">
+              <thead className="text-mono text-xs tracking-widest text-muted-foreground">
                 <tr><th className="text-left p-2">LABEL</th><th className="text-left p-2">TYPE</th><th className="text-left p-2">VALUE</th><th className="text-left p-2">TARGET %</th><th className="text-left p-2">ACTUAL</th><th className="text-left p-2">ON</th><th /></tr>
               </thead>
               <tbody>
@@ -142,7 +142,7 @@ function AdminWelcomeOffer() {
             </table>
           </div>
           <button type="button" onClick={() => setTiers((ts) => [...ts, { label: "", discount_type: "percent", discount_value: 5, target_percent: 0, is_active: true }])}
-            className="border border-border h-9 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2">
+            className="border border-border h-9 px-3 text-mono text-xs tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2">
             <Plus className="size-3" /> ADD TIER
           </button>
         </div>

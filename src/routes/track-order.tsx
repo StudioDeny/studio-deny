@@ -13,13 +13,13 @@ function TrackOrder() {
   return (
     <div className="min-h-screen bg-background text-foreground pt-28 pb-24 px-4 sm:px-8 lg:px-16">
       <div className="max-w-[640px] mx-auto">
-        <p className="text-mono text-[10px] tracking-[0.3em] text-primary mb-4">ORDER STATUS</p>
-        <h1 className="text-display text-[clamp(3rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase mb-4">TRACK YOUR<br />ORDER</h1>
+        <p className="text-mono text-xs tracking-[0.3em] text-primary mb-4">ORDER STATUS</p>
+        <h1 className="type-h2 mb-4">TRACK YOUR<br />ORDER</h1>
         <p className="text-muted-foreground text-sm text-mono mb-10">Enter your order ID or the email used at checkout to see your order status and tracking details.</p>
 
         <form onSubmit={(e) => { e.preventDefault(); }} className="space-y-4">
           <label className="block">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">ORDER ID</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-2">ORDER ID</div>
             <input
               value={orderId}
               onChange={(e) => setOrderId(e.target.value)}

@@ -161,7 +161,7 @@ export function MultiCategoryPicker({
               <button
                 type="button"
                 onClick={() => setAdding(true)}
-                className="w-full flex items-center gap-1.5 px-1 py-1.5 text-mono text-[10px] tracking-widest text-primary hover:underline"
+                className="w-full flex items-center gap-1.5 px-1 py-1.5 text-mono text-xs tracking-widest text-primary hover:underline"
               >
                 <Plus className="size-3" /> ADD NEW CATEGORY
               </button>

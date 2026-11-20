@@ -133,11 +133,11 @@ export function BirthdayCoupons({ onReleased }: { onReleased: () => void }) {
                             <input type="checkbox" checked={picked.has(c.user_id)} disabled={sent} onChange={() => toggle(c.user_id)} aria-label={`Pick ${c.name ?? c.email}`} />
                           </td>
                           <td className="p-2">
-                            <div className="font-medium">{c.name || "—"}</div>
+                            <div className="font-semibold">{c.name || "—"}</div>
                             <div className="text-xs text-muted-foreground">{[c.phone, c.email].filter(Boolean).join(" · ")}</div>
                           </td>
                           <td className="p-2 text-mono text-xs whitespace-nowrap">{Number(c.dob.slice(8, 10))} {MONTHS[month - 1].slice(0, 3)}</td>
-                          <td className="p-2 text-right text-mono text-[10px] tracking-widest text-muted-foreground whitespace-nowrap">{sent ? "SENT THIS YEAR" : ""}</td>
+                          <td className="p-2 text-right text-mono text-xs tracking-widest text-muted-foreground whitespace-nowrap">{sent ? "SENT THIS YEAR" : ""}</td>
                         </tr>
                       );
                     })}

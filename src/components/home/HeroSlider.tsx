@@ -116,7 +116,7 @@ export function HeroSlider({ slides: data }: { slides: HeroSlide[] }) {
           {/* Bottom centre on every screen. At the bottom rather than the
               middle: the travelling logo (HeroLogo) rests at the hero's centre. */}
           <div className="flex flex-col items-center text-center space-y-4 sm:space-y-6">
-            <h1 className="text-[clamp(2.25rem,8vw,6rem)] leading-[0.95] tracking-[-0.03em] uppercase max-w-5xl text-display text-white">
+            <h1 className="text-[clamp(3rem,9vw,6rem)] leading-[0.95] tracking-[-0.03em] uppercase max-w-5xl text-display text-white">
               {slide.title.split("\n").map((line, lineIdx) => (
                 <span key={`${slide.id}-line-${lineIdx}`} className="block overflow-hidden py-1">
                   {line.split(" ").map((word, wordIdx) => (

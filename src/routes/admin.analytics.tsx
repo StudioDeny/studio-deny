@@ -69,25 +69,25 @@ function Analytics() {
       </div>
 
       <div className="mt-8 border border-border bg-surface p-5">
-        <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-4">REVENUE · LAST 7 DAYS</div>
+        <div className="text-mono text-xs tracking-widest text-muted-foreground mb-4">REVENUE · LAST 7 DAYS</div>
         <div className="flex items-end gap-3 h-40">
           {m.days.map((d) => (
             <div key={d.d} className="flex-1 flex flex-col items-center gap-2">
-              <div className="text-mono text-[10px] text-muted-foreground">{formatINR(d.rev)}</div>
+              <div className="text-mono text-xs text-muted-foreground">{formatINR(d.rev)}</div>
               <div className="w-full bg-primary glow-primary transition-all" style={{ height: `${(d.rev / m.max) * 100}%`, minHeight: 2 }} />
-              <div className="text-mono text-[10px] tracking-widest">{d.d}</div>
+              <div className="text-mono text-xs tracking-widest">{d.d}</div>
             </div>
           ))}
         </div>
       </div>
 
       <div className="mt-6 border border-border bg-surface p-5">
-        <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-3">TOP PRODUCTS</div>
+        <div className="text-mono text-xs tracking-widest text-muted-foreground mb-3">TOP PRODUCTS</div>
         {m.top.length === 0 ? <p className="text-muted-foreground text-sm">No sales yet.</p> : (
           <ul className="divide-y divide-border">
             {m.top.map((t) => (
               <li key={t.name} className="py-2 flex justify-between text-sm">
-                <span>{t.name} <span className="text-mono text-[10px] text-muted-foreground">× {t.qty}</span></span>
+                <span>{t.name} <span className="text-mono text-xs text-muted-foreground">× {t.qty}</span></span>
                 <span className="text-mono">{formatINR(t.rev)}</span>
               </li>
             ))}
@@ -101,7 +101,7 @@ function Analytics() {
 function Stat({ label, v }: { label: string; v: React.ReactNode }) {
   return (
     <div className="border border-border bg-surface p-5">
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{label}</div>
+      <div className="text-mono text-xs tracking-widest text-muted-foreground">{label}</div>
       <div className="text-display text-3xl mt-2">{v}</div>
     </div>
   );

@@ -76,7 +76,7 @@ function StorePickups() {
               key={f}
               type="button"
               onClick={() => setFilter(f)}
-              className={`px-4 h-9 text-mono text-[11px] tracking-widest border-r border-border last:border-r-0 ${filter === f ? "bg-foreground text-background" : "hover:text-primary"}`}
+              className={`px-4 h-9 text-mono text-xs tracking-widest border-r border-border last:border-r-0 ${filter === f ? "bg-foreground text-background" : "hover:text-primary"}`}
             >
               {f.toUpperCase()} ({counts[f]})
             </button>
@@ -100,7 +100,7 @@ function StorePickups() {
       ) : (
         <div className="border border-border bg-surface overflow-x-auto">
           <table className="w-full text-sm min-w-[880px]">
-            <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+            <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
               <tr>
                 <th className="text-left p-3">ORDER</th>
                 <th className="text-left p-3">CUSTOMER</th>
@@ -119,10 +119,10 @@ function StorePickups() {
                   <tr key={o.id} className="align-top">
                     <td className="p-3">
                       <Link to="/admin/invoice/$id" params={{ id: o.id }} className="text-mono text-xs hover:text-primary">{o.order_number ?? o.id}</Link>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">{fmtDate(o.createdAt)}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">{fmtDate(o.createdAt)}</div>
                     </td>
                     <td className="p-3">
-                      <div className="font-medium">{o.address?.name}</div>
+                      <div className="font-semibold">{o.address?.name}</div>
                       <div className="text-xs text-muted-foreground">{o.address?.phone}</div>
                       <div className="text-xs text-muted-foreground">{o.userEmail}</div>
                     </td>
@@ -135,18 +135,18 @@ function StorePickups() {
                     <td className="p-3 text-mono">{formatINR(o.total)}</td>
                     <td className="p-3">
                       <div className={overdue ? "text-red-500 font-semibold" : ""}>{o.pickupDueAt ? fmtDate(o.pickupDueAt) : "—"}</div>
-                      {overdue && <div className="text-mono text-[10px] tracking-widest text-red-500">OVERDUE · {daysLate} DAY{daysLate > 1 ? "S" : ""}</div>}
+                      {overdue && <div className="text-mono text-xs tracking-widest text-red-500">OVERDUE · {daysLate} DAY{daysLate > 1 ? "S" : ""}</div>}
                     </td>
                     <td className="p-3">
                       {closed(o) ? (
-                        <span className="text-mono text-[10px] tracking-widest px-2 py-1 border border-border text-muted-foreground">{o.status}</span>
+                        <span className="text-mono text-xs tracking-widest px-2 py-1 border border-border text-muted-foreground">{o.status}</span>
                       ) : o.collectedAt ? (
                         <>
-                          <span className="text-mono text-[10px] tracking-widest px-2 py-1 border border-emerald-500 text-emerald-600">COLLECTED</span>
-                          <div className="text-[11px] text-muted-foreground mt-1">{fmtDate(o.collectedAt)}</div>
+                          <span className="text-mono text-xs tracking-widest px-2 py-1 border border-emerald-500 text-emerald-600">COLLECTED</span>
+                          <div className="text-xs text-muted-foreground mt-1">{fmtDate(o.collectedAt)}</div>
                         </>
                       ) : (
-                        <span className="text-mono text-[10px] tracking-widest px-2 py-1 border border-amber-500 text-amber-600">PENDING</span>
+                        <span className="text-mono text-xs tracking-widest px-2 py-1 border border-amber-500 text-amber-600">PENDING</span>
                       )}
                     </td>
                     <td className="p-3 text-right whitespace-nowrap">
@@ -155,7 +155,7 @@ function StorePickups() {
                           type="button"
                           disabled={busy === o.id}
                           onClick={() => mark(o, false)}
-                          className="text-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary underline underline-offset-4 disabled:opacity-50"
+                          className="text-mono text-xs tracking-widest text-muted-foreground hover:text-primary underline underline-offset-4 disabled:opacity-50"
                         >
                           UNDO
                         </button>
@@ -164,7 +164,7 @@ function StorePickups() {
                           type="button"
                           disabled={busy === o.id}
                           onClick={() => mark(o, true)}
-                          className="h-9 px-4 bg-primary text-primary-foreground text-mono text-[10px] tracking-widest inline-flex items-center gap-2 disabled:opacity-50"
+                          className="h-9 px-4 bg-primary text-primary-foreground text-mono text-xs tracking-widest inline-flex items-center gap-2 disabled:opacity-50"
                         >
                           {busy === o.id && <Loader2 className="size-3 animate-spin" />} MARK COLLECTED
                         </button>

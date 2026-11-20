@@ -26,7 +26,7 @@ function CartPage() {
 
   if (items.length === 0) {
     return (
-      <section className="px-4 md:px-8 py-32 text-center min-h-[60vh] flex flex-col items-center justify-center">
+      <section className="px-4 sm:px-8 lg:px-16 py-32 text-center min-h-[60vh] flex flex-col items-center justify-center">
         <ShoppingBag className="size-16 text-muted-foreground/20 mb-6" />
         <div className="text-display text-muted-foreground/30 leading-none" style={{ fontSize: "clamp(60px, 10vw, 120px)" }}>
           EMPTY BAG
@@ -46,14 +46,14 @@ function CartPage() {
   }
 
   return (
-    <section className="px-4 md:px-8 mt-8 md:mt-16 pb-24">
+    <section className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-16 pb-24">
       {/* Header */}
       <div className="mb-10 md:mb-16">
         <div className="text-mono text-primary mb-3 flex items-center gap-2" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>
           <span className="size-1 bg-primary rounded-full pulse-dot" />
           YOUR BAG
         </div>
-        <h1 className="text-display leading-none" style={{ fontSize: "clamp(52px, 8vw, 100px)" }}>
+        <h1 className="type-h2">
           CHECKOUT.
         </h1>
       </div>

@@ -30,16 +30,15 @@ function Refer() {
   };
 
   return (
-    <section className="px-4 md:px-8 mt-8 md:mt-12 max-w-4xl mx-auto">
-      <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-2">◢ REFER & EARN</div>
-      <h1 className="text-display text-5xl md:text-7xl mb-3">PUT YOUR CREW ON.</h1>
+    <section className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-12 max-w-4xl mx-auto">
+      <h1 className="type-h2 mb-3">PUT YOUR CREW ON.</h1>
       <p className="text-muted-foreground max-w-2xl">
         Share your code. Your friend gets <span className="text-primary">₹300 off</span> their first drop.
         You get <span className="text-secondary">₹300 credit</span> when they cop. Simple.
       </p>
 
       <div className="mt-10 border-2 border-primary bg-surface p-6 md:p-10 relative grain">
-        <div className="text-mono text-[10px] tracking-widest text-muted-foreground">YOUR CODE</div>
+        <div className="text-mono text-xs tracking-widest text-muted-foreground">YOUR CODE</div>
         <div className="text-display text-5xl md:text-7xl text-primary text-glow-primary mt-1">{code}</div>
 
         <div className="mt-6 flex gap-2">

@@ -72,6 +72,26 @@ export async function fetchSignupPopup(): Promise<SignupPopupConfig> {
 }
 
 export const DISMISSED_KEY = "sd_signup_popup_dismissed_at";
+
+// Never pop up sooner than this after arriving, so the hero gets a clear first
+// impression even if the admin sets a shorter delay.
+export const MIN_SHOW_DELAY_SECONDS = 10;
+
+// Once it has appeared in this browser tab session, it does not appear again
+// on other pages in the same session (sessionStorage clears when the tab closes).
+const SESSION_SHOWN_KEY = "sd_signup_popup_shown_session";
+
+export function wasShownThisSession(): boolean {
+  try {
+    return sessionStorage.getItem(SESSION_SHOWN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function markShownThisSession() {
+  try { sessionStorage.setItem(SESSION_SHOWN_KEY, "1"); } catch { /* private mode */ }
+}
 const BLOCKED_PREFIXES = ["/login", "/signup", "/checkout", "/admin"];
 
 export function shouldShowSignupPopup(a: {

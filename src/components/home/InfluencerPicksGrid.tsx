@@ -99,7 +99,7 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
 
         <div className="absolute top-3 left-3">
           <p className="text-white font-display text-sm uppercase drop-shadow">{pick.name}</p>
-          {pick.handle && <p className="text-white/70 text-mono text-[10px] drop-shadow">{pick.handle}</p>}
+          {pick.handle && <p className="text-white/70 text-mono text-xs drop-shadow">{pick.handle}</p>}
         </div>
 
         {/* Tagged product(s) overlay — only while hovering/playing */}
@@ -320,7 +320,7 @@ export function InfluencerPicksGrid() {
     })();
   }, []);
 
-  const heading = useSectionHeading("influencer_picks", "INFLUENCER PICKS", { eyebrow: "AS SEEN ON" });
+  const heading = useSectionHeading("influencer_picks", "INFLUENCER PICKS");
 
   if (!visible || picks.length === 0) return null;
 
@@ -330,24 +330,14 @@ export function InfluencerPicksGrid() {
   };
 
   return (
-    <section className="py-14 sm:py-20 overflow-hidden border-t border-border bg-[#E2E2E4]">
-      <div className="px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 flex items-end justify-between flex-wrap gap-6">
-        <div className="flex flex-col">
-          {heading.eyebrow && (
-            <span className="text-mono text-primary mb-2 text-xs tracking-[0.35em]">◢ {heading.eyebrow}</span>
-          )}
-          <EditorialHeading
-            className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display"
-            style={heading.color ? { color: heading.color } : undefined}
-          >
-            {heading.text}
-          </EditorialHeading>
-          {heading.subtitle && (
-            <p className="mt-3 max-w-xl text-sm sm:text-base opacity-80 text-mono font-medium">
-              {heading.subtitle}
-            </p>
-          )}
-        </div>
+    <section className="py-16 sm:py-24 overflow-hidden border-t border-border bg-[#E2E2E4]">
+      <div className="px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 flex flex-col items-center gap-6">
+        <EditorialHeading
+          className="type-h2"
+          style={heading.color ? { color: heading.color } : undefined}
+        >
+          {heading.text}
+        </EditorialHeading>
         <Link
           to="/shop"
           className="group inline-flex items-center gap-2 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase hover:text-primary transition-colors"
@@ -357,12 +347,12 @@ export function InfluencerPicksGrid() {
         </Link>
       </div>
 
-      <div className="relative">
+      <div className="group/carousel relative">
         <button
           type="button"
           aria-label="Previous"
           onClick={() => scrollerRef.current?.scrollBy({ left: -320, behavior: "smooth" })}
-          className="hidden sm:flex absolute z-[2] left-2 lg:left-4 top-1/2 -translate-y-1/2 size-10 items-center justify-center bg-background/90 border border-border hover:border-primary hover:text-primary transition-colors"
+          className="hidden sm:flex absolute rounded-full opacity-0 pointer-events-none group-hover/carousel:opacity-100 group-hover/carousel:pointer-events-auto z-[2] left-2 lg:left-4 top-1/2 -translate-y-1/2 size-10 items-center justify-center bg-background/90 border border-border hover:border-primary hover:text-primary transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:border-primary"
         >
           <ChevronLeftIcon className="size-5" />
         </button>
@@ -370,7 +360,7 @@ export function InfluencerPicksGrid() {
           type="button"
           aria-label="Next"
           onClick={() => scrollerRef.current?.scrollBy({ left: 320, behavior: "smooth" })}
-          className="hidden sm:flex absolute z-[2] right-2 lg:right-4 top-1/2 -translate-y-1/2 size-10 items-center justify-center bg-background/90 border border-border hover:border-primary hover:text-primary transition-colors"
+          className="hidden sm:flex absolute rounded-full opacity-0 pointer-events-none group-hover/carousel:opacity-100 group-hover/carousel:pointer-events-auto z-[2] right-2 lg:right-4 top-1/2 -translate-y-1/2 size-10 items-center justify-center bg-background/90 border border-border hover:border-primary hover:text-primary transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:border-primary"
         >
           <ChevronRightIcon className="size-5" />
         </button>

@@ -136,10 +136,10 @@ export function LoyaltyModal() {
                 {/* Badge */}
                 <div className="inline-flex items-center gap-2 border border-white/20 bg-white/5 px-3 py-1.5 mb-6">
                   <Trophy className="w-3 h-3 text-primary" />
-                  <span className="text-mono text-[10px] tracking-[0.25em] text-white/70">{cfg.badge_text}</span>
+                  <span className="text-mono text-xs tracking-[0.25em] text-white/70">{cfg.badge_text}</span>
                 </div>
 
-                <h2 className="text-display text-[clamp(2.2rem,6vw,3.5rem)] leading-[0.9] tracking-[-0.02em] uppercase mb-4">
+                <h2 className="text-display text-[clamp(1.75rem,4vw,3rem)] leading-[0.9] tracking-[-0.02em] uppercase mb-4">
                   {cfg.headline_line1}
                   <br />
                   <span className="text-transparent" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.35)" }}>
@@ -175,9 +175,9 @@ export function LoyaltyModal() {
                   ].map((item) => (
                     <div key={item.label} className="border border-white/10 bg-white/[0.03] p-3 text-center">
                       <item.icon className="w-4 h-4 text-primary mx-auto mb-2 opacity-80" />
-                      <div className="text-mono text-[9px] tracking-[0.2em] text-white/40 mb-1">{item.label}</div>
+                      <div className="text-mono text-xs tracking-[0.2em] text-white/40 mb-1">{item.label}</div>
                       <div className="text-display text-xl leading-none">{item.value}</div>
-                      <div className="text-mono text-[9px] text-white/40 mt-1">{item.sub}</div>
+                      <div className="text-mono text-xs text-white/40 mt-1">{item.sub}</div>
                     </div>
                   ))}
                 </div>
@@ -186,7 +186,7 @@ export function LoyaltyModal() {
                 <div className="flex gap-1.5 mb-8">
                   {tiers.map((t) => (
                     <div key={t.name} className={`flex-1 ${t.color} border border-white/10 py-2 text-center`}>
-                      <div className="text-mono text-[9px] tracking-[0.15em] text-white/60">{t.name}</div>
+                      <div className="text-mono text-xs tracking-[0.15em] text-white/60">{t.name}</div>
                     </div>
                   ))}
                 </div>

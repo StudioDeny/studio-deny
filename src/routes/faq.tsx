@@ -29,9 +29,8 @@ const QA = [
 function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
   return (
-    <section className="px-4 md:px-8 mt-8 md:mt-12 max-w-3xl mx-auto">
-      <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-2">◢ ANSWERS</div>
-      <h1 className="text-display text-5xl md:text-7xl mb-8">FAQ.</h1>
+    <section className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-12 max-w-3xl mx-auto">
+      <h1 className="type-h2 mb-8">FAQ.</h1>
 
       <ul className="border-t border-border">
         {QA.map((item, i) => {

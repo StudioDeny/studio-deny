@@ -173,7 +173,7 @@ function InfluencerPicksAdmin() {
 
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm min-w-[560px]">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">ORDER</th>
               <th className="text-left p-3">INFLUENCER</th>
@@ -200,7 +200,7 @@ function InfluencerPicksAdmin() {
                     {r.thumbnail_url ? (
                       <img src={thumbImage(r.thumbnail_url, 120)} alt={r.name} width={40} height={48} loading="lazy" decoding="async" className="w-10 h-12 object-cover flex-shrink-0 border border-border" />
                     ) : (
-                      <div className="w-10 h-12 bg-muted flex items-center justify-center text-mono text-[10px] flex-shrink-0">{r.name.charAt(0).toUpperCase()}</div>
+                      <div className="w-10 h-12 bg-muted flex items-center justify-center text-mono text-xs flex-shrink-0">{r.name.charAt(0).toUpperCase()}</div>
                     )}
                     <div>
                       <div className="font-semibold">{r.name}</div>
@@ -208,13 +208,13 @@ function InfluencerPicksAdmin() {
                     </div>
                   </div>
                 </td>
-                <td className="p-3 hidden md:table-cell text-mono text-[10px] uppercase text-muted-foreground">
+                <td className="p-3 hidden md:table-cell text-mono text-xs uppercase text-muted-foreground">
                   <span className={r.video_url ? "text-emerald-600" : "text-red-500"}>{r.video_url ? "VIDEO ✓" : "VIDEO ✗"}</span>
                   {"  ·  "}
                   <span className={r.link_url ? "text-emerald-600" : "text-muted-foreground"}>{r.link_url ? "REEL ✓" : "NO REEL"}</span>
                 </td>
                 <td className="p-3">
-                  <button onClick={() => toggle(r.id, !r.is_active)} className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}>
+                  <button onClick={() => toggle(r.id, !r.is_active)} className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}>
                     {r.is_active ? "ACTIVE" : "INACTIVE"}
                   </button>
                 </td>
@@ -241,7 +241,7 @@ function InfluencerPicksAdmin() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="bg-background border border-border w-full max-w-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-border">
-              <div className="text-mono text-[11px] tracking-[0.25em] text-primary">{modal.id ? "EDIT" : "NEW"} INFLUENCER PICK</div>
+              <div className="text-mono text-xs tracking-[0.25em] text-primary">{modal.id ? "EDIT" : "NEW"} INFLUENCER PICK</div>
               <button onClick={() => setModal(null)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
             </div>
             <div className="p-5 space-y-4">
@@ -276,11 +276,11 @@ function InfluencerPicksAdmin() {
 
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={modal.is_active ?? true} onChange={(e) => setModal({ ...modal, is_active: e.target.checked })} className="w-4 h-4" />
-                <span className="text-mono text-[11px] tracking-widest">ACTIVE</span>
+                <span className="text-mono text-xs tracking-widest">ACTIVE</span>
               </label>
 
               <div className="border-t border-border pt-4">
-                <div className="text-[11px] font-semibold tracking-widest text-foreground mb-2">TAGGED PRODUCTS</div>
+                <div className="text-xs font-semibold tracking-widest text-foreground mb-2">TAGGED PRODUCTS</div>
                 {!modal.id ? (
                   <p className="text-sm text-muted-foreground">Save this pick first, then come back here to tag products worn in it.</p>
                 ) : (
@@ -310,7 +310,7 @@ function InfluencerPicksAdmin() {
                             className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/40 text-left disabled:opacity-40">
                             <img src={thumbImage(p.image, 96)} alt="" width={32} height={32} loading="lazy" decoding="async" className="size-8 object-cover" />
                             <span className="text-sm flex-1">{p.name}</span>
-                            {taggedSlugs.includes(p.slug) ? <span className="text-mono text-[10px] text-muted-foreground">TAGGED</span> : <Plus className="size-3.5" />}
+                            {taggedSlugs.includes(p.slug) ? <span className="text-mono text-xs text-muted-foreground">TAGGED</span> : <Plus className="size-3.5" />}
                           </button>
                         ))}
                       </div>
@@ -337,7 +337,7 @@ function InfluencerPicksAdmin() {
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">{label}</div>
+      <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">{label}</div>
       {children}
     </label>
   );

@@ -27,7 +27,6 @@ const isImage = (src?: string) =>
  */
 export function AuthShell({
   mode,
-  eyebrow,
   title,
   aside,
   children,
@@ -105,7 +104,7 @@ export function AuthShell({
                 >
                   {quote.line}
                 </p>
-                <footer className="mt-5 text-mono text-[11px] tracking-[0.3em] text-white/70">
+                <footer className="mt-5 text-mono text-xs tracking-[0.3em] text-white/70">
                   — {quote.author}
                 </footer>
               </motion.blockquote>
@@ -129,7 +128,7 @@ export function AuthShell({
                 key={key}
                 to={to}
                 aria-current={mode === key ? "page" : undefined}
-                className={`relative -mb-px pb-3 text-mono text-[12px] font-semibold uppercase tracking-[0.25em] transition-colors ${
+                className={`relative -mb-px pb-3 text-mono text-xs font-semibold uppercase tracking-[0.25em] transition-colors ${
                   mode === key ? "text-foreground" : "text-foreground/40 hover:text-foreground/70"
                 }`}
               >
@@ -145,15 +144,6 @@ export function AuthShell({
               </Link>
             ))}
           </nav>
-
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: EASE, delay: 0.1 }}
-            className="text-mono text-[11px] tracking-[0.3em] text-foreground/55 mb-3"
-          >
-            ◢ {eyebrow}
-          </motion.div>
 
           {/* Title rises out of a mask, like the hero headline. */}
           <h1

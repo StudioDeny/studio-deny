@@ -70,7 +70,7 @@ function StepMockup({ kind, label }: { kind: MockupKind; label?: string }) {
         <div className="w-full max-w-[220px] space-y-3">
           <div className="h-8 border border-border/60 bg-background rounded-sm" />
           <div className="h-8 border border-border/60 bg-background rounded-sm w-2/3" />
-          <div className="h-9 bg-foreground text-background rounded-sm flex items-center justify-center gap-2 text-[10px] font-mono tracking-widest">
+          <div className="h-9 bg-foreground text-background rounded-sm flex items-center justify-center gap-2 text-xs font-mono tracking-widest">
             <Check className="size-3" /> SAVE
           </div>
         </div>
@@ -81,7 +81,7 @@ function StepMockup({ kind, label }: { kind: MockupKind; label?: string }) {
           <div className="h-6 w-11 rounded-full bg-emerald-500 relative shrink-0">
             <div className="absolute top-0.5 right-0.5 size-5 rounded-full bg-white shadow" />
           </div>
-          <span className="text-[10px] font-mono tracking-widest text-emerald-600">ACTIVE</span>
+          <span className="text-xs font-mono tracking-widest text-emerald-600">ACTIVE</span>
         </div>
       );
     case "reorder":
@@ -102,7 +102,7 @@ function StepMockup({ kind, label }: { kind: MockupKind; label?: string }) {
       return (
         <div className="w-full max-w-[200px] h-20 border border-dashed border-border rounded-sm flex flex-col items-center justify-center gap-1.5 text-muted-foreground">
           <Upload className="size-4" />
-          <span className="text-[9px] font-mono tracking-widest">UPLOAD</span>
+          <span className="text-xs font-mono tracking-widest">UPLOAD</span>
         </div>
       );
     case "search":
@@ -140,7 +140,7 @@ function StepMockup({ kind, label }: { kind: MockupKind; label?: string }) {
           <div className="size-9 border border-red-300 rounded-sm flex items-center justify-center text-red-500">
             <Trash2 className="size-4" />
           </div>
-          <div className="text-[10px] font-mono tracking-widest text-muted-foreground">CONFIRM?</div>
+          <div className="text-xs font-mono tracking-widest text-muted-foreground">CONFIRM?</div>
         </div>
       );
     case "chart":
@@ -156,7 +156,7 @@ function StepMockup({ kind, label }: { kind: MockupKind; label?: string }) {
         <div className="grid grid-cols-2 gap-2 w-full max-w-[200px]">
           {["REVENUE", "ORDERS"].map((label2) => (
             <div key={label2} className="border border-border/60 bg-background rounded-sm p-2.5">
-              <div className="text-[8px] font-mono tracking-widest text-muted-foreground">{label2}</div>
+              <div className="text-xs font-mono tracking-widest text-muted-foreground">{label2}</div>
               <div className="h-3 w-10 bg-border/60 rounded-sm mt-1.5" />
             </div>
           ))}
@@ -186,7 +186,7 @@ function StepMockup({ kind, label }: { kind: MockupKind; label?: string }) {
       return (
         <div className="flex items-center gap-2">
           <MousePointerClick className="size-4 text-muted-foreground" />
-          <div className="h-9 px-4 bg-foreground text-background rounded-sm flex items-center justify-center text-[10px] font-mono tracking-widest whitespace-nowrap">
+          <div className="h-9 px-4 bg-foreground text-background rounded-sm flex items-center justify-center text-xs font-mono tracking-widest whitespace-nowrap">
             {label ? label.toUpperCase() : "CLICK"}
           </div>
         </div>
@@ -221,7 +221,7 @@ function AdminGuide() {
       </p>
 
       <label className="block mb-6 max-w-md">
-        <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SECTION</div>
+        <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">SECTION</div>
         <select
           value={selectedKey}
           onChange={(e) => setSelectedKey(e.target.value)}
@@ -240,13 +240,13 @@ function AdminGuide() {
       <div className="border border-border bg-surface p-6">
         <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
           <div>
-            <div className="text-mono text-[10px] tracking-[0.25em] text-primary mb-1">{entry.group.toUpperCase()}</div>
+            <div className="text-mono text-xs tracking-[0.25em] text-primary mb-1">{entry.group.toUpperCase()}</div>
             <h2 className="text-display text-2xl md:text-3xl">{entry.label.toUpperCase()}.</h2>
           </div>
           <Link
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             to={entry.path as any}
-            className="shrink-0 border border-primary text-primary h-9 px-4 inline-flex items-center gap-2 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="shrink-0 border border-primary text-primary h-9 px-4 inline-flex items-center gap-2 text-mono text-xs tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors"
           >
             GO TO THIS SECTION <ArrowRight className="size-3.5" />
           </Link>
@@ -258,7 +258,7 @@ function AdminGuide() {
           {/* STEP WALKTHROUGH */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground">
+              <div className="text-mono text-xs tracking-widest text-muted-foreground">
                 STEP {stepIndex + 1} OF {total}
               </div>
               <div className="flex gap-1.5">
@@ -275,7 +275,7 @@ function AdminGuide() {
 
             <div className="border border-border bg-background p-5 min-h-[110px] flex items-center">
               <div className="flex gap-3 items-start">
-                <span className="shrink-0 size-6 rounded-full bg-foreground text-background text-mono text-[11px] flex items-center justify-center mt-0.5">
+                <span className="shrink-0 size-6 rounded-full bg-foreground text-background text-mono text-xs flex items-center justify-center mt-0.5">
                   {stepIndex + 1}
                 </span>
                 <p className="text-sm leading-relaxed">{currentStep}</p>
@@ -287,7 +287,7 @@ function AdminGuide() {
                 type="button"
                 onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
                 disabled={stepIndex === 0}
-                className="border border-border h-9 px-3 inline-flex items-center gap-1.5 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary disabled:opacity-30 disabled:hover:border-border disabled:hover:text-foreground"
+                className="border border-border h-9 px-3 inline-flex items-center gap-1.5 text-mono text-xs tracking-widest hover:border-primary hover:text-primary disabled:opacity-30 disabled:hover:border-border disabled:hover:text-foreground"
               >
                 <ArrowLeft className="size-3.5" /> BACK
               </button>
@@ -295,7 +295,7 @@ function AdminGuide() {
                 type="button"
                 onClick={() => setStepIndex((i) => Math.min(total - 1, i + 1))}
                 disabled={stepIndex === total - 1}
-                className="bg-primary text-primary-foreground h-9 px-4 inline-flex items-center gap-1.5 text-mono text-[10px] tracking-widest hover:glow-primary disabled:opacity-30"
+                className="bg-primary text-primary-foreground h-9 px-4 inline-flex items-center gap-1.5 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-30"
               >
                 NEXT <ArrowRight className="size-3.5" />
               </button>
@@ -303,7 +303,7 @@ function AdminGuide() {
 
             {entry.notes && entry.notes.length > 0 && (
               <div className="border border-border/70 bg-muted/30 p-4 mt-6">
-                <div className="flex items-center gap-2 text-mono text-[10px] tracking-widest text-muted-foreground mb-2">
+                <div className="flex items-center gap-2 text-mono text-xs tracking-widest text-muted-foreground mb-2">
                   <Info className="size-3.5" /> GOOD TO KNOW
                 </div>
                 <ul className="space-y-1.5">
@@ -320,11 +320,11 @@ function AdminGuide() {
 
           {/* SIDE PREVIEW */}
           <div className="md:sticky md:top-6 self-start">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">WHAT TO LOOK FOR</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-2">WHAT TO LOOK FOR</div>
             <div className="border border-border bg-background p-6 flex items-center justify-center min-h-[140px]">
               <StepMockup kind={visual.kind} label={visual.label} />
             </div>
-            <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">{MOCKUP_CAPTION[visual.kind]}</p>
+            <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{MOCKUP_CAPTION[visual.kind]}</p>
           </div>
         </div>
       </div>

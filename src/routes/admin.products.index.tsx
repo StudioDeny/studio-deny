@@ -88,7 +88,7 @@ function AdminProducts() {
       <div className="flex flex-wrap gap-2 mb-4">
         {(["ALL", ...cats.map((c) => c.name)] as string[]).map((tab) => (
           <button key={tab} onClick={() => setActive(tab)}
-            className={`text-mono text-[10px] tracking-widest px-3 h-8 inline-flex items-center gap-2 border ${active === tab ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}>
+            className={`text-mono text-xs tracking-widest px-3 h-8 inline-flex items-center gap-2 border ${active === tab ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}>
             {tab.toUpperCase()} <span className="opacity-60">({counts[tab] ?? 0})</span>
           </button>
         ))}
@@ -102,7 +102,7 @@ function AdminProducts() {
 
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">PRODUCT</th>
               <th className="text-left p-3 hidden sm:table-cell">CATEGORY</th>
@@ -123,7 +123,7 @@ function AdminProducts() {
                     <div className="w-10 h-12 bg-muted overflow-hidden flex-shrink-0"><img src={thumbImage(p.image, 120)} alt="" width={40} height={48} loading="lazy" decoding="async" className="w-full h-full object-cover" /></div>
                     <div className="min-w-0">
                       <div className="font-semibold truncate">{p.name}</div>
-                      <div className="text-mono text-[10px] text-muted-foreground truncate">{p.slug}</div>
+                      <div className="text-mono text-xs text-muted-foreground truncate">{p.slug}</div>
                     </div>
                   </div>
                 </td>
@@ -134,12 +134,12 @@ function AdminProducts() {
                 <td className="p-3 hidden sm:table-cell">
                   <div className="flex flex-col gap-1 items-start">
                     {stockTotals[p.slug] === undefined && (
-                      <span className="text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold bg-amber-100 text-amber-800">NEEDS SIZE COUNTS</span>
+                      <span className="text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold bg-amber-100 text-amber-800">NEEDS SIZE COUNTS</span>
                     )}
-                    <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${!(p.is_active ?? true) ? "bg-red-100 text-red-700" : p.storeExclusive ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>
+                    <span className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${!(p.is_active ?? true) ? "bg-red-100 text-red-700" : p.storeExclusive ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>
                       {!(p.is_active ?? true) ? "HIDDEN" : p.storeExclusive ? "STORE ONLY" : "LIVE ON SITE"}
                     </span>
-                    <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${
+                    <span className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${
                       stock > 5
                         ? "bg-emerald-100 text-emerald-800"
                         : stock > 0

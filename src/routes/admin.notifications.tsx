@@ -46,7 +46,7 @@ function AdminNotifications() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`text-mono text-[10px] tracking-widest px-3 h-9 border ${tab === t ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}
+            className={`text-mono text-xs tracking-widest px-3 h-9 border ${tab === t ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}
           >
             {t.toUpperCase()}
           </button>
@@ -124,14 +124,14 @@ function TemplatesTab() {
           Body text and status are pulled directly from Meta — editing them here never affected what actually gets
           sent, since Meta always uses its own approved copy. ACTIVE just controls whether we queue this template at all.
         </p>
-        <button onClick={sync} disabled={syncing} className="shrink-0 ml-4 border border-primary text-primary h-9 px-4 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground disabled:opacity-50 inline-flex items-center gap-2">
+        <button onClick={sync} disabled={syncing} className="shrink-0 ml-4 border border-primary text-primary h-9 px-4 text-mono text-xs tracking-widest hover:bg-primary hover:text-primary-foreground disabled:opacity-50 inline-flex items-center gap-2">
           <RefreshCw className={`size-3.5 ${syncing ? "animate-spin" : ""}`} /> {syncing ? "SYNCING…" : "SYNC FROM META"}
         </button>
       </div>
 
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm min-w-[600px]">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">NAME</th>
               <th className="text-left p-3 hidden md:table-cell">TEMPLATE ID</th>
@@ -145,22 +145,22 @@ function TemplatesTab() {
               <Fragment key={r.id}>
                 <tr className="hover:bg-muted/40">
                   <td className="p-3 font-semibold">{r.name}</td>
-                  <td className="p-3 text-mono text-[11px] text-muted-foreground hidden md:table-cell">{r.template_name}</td>
+                  <td className="p-3 text-mono text-xs text-muted-foreground hidden md:table-cell">{r.template_name}</td>
                   <td className="p-3">
-                    <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${META_STATUS_COLORS[r.meta_status ?? ""] ?? "bg-muted text-muted-foreground"}`}>
+                    <span className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${META_STATUS_COLORS[r.meta_status ?? ""] ?? "bg-muted text-muted-foreground"}`}>
                       {r.meta_status ?? "NOT SYNCED"}
                     </span>
                   </td>
                   <td className="p-3">
                     <button
                       onClick={() => toggle(r.id, !r.is_active)}
-                      className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
+                      className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
                     >
                       {r.is_active ? "ACTIVE" : "INACTIVE"}
                     </button>
                   </td>
                   <td className="p-3 text-right">
-                    <button onClick={() => setExpanded(expanded === r.id ? null : r.id)} className="border border-border h-8 px-3 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary">
+                    <button onClick={() => setExpanded(expanded === r.id ? null : r.id)} className="border border-border h-8 px-3 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">
                       {expanded === r.id ? "HIDE" : "VIEW BODY"}
                     </button>
                   </td>
@@ -168,9 +168,9 @@ function TemplatesTab() {
                 {expanded === r.id && (
                   <tr>
                     <td colSpan={5} className="p-4 bg-muted/30 text-sm">
-                      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">BODY TEXT (from Meta)</div>
+                      <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">BODY TEXT (from Meta)</div>
                       <p className="font-mono whitespace-pre-wrap">{r.body_text || "—"}</p>
-                      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mt-3 mb-1">VARIABLES (in order)</div>
+                      <div className="text-mono text-xs tracking-widest text-muted-foreground mt-3 mb-1">VARIABLES (in order)</div>
                       <p className="font-mono text-xs">{r.variables.join(", ") || "—"}</p>
                     </td>
                   </tr>
@@ -214,7 +214,7 @@ function QueueTab() {
   return (
     <div className="border border-border bg-surface overflow-x-auto">
       <table className="w-full text-sm min-w-[560px]">
-        <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+        <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
           <tr>
             <th className="text-left p-3">PHONE</th>
             <th className="text-left p-3 hidden md:table-cell">ORDER</th>
@@ -227,15 +227,15 @@ function QueueTab() {
         <tbody className="divide-y divide-border">
           {rows.map((r) => (
             <tr key={r.id} className="hover:bg-muted/40">
-              <td className="p-3 text-mono text-[11px]">{r.recipient_phone}</td>
-              <td className="p-3 text-mono text-[10px] text-muted-foreground hidden md:table-cell">{r.order_id ? `#${r.order_id.slice(0, 8)}` : "—"}</td>
+              <td className="p-3 text-mono text-xs">{r.recipient_phone}</td>
+              <td className="p-3 text-mono text-xs text-muted-foreground hidden md:table-cell">{r.order_id ? `#${r.order_id.slice(0, 8)}` : "—"}</td>
               <td className="p-3">
-                <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${STATUS_COLORS[r.status] ?? "bg-muted text-muted-foreground"}`}>
+                <span className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${STATUS_COLORS[r.status] ?? "bg-muted text-muted-foreground"}`}>
                   {r.status.toUpperCase()}
                 </span>
               </td>
               <td className="p-3 text-xs text-muted-foreground max-w-[200px] truncate hidden lg:table-cell">{r.error_message ?? "—"}</td>
-              <td className="p-3 text-mono text-[10px] text-muted-foreground hidden md:table-cell">{new Date(r.created_at).toLocaleDateString()}</td>
+              <td className="p-3 text-mono text-xs text-muted-foreground hidden md:table-cell">{new Date(r.created_at).toLocaleDateString()}</td>
               <td className="p-3 text-right">
                 {r.status === "failed" && (
                   <button onClick={() => retry(r.id)} className="border border-border h-8 w-8 inline-flex items-center justify-center hover:border-primary hover:text-primary">
@@ -276,17 +276,17 @@ function LogsTab() {
     <div>
       <div className="flex flex-wrap gap-3 mb-4">
         <div>
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">FROM</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">FROM</div>
           <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="bg-background border border-border h-9 px-3 text-sm font-mono" />
         </div>
         <div>
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">TO</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">TO</div>
           <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="bg-background border border-border h-9 px-3 text-sm font-mono" />
         </div>
       </div>
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm min-w-[500px]">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">PHONE</th>
               <th className="text-left p-3 hidden md:table-cell">ORDER</th>
@@ -297,14 +297,14 @@ function LogsTab() {
           <tbody className="divide-y divide-border">
             {rows.map((r) => (
               <tr key={r.id} className="hover:bg-muted/40">
-                <td className="p-3 text-mono text-[11px]">{r.recipient_phone}</td>
-                <td className="p-3 text-mono text-[10px] text-muted-foreground hidden md:table-cell">{r.order_id ? `#${r.order_id.slice(0, 8)}` : "—"}</td>
+                <td className="p-3 text-mono text-xs">{r.recipient_phone}</td>
+                <td className="p-3 text-mono text-xs text-muted-foreground hidden md:table-cell">{r.order_id ? `#${r.order_id.slice(0, 8)}` : "—"}</td>
                 <td className="p-3">
-                  <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${STATUS_COLORS[r.status] ?? "bg-muted text-muted-foreground"}`}>
+                  <span className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${STATUS_COLORS[r.status] ?? "bg-muted text-muted-foreground"}`}>
                     {r.status.toUpperCase()}
                   </span>
                 </td>
-                <td className="p-3 text-mono text-[10px] text-muted-foreground hidden md:table-cell">{new Date(r.created_at).toLocaleDateString()}</td>
+                <td className="p-3 text-mono text-xs text-muted-foreground hidden md:table-cell">{new Date(r.created_at).toLocaleDateString()}</td>
               </tr>
             ))}
             {rows.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-muted-foreground text-sm">No logs found.</td></tr>}
@@ -368,7 +368,7 @@ function CampaignsTab() {
       </div>
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm min-w-[560px]">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">NAME</th>
               <th className="text-left p-3 hidden md:table-cell">SEGMENT</th>
@@ -383,14 +383,14 @@ function CampaignsTab() {
                 <td className="p-3 font-semibold">{r.name}</td>
                 <td className="p-3 text-muted-foreground hidden md:table-cell">{r.target_segment ?? "—"}</td>
                 <td className="p-3">
-                  <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${STATUS_COLORS[r.status] ?? "bg-muted text-muted-foreground"}`}>
+                  <span className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${STATUS_COLORS[r.status] ?? "bg-muted text-muted-foreground"}`}>
                     {r.status.toUpperCase()}
                   </span>
                 </td>
-                <td className="p-3 text-mono text-[10px] text-muted-foreground hidden lg:table-cell">
+                <td className="p-3 text-mono text-xs text-muted-foreground hidden lg:table-cell">
                   {r.scheduled_at ? new Date(r.scheduled_at).toLocaleString() : "—"}
                 </td>
-                <td className="p-3 text-mono text-[10px]">
+                <td className="p-3 text-mono text-xs">
                   <span className="text-emerald-600">{r.sent_count} sent</span>
                   {" · "}
                   <span className="text-primary">{r.delivered_count} del</span>
@@ -408,23 +408,23 @@ function CampaignsTab() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="bg-background border border-border w-full max-w-md">
             <div className="flex items-center justify-between p-5 border-b border-border">
-              <div className="text-mono text-[11px] tracking-[0.25em] text-primary">NEW CAMPAIGN</div>
+              <div className="text-mono text-xs tracking-[0.25em] text-primary">NEW CAMPAIGN</div>
               <button onClick={() => setModal(false)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
             </div>
             <div className="p-5 space-y-4">
               <div>
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">CAMPAIGN NAME *</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">CAMPAIGN NAME *</div>
                 <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full bg-background border border-border h-10 px-3 text-sm font-mono" />
               </div>
               <div>
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">TEMPLATE</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">TEMPLATE</div>
                 <select value={form.template_id} onChange={(e) => setForm({ ...form, template_id: e.target.value })} className="w-full bg-background border border-border h-10 px-3 text-sm font-mono">
                   <option value="">— SELECT TEMPLATE —</option>
                   {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </div>
               <div>
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">TARGET SEGMENT</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">TARGET SEGMENT</div>
                 <select value={form.target_segment} onChange={(e) => setForm({ ...form, target_segment: e.target.value })} className="w-full bg-background border border-border h-10 px-3 text-sm font-mono">
                   <option value="all">ALL CUSTOMERS</option>
                   <option value="rookie">ROOKIE TIER</option>
@@ -435,7 +435,7 @@ function CampaignsTab() {
                 </select>
               </div>
               <div>
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SCHEDULED AT</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">SCHEDULED AT</div>
                 <input type="datetime-local" value={form.scheduled_at} onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })} className="w-full bg-background border border-border h-10 px-3 text-sm font-mono" />
               </div>
             </div>
@@ -506,7 +506,7 @@ function UsageTab() {
         <Card label="TOTAL SENT (ALL TIME)" v={logs.length} />
         <Card label={`SENT — ${monthLabel(thisMonthKey)}`} v={thisMonthCount} />
         <div className="border border-border bg-surface p-5">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">YOUR RATE (₹ / MESSAGE)</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-2">YOUR RATE (₹ / MESSAGE)</div>
           <input
             type="number"
             step="0.01"
@@ -521,7 +521,7 @@ function UsageTab() {
 
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm min-w-[400px]">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">MONTH</th>
               <th className="text-left p-3">MESSAGES SENT</th>
@@ -547,7 +547,7 @@ function UsageTab() {
 function Card({ label, v }: { label: string; v: React.ReactNode }) {
   return (
     <div className="border border-border bg-surface p-5">
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{label}</div>
+      <div className="text-mono text-xs tracking-widest text-muted-foreground">{label}</div>
       <div className="text-display text-3xl mt-2">{v}</div>
     </div>
   );

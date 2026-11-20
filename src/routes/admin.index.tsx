@@ -45,7 +45,7 @@ function Dashboard() {
         {stats.map((s) => (
           <div key={s.label} className="border border-border bg-surface p-5">
             <div className="flex items-center justify-between">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{s.label}</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground">{s.label}</div>
               <s.icon className="size-4 text-primary" />
             </div>
             <div className="text-display text-3xl mt-2">{s.value}</div>
@@ -54,7 +54,7 @@ function Dashboard() {
       </div>
 
       <div className="mt-6 border border-border bg-surface p-5">
-        <div className="text-mono text-[10px] tracking-widest text-muted-foreground">AVG ORDER VALUE</div>
+        <div className="text-mono text-xs tracking-widest text-muted-foreground">AVG ORDER VALUE</div>
         <div className="text-display text-3xl">{formatINR(aov)}</div>
       </div>
 
@@ -69,7 +69,7 @@ function Dashboard() {
               <div className="text-muted-foreground">{o.userEmail}</div>
               <div>{o.items.length} item(s)</div>
               <div className="text-mono">{formatINR(o.total)}</div>
-              <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${ORDER_STATUS_COLOR[o.status] ?? "bg-muted text-muted-foreground"}`}>{o.status}</span>
+              <span className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${ORDER_STATUS_COLOR[o.status] ?? "bg-muted text-muted-foreground"}`}>{o.status}</span>
             </li>
           ))}
         </ul>

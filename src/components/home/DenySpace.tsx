@@ -156,6 +156,22 @@ function PlayableDenyLogo({
 
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 
+// CMS copy keeps the editor's hard line breaks. Blank lines separate
+// paragraphs; single line breaks become spaces so the text flows naturally.
+// Only the layout changes: the words themselves are not edited.
+function toParagraphs(text: string): string[] {
+  return text
+    .split(/\n\s*\n/)
+    .map((block) =>
+      block
+        .replace(/\s*\n\s*/g, " ")
+        // "CULTURE.A" -> "CULTURE. A": a sentence end glued to the next capital word
+        .replace(/([A-Z]\.)(?=[A-Z])/g, "$1 ")
+        .trim(),
+    )
+    .filter(Boolean);
+}
+
 export function DenySpace() {
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<DenySpaceConfig>("denyspace", DEFAULTS);
 
@@ -208,15 +224,17 @@ export function DenySpace() {
         </motion.p>
 
         {/* BODY DESCRIPTION */}
-        <motion.p
+        <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
           viewport={{ once: true }}
-          className="text-sm sm:text-base text-mono leading-relaxed max-w-2xl mx-auto mb-10 text-white/85 whitespace-pre-line font-normal"
+          className="max-w-2xl mx-auto mb-10 space-y-4 text-sm sm:text-base text-mono leading-relaxed text-center text-white/85"
         >
-          {cfg.description}
-        </motion.p>
+          {toParagraphs(cfg.description).map((p, i) => (
+            <p key={i}>{p}</p>
+          ))}
+        </motion.div>
 
         {/* BENEFITS GRID WITHOUT DIVIDER LINES */}
         <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-4 mb-12 py-4">
@@ -235,10 +253,10 @@ export function DenySpace() {
                 <div className="size-16 sm:size-18 rounded-full border border-white/30 flex items-center justify-center bg-black/60 shadow-[0_0_25px_rgba(255,255,255,0.12)] group-hover:border-white group-hover:shadow-[0_0_35px_rgba(255,255,255,0.3)] transition-all duration-300">
                   <Icon className="size-6 sm:size-7 text-white stroke-[1.5]" />
                 </div>
-                <div className="text-mono text-[11px] sm:text-xs font-bold tracking-[0.2em] uppercase text-white mt-1">
+                <div className="text-mono text-xs sm:text-xs font-bold tracking-[0.2em] uppercase text-white mt-1">
                   {b.label}
                 </div>
-                <p className="text-[11px] sm:text-xs text-mono text-white/70 leading-snug max-w-[160px]">
+                <p className="text-xs sm:text-xs text-mono text-white/70 leading-snug max-w-[160px]">
                   {b.desc}
                 </p>
               </motion.div>

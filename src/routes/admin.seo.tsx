@@ -94,7 +94,7 @@ function AdminSeo() {
           <button
             key={slug}
             onClick={() => setActive(slug)}
-            className={`text-mono text-[10px] tracking-widest px-3 h-8 border ${active === slug ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}
+            className={`text-mono text-xs tracking-widest px-3 h-8 border ${active === slug ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}
           >
             /{slug.toUpperCase()}
           </button>
@@ -102,10 +102,10 @@ function AdminSeo() {
       </div>
 
       <div className="border border-border bg-surface p-6 space-y-5">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">PAGE: /{active.toUpperCase()}</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">PAGE: /{active.toUpperCase()}</div>
 
         <section className="space-y-4">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground">META TAGS</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground">META TAGS</div>
           <F label="TITLE TAG">
             <input
               value={draft.title ?? ""}
@@ -138,12 +138,12 @@ function AdminSeo() {
               onChange={(e) => setDraft({ ...draft, no_index: e.target.checked })}
               className="w-4 h-4"
             />
-            <span className="text-mono text-[11px] tracking-widest">NO INDEX (hide from search engines)</span>
+            <span className="text-mono text-xs tracking-widest">NO INDEX (hide from search engines)</span>
           </label>
         </section>
 
         <section className="space-y-4 pt-4 border-t border-border">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground">OPEN GRAPH</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground">OPEN GRAPH</div>
           <F label="OG TITLE">
             <input
               value={draft.og_title ?? ""}
@@ -193,7 +193,7 @@ function AdminSeo() {
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">{label}</div>
+      <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">{label}</div>
       {children}
     </label>
   );

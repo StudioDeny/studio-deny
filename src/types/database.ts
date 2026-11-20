@@ -22,6 +22,7 @@ export type DBProduct = {
   is_active: boolean;
   is_featured: boolean;
   is_best_seller: boolean;
+  is_new_arrival: boolean;
   store_exclusive: boolean;
   created_at: string;
   updated_at: string;

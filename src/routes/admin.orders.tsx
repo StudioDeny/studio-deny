@@ -74,7 +74,7 @@ function AdminOrders() {
       ) : (
         <div className="border border-border bg-surface overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+            <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
               <tr>
                 <th className="text-left p-3">ORDER</th>
                 <th className="text-left p-3">CUSTOMER</th>
@@ -96,8 +96,8 @@ function AdminOrders() {
                     {isStorePickup(o) ? (
                       // Store pickup never ships: no status steps here, handled in Store Pickups.
                       <Link to="/admin/store-pickups" className="inline-flex flex-col items-start gap-1 hover:opacity-80">
-                        <span className="text-mono text-[10px] tracking-widest px-2 py-1 bg-foreground text-background">STORE PICKUP</span>
-                        <span className={`text-mono text-[10px] tracking-widest ${o.collectedAt ? "text-emerald-600" : isPickupOverdue(o) ? "text-red-500" : "text-amber-600"}`}>
+                        <span className="text-mono text-xs tracking-widest px-2 py-1 bg-foreground text-background">STORE PICKUP</span>
+                        <span className={`text-mono text-xs tracking-widest ${o.collectedAt ? "text-emerald-600" : isPickupOverdue(o) ? "text-red-500" : "text-amber-600"}`}>
                           {o.status === "CANCELLED" || o.status === "REFUNDED" ? o.status : o.collectedAt ? "COLLECTED" : isPickupOverdue(o) ? "OVERDUE" : "PENDING"}
                         </span>
                       </Link>
@@ -123,7 +123,7 @@ function AdminOrders() {
                       <button
                         onClick={() => ship(o.id)}
                         disabled={shipping === o.id}
-                        className="border border-primary text-primary px-3 h-8 text-mono text-[10px] tracking-widest inline-flex items-center gap-1.5 hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                        className="border border-primary text-primary px-3 h-8 text-mono text-xs tracking-widest inline-flex items-center gap-1.5 hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
                       >
                         {shipping === o.id ? <Loader2 className="size-3 animate-spin" /> : <Truck className="size-3" />}
                         {shipping === o.id ? "CREATING…" : "CREATE SHIPMENT"}
@@ -134,9 +134,9 @@ function AdminOrders() {
                   </td>
                   <td className="p-3 text-right">
                     <div className="inline-flex gap-2">
-                      <Link to="/admin/invoice/$id" params={{ id: o.id }} className="text-mono text-[10px] tracking-widest text-primary hover:underline">INVOICE</Link>
+                      <Link to="/admin/invoice/$id" params={{ id: o.id }} className="text-mono text-xs tracking-widest text-primary hover:underline">INVOICE</Link>
                       {o.status !== "REFUNDED" && (
-                        <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="text-mono text-[10px] tracking-widest text-red-500 hover:underline">REFUND</button>
+                        <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="text-mono text-xs tracking-widest text-red-500 hover:underline">REFUND</button>
                       )}
                     </div>
                   </td>

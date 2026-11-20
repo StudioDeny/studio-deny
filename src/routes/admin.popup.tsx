@@ -61,7 +61,7 @@ function IconPicker({ value, onChange }: { value: string; onChange: (name: strin
                 }`}
               >
                 <Icon className="size-4" />
-                <span className="text-[8px] tracking-wide truncate w-full text-center">{name}</span>
+                <span className="text-xs tracking-wide truncate w-full text-center">{name}</span>
               </button>
             );
           })}
@@ -112,7 +112,7 @@ function LogoField({ value, onChange }: { value: string | null; onChange: (url: 
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="border border-border h-10 px-4 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50 shrink-0"
+          className="border border-border h-10 px-4 text-mono text-xs tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50 shrink-0"
         >
           {uploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
           {uploading ? `UPLOADING… ${progress}%` : "UPLOAD"}
@@ -174,7 +174,7 @@ function AdminPopup() {
   return (
     <div>
       <h1 className="text-display text-4xl md:text-5xl mb-2">POPUP.</h1>
-      <p className="text-mono text-[11px] tracking-widest text-muted-foreground mb-6">
+      <p className="text-mono text-xs tracking-widest text-muted-foreground mb-6">
         THE LOYALTY POPUP LOGGED-IN MEMBERS SEE AFTER THE DELAY BELOW — NO CODE REQUIRED.
       </p>
 
@@ -188,12 +188,12 @@ function AdminPopup() {
                 onChange={(e) => update({ enabled: e.target.checked })}
                 className="size-4"
               />
-              <span className="text-mono text-[10px] tracking-widest">ENABLED</span>
+              <span className="text-mono text-xs tracking-widest">ENABLED</span>
             </label>
           </div>
 
           <label className="block">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">DELAY BEFORE SHOWING (SECONDS)</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">DELAY BEFORE SHOWING (SECONDS)</div>
             <input
               type="number"
               min={0}
@@ -205,14 +205,14 @@ function AdminPopup() {
         </div>
 
         <div className="border border-border bg-surface p-4 space-y-3">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">BACKGROUND</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">BACKGROUND</div>
           <div className="inline-flex border border-border rounded overflow-hidden mb-3">
             {(["none", "image", "video"] as const).map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => update({ bg_type: t })}
-                className={`px-3 h-7 text-[10px] font-semibold tracking-widest uppercase transition-colors ${
+                className={`px-3 h-7 text-xs font-semibold tracking-widest uppercase transition-colors ${
                   row.bg_type === t ? "bg-foreground text-background" : "bg-background text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -234,80 +234,80 @@ function AdminPopup() {
           )}
 
           <label className="block pt-2">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">LOGO (OPTIONAL)</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">LOGO (OPTIONAL)</div>
             <LogoField value={row.logo_url} onChange={(url) => update({ logo_url: url })} />
           </label>
         </div>
 
         <div className="border border-border bg-surface p-4 space-y-3">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">CONTENT</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">CONTENT</div>
           <label className="block">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">BADGE TEXT</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">BADGE TEXT</div>
             <input value={row.badge_text} onChange={(e) => update({ badge_text: e.target.value })} className="inp" />
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">HEADLINE LINE 1</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">HEADLINE LINE 1</div>
               <input value={row.headline_line1} onChange={(e) => update({ headline_line1: e.target.value })} className="inp" />
             </label>
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">HEADLINE LINE 2</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">HEADLINE LINE 2</div>
               <input value={row.headline_line2} onChange={(e) => update({ headline_line2: e.target.value })} className="inp" />
             </label>
           </div>
           <label className="block">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">BODY TEXT</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">BODY TEXT</div>
             <textarea value={row.body_text} onChange={(e) => update({ body_text: e.target.value })} rows={3} className="inp" />
           </label>
         </div>
 
         <div className="border border-border bg-surface p-4 space-y-3">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">RULE ROW</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">RULE ROW</div>
           <div className="grid grid-cols-3 gap-3">
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">UNLOCK ICON</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">UNLOCK ICON</div>
               <IconPicker value={row.rule_unlock_icon} onChange={(name) => update({ rule_unlock_icon: name })} />
             </label>
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">EARN ICON</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">EARN ICON</div>
               <IconPicker value={row.rule_earn_icon} onChange={(name) => update({ rule_earn_icon: name })} />
             </label>
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">REDEEM ICON</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">REDEEM ICON</div>
               <IconPicker value={row.rule_redeem_icon} onChange={(name) => update({ rule_redeem_icon: name })} />
             </label>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">UNLOCK LABEL</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">UNLOCK LABEL</div>
               <input value={row.rule_unlock_label} onChange={(e) => update({ rule_unlock_label: e.target.value })} className="inp" />
             </label>
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">EARN LABEL</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">EARN LABEL</div>
               <input value={row.rule_earn_label} onChange={(e) => update({ rule_earn_label: e.target.value })} className="inp" />
             </label>
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">REDEEM LABEL</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">REDEEM LABEL</div>
               <input value={row.rule_redeem_label} onChange={(e) => update({ rule_redeem_label: e.target.value })} className="inp" />
             </label>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">EARN VALUE (E.G. "1 PT")</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">EARN VALUE (E.G. "1 PT")</div>
               <input value={row.rule_earn_value} onChange={(e) => update({ rule_earn_value: e.target.value })} className="inp" />
             </label>
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">UNLOCK SUB TEXT (E.G. "SINGLE ORDER")</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">UNLOCK SUB TEXT (E.G. "SINGLE ORDER")</div>
               <input value={row.rule_unlock_sub} onChange={(e) => update({ rule_unlock_sub: e.target.value })} className="inp" />
             </label>
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             UNLOCK's ₹ amount and EARN/REDEEM's "per ₹…" sub text come from the loyalty math in Settings → Loyalty, not from here.
           </p>
         </div>
 
         <div className="border border-border bg-surface p-4 space-y-3">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">TIER LABELS</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">TIER LABELS</div>
           <div className="grid grid-cols-4 gap-3">
             <input value={row.tier_1_label} onChange={(e) => update({ tier_1_label: e.target.value })} className="inp" />
             <input value={row.tier_2_label} onChange={(e) => update({ tier_2_label: e.target.value })} className="inp" />
@@ -317,19 +317,19 @@ function AdminPopup() {
         </div>
 
         <div className="border border-border bg-surface p-4 space-y-3">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">BUTTONS</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">BUTTONS</div>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">PRIMARY BUTTON TEXT</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">PRIMARY BUTTON TEXT</div>
               <input value={row.cta_primary_text} onChange={(e) => update({ cta_primary_text: e.target.value })} className="inp" />
             </label>
             <div className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">PRIMARY BUTTON GOES TO</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">PRIMARY BUTTON GOES TO</div>
               <LinkPicker value={row.cta_primary_href} onChange={(href) => update({ cta_primary_href: href })} />
             </div>
           </div>
           <label className="block">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">SECONDARY BUTTON TEXT ("LATER")</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">SECONDARY BUTTON TEXT ("LATER")</div>
             <input value={row.cta_secondary_text} onChange={(e) => update({ cta_secondary_text: e.target.value })} className="inp max-w-[240px]" />
           </label>
         </div>

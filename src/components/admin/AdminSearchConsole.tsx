@@ -133,13 +133,13 @@ export function AdminSearchConsole() {
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="text-mono text-[12px] tracking-widest text-foreground font-semibold truncate">
+            <div className="text-mono text-xs tracking-widest text-foreground font-semibold truncate">
               {result.entry.name}
             </div>
-            <div className="text-[11px] text-muted-foreground mt-0.5 leading-snug line-clamp-1">
+            <div className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-1">
               {result.entry.description}
             </div>
-            <div className="text-mono text-[9px] tracking-[0.2em] text-muted-foreground/60 mt-1">
+            <div className="text-mono text-xs tracking-[0.2em] text-muted-foreground/60 mt-1">
               {result.entry.breadcrumb}
             </div>
           </div>
@@ -152,7 +152,7 @@ export function AdminSearchConsole() {
             {result.matchedTerms.slice(0, 3).map((term) => (
               <span
                 key={term}
-                className="text-mono text-[8px] tracking-widest px-1.5 py-0.5 bg-primary/8 text-primary/80 border border-primary/10"
+                className="text-mono text-xs tracking-widest px-1.5 py-0.5 bg-primary/8 text-primary/80 border border-primary/10"
               >
                 {term}
               </span>
@@ -181,10 +181,10 @@ export function AdminSearchConsole() {
       >
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="text-mono text-[11px] tracking-widest text-foreground truncate">
+            <div className="text-mono text-xs tracking-widest text-foreground truncate">
               {entry.name}
             </div>
-            <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+            <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
               {entry.description}
             </div>
           </div>
@@ -212,7 +212,7 @@ export function AdminSearchConsole() {
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search settings, features…"
-          className="w-full h-9 pl-9 pr-8 bg-surface border border-border text-mono text-[11px] tracking-widest text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 transition-colors"
+          className="w-full h-9 pl-9 pr-8 bg-surface border border-border text-mono text-xs tracking-widest text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 transition-colors"
           role="combobox"
           aria-expanded={isOpen}
           aria-controls="admin-search-dropdown"
@@ -245,7 +245,7 @@ export function AdminSearchConsole() {
           {!hasQuery && (
             <>
               <div className="px-4 pt-3 pb-1.5">
-                <div className="text-mono text-[9px] tracking-[0.3em] text-muted-foreground/70">
+                <div className="text-mono text-xs tracking-[0.3em] text-muted-foreground/70">
                   QUICK ACCESS
                 </div>
               </div>
@@ -253,7 +253,7 @@ export function AdminSearchConsole() {
                 {quickAccess.map((entry, idx) => renderQuickAccessItem(entry, idx))}
               </div>
               <div className="px-4 py-2 border-t border-border/50">
-                <div className="text-mono text-[8px] tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
+                <div className="text-mono text-xs tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
                   <span>↑↓ navigate</span>
                   <span>↵ open</span>
                   <span>esc close</span>
@@ -266,7 +266,7 @@ export function AdminSearchConsole() {
           {hasQuery && results.length > 0 && (
             <>
               <div className="px-4 pt-3 pb-1.5">
-                <div className="text-mono text-[9px] tracking-[0.3em] text-muted-foreground/70">
+                <div className="text-mono text-xs tracking-[0.3em] text-muted-foreground/70">
                   {results.length} RESULT{results.length !== 1 ? "S" : ""}
                 </div>
               </div>
@@ -276,13 +276,13 @@ export function AdminSearchConsole() {
               {hasMore && (
                 <button
                   onClick={() => setShowAll(true)}
-                  className="w-full px-4 py-2.5 text-mono text-[10px] tracking-widest text-primary hover:bg-muted/40 transition-colors text-center border-t border-border/50"
+                  className="w-full px-4 py-2.5 text-mono text-xs tracking-widest text-primary hover:bg-muted/40 transition-colors text-center border-t border-border/50"
                 >
                   SHOW {results.length - INITIAL_RESULTS} MORE RESULTS
                 </button>
               )}
               <div className="px-4 py-2 border-t border-border/50">
-                <div className="text-mono text-[8px] tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
+                <div className="text-mono text-xs tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
                   <span>↑↓ navigate</span>
                   <span>↵ open</span>
                   <span>esc close</span>
@@ -294,15 +294,15 @@ export function AdminSearchConsole() {
           {/* ── No Results ── */}
           {hasQuery && results.length === 0 && (
             <div className="px-4 py-5">
-              <div className="text-mono text-[11px] tracking-widest text-muted-foreground text-center">
+              <div className="text-mono text-xs tracking-widest text-muted-foreground text-center">
                 NO RESULTS FOUND
               </div>
-              <div className="text-[10px] text-muted-foreground/60 text-center mt-1">
+              <div className="text-xs text-muted-foreground/60 text-center mt-1">
                 for "{query}"
               </div>
               {suggestions.length > 0 && (
                 <div className="mt-4">
-                  <div className="text-mono text-[9px] tracking-[0.3em] text-muted-foreground/50 mb-2">
+                  <div className="text-mono text-xs tracking-[0.3em] text-muted-foreground/50 mb-2">
                     TRY
                   </div>
                   <div className="flex flex-wrap gap-1.5">
@@ -313,7 +313,7 @@ export function AdminSearchConsole() {
                           setQuery(s);
                           setHighlightIdx(-1);
                         }}
-                        className="text-mono text-[10px] tracking-widest px-2.5 py-1 border border-border hover:border-primary hover:text-primary transition-colors"
+                        className="text-mono text-xs tracking-widest px-2.5 py-1 border border-border hover:border-primary hover:text-primary transition-colors"
                       >
                         {s}
                       </button>

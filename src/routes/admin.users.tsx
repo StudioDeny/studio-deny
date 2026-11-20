@@ -90,7 +90,7 @@ function AdminUsers() {
 
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm min-w-[580px]">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">USER</th>
               <th className="text-left p-3 hidden md:table-cell">PHONE</th>
@@ -112,23 +112,23 @@ function AdminUsers() {
                     )}
                     <div className="min-w-0">
                       <div className="font-semibold truncate">{u.name ?? "—"}</div>
-                      <div className="text-mono text-[10px] text-muted-foreground truncate">{u.email ?? u.user_id.slice(0, 12) + "…"}</div>
+                      <div className="text-mono text-xs text-muted-foreground truncate">{u.email ?? u.user_id.slice(0, 12) + "…"}</div>
                     </div>
                   </div>
                 </td>
-                <td className="p-3 text-muted-foreground hidden md:table-cell text-mono text-[11px]">{u.phone ?? "—"}</td>
+                <td className="p-3 text-muted-foreground hidden md:table-cell text-mono text-xs">{u.phone ?? "—"}</td>
                 <td className="p-3">
                   <select
                     value={u.role ?? "customer"}
                     onChange={(e) => changeRole(u, e.target.value as AppRole)}
-                    className={`bg-background border h-8 px-2 text-mono text-[10px] tracking-widest cursor-pointer ${ROLE_COLORS[u.role ?? "customer"]}`}
+                    className={`bg-background border h-8 px-2 text-mono text-xs tracking-widest cursor-pointer ${ROLE_COLORS[u.role ?? "customer"]}`}
                   >
                     {ROLE_OPTIONS.map((r) => (
                       <option key={r} value={r}>{r.toUpperCase()}</option>
                     ))}
                   </select>
                 </td>
-                <td className="p-3 text-mono text-[10px] text-muted-foreground hidden lg:table-cell">
+                <td className="p-3 text-mono text-xs text-muted-foreground hidden lg:table-cell">
                   {new Date(u.created_at).toLocaleDateString()}
                 </td>
               </tr>

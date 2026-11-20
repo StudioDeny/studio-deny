@@ -20,9 +20,8 @@ function Lookbook() {
   const [products, setProducts] = useState<Product[]>([]);
   useEffect(() => { listProducts().then(setProducts); }, []);
   return (
-    <section className="px-4 md:px-8 mt-8 md:mt-12">
-      <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-2">◢ DROP 014</div>
-      <h1 className="text-display text-6xl md:text-9xl mb-10 leading-[0.85]">SHADOW<br />REALM.</h1>
+    <section className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-12">
+      <h1 className="type-h2 mb-10">SHADOW<br />REALM.</h1>
 
       <div className="grid md:grid-cols-12 gap-3 md:gap-5">
         {products.map((p, i) => {

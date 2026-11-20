@@ -14,7 +14,7 @@ export function LookbookCarousel() {
   const navigate = useNavigate();
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [products, setProducts] = useState<Record<string, MiniProduct>>({});
-  const heading = useSectionHeading("lookbook", "LOOKBOOK", { subtitle: "Swipe through curated fits built for daily movement." });
+  const heading = useSectionHeading("lookbook", "LOOKBOOK");
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isSectionHovered, setIsSectionHovered] = useState(false);
@@ -194,10 +194,10 @@ export function LookbookCarousel() {
         className="absolute inset-0 pointer-events-none z-0 flex items-center justify-between px-4 sm:px-12 overflow-hidden select-none"
         aria-hidden="true"
       >
-        <span className="font-display text-[clamp(6rem,22vw,24rem)] leading-none uppercase tracking-[0.2em] text-black/[0.04] font-black transform -translate-y-2">
+        <span className="font-display text-[clamp(6rem,22vw,24rem)] leading-none uppercase tracking-[0.2em] text-black/[0.04] font-bold transform -translate-y-2">
           STUDIO
         </span>
-        <span className="font-display text-[clamp(6rem,22vw,24rem)] leading-none uppercase tracking-[0.2em] text-black/[0.04] font-black transform -translate-y-2">
+        <span className="font-display text-[clamp(6rem,22vw,24rem)] leading-none uppercase tracking-[0.2em] text-black/[0.04] font-bold transform -translate-y-2">
           DENY
         </span>
       </div>
@@ -207,16 +207,11 @@ export function LookbookCarousel() {
       {/* FOREGROUND LAYER 7: Heading */}
       <div className="relative z-10 max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 text-center">
         <EditorialHeading
-          className="text-[clamp(3.5rem,11vw,7rem)] leading-none tracking-[-0.04em] uppercase text-display font-black"
+          className="type-h2"
           style={heading.color ? { color: heading.color } : undefined}
         >
           {heading.text}
         </EditorialHeading>
-        {heading.subtitle && (
-          <EditorialSubheading className="text-base sm:text-lg mt-3 opacity-70 max-w-xl mx-auto text-mono font-medium" delay={0.2}>
-            {heading.subtitle}
-          </EditorialSubheading>
-        )}
       </div>
 
       {/* Full-Bleed 3D Stage with Ground Shadows & Real-time Gesture Swiping */}
@@ -392,10 +387,10 @@ export function LookbookCarousel() {
                 {product && (
                   // Touch screens have no hover: the centre card always shows it.
                   <div className={`absolute inset-x-0 bottom-0 p-3.5 sm:p-4 z-10 flex items-center justify-between gap-2 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto ${isCenter ? "[@media(hover:none)]:opacity-100 [@media(hover:none)]:translate-y-0" : ""}`}>
-                    <span className="font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-white truncate">
+                    <span className="font-mono text-xs sm:text-xs font-bold tracking-[0.2em] uppercase text-white truncate">
                       {product.name}
                     </span>
-                    <span className="shrink-0 font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-white hover:text-primary transition-colors flex items-center gap-1">
+                    <span className="shrink-0 font-mono text-xs sm:text-xs font-bold tracking-[0.2em] uppercase text-white hover:text-primary transition-colors flex items-center gap-1">
                       SHOP THE LOOK <span className="text-primary font-bold">→</span>
                     </span>
                   </div>

@@ -28,7 +28,7 @@ function Customers() {
       {rows.length === 0 ? <p className="text-muted-foreground text-sm">No customers yet.</p> : (
         <div className="border border-border bg-surface overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+            <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
               <tr>
                 <th className="text-left p-3">EMAIL</th>
                 <th className="text-left p-3">ORDERS</th>
@@ -45,7 +45,7 @@ function Customers() {
                   <td className="p-3 text-mono">{r.orders}</td>
                   <td className="p-3 text-mono">{formatINR(r.spent)}</td>
                   <td className="p-3 text-mono">{r.points}</td>
-                  <td className="p-3"><span className="text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold bg-amber-100 text-amber-800">{r.tier}</span></td>
+                  <td className="p-3"><span className="text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold bg-amber-100 text-amber-800">{r.tier}</span></td>
                   <td className="p-3 text-mono text-xs text-muted-foreground">{new Date(r.last).toLocaleDateString()}</td>
                 </tr>
               ))}

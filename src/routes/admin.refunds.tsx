@@ -43,7 +43,7 @@ function Refunds() {
             cells: [
               o.order_number ?? o.id, o.userEmail, new Date(o.createdAt).toLocaleDateString(), formatINR(o.total), o.status,
             ],
-            actions: <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="border border-primary text-primary px-3 h-8 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground">REFUND</button>,
+            actions: <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="border border-primary text-primary px-3 h-8 text-mono text-xs tracking-widest hover:bg-primary hover:text-primary-foreground">REFUND</button>,
           }))} />
         )}
       </Section>
@@ -68,7 +68,7 @@ function Refunds() {
               o.cancelledAt ? new Date(o.cancelledAt).toLocaleDateString() : "—",
               formatINR(o.total), "CANCELLED",
             ],
-            actions: <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="border border-primary text-primary px-3 h-8 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground">REFUND</button>,
+            actions: <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="border border-primary text-primary px-3 h-8 text-mono text-xs tracking-widest hover:bg-primary hover:text-primary-foreground">REFUND</button>,
           }))} />
         )}
       </Section>
@@ -89,7 +89,7 @@ function Refunds() {
 function Card({ label, v }: { label: string; v: React.ReactNode }) {
   return (
     <div className="border border-border bg-surface p-5">
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{label}</div>
+      <div className="text-mono text-xs tracking-widest text-muted-foreground">{label}</div>
       <div className="text-display text-3xl mt-2">{v}</div>
     </div>
   );

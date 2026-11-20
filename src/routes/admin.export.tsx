@@ -205,7 +205,7 @@ function ExportPage() {
         <button
           onClick={loadCounts}
           disabled={loading}
-          className="border border-border h-9 px-3 text-mono text-[10px] tracking-widest inline-flex items-center gap-2 hover:border-primary hover:text-primary disabled:opacity-50"
+          className="border border-border h-9 px-3 text-mono text-xs tracking-widest inline-flex items-center gap-2 hover:border-primary hover:text-primary disabled:opacity-50"
         >
           <RefreshCw className={`size-3 ${loading ? "animate-spin" : ""}`} /> REFRESH
         </button>
@@ -241,7 +241,7 @@ function ExportPage() {
       <h2 className="text-display text-2xl tracking-wider mb-4">ALL TABLES</h2>
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">TABLE</th>
               <th className="text-left p-3">ROWS</th>
@@ -253,7 +253,7 @@ function ExportPage() {
               <tr key={key} className="hover:bg-muted/40">
                 <td className="p-3">
                   <div className="font-semibold text-xs">{key}</div>
-                  <div className="text-mono text-[10px] text-muted-foreground">{label}</div>
+                  <div className="text-mono text-xs text-muted-foreground">{label}</div>
                 </td>
                 <td className="p-3 text-mono text-xs">
                   {loading ? "—" : (counts[key] ?? 0).toLocaleString()}
@@ -263,7 +263,7 @@ function ExportPage() {
                     <button
                       onClick={() => exportTable(key, "csv", label)}
                       disabled={exporting === key + "csv"}
-                      className="border border-border h-7 px-2 text-mono text-[10px] tracking-widest inline-flex items-center gap-1 hover:border-primary hover:text-primary disabled:opacity-50"
+                      className="border border-border h-7 px-2 text-mono text-xs tracking-widest inline-flex items-center gap-1 hover:border-primary hover:text-primary disabled:opacity-50"
                     >
                       {exporting === key + "csv" ? <RefreshCw className="size-2.5 animate-spin" /> : <Download className="size-2.5" />}
                       CSV
@@ -271,7 +271,7 @@ function ExportPage() {
                     <button
                       onClick={() => exportTable(key, "json", label)}
                       disabled={exporting === key + "json"}
-                      className="border border-border h-7 px-2 text-mono text-[10px] tracking-widest inline-flex items-center gap-1 hover:border-primary hover:text-primary disabled:opacity-50"
+                      className="border border-border h-7 px-2 text-mono text-xs tracking-widest inline-flex items-center gap-1 hover:border-primary hover:text-primary disabled:opacity-50"
                     >
                       {exporting === key + "json" ? <RefreshCw className="size-2.5 animate-spin" /> : <Download className="size-2.5" />}
                       JSON
@@ -295,10 +295,10 @@ function Section({
   return (
     <div className="border border-border bg-surface p-5">
       <div className="flex justify-between items-center mb-4">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">{title}</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">{title}</div>
         <div className="text-right">
           <div className="text-mono text-xs text-foreground">{count.toLocaleString()}</div>
-          <div className="text-mono text-[9px] text-muted-foreground uppercase">{label}</div>
+          <div className="text-mono text-xs text-muted-foreground uppercase">{label}</div>
         </div>
       </div>
       <div className="flex flex-wrap gap-2">{children}</div>

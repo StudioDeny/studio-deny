@@ -10,8 +10,8 @@ function Returns() {
   return (
     <div className="min-h-screen bg-background text-foreground pt-28 pb-24 px-4 sm:px-8 lg:px-16">
       <div className="max-w-[760px] mx-auto">
-        <p className="text-mono text-[10px] tracking-[0.3em] text-primary mb-4">POLICIES</p>
-        <h1 className="text-display text-[clamp(3rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase mb-10">
+        <p className="text-mono text-xs tracking-[0.3em] text-primary mb-4">POLICIES</p>
+        <h1 className="type-h2 mb-10">
           RETURNS &<br />EXCHANGE
         </h1>
 

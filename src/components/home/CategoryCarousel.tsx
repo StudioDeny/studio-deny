@@ -79,7 +79,7 @@ export function CategoryCarousel() {
             exit={{ opacity: 0, y: -30, transition: { duration: 0.3 } }}
             className="flex flex-col items-center"
           >
-            <h2 className="text-white text-[clamp(2.5rem,8vw,6rem)] text-display uppercase tracking-wider">
+            <h2 className="text-white text-[clamp(3rem,9vw,6rem)] text-display uppercase tracking-wider">
               {slide.label}
             </h2>
             {slide.subtitle && (
@@ -100,7 +100,7 @@ export function CategoryCarousel() {
           <SiteLink
             href={slide.href}
             // Same fill as the Men/Women buttons, replacing an instant colour swap.
-            className="btn-fill group inline-flex items-center px-8 py-3 border-2 border-white bg-black/30 backdrop-blur-md text-xs sm:text-sm font-mono font-bold tracking-[0.2em] uppercase shadow-xl transition-transform active:scale-95"
+            className="btn-fill group inline-flex items-center whitespace-nowrap px-8 py-3 border-2 border-white bg-black/30 backdrop-blur-md text-xs sm:text-sm font-mono font-bold tracking-[0.2em] uppercase shadow-xl transition-transform active:scale-95"
           >
             <span className="btn-fill-bg bg-white" aria-hidden />
             <span className="btn-fill-front inline-flex items-center gap-2 text-white">{slide.cta_label || "SHOP COLLECTION →"}</span>

@@ -16,12 +16,11 @@ function WishlistPage() {
   const items = allProducts.filter((p) => slugs.includes(p.slug));
 
   return (
-    <section className="px-4 md:px-8 mt-8 md:mt-12">
-      <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-2">◢ SAVED FOR LATER</div>
+    <section className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-12">
       <div className="flex items-end justify-between flex-wrap gap-3 mb-8">
-        <h1 className="text-display text-5xl md:text-7xl">WISHLIST.</h1>
+        <h1 className="type-h2">WISHLIST.</h1>
         {items.length > 0 && (
-          <button onClick={clear} className="text-mono text-[11px] tracking-widest text-muted-foreground hover:text-primary">CLEAR ALL</button>
+          <button onClick={clear} className="text-mono text-xs tracking-widest text-muted-foreground hover:text-primary">CLEAR ALL</button>
         )}
       </div>
 

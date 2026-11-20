@@ -77,7 +77,7 @@ function AdminSignupPopup() {
   return (
     <div>
       <h1 className="text-display text-4xl md:text-5xl mb-2">SIGNUP POPUP.</h1>
-      <p className="text-mono text-[11px] tracking-widest text-muted-foreground mb-6">
+      <p className="text-mono text-xs tracking-widest text-muted-foreground mb-6">
         SHOWN TO LOGGED-OUT VISITORS. NEW SIGNUPS SEE THEIR WELCOME CODE RIGHT AWAY.
       </p>
 
@@ -116,7 +116,7 @@ function AdminSignupPopup() {
             <div className="inline-flex border border-border overflow-hidden">
               {(["color", "image", "video"] as const).map((t) => (
                 <button key={t} type="button" onClick={() => update({ bg_type: t })}
-                  className={`px-3 h-7 text-[10px] font-semibold tracking-widest uppercase ${row.bg_type === t ? "bg-foreground text-background" : "bg-background text-muted-foreground hover:text-foreground"}`}>
+                  className={`px-3 h-7 text-xs font-semibold tracking-widest uppercase ${row.bg_type === t ? "bg-foreground text-background" : "bg-background text-muted-foreground hover:text-foreground"}`}>
                   {t === "color" ? "PLAIN COLOUR" : t}
                 </button>
               ))}
@@ -174,12 +174,12 @@ function AdminSignupPopup() {
         <div className="xl:sticky xl:top-6 min-w-0 space-y-3">
           <div className="flex gap-2 flex-wrap">
             {(["desktop", "mobile"] as const).map((d) => (
-              <button key={d} type="button" onClick={() => setDevice(d)} className={`h-8 px-3 border text-mono text-[10px] tracking-widest inline-flex items-center gap-1 ${device === d ? "border-primary text-primary" : "border-border"}`}>
+              <button key={d} type="button" onClick={() => setDevice(d)} className={`h-8 px-3 border text-mono text-xs tracking-widest inline-flex items-center gap-1 ${device === d ? "border-primary text-primary" : "border-border"}`}>
                 {d === "desktop" ? <Monitor className="size-3" /> : <Smartphone className="size-3" />} {d.toUpperCase()}
               </button>
             ))}
             {(["form", "success"] as const).map((s) => (
-              <button key={s} type="button" onClick={() => setPreviewStage(s)} className={`h-8 px-3 border text-mono text-[10px] tracking-widest ${previewStage === s ? "border-primary text-primary" : "border-border"}`}>
+              <button key={s} type="button" onClick={() => setPreviewStage(s)} className={`h-8 px-3 border text-mono text-xs tracking-widest ${previewStage === s ? "border-primary text-primary" : "border-border"}`}>
                 {s === "form" ? "SIGNUP FORM" : "AFTER SIGNUP"}
               </button>
             ))}

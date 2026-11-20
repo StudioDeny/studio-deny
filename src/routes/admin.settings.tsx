@@ -26,7 +26,7 @@ function AdminSettings() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`text-mono text-[10px] tracking-widest px-4 h-9 border ${tab === t ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}
+            className={`text-mono text-xs tracking-widest px-4 h-9 border ${tab === t ? "bg-primary text-primary-foreground border-primary" : "border-border hover:border-primary hover:text-primary"}`}
           >
             {t.toUpperCase()}
           </button>
@@ -60,7 +60,7 @@ function LoyaltyTab() {
     <div className="space-y-6">
       <section className="border border-border bg-surface p-6 flex items-start justify-between gap-6">
         <div>
-          <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-1">LOYALTY PROGRAM · {s.enabled ? "ON" : "OFF"}</div>
+          <div className="text-mono text-xs tracking-[0.25em] text-primary mb-1">LOYALTY PROGRAM · {s.enabled ? "ON" : "OFF"}</div>
           <p className="text-muted-foreground text-xs text-mono max-w-xl">
             {s.enabled
               ? "Customers see their tier and points on their account page and get their tier discount at checkout."
@@ -80,11 +80,11 @@ function LoyaltyTab() {
       </section>
 
       <section className="border border-border bg-surface p-6">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-4">LOYALTY DISCOUNT BY TIER</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary mb-4">LOYALTY DISCOUNT BY TIER</div>
         <div className="grid sm:grid-cols-2 gap-4">
           {TIER_KEYS.map((t) => (
             <label key={t} className="block">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">{t} (%)</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">{t} (%)</div>
               <input
                 type="number" min={0} max={90}
                 value={s.discount[t]}
@@ -97,13 +97,13 @@ function LoyaltyTab() {
       </section>
 
       <section className="border border-border bg-surface p-6">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-1">LOYALTY POOL ENTRY</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary mb-1">LOYALTY POOL ENTRY</div>
         <p className="text-muted-foreground text-xs mb-4 text-mono">
           A customer only joins the loyalty pool after placing a <strong>single order</strong> worth at least this amount.
           Multiple smaller orders do not count.
         </p>
         <label className="block max-w-xs">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">MINIMUM SINGLE ORDER (₹)</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">MINIMUM SINGLE ORDER (₹)</div>
           <input
             type="number" min={0}
             value={s.entryThreshold}
@@ -114,14 +114,14 @@ function LoyaltyTab() {
       </section>
 
       <section className="border border-border bg-surface p-6">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-1">POINTS ECONOMY</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary mb-1">POINTS ECONOMY</div>
         <p className="text-muted-foreground text-xs mb-4 text-mono">
           After a customer qualifies, they earn 1 point for every <strong>₹{s.rupeesPerEarnedPoint}</strong> spent.
           Each point is worth <strong>₹{s.rupeesPerPoint}</strong> at redemption.
         </p>
         <div className="grid sm:grid-cols-2 gap-4">
           <label>
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">₹ PER POINT EARNED</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">₹ PER POINT EARNED</div>
             <input
               type="number" min={1}
               value={s.rupeesPerEarnedPoint}
@@ -130,7 +130,7 @@ function LoyaltyTab() {
             />
           </label>
           <label>
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">₹ VALUE PER POINT</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">₹ VALUE PER POINT</div>
             <input
               type="number" min={1}
               value={s.rupeesPerPoint}
@@ -141,8 +141,8 @@ function LoyaltyTab() {
         </div>
 
         {/* Live preview */}
-        <div className="mt-4 border border-border bg-muted/20 p-4 text-mono text-[11px] space-y-1">
-          <div className="text-muted-foreground tracking-widest text-[10px] mb-2">PREVIEW</div>
+        <div className="mt-4 border border-border bg-muted/20 p-4 text-mono text-xs space-y-1">
+          <div className="text-muted-foreground tracking-widest text-xs mb-2">PREVIEW</div>
           <div>₹{s.rupeesPerEarnedPoint} spent = <span className="text-primary">1 point</span></div>
           <div>₹{(s.rupeesPerEarnedPoint * 100).toLocaleString()} spent = <span className="text-primary">100 points</span> = <span className="text-primary">₹{s.rupeesPerPoint * 100} off</span></div>
           <div>Entry: single order ≥ <span className="text-primary">₹{s.entryThreshold.toLocaleString()}</span></div>
@@ -220,7 +220,7 @@ function BrandTab() {
   return (
     <div className="space-y-6">
       <section className="border border-border bg-surface p-6 space-y-4">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">BRAND IDENTITY</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">BRAND IDENTITY</div>
         <div className="grid sm:grid-cols-2 gap-4">
           <F label="SITE NAME"><input value={data.site_name ?? ""} onChange={(e) => set("site_name", e.target.value)} className="inp" /></F>
           <F label="TAGLINE"><input value={data.tagline ?? ""} onChange={(e) => set("tagline", e.target.value)} className="inp" /></F>
@@ -239,7 +239,7 @@ function BrandTab() {
       </section>
 
       <section className="border border-border bg-surface p-6 space-y-4">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">SOCIAL LINKS</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">SOCIAL LINKS</div>
         <div className="grid sm:grid-cols-3 gap-4">
           <F label="INSTAGRAM"><input value={data.social_instagram ?? ""} onChange={(e) => set("social_instagram", e.target.value)} className="inp" placeholder="@handle or URL" /></F>
           <F label="YOUTUBE"><input value={data.social_youtube ?? ""} onChange={(e) => set("social_youtube", e.target.value)} className="inp" placeholder="Channel URL" /></F>
@@ -248,7 +248,7 @@ function BrandTab() {
       </section>
 
       <section className="border border-border bg-surface p-6 space-y-4">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">CONTACT</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">CONTACT</div>
         <div className="grid sm:grid-cols-2 gap-4">
           <F label="EMAIL"><input value={data.contact_email ?? ""} onChange={(e) => set("contact_email", e.target.value)} className="inp" /></F>
           <F label="PHONE"><input value={data.contact_phone ?? ""} onChange={(e) => set("contact_phone", e.target.value)} className="inp" /></F>
@@ -257,13 +257,13 @@ function BrandTab() {
       </section>
 
       <section className="border border-border bg-surface p-6 space-y-4">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">HOMEPAGE CONTACT SUPPORT SECTION</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">HOMEPAGE CONTACT SUPPORT SECTION</div>
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={data.support_enabled ?? true} onChange={(e) => set("support_enabled", e.target.checked)} className="w-4 h-4" />
           <span className="text-sm text-foreground">Show this section on the homepage</span>
         </label>
         <F label="SUPPORT HOURS"><input value={data.support_hours ?? ""} onChange={(e) => set("support_hours", e.target.value)} className="inp" placeholder="Mon–Sat, 10am–7pm IST" /></F>
-        <p className="text-[10px] text-muted-foreground">Uses the EMAIL field above and the WHATSAPP field from Social Links.</p>
+        <p className="text-xs text-muted-foreground">Uses the EMAIL field above and the WHATSAPP field from Social Links.</p>
       </section>
 
       <button onClick={save} disabled={saving} className="bg-primary text-primary-foreground h-12 px-6 text-mono text-xs tracking-widest hover:glow-primary disabled:opacity-50">
@@ -313,7 +313,7 @@ function ThemeTab() {
   return (
     <div className="space-y-6">
       <section className="border border-border bg-surface p-6 space-y-4">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">COLORS</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">COLORS</div>
         <F label="ACCENT COLOR">
           <div className="flex gap-3 items-center">
             <input type="color" value={data.accent_color ?? "#c8f135"} onChange={(e) => set("accent_color", e.target.value)} className="h-10 w-10 cursor-pointer border border-border bg-background p-0.5 shrink-0" />
@@ -323,7 +323,7 @@ function ThemeTab() {
       </section>
 
       <section className="border border-border bg-surface p-6 space-y-4">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">TYPOGRAPHY</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">TYPOGRAPHY</div>
         <div className="grid sm:grid-cols-2 gap-4">
           <F label="DISPLAY FONT"><input value={data.font_display ?? ""} onChange={(e) => set("font_display", e.target.value)} className="inp" placeholder="Font family name" /></F>
           <F label="UI FONT"><input value={data.font_ui ?? ""} onChange={(e) => set("font_ui", e.target.value)} className="inp" placeholder="Font family name" /></F>
@@ -331,7 +331,7 @@ function ThemeTab() {
       </section>
 
       <section className="border border-border bg-surface p-6 space-y-4">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">BEHAVIOUR</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">BEHAVIOUR</div>
         <F label="BORDER RADIUS">
           <select value={data.border_radius ?? ""} onChange={(e) => set("border_radius", e.target.value)} className="inp">
             <option value="">DEFAULT (sharp)</option>
@@ -343,12 +343,12 @@ function ThemeTab() {
         </F>
         <label className="flex items-center gap-3 cursor-pointer">
           <input type="checkbox" checked={data.animations_enabled ?? true} onChange={(e) => set("animations_enabled", e.target.checked)} className="w-4 h-4" />
-          <span className="text-mono text-[11px] tracking-widest">ENABLE ANIMATIONS</span>
+          <span className="text-mono text-xs tracking-widest">ENABLE ANIMATIONS</span>
         </label>
       </section>
 
       <section className="border border-border bg-surface p-6 space-y-4">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">CUSTOM CSS</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">CUSTOM CSS</div>
         <textarea rows={8} value={data.custom_css ?? ""} onChange={(e) => set("custom_css", e.target.value)} className="inp font-mono text-xs" placeholder=":root { /* your overrides */ }" />
       </section>
 
@@ -381,19 +381,19 @@ function ShopTab() {
   return (
     <div className="space-y-6">
       <section className="border border-border bg-surface p-6 space-y-4">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">SHIPPING</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">SHIPPING</div>
         <p className="text-muted-foreground text-xs text-mono">
           Orders at or above this subtotal get free shipping — this is the actual threshold checkout
           charges against, and what the cart page/drawer's "free shipping unlocked" banner reflects.
         </p>
         <label className="block max-w-xs">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">FREE SHIPPING ABOVE ₹</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">FREE SHIPPING ABOVE ₹</div>
           <input type="number" min={0} value={s.freeShipping} onChange={(e) => setS({ ...s, freeShipping: Math.max(0, Number(e.target.value) || 0) })} className="inp" />
         </label>
       </section>
 
       <section className="border border-border bg-surface p-6 space-y-4">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">SHOP PAGE — FILTER COLORS</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">SHOP PAGE — FILTER COLORS</div>
         <p className="text-muted-foreground text-xs text-mono">
           Curate exactly which color swatches show in the shop page's COLOR filter. Leave empty to
           auto-generate the list from whatever colors your live products currently use.
@@ -413,7 +413,7 @@ function ShopTab() {
           </div>
         )}
 
-        <button type="button" onClick={add} className="flex items-center gap-2 border border-dashed border-border h-10 px-4 text-mono text-[11px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+        <button type="button" onClick={add} className="flex items-center gap-2 border border-dashed border-border h-10 px-4 text-mono text-xs tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors">
           <Plus className="size-3.5" /> ADD COLOR
         </button>
       </section>
@@ -475,7 +475,7 @@ function CodTab() {
   return (
     <div className="space-y-6">
       <section className="border border-border bg-surface p-6 space-y-5">
-        <div className="text-mono text-[11px] tracking-[0.25em] text-primary">CASH ON DELIVERY</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-primary">CASH ON DELIVERY</div>
 
         <label className="flex items-center justify-between cursor-pointer">
           <div>
@@ -501,7 +501,7 @@ function CodTab() {
                 onChange={(e) => setData((d) => ({ ...d, cod_advance_percent: Math.max(1, Math.min(100, Number(e.target.value) || 1)) }))}
                 className="inp max-w-[120px]"
               />
-              <div className="text-mono text-[11px] text-muted-foreground">
+              <div className="text-mono text-xs text-muted-foreground">
                 % advance collected at checkout via Razorpay; rest paid on delivery
               </div>
             </div>
@@ -516,13 +516,13 @@ function CodTab() {
                 onChange={(e) => setData((d) => ({ ...d, cod_min_order: Math.max(0, Number(e.target.value) || 0) }))}
                 className="inp max-w-[160px]"
               />
-              <div className="text-mono text-[11px] text-muted-foreground">Orders below this amount cannot use COD</div>
+              <div className="text-mono text-xs text-muted-foreground">Orders below this amount cannot use COD</div>
             </div>
           </F>
 
           {data.cod_enabled && (
             <div className="border border-border bg-muted/30 p-4">
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2">PREVIEW</div>
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-2">PREVIEW</div>
               <div className="text-sm">
                 On a ₹{(data.cod_min_order ?? 500).toLocaleString()} order:
                 <span className="text-primary font-semibold ml-2">₹{Math.round((data.cod_min_order ?? 500) * ((data.cod_advance_percent ?? 20) / 100)).toLocaleString()} advance</span>
@@ -543,7 +543,7 @@ function CodTab() {
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">{label}</div>
+      <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">{label}</div>
       {children}
     </label>
   );

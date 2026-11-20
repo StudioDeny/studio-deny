@@ -107,7 +107,7 @@ function AdminTestimonials() {
 
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm min-w-[560px]">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">ORDER</th>
               <th className="text-left p-3">PERSON</th>
@@ -156,7 +156,7 @@ function AdminTestimonials() {
                 <td className="p-3">
                   <button
                     onClick={() => toggle(r.id, !r.is_active)}
-                    className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
+                    className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
                   >
                     {r.is_active ? "ACTIVE" : "INACTIVE"}
                   </button>
@@ -184,7 +184,7 @@ function AdminTestimonials() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="bg-background border border-border w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-border">
-              <div className="text-mono text-[11px] tracking-[0.25em] text-primary">{modal.id ? "EDIT" : "NEW"} TESTIMONIAL</div>
+              <div className="text-mono text-xs tracking-[0.25em] text-primary">{modal.id ? "EDIT" : "NEW"} TESTIMONIAL</div>
               <button onClick={() => setModal(null)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
             </div>
             <div className="p-5 space-y-4">
@@ -211,7 +211,7 @@ function AdminTestimonials() {
                       <Star className={`size-5 ${n <= (modal.rating ?? 5) ? "fill-primary text-primary" : "text-muted-foreground"}`} />
                     </button>
                   ))}
-                  <span className="text-mono text-[11px] text-muted-foreground self-center ml-1">{modal.rating ?? 5}/5</span>
+                  <span className="text-mono text-xs text-muted-foreground self-center ml-1">{modal.rating ?? 5}/5</span>
                 </div>
               </F>
               <MediaField
@@ -221,7 +221,7 @@ function AdminTestimonials() {
               />
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={modal.is_active ?? true} onChange={(e) => setModal({ ...modal, is_active: e.target.checked })} className="w-4 h-4" />
-                <span className="text-mono text-[11px] tracking-widest">ACTIVE</span>
+                <span className="text-mono text-xs tracking-widest">ACTIVE</span>
               </label>
             </div>
             <div className="flex gap-3 p-5 border-t border-border">
@@ -242,7 +242,7 @@ function AdminTestimonials() {
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">{label}</div>
+      <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">{label}</div>
       {children}
     </label>
   );

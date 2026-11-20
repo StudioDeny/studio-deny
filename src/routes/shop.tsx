@@ -89,11 +89,10 @@ function Shop() {
   };
 
   return (
-    <section ref={pageRef} className="px-4 md:px-8 mt-8 md:mt-12 pb-24">
+    <section ref={pageRef} className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-12 pb-24">
       <div className="mb-6">
-        {/* ?best=1 is the Best Sellers page (home page Best Sellers buttons). */}
-        <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ {filters.best ? "MOST WANTED" : "ALL DROPS"}</div>
-        <h1 className="text-display leading-none" style={{ fontSize: "clamp(52px, 8vw, 96px)" }}>{filters.best ? "BEST SELLERS" : "SHOP"}</h1>
+        {/* ?best=1 is the Best Sellers page; ?arrivals=1 is the New Arrivals page. */}
+        <h1 className="type-h2">{filters.best ? "BEST SELLERS" : filters.arrivals ? "NEW ARRIVALS" : "SHOP"}</h1>
       </div>
 
       <ProductFilterBar
@@ -145,7 +144,7 @@ function Shop() {
                 <button
                   disabled={page === 1}
                   onClick={() => goToPage(page - 1)}
-                  className="text-mono text-[11px] tracking-[0.2em] uppercase disabled:opacity-20 hover:text-primary transition-colors"
+                  className="text-mono text-xs tracking-[0.2em] uppercase disabled:opacity-20 hover:text-primary transition-colors"
                 >
                   ← PREV
                 </button>
@@ -155,7 +154,7 @@ function Shop() {
                       key={i}
                       onClick={() => goToPage(i + 1)}
                       aria-current={page === i + 1 ? "page" : undefined}
-                      className={`text-mono text-[11px] tracking-widest ${page === i + 1 ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground"}`}
+                      className={`text-mono text-xs tracking-widest ${page === i + 1 ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground"}`}
                     >
                       {i + 1}
                     </button>
@@ -164,7 +163,7 @@ function Shop() {
                 <button
                   disabled={page === totalPages}
                   onClick={() => goToPage(page + 1)}
-                  className="text-mono text-[11px] tracking-[0.2em] uppercase disabled:opacity-20 hover:text-primary transition-colors"
+                  className="text-mono text-xs tracking-[0.2em] uppercase disabled:opacity-20 hover:text-primary transition-colors"
                 >
                   NEXT →
                 </button>

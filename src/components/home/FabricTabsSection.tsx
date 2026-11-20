@@ -19,28 +19,20 @@ export function FabricTabsSection() {
   const fabricTabs = cfg.tabs ?? [];
   const [activeFabricId, setActiveFabricId] = useState<string>("");
   const activeFabric = fabricTabs.find((t) => t.id === activeFabricId) || fabricTabs[0];
-  const productSpecsHeading = useSectionHeading("product_specifications", "PREMIUM FABRIC.", { eyebrow: "THE DETAILS", subtitle: "UNCOMPROMISED QUALITY." });
+  const productSpecsHeading = useSectionHeading("product_specifications", "PREMIUM FABRIC.");
 
   if (!visible || !activeFabric) return null;
 
   return (
     <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-y border-border bg-[#E2E2E4]">
       <div className="max-w-[1560px] mx-auto">
-        <div className="mb-12 sm:mb-16 flex flex-col">
-          {productSpecsHeading.eyebrow && (
-            <span className="inline-flex items-center px-3 py-1 border border-border text-[10px] sm:text-xs tracking-[0.22em] text-mono mb-4 w-fit">{productSpecsHeading.eyebrow}</span>
-          )}
+        <div className="mb-8 sm:mb-12 flex flex-col">
           <EditorialHeading
-            className="text-[clamp(3rem,8vw,6rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display mb-2"
+            className="type-h2 mb-2"
             style={productSpecsHeading.color ? { color: productSpecsHeading.color } : undefined}
           >
             {productSpecsHeading.text}
           </EditorialHeading>
-          {productSpecsHeading.subtitle && (
-            <EditorialSubheading className="text-xl sm:text-2xl font-mono text-foreground/70 uppercase tracking-wide" delay={0.2}>
-              {productSpecsHeading.subtitle}
-            </EditorialSubheading>
-          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
@@ -93,7 +85,7 @@ export function FabricTabsSection() {
             {/* Top-left Index Badge */}
             <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-30 pointer-events-none flex items-center gap-2 bg-black/60 backdrop-blur-md border border-white/15 px-3 py-1.5">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-mono text-[9px] sm:text-[10px] tracking-[0.25em] text-white/90 uppercase font-semibold">
+              <span className="text-mono text-xs sm:text-xs tracking-[0.25em] text-white/90 uppercase font-semibold">
                 SPECS [ 0{fabricTabs.findIndex((t) => t.id === activeFabric.id) + 1} / 0{fabricTabs.length} ]
               </span>
             </div>
@@ -106,7 +98,7 @@ export function FabricTabsSection() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
-                <div className="text-mono text-[10px] sm:text-[11px] tracking-[0.3em] text-primary uppercase font-bold mb-1">
+                <div className="text-mono text-xs sm:text-xs tracking-[0.3em] text-primary uppercase font-bold mb-1">
                   {activeFabric.name}
                 </div>
                 <div className="text-display text-xl sm:text-2xl text-white uppercase tracking-wider font-bold drop-shadow-md">
@@ -135,7 +127,7 @@ export function FabricTabsSection() {
                       </span>
                       <h3
                         className={`text-4xl sm:text-5xl lg:text-6xl xl:text-7xl text-display uppercase tracking-wider transition-all duration-300 ${isSelected
-                            ? "text-foreground font-black translate-x-1"
+                            ? "text-foreground font-bold translate-x-1"
                             : "text-foreground/50 group-hover:text-foreground/80"
                           }`}
                       >

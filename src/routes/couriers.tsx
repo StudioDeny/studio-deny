@@ -17,8 +17,8 @@ function Couriers() {
   return (
     <div className="min-h-screen bg-background text-foreground pt-28 pb-24 px-4 sm:px-8 lg:px-16">
       <div className="max-w-[900px] mx-auto">
-        <p className="text-mono text-[10px] tracking-[0.3em] text-primary mb-4">DELIVERY</p>
-        <h1 className="text-display text-[clamp(3rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase mb-4">SHIPPING &<br />COURIERS</h1>
+        <p className="text-mono text-xs tracking-[0.3em] text-primary mb-4">DELIVERY</p>
+        <h1 className="type-h2 mb-4">SHIPPING &<br />COURIERS</h1>
         <p className="text-muted-foreground text-sm text-mono mb-12 max-w-xl">We ship pan India and to select international destinations through our trusted courier partners.</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-14">
@@ -33,16 +33,16 @@ function Couriers() {
                 <item.icon className="size-4 text-primary" />
               </div>
               <div>
-                <div className="text-mono text-[10px] tracking-[0.2em] mb-1">{item.title}</div>
+                <div className="text-mono text-xs tracking-[0.2em] mb-1">{item.title}</div>
                 <p className="text-muted-foreground text-sm text-mono">{item.desc}</p>
               </div>
             </div>
           ))}
         </div>
 
-        <h2 className="text-mono text-[11px] tracking-[0.25em] text-primary mb-5">COURIER PARTNERS</h2>
+        <h2 className="text-mono text-xs tracking-[0.25em] text-primary mb-5">COURIER PARTNERS</h2>
         <div className="border border-border divide-y divide-border">
-          <div className="grid grid-cols-4 gap-4 p-4 text-mono text-[9px] tracking-[0.2em] text-muted-foreground">
+          <div className="grid grid-cols-4 gap-4 p-4 text-mono text-xs tracking-[0.2em] text-muted-foreground">
             <div>COURIER</div><div>COVERAGE</div><div>STANDARD</div><div>EXPRESS</div>
           </div>
           {partners.map((p) => (

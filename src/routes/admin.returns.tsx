@@ -79,11 +79,11 @@ function Returns() {
                 <button
                   onClick={() => setReplaceTarget(o.id)}
                   disabled={replacing === o.id}
-                  className="border border-border px-3 h-8 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary disabled:opacity-50"
+                  className="border border-border px-3 h-8 text-mono text-xs tracking-widest hover:border-primary hover:text-primary disabled:opacity-50"
                 >
                   {replacing === o.id ? "SENDING…" : "SEND REPLACEMENT"}
                 </button>
-                <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="border border-primary text-primary px-3 h-8 text-mono text-[10px] tracking-widest hover:bg-primary hover:text-primary-foreground">REFUND</button>
+                <button onClick={() => setRefundTarget({ id: o.id, amount: o.total })} className="border border-primary text-primary px-3 h-8 text-mono text-xs tracking-widest hover:bg-primary hover:text-primary-foreground">REFUND</button>
               </div>
             ),
           }))} />
@@ -99,7 +99,7 @@ function Returns() {
               o.returnReason ?? "—",
             ],
             actions: o.returnTrackingUrl ? (
-              <a href={o.returnTrackingUrl} target="_blank" rel="noopener noreferrer" className="text-mono text-[10px] tracking-widest text-primary hover:underline">TRACK →</a>
+              <a href={o.returnTrackingUrl} target="_blank" rel="noopener noreferrer" className="text-mono text-xs tracking-widest text-primary hover:underline">TRACK →</a>
             ) : undefined,
           }))} />
         )}
@@ -153,7 +153,7 @@ function Returns() {
 function Card({ label, v }: { label: string; v: React.ReactNode }) {
   return (
     <div className="border border-border bg-surface p-5">
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{label}</div>
+      <div className="text-mono text-xs tracking-widest text-muted-foreground">{label}</div>
       <div className="text-display text-3xl mt-2">{v}</div>
     </div>
   );

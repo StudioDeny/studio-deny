@@ -22,154 +22,17 @@ const DEFAULTS: PopularNowConfig = { items: [] };
 // every product with "Best Seller" ticked in its product form.
 const BEST_SELLERS_HREF = "/shop?best=1";
 
-// Larger tile shapes cycling every 3
-const SIZE_CLASSES = [
-  "w-[260px] sm:w-[320px] md:w-[360px] h-[390px] sm:h-[460px]",
-  "w-[260px] sm:w-[320px] md:w-[360px] h-[260px] sm:h-[320px]",
-  "w-[190px] sm:w-[240px] md:w-[270px] h-[390px] sm:h-[460px]",
-];
-
-function PopularNowTile({ product, sizeClass }: { product: Product & { tag?: string }; sizeClass: string }) {
-  const { add } = useCart();
-  const { openQuickAdd } = useQuickAdd();
-  const [mouseHover, setHover] = useState(false);
-  // Phones: touching the tile and scrolling counts as hovering it.
-  const { ref: tileRef, touchHover } = useTouchHover<HTMLAnchorElement>();
-  const hover = mouseHover || touchHover;
-  const [showSizes, setShowSizes] = useState(false);
-  const [sizeOptions, setSizeOptions] = useState<VariantStock[]>([]);
-  const [added, setAdded] = useState(false);
-
-  // All product photos (main image, hover image, gallery)
-  const photos = useMemo(() => {
-    const list = [
-      product.image,
-      product.hoverImage,
-      ...(product.gallery ?? []).map((g) => g.url),
-    ].filter(Boolean);
-    return Array.from(new Set(list));
-  }, [product.image, product.hoverImage, product.gallery]);
-
-  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
-
-  // Auto-scroll through next photos on hover
-  useEffect(() => {
-    if (!hover || photos.length <= 1) {
-      setActivePhotoIndex(0);
-      return;
-    }
-    // Phone touch-hover: straight to the second photo, and it stays.
-    if (touchHover && !mouseHover) {
-      setActivePhotoIndex(1);
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setActivePhotoIndex((prev) => (prev + 1) % photos.length);
-    }, 1400);
-
-    return () => clearInterval(interval);
-  }, [hover, touchHover, mouseHover, photos.length]);
-
-  // Scrub through photos as mouse moves across the card width
-  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (photos.length <= 1) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    if (rect.width > 0) {
-      const xRatio = (e.clientX - rect.left) / rect.width;
-      const index = Math.min(photos.length - 1, Math.max(0, Math.floor(xRatio * photos.length)));
-      setActivePhotoIndex(index);
-    }
-  };
-
-  const handleQuickAdd = (opt: VariantStock) => {
-    if (!opt.inStock) return;
-    add(product, opt.size, 1, opt.variantId, opt.stock);
-    setShowSizes(false);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1600);
-  };
-
-  return (
-    <Link
-      to="/product/$slug"
-      params={{ slug: product.slug }}
-      ref={tileRef}
-      className={`group relative shrink-0 overflow-hidden bg-surface ${sizeClass}`}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => { setHover(false); setShowSizes(false); setActivePhotoIndex(0); }}
-      onMouseMove={handleMouseMove}
-    >
-      {/* Product Photos Stack with Crossfade */}
-      {photos.map((src, i) => (
-        <img
-          key={src + i}
-          {...responsiveImage(src, { maxWidth: 828, sizes: "(min-width: 768px) 360px, (min-width: 640px) 320px, 260px" })}
-          style={skeletonStyle}
-          alt={i === 0 ? product.name : ""}
-          loading="lazy"
-          decoding="async"
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-400 ease-out ${i === activePhotoIndex ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
-            }`}
-        />
-      ))}
-
-      {product.tag && (
-        <span className="absolute top-3 left-3 z-10 bg-primary text-primary-foreground text-mono font-bold px-2.5 py-1 text-[10px] tracking-[0.2em]">
-          {product.tag.toUpperCase()}
-        </span>
-      )}
-      <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/65 via-black/0 to-transparent pointer-events-none" />
-      <div className="absolute bottom-3 left-3.5 right-3.5 z-10 pointer-events-none">
-        <p className="text-white text-sm sm:text-base font-bold uppercase tracking-[0.06em] truncate">{product.name}</p>
-        <p className="text-white/85 text-mono text-xs sm:text-sm font-medium">{formatINR(product.price)}</p>
-      </div>
-
-      {/* Quick add — open centered modal */}
-      <button
-        aria-label="Quick add to cart"
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQuickAdd(product); }}
-        className={`absolute bottom-3 right-3 size-9 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 z-20 ${hover ? "md:opacity-100 md:scale-100" : "md:opacity-0 md:scale-90 opacity-100"
-          } bg-black text-white hover:bg-black/80`}
-      >
-        <ShoppingBag className="size-4" />
-      </button>
-
-      <div
-        className={`absolute inset-x-0 bottom-0 z-20 transition-all duration-300 ${showSizes ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
-          }`}
-      >
-        <div className="flex flex-wrap justify-center gap-1 p-2 bg-background/95 backdrop-blur-sm">
-          {sizeOptions.map((opt) => (
-            <button
-              key={opt.variantId ?? opt.size}
-              disabled={!opt.inStock}
-              onClick={(e) => { e.preventDefault(); handleQuickAdd(opt); }}
-              className={`rounded-full px-2.5 py-1 text-mono font-semibold border transition-colors ${opt.inStock
-                  ? "border-foreground/30 hover:bg-foreground hover:text-background"
-                  : "border-border opacity-30 line-through cursor-not-allowed"
-                }`}
-              style={{ fontSize: "10px" }}
-            >
-              {opt.size}
-            </button>
-          ))}
-        </div>
-      </div>
-    </Link>
-  );
-}
+// Every bestseller tile (and the "View All" tile) uses this one uniform size.
+const TILE_SIZE_CLASS = "w-[260px] sm:w-[320px] md:w-[360px] h-[390px] sm:h-[460px]";
 
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
+import { ProductTile } from "./ProductTile";
 
 export function PopularNowGrid() {
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<PopularNowConfig>("popular_now", DEFAULTS);
   const [products, setProducts] = useState<(Product & { tag?: string })[]>([]);
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const heading = useSectionHeading("popular_now", "BEST SELLERS", {
-    eyebrow: "MOST WANTED FITS",
-    subtitle: "HEAVY ROTATION PIECES",
-  });
+  const heading = useSectionHeading("popular_now", "BEST SELLERS");
 
   useEffect(() => {
     if (cfg.items.length === 0) { setProducts([]); return; }
@@ -192,38 +55,21 @@ export function PopularNowGrid() {
 
   return (
     <section className="py-16 sm:py-24 relative bg-[#E2E2E4]">
-      <div className="px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 flex items-end justify-between flex-wrap gap-6">
-        <div className="flex flex-col">
-          {heading.eyebrow && (
-            <span className="text-mono text-primary mb-2 text-xs tracking-[0.35em]">◢ {heading.eyebrow}</span>
-          )}
-          <EditorialHeading
-            className="text-[clamp(3.2rem,8.5vw,6rem)] leading-[0.88] tracking-[-0.03em] uppercase text-display"
-            style={heading.color ? { color: heading.color } : undefined}
-          >
-            {heading.text}
-          </EditorialHeading>
-          {heading.subtitle && (
-            <EditorialSubheading className="mt-3 max-w-xl text-sm sm:text-base opacity-80 text-mono" delay={0.2}>
-              {heading.subtitle}
-            </EditorialSubheading>
-          )}
-        </div>
-        <SiteLink
-          href={BEST_SELLERS_HREF}
-          className="group inline-flex items-center gap-2 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase hover:text-primary transition-colors"
+      <div className="px-4 sm:px-8 lg:px-16 mb-8 sm:mb-12 flex flex-col items-center gap-6">
+        <EditorialHeading
+          className="type-h2"
+          style={heading.color ? { color: heading.color } : undefined}
         >
-          EXPLORE COLLECTION
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        </SiteLink>
+          {heading.text}
+        </EditorialHeading>
       </div>
 
-      <div className="relative">
+      <div className="group/carousel relative">
         <button
           type="button"
           aria-label="Previous"
           onClick={() => slide(-1)}
-          className="hidden sm:flex absolute z-[2] left-2 lg:left-4 top-1/2 -translate-y-1/2 size-10 items-center justify-center bg-background/90 border border-border hover:border-primary hover:text-primary transition-colors"
+          className="hidden sm:flex absolute rounded-full opacity-0 pointer-events-none group-hover/carousel:opacity-100 group-hover/carousel:pointer-events-auto z-[2] left-2 lg:left-4 top-1/2 -translate-y-1/2 size-10 items-center justify-center bg-background/90 border border-border hover:border-primary hover:text-primary transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:border-primary"
         >
           <ChevronLeft className="size-5" />
         </button>
@@ -231,19 +77,19 @@ export function PopularNowGrid() {
           type="button"
           aria-label="Next"
           onClick={() => slide(1)}
-          className="hidden sm:flex absolute z-[2] right-2 lg:right-4 top-1/2 -translate-y-1/2 size-10 items-center justify-center bg-background/90 border border-border hover:border-primary hover:text-primary transition-colors"
+          className="hidden sm:flex absolute rounded-full opacity-0 pointer-events-none group-hover/carousel:opacity-100 group-hover/carousel:pointer-events-auto z-[2] right-2 lg:right-4 top-1/2 -translate-y-1/2 size-10 items-center justify-center bg-background/90 border border-border hover:border-primary hover:text-primary transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:border-primary"
         >
           <ChevronRight className="size-5" />
         </button>
 
         <div ref={scrollerRef} className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth pb-2 px-4 sm:px-8 lg:px-16 no-scrollbar">
-          {products.map((p, i) => (
-            <PopularNowTile key={p.slug} product={p} sizeClass={SIZE_CLASSES[i % SIZE_CLASSES.length]} />
+          {products.map((p) => (
+            <ProductTile key={p.slug} product={p} sizeClass={TILE_SIZE_CLASS} />
           ))}
 
           <SiteLink
             href={BEST_SELLERS_HREF}
-            className={`group relative shrink-0 overflow-hidden bg-foreground text-background border border-foreground flex flex-col items-center justify-center gap-3 ${SIZE_CLASSES[products.length % SIZE_CLASSES.length]}`}
+            className={`group relative shrink-0 overflow-hidden bg-foreground text-background border border-foreground flex flex-col items-center justify-center gap-3 ${TILE_SIZE_CLASS}`}
           >
             <span className="text-sm font-semibold uppercase tracking-[0.15em] text-mono text-center px-4">View All</span>
             <span className="size-10 rounded-full border border-background/40 flex items-center justify-center transition-transform group-hover:translate-x-1">
@@ -251,6 +97,21 @@ export function PopularNowGrid() {
             </span>
           </SiteLink>
         </div>
+      </div>
+
+      <div className="mt-10 sm:mt-12 flex justify-center px-4">
+        <SiteLink
+          href={BEST_SELLERS_HREF}
+          className="btn-fill relative inline-flex items-center whitespace-nowrap border border-foreground hover:border-white px-6 py-3 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase text-foreground transition-colors duration-500"
+        >
+          <span className="btn-fill-bg bg-white" aria-hidden="true" />
+          <span className="btn-fill-front inline-flex items-center gap-2">
+            EXPLORE COLLECTION
+          </span>
+          <span className="btn-fill-back inline-flex items-center gap-2 text-black" aria-hidden="true">
+            EXPLORE COLLECTION
+          </span>
+        </SiteLink>
       </div>
 
       {/* Section Segregation Line */}

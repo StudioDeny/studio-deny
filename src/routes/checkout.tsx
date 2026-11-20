@@ -49,7 +49,7 @@ function FieldImpl(props: {
 }) {
   return (
     <div className={props.full ? "sm:col-span-2" : ""}>
-      <label className="text-mono text-[10px] tracking-widest text-muted-foreground">{props.label}</label>
+      <label className="text-mono text-xs tracking-widest text-muted-foreground">{props.label}</label>
       <input
         {...props.register(props.name)}
         type={props.type ?? "text"}
@@ -315,8 +315,8 @@ function Checkout() {
 
   if (items.length === 0) {
     return (
-      <section className="px-4 md:px-8 py-24 text-center">
-        <h1 className="text-display text-5xl">NOTHING TO CHECKOUT</h1>
+      <section className="px-4 sm:px-8 lg:px-16 py-24 text-center">
+        <h1 className="type-h2">NOTHING TO CHECKOUT</h1>
         <Link to="/shop" className="mt-6 inline-block text-mono text-xs tracking-widest text-primary hover:underline">→ SHOP</Link>
       </section>
     );
@@ -324,9 +324,8 @@ function Checkout() {
 
   if (!authLoading && !user) {
     return (
-      <section className="px-4 md:px-8 py-24 min-h-[70vh] flex flex-col items-center justify-center text-center">
-        <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-4">◢ REQUIRED</div>
-        <h1 className="text-display text-5xl md:text-6xl mb-4">LOGIN TO ORDER</h1>
+      <section className="px-4 sm:px-8 lg:px-16 py-24 min-h-[70vh] flex flex-col items-center justify-center text-center">
+        <h1 className="type-h2 mb-4">LOGIN TO ORDER</h1>
         <p className="text-muted-foreground max-w-sm mb-8 leading-relaxed">
           Create an account or sign in to complete your purchase and track your orders.
         </p>
@@ -347,9 +346,8 @@ function Checkout() {
   );
 
   return (
-    <section className="px-4 md:px-8 mt-8 md:mt-12">
-      <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-2">◢ STEP 02</div>
-      <h1 className="text-display text-5xl md:text-7xl mb-8">CHECKOUT.</h1>
+    <section className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-12">
+      <h1 className="type-h2 mb-8">CHECKOUT.</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] gap-8">
         <div className="space-y-8">
@@ -469,7 +467,7 @@ function Checkout() {
               </label>
               {pickup && (
                 <div className="border border-primary/40 bg-primary/5 p-4 text-sm">
-                  <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">COLLECT FROM</div>
+                  <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">COLLECT FROM</div>
                   <div className="font-semibold">STUDIO DENY</div>
                   <div className="text-muted-foreground">{store?.address ?? "Loading store address…"}</div>
                   {store?.phone && <div className="text-muted-foreground">{store.phone}</div>}
@@ -477,7 +475,7 @@ function Checkout() {
                 </div>
               )}
             </div>
-            <p className="text-[10px] text-mono tracking-widest text-muted-foreground mt-2 flex items-center gap-1">
+            <p className="text-xs text-mono tracking-widest text-muted-foreground mt-2 flex items-center gap-1">
               <Lock className="size-3" /> SECURED 256-BIT TLS
             </p>
           </div>
@@ -493,7 +491,7 @@ function Checkout() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="truncate text-xs">{it.product.name}</div>
-                  <div className="text-[10px] text-mono text-muted-foreground">{it.size} × {it.qty}</div>
+                  <div className="text-xs text-mono text-muted-foreground">{it.size} × {it.qty}</div>
                 </div>
                 <div className="text-mono text-xs">{formatINR((quote?.lines[idx]?.slug === it.product.slug ? quote.lines[idx].price : it.product.price) * it.qty)}</div>
               </li>
@@ -506,9 +504,9 @@ function Checkout() {
                 <Tag className="size-4 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="text-mono text-xs tracking-widest font-semibold truncate">{quote.coupon_code} APPLIED</div>
-                  <div className="text-[11px] text-muted-foreground mt-0.5">You save {formatINR(quote.coupon_discount)}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">You save {formatINR(quote.coupon_discount)}</div>
                 </div>
-                <button type="button" onClick={() => setCouponSheet(true)} className="text-mono text-[10px] tracking-widest underline underline-offset-4 hover:text-primary">
+                <button type="button" onClick={() => setCouponSheet(true)} className="text-mono text-xs tracking-widest underline underline-offset-4 hover:text-primary">
                   CHANGE
                 </button>
                 <button type="button" onClick={removeCoupon} aria-label="Remove coupon" className="text-muted-foreground hover:text-primary"><X className="size-4" /></button>
@@ -522,7 +520,7 @@ function Checkout() {
                 <Tag className="size-4 shrink-0" />
                 <span className="flex-1 min-w-0">
                   <span className="block text-mono text-xs tracking-widest font-semibold">APPLY COUPON</span>
-                  <span className="block text-[11px] text-muted-foreground truncate">
+                  <span className="block text-xs text-muted-foreground truncate">
                     {usableCoupons.length > 0
                       ? `${usableCoupons.length} available · save up to ${formatINR(usableCoupons[0].discount)}`
                       : coupons && coupons.length > 0

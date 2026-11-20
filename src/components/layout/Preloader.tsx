@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useLocation } from "@tanstack/react-router";
-import { useLenis } from "@/components/common/SmoothScroll";
 import { markPreloaderDone } from "@/lib/preloaderStore";
 import { supabase } from "@/lib/supabase";
 import { BrandLogo } from "@/components/ui/BrandLogo";
@@ -27,7 +26,6 @@ export function Preloader() {
   const [cfg, setCfg] = useState<PreloaderSettings>(DEFAULTS);
   const [progress, setProgress] = useState(0);
   const shouldReduceMotion = useReducedMotion();
-  const { lenis } = useLenis();
 
   // On the home page the logo shown here is drawn by HeroLogo instead, which
   // sits exactly over this spot and then carries on to the hero — so this one
@@ -62,7 +60,7 @@ export function Preloader() {
     };
   }, []);
 
-  /* ─── 2. Lock page scrolling and Lenis while active ─── */
+  /* ─── 2. Lock page scrolling while active ─── */
   useEffect(() => {
     if (!loading) return;
 
@@ -74,19 +72,12 @@ export function Preloader() {
     document.body.style.overflow = "hidden";
     document.body.style.touchAction = "none";
 
-    if (lenis) {
-      lenis.stop();
-    }
-
     return () => {
       document.documentElement.style.overflow = originalHtmlOverflow;
       document.body.style.overflow = originalBodyOverflow;
       document.body.style.touchAction = originalTouchAction;
-      if (lenis) {
-        lenis.start();
-      }
     };
-  }, [loading, lenis]);
+  }, [loading]);
 
   /* ─── 3. Smooth Progress Counter (0 -> 100% in 1.4s) ─── */
   useEffect(() => {
@@ -228,16 +219,16 @@ export function Preloader() {
           >
             <div className="flex items-center gap-2.5">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-mono text-[10px] tracking-[0.3em] text-white/70 uppercase">
+              <span className="text-mono text-xs tracking-[0.3em] text-white/70 uppercase">
                 LOADING ARCHIVE
               </span>
             </div>
 
             <div className="flex items-center gap-4">
-              <span className="text-mono text-[11px] tracking-widest text-white/90 font-bold">
+              <span className="text-mono text-xs tracking-widest text-white/90 font-bold">
                 {Math.round(progress).toString().padStart(2, "0")}%
               </span>
-              <span className="text-mono text-[9px] tracking-[0.2em] text-white/40 uppercase hidden sm:inline-block">
+              <span className="text-mono text-xs tracking-[0.2em] text-white/40 uppercase hidden sm:inline-block">
                 CLICK ANYWHERE TO SKIP
               </span>
             </div>

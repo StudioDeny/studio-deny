@@ -89,7 +89,7 @@ function RewardsComingSoon() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="flex flex-col items-center mb-6"
         >
-          <h1 className="text-display text-[clamp(3.8rem,11vw,9rem)] leading-[0.88] tracking-[-0.03em] uppercase font-black text-foreground">
+          <h1 className="type-h2">
             COMING SOON.
           </h1>
 
@@ -101,7 +101,7 @@ function RewardsComingSoon() {
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={{ opacity: 0, y: -32, filter: "blur(6px)" }}
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                className="text-display text-[clamp(2.4rem,6.8vw,5.5rem)] leading-none tracking-[-0.02em] uppercase font-black text-transparent select-none whitespace-nowrap"
+                className="text-display text-[clamp(3rem,8vw,5rem)] leading-none tracking-[-0.02em] uppercase font-bold text-transparent select-none whitespace-nowrap"
                 style={{
                   WebkitTextStroke: "2px rgba(0, 0, 0, 0.75)",
                 }}
@@ -117,7 +117,7 @@ function RewardsComingSoon() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="text-sm sm:text-base text-muted-foreground text-mono max-w-2xl leading-relaxed mb-10 font-medium"
+          className="text-sm sm:text-base text-muted-foreground text-mono max-w-2xl leading-relaxed mb-10 font-semibold"
         >
           Our private loyalty & rewards matrix is currently being forged. Members will receive exclusive early access, vault allocation, and tiered cash benefits.
         </motion.p>
@@ -132,11 +132,11 @@ function RewardsComingSoon() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Sparkles className="size-4 text-primary" />
-              <span className="text-mono text-[11px] tracking-[0.25em] uppercase font-bold text-foreground">
+              <span className="text-mono text-xs tracking-[0.25em] uppercase font-bold text-foreground">
                 VIP EARLY ACCESS
               </span>
             </div>
-            <span className="text-mono text-[9px] tracking-widest text-muted-foreground uppercase">
+            <span className="text-mono text-xs tracking-widest text-muted-foreground uppercase">
               DROP 01 WAITLIST
             </span>
           </div>
@@ -174,7 +174,7 @@ function RewardsComingSoon() {
             </form>
           )}
 
-          <div className="flex items-center justify-center gap-6 mt-4 text-[10px] text-mono text-muted-foreground/70 tracking-widest uppercase">
+          <div className="flex items-center justify-center gap-6 mt-4 text-xs text-mono text-muted-foreground/70 tracking-widest uppercase">
             <span>✓ ZERO SPAM</span>
             <span>•</span>
             <span>✓ EARLY DROPS</span>
@@ -187,9 +187,6 @@ function RewardsComingSoon() {
         <div className="w-full border-t border-border pt-16">
           <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
             <div className="text-left">
-              <div className="text-mono text-[10px] tracking-[0.3em] text-primary uppercase font-bold mb-1">
-                ◢ WHAT IS COMING
-              </div>
               <h2 className="text-display text-3xl sm:text-4xl text-foreground uppercase tracking-wide">
                 MEMBER PRIVILEGES
               </h2>
@@ -223,16 +220,16 @@ function RewardsComingSoon() {
                   <h3 className="text-display text-xl sm:text-2xl text-foreground uppercase tracking-wider mb-2 font-bold leading-tight">
                     {perk.title}
                   </h3>
-                  <p className="text-xs sm:text-[13px] text-muted-foreground text-mono leading-relaxed mb-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground text-mono leading-relaxed mb-4">
                     {perk.desc}
                   </p>
                 </div>
 
                 <div className="pt-4 border-t border-border/50 flex items-center justify-between">
-                  <span className="text-mono text-[9px] tracking-widest text-primary font-bold uppercase">
+                  <span className="text-mono text-xs tracking-widest text-primary font-bold uppercase">
                     {perk.tag}
                   </span>
-                  <span className="text-mono text-[9px] tracking-widest text-muted-foreground">
+                  <span className="text-mono text-xs tracking-widest text-muted-foreground">
                     PHASE 01
                   </span>
                 </div>

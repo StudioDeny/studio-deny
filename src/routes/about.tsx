@@ -15,9 +15,8 @@ export const Route = createFileRoute("/about")({
 
 function About() {
   return (
-    <section className="px-4 md:px-8 mt-8 md:mt-12 max-w-4xl mx-auto">
-      <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-2">◢ THE BRAND</div>
-      <h1 className="text-display text-6xl md:text-9xl leading-[0.85]">REFUSE TO<br />BLEND IN.</h1>
+    <section className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-12 max-w-4xl mx-auto">
+      <h1 className="type-h2">REFUSE TO<br />BLEND IN.</h1>
 
       <div className="mt-12 space-y-6 text-muted-foreground leading-relaxed text-lg">
         <p>Studio Deny was born in a Mumbai garage in 2022 — three friends, a screen-printing rig, and a refusal to wear what everyone else was wearing.</p>
@@ -33,7 +32,7 @@ function About() {
         ].map((s) => (
           <div key={s.l} className="border border-border p-6 bg-surface">
             <div className="text-display text-5xl text-primary">{s.n}</div>
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mt-2">{s.l}</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mt-2">{s.l}</div>
           </div>
         ))}
       </div>

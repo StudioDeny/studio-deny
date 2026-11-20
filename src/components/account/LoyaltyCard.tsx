@@ -28,7 +28,7 @@ export function LoyaltyCard({ orders, settings }: { orders: Order[]; settings: L
       <div className="p-5 md:p-6 border-b md:border-b-0 md:border-r border-border">
         {member ? (
           <>
-            <div className="text-mono text-[10px] tracking-[0.25em] text-muted-foreground">YOUR TIER</div>
+            <div className="text-mono text-xs tracking-[0.25em] text-muted-foreground">YOUR TIER</div>
             <div className="text-display text-5xl mt-1">{tier.name}</div>
             <div className="text-mono text-sm mt-2">
               <span className="font-semibold">{points.toLocaleString("en-IN")}</span> POINTS
@@ -47,13 +47,13 @@ export function LoyaltyCard({ orders, settings }: { orders: Order[]; settings: L
                 <div className="text-xs text-muted-foreground">You're at the top tier.</div>
               )}
             </div>
-            <p className="text-[11px] text-muted-foreground mt-4">
+            <p className="text-xs text-muted-foreground mt-4">
               You earn 1 point for every {formatINR(settings.rupeesPerEarnedPoint)} you spend. Your discount is taken off automatically at checkout.
             </p>
           </>
         ) : (
           <>
-            <div className="text-mono text-[10px] tracking-[0.25em] text-muted-foreground">STATUS</div>
+            <div className="text-mono text-xs tracking-[0.25em] text-muted-foreground">STATUS</div>
             <div className="text-display text-4xl mt-1">NOT A MEMBER YET</div>
             {settings.entryThreshold > 0 ? (
               <>
@@ -70,7 +70,7 @@ export function LoyaltyCard({ orders, settings }: { orders: Order[]; settings: L
             ) : (
               <p className="text-sm mt-2">Place your first order to join.</p>
             )}
-            <p className="text-[11px] text-muted-foreground mt-4">
+            <p className="text-xs text-muted-foreground mt-4">
               Members earn 1 point for every {formatINR(settings.rupeesPerEarnedPoint)} spent and unlock a discount on every order as they move up.
             </p>
           </>
@@ -78,7 +78,7 @@ export function LoyaltyCard({ orders, settings }: { orders: Order[]; settings: L
       </div>
 
       <div className="p-5 md:p-6">
-        <div className="text-mono text-[10px] tracking-[0.25em] text-muted-foreground mb-3">TIERS</div>
+        <div className="text-mono text-xs tracking-[0.25em] text-muted-foreground mb-3">TIERS</div>
         <ol className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {TIERS.map((t) => {
             const current = member && t.name === tier.name;
@@ -88,12 +88,12 @@ export function LoyaltyCard({ orders, settings }: { orders: Order[]; settings: L
                 aria-current={current ? "step" : undefined}
                 className={`border p-3 ${current ? "border-foreground bg-foreground text-background" : "border-border bg-background"}`}
               >
-                <div className="text-mono text-[11px] tracking-[0.2em] font-semibold">{t.name}</div>
-                <div className={`text-[11px] mt-1 ${current ? "opacity-80" : "text-muted-foreground"}`}>
+                <div className="text-mono text-xs tracking-[0.2em] font-semibold">{t.name}</div>
+                <div className={`text-xs mt-1 ${current ? "opacity-80" : "text-muted-foreground"}`}>
                   {t.min === 0 ? "On joining" : `${t.min.toLocaleString("en-IN")}+ points`}
                 </div>
                 <div className="text-display text-2xl mt-2">{settings.discount[t.name] ?? 0}%</div>
-                <div className={`text-[10px] text-mono tracking-widest ${current ? "opacity-80" : "text-muted-foreground"}`}>OFF</div>
+                <div className={`text-xs text-mono tracking-widest ${current ? "opacity-80" : "text-muted-foreground"}`}>OFF</div>
               </li>
             );
           })}

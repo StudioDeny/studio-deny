@@ -50,7 +50,7 @@ export function MediaField({
 
   return (
     <div>
-      {label && <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">{label}</div>}
+      {label && <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">{label}</div>}
 
       <div className="flex items-center gap-3 mb-2">
         {/* TYPE toggle */}
@@ -60,7 +60,7 @@ export function MediaField({
               key={t}
               type="button"
               onClick={() => onChange({ url: value.url, type: t })}
-              className={`px-3 h-7 text-[10px] font-semibold tracking-widest uppercase transition-colors ${
+              className={`px-3 h-7 text-xs font-semibold tracking-widest uppercase transition-colors ${
                 value.type === t ? "bg-foreground text-background" : "bg-background text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -79,7 +79,7 @@ export function MediaField({
               key={s.key}
               type="button"
               onClick={() => setSource(s.key)}
-              className={`px-3 h-7 text-[10px] font-semibold tracking-widest uppercase inline-flex items-center gap-1.5 transition-colors ${
+              className={`px-3 h-7 text-xs font-semibold tracking-widest uppercase inline-flex items-center gap-1.5 transition-colors ${
                 source === s.key ? "bg-foreground text-background" : "bg-background text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -109,13 +109,13 @@ export function MediaField({
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="border border-border h-10 px-4 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50"
+            className="border border-border h-10 px-4 text-mono text-xs tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50"
           >
             {uploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
             {uploading ? `UPLOADING… ${progress}%` : `UPLOAD ${value.type.toUpperCase()}`}
           </button>
           {value.url && !uploading && (
-            <span className="text-[11px] text-muted-foreground truncate max-w-[220px]" title={value.url}>{value.url}</span>
+            <span className="text-xs text-muted-foreground truncate max-w-[220px]" title={value.url}>{value.url}</span>
           )}
         </div>
       )}

@@ -137,18 +137,17 @@ export function Footer() {
           turns white and the logo block flips to white so it stays visible. */}
       <div className="btn-fill group/top">
         <span className="btn-fill-bg bg-foreground" aria-hidden="true" />
-        <div className="relative z-[1] px-4 md:px-8 py-12 md:py-16 flex flex-col md:flex-row gap-12 md:gap-16 lg:gap-24 max-w-[1560px] mx-auto">
+        <div className="relative z-[1] px-4 sm:px-8 lg:px-16 py-12 md:py-16 flex flex-col md:flex-row gap-12 md:gap-16 lg:gap-24 max-w-[1560px] mx-auto">
           {/* Brand column */}
           <div className="md:w-[280px] lg:w-[340px] shrink-0">
             <MagneticFooterLogo />
             {tagline && (
-              <p className="mt-4 font-medium text-foreground/75 group-hover/top:text-white/85 transition-colors duration-500 leading-relaxed whitespace-pre-line" style={{ fontSize: "15px", maxWidth: "260px" }}>
+              <p className="mt-4 font-semibold text-foreground/75 group-hover/top:text-white/85 transition-colors duration-500 leading-relaxed whitespace-pre-line" style={{ fontSize: "15px", maxWidth: "260px" }}>
                 {tagline}
               </p>
             )}
 
             <div className="mt-7">
-              <div className="text-mono font-semibold text-primary group-hover/top:text-white transition-colors duration-500 mb-3" style={{ fontSize: "12px", letterSpacing: "0.28em" }}>◢ DROP ALERTS</div>
               <Newsletter />
             </div>
 
@@ -175,7 +174,7 @@ export function Footer() {
                     <li key={`${i.label}-${i.href}`}>
                       <SiteLink
                         href={i.href}
-                        className="font-medium text-foreground/80 group-hover/top:text-white/85 hover:!text-white hover:underline underline-offset-4 transition-colors duration-500 hover:translate-x-0.5 inline-block"
+                        className="font-semibold text-foreground/80 group-hover/top:text-white/85 hover:!text-white hover:underline underline-offset-4 transition-colors duration-500 hover:translate-x-0.5 inline-block"
                         style={{ fontSize: "15px" }}
                       >
                         {i.label}
@@ -193,7 +192,7 @@ export function Footer() {
           white sweeps in from the left and the letters turn black — the logo inverted. */}
       <Link to="/" className="btn-fill group block bg-foreground text-white" aria-label="STUDIO DENY home">
         <span className="btn-fill-bg bg-white" />
-        <span className="relative z-[1] block max-w-[1560px] mx-auto px-4 md:px-8 py-6 md:py-8">
+        <span className="relative z-[1] block max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 py-6 md:py-8">
           <span className="block brand-logo-type text-white group-hover:text-foreground transition-colors duration-500 min-w-0" style={{ fontSize: "clamp(44px, 9vw, 136px)" }}>
             Studio Deny.
           </span>
@@ -205,8 +204,8 @@ export function Footer() {
           continues the black of the brand strip above so the two read as one
           block, and stays deliberately smaller than the brand it sits under. */}
       <div className="bg-foreground border-t border-white/[0.08]">
-        <div className="max-w-[1560px] mx-auto px-4 md:px-8 py-5 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2.5 sm:gap-4">
-          <span className="text-mono font-medium text-white/60" style={{ fontSize: "11px", letterSpacing: "0.28em" }}>
+        <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 py-5 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2.5 sm:gap-4">
+          <span className="text-mono font-semibold text-white/60" style={{ fontSize: "11px", letterSpacing: "0.28em" }}>
             MAINTAINED &amp; DEVELOPED BY
           </span>
           <span aria-hidden className="hidden sm:block h-px w-8 bg-white/25" />
@@ -231,11 +230,11 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-border px-4 md:px-8 py-6 flex flex-col md:flex-row flex-wrap gap-3 md:gap-x-6 items-center justify-center md:justify-between" style={{ background: "var(--color-muted)" }}>
-        <div className="w-full md:w-auto min-w-0 text-mono font-medium text-foreground/75 text-center break-words" style={{ fontSize: "11px", letterSpacing: "0.2em" }}>
+      <div className="border-t border-border px-4 sm:px-8 lg:px-16 py-6 flex flex-col md:flex-row flex-wrap gap-3 md:gap-x-6 items-center justify-center md:justify-between" style={{ background: "var(--color-muted)" }}>
+        <div className="w-full md:w-auto min-w-0 text-mono font-semibold text-foreground/75 text-center break-words" style={{ fontSize: "11px", letterSpacing: "0.2em" }}>
           © {new Date().getFullYear()} STUDIO DENY · ALL RIGHTS RESERVED
         </div>
-        <div className="w-full md:w-auto flex flex-wrap justify-center items-center gap-5 sm:gap-6 text-mono font-medium text-foreground/75" style={{ fontSize: "11px", letterSpacing: "0.2em" }}>
+        <div className="w-full md:w-auto flex flex-wrap justify-center items-center gap-5 sm:gap-6 text-mono font-semibold text-foreground/75" style={{ fontSize: "11px", letterSpacing: "0.2em" }}>
           <Link to="/privacy" className="hover:text-foreground transition-colors">PRIVACY</Link>
           <Link to="/terms" className="hover:text-foreground transition-colors">TERMS</Link>
         </div>

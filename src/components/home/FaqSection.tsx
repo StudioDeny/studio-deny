@@ -18,7 +18,7 @@ export function FaqSection() {
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<FaqConfig>("faq", DEFAULTS);
   const [items, setItems] = useState<FaqPreviewItem[]>([]);
   const [open, setOpen] = useState<number | null>(0);
-  const heading = useSectionHeading("faq", "WE'VE GOT ANSWERS.", { eyebrow: "GOT QUESTIONS?" });
+  const heading = useSectionHeading("faq", "WE'VE GOT ANSWERS.");
 
   useEffect(() => {
     supabase
@@ -36,10 +36,7 @@ export function FaqSection() {
     <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border bg-[#E2E2E4]">
       <div className="max-w-3xl mx-auto">
         <div className="mb-10 flex flex-col">
-          {heading.eyebrow && (
-            <span className="text-mono text-primary mb-2 text-xs tracking-[0.35em]">◢ {heading.eyebrow}</span>
-          )}
-          <EditorialHeading className="text-[clamp(2.5rem,7vw,5rem)] leading-[0.95] tracking-[-0.03em] uppercase text-display" style={heading.color ? { color: heading.color } : undefined}>
+          <EditorialHeading className="type-h2" style={heading.color ? { color: heading.color } : undefined}>
             {heading.text}
           </EditorialHeading>
         </div>

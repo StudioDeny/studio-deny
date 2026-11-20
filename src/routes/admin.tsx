@@ -133,11 +133,11 @@ function AdminLayout() {
       activeOptions={l.exact ? { exact: true } : undefined}
       activeProps={{ className: "bg-primary text-primary-foreground" }}
       onClick={() => setMobileNavOpen(false)}
-      className="flex items-center gap-2 px-3 py-2 text-mono text-[11px] tracking-widest hover:bg-muted"
+      className="flex items-center gap-2 px-3 py-2 text-mono text-xs tracking-widest hover:bg-muted"
     >
       <l.icon className="size-4 shrink-0" /> <span className="flex-1 truncate">{l.label}</span>
       {l.badge ? (
-        <span className="bg-primary text-primary-foreground text-[9px] px-1.5 rounded-full">{l.badge}</span>
+        <span className="bg-primary text-primary-foreground text-xs px-1.5 rounded-full">{l.badge}</span>
       ) : null}
     </Link>
   );
@@ -160,7 +160,7 @@ function AdminLayout() {
             >
               <Bell className="size-5" />
               {unseenOrders.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] text-mono px-1 rounded-full min-w-[14px] text-center">
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs text-mono px-1 rounded-full min-w-[14px] text-center">
                   {unseenOrders.length}
                 </span>
               )}
@@ -189,13 +189,13 @@ function AdminLayout() {
             <Link
               to="/admin/guide"
               onClick={() => setMobileNavOpen(false)}
-              className="flex items-center gap-2 px-3 h-11 mb-3 bg-foreground text-background text-mono text-[11px] tracking-widest"
+              className="flex items-center gap-2 px-3 h-11 mb-3 bg-foreground text-background text-mono text-xs tracking-widest"
             >
               <LifeBuoy className="size-4 shrink-0" /> GUIDE
             </Link>
             {coreLinks.map(navLink)}
             <div className="pt-4 pb-1">
-              <div className="text-mono text-[9px] tracking-[0.3em] text-muted-foreground px-3 mb-1">CMS</div>
+              <div className="text-mono text-xs tracking-[0.3em] text-muted-foreground px-3 mb-1">CMS</div>
             </div>
             {cmsLinks.map(navLink)}
           </nav>
@@ -204,7 +204,7 @@ function AdminLayout() {
 
       <aside className="hidden md:block border-r border-border bg-surface p-5 md:sticky md:top-0 md:h-screen md:max-h-screen overflow-y-auto overscroll-contain custom-scrollbar" data-lenis-prevent>
         <div className="flex items-center justify-between mb-6">
-          <div className="text-mono text-[10px] tracking-[0.3em] text-primary">◢ ADMIN</div>
+          <div className="text-mono text-xs tracking-[0.3em] text-primary">◢ ADMIN</div>
           <button
             data-notif-bell
             onClick={openNotif}
@@ -214,7 +214,7 @@ function AdminLayout() {
           >
             <Bell className="size-4" />
             {unseenOrders.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] text-mono px-1 rounded-full min-w-[14px] text-center">
+              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs text-mono px-1 rounded-full min-w-[14px] text-center">
                 {unseenOrders.length}
               </span>
             )}
@@ -223,7 +223,7 @@ function AdminLayout() {
 
         <Link
           to="/admin/guide"
-          className="flex items-center gap-2 px-3 h-11 mb-4 bg-foreground text-background text-mono text-[11px] tracking-widest hover:opacity-85 transition-opacity"
+          className="flex items-center gap-2 px-3 h-11 mb-4 bg-foreground text-background text-mono text-xs tracking-widest hover:opacity-85 transition-opacity"
         >
           <LifeBuoy className="size-4 shrink-0" /> GUIDE
         </Link>
@@ -232,13 +232,13 @@ function AdminLayout() {
           {coreLinks.map(navLink)}
 
           <div className="pt-4 pb-1">
-            <div className="text-mono text-[9px] tracking-[0.3em] text-muted-foreground px-3 mb-1">CMS</div>
+            <div className="text-mono text-xs tracking-[0.3em] text-muted-foreground px-3 mb-1">CMS</div>
           </div>
 
           {cmsLinks.map(navLink)}
         </nav>
 
-        <Link to="/" className="mt-8 inline-flex items-center gap-2 text-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary">
+        <Link to="/" className="mt-8 inline-flex items-center gap-2 text-mono text-xs tracking-widest text-muted-foreground hover:text-primary">
           <Home className="size-3" /> BACK TO STORE
         </Link>
       </aside>
@@ -262,11 +262,11 @@ function AdminLayout() {
           className="max-h-[400px] overflow-y-auto overscroll-contain bg-background border border-border shadow-2xl"
         >
           <div className="flex items-center justify-between p-3 border-b border-border sticky top-0 bg-background">
-            <div className="text-mono text-[10px] tracking-widest text-primary">NOTIFICATIONS</div>
-            <button onClick={markAllSeen} className="text-mono text-[9px] tracking-widest text-muted-foreground hover:text-primary">MARK ALL SEEN</button>
+            <div className="text-mono text-xs tracking-widest text-primary">NOTIFICATIONS</div>
+            <button onClick={markAllSeen} className="text-mono text-xs tracking-widest text-muted-foreground hover:text-primary">MARK ALL SEEN</button>
           </div>
           {unseenOrders.length === 0 ? (
-            <div className="p-6 text-center text-mono text-[11px] text-muted-foreground tracking-widest">NO NEW ACTIVITY</div>
+            <div className="p-6 text-center text-mono text-xs text-muted-foreground tracking-widest">NO NEW ACTIVITY</div>
           ) : (
             <ul className="divide-y divide-border">
               {unseenOrders.slice(0, 12).map((o) => (
@@ -277,11 +277,11 @@ function AdminLayout() {
                     className="block p-3 hover:bg-surface"
                   >
                     <div className="flex justify-between items-center">
-                      <div className="text-mono text-[11px]">NEW ORDER</div>
-                      <div className="text-mono text-[10px] text-muted-foreground">{new Date(o.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                      <div className="text-mono text-xs">NEW ORDER</div>
+                      <div className="text-mono text-xs text-muted-foreground">{new Date(o.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
                     </div>
                     <div className="text-xs mt-1 text-foreground truncate">{o.userEmail}</div>
-                    <div className="flex justify-between mt-1 text-mono text-[11px]">
+                    <div className="flex justify-between mt-1 text-mono text-xs">
                       <span className="text-muted-foreground">{o.order_number ?? o.id}</span>
                       <span className="text-primary">{formatINR(o.total)}</span>
                     </div>

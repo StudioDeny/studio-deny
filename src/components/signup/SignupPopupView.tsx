@@ -109,7 +109,7 @@ export function SignupPopupView(p: Props) {
               {p.submitting && <Loader2 className="size-4 animate-spin" />} {cfg.submit_text}
             </button>
             <button type="button" onClick={p.onLogin} className="w-full text-xs underline opacity-80">{cfg.login_link_text}</button>
-            <p className="text-[11px] opacity-60 text-center">{cfg.terms_text}</p>
+            <p className="text-xs opacity-60 text-center">{cfg.terms_text}</p>
           </form>
         ) : (
           <div className="text-center space-y-4">

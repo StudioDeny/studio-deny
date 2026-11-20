@@ -19,7 +19,7 @@ function Invoices() {
       ) : (
         <div className="border border-border bg-surface overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+            <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
               <tr>
                 <th className="text-left p-3">INVOICE</th>
                 <th className="text-left p-3">ORDER</th>
@@ -38,7 +38,7 @@ function Invoices() {
                   <td className="p-3 text-muted-foreground text-xs">{new Date(o.createdAt).toLocaleDateString()}</td>
                   <td className="p-3 text-mono">{formatINR(o.total)}</td>
                   <td className="p-3 text-right">
-                    <Link to="/admin/invoice/$id" params={{ id: o.id }} className="text-mono text-[11px] tracking-widest text-primary hover:underline">EDIT →</Link>
+                    <Link to="/admin/invoice/$id" params={{ id: o.id }} className="text-mono text-xs tracking-widest text-primary hover:underline">EDIT →</Link>
                   </td>
                 </tr>
               ))}

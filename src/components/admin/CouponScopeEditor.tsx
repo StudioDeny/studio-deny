@@ -82,7 +82,7 @@ export function CouponScopeEditor({ value, onChange, cats, products, memberships
                       <label key={child.id} className={`flex items-center gap-2 pl-8 pr-3 py-1.5 text-sm ${rootOn ? "text-muted-foreground" : "cursor-pointer"}`}>
                         <input type="checkbox" checked={rootOn || value.categoryIds.includes(child.id)} disabled={rootOn} onChange={() => toggleCategory(child)} className="size-4" />
                         {child.name}
-                        {rootOn && <span className="text-[10px] text-mono tracking-widest">INCLUDED</span>}
+                        {rootOn && <span className="text-xs text-mono tracking-widest">INCLUDED</span>}
                       </label>
                     ))}
                   </li>
@@ -95,7 +95,7 @@ export function CouponScopeEditor({ value, onChange, cats, products, memberships
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="lbl">PRODUCTS · {ticked} OF {inScope.length} TICKED — UNTICK TO LEAVE OUT</div>
               {inScope.length > 0 && (
-                <div className="flex gap-3 text-mono text-[10px] tracking-widest mb-1">
+                <div className="flex gap-3 text-mono text-xs tracking-widest mb-1">
                   <button type="button" onClick={() => setExcluded(shown.map((p) => p.slug), false)} className="underline underline-offset-4 hover:text-primary">TICK ALL</button>
                   <button type="button" onClick={() => setExcluded(shown.map((p) => p.slug), true)} className="underline underline-offset-4 hover:text-primary">UNTICK ALL</button>
                 </div>
@@ -118,7 +118,7 @@ export function CouponScopeEditor({ value, onChange, cats, products, memberships
                           {p.image && <img src={thumbImage(p.image, 96)} alt="" width={32} height={40} loading="lazy" decoding="async" className="w-8 h-10 object-cover shrink-0 bg-surface" />}
                           <span className="flex-1 min-w-0">
                             <span className="block text-sm truncate">{p.name}</span>
-                            <span className="block text-[11px] text-muted-foreground">
+                            <span className="block text-xs text-muted-foreground">
                               {p.category} · {formatINR(p.price)}{p.is_active === false ? " · hidden" : ""}
                             </span>
                           </span>
@@ -129,7 +129,7 @@ export function CouponScopeEditor({ value, onChange, cats, products, memberships
                 </ul>
               </>
             )}
-            <p className="text-[11px] text-muted-foreground mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               Products added to these categories later are included automatically. The discount and min order count only these products.
             </p>
           </div>

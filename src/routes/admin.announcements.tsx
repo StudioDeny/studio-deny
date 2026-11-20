@@ -129,7 +129,7 @@ function AdminAnnouncements() {
 
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm min-w-[600px]">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">ORDER</th>
               <th className="text-left p-3">MESSAGE</th>
@@ -163,7 +163,7 @@ function AdminAnnouncements() {
                 <td className="p-3">
                   <div className="font-semibold truncate max-w-[200px]">{r.message}</div>
                   {r.cta_label && (
-                    <div className="text-mono text-[10px] text-muted-foreground mt-0.5">{r.cta_label} → {r.cta_href}</div>
+                    <div className="text-mono text-xs text-muted-foreground mt-0.5">{r.cta_label} → {r.cta_href}</div>
                   )}
                 </td>
                 <td className="p-3 hidden md:table-cell">
@@ -172,14 +172,14 @@ function AdminAnnouncements() {
                     <div className="h-5 w-5 rounded-sm border border-border" style={{ background: r.text_color }} title={r.text_color} />
                   </div>
                 </td>
-                <td className="p-3 hidden lg:table-cell text-mono text-[10px] text-muted-foreground">
+                <td className="p-3 hidden lg:table-cell text-mono text-xs text-muted-foreground">
                   {r.starts_at ? new Date(r.starts_at).toLocaleDateString() : "—"}
                   {r.ends_at ? ` → ${new Date(r.ends_at).toLocaleDateString()}` : ""}
                 </td>
                 <td className="p-3">
                   <button
                     onClick={() => toggle(r.id, !r.is_active)}
-                    className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
+                    className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${r.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
                   >
                     {r.is_active ? "ACTIVE" : "INACTIVE"}
                   </button>
@@ -207,7 +207,7 @@ function AdminAnnouncements() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="bg-background border border-border w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-border">
-              <div className="text-mono text-[11px] tracking-[0.25em] text-primary">{modal.id ? "EDIT" : "NEW"} ANNOUNCEMENT BAR</div>
+              <div className="text-mono text-xs tracking-[0.25em] text-primary">{modal.id ? "EDIT" : "NEW"} ANNOUNCEMENT BAR</div>
               <button onClick={() => setModal(null)} className="text-muted-foreground hover:text-foreground text-lg leading-none">×</button>
             </div>
             <div className="p-5 space-y-4">
@@ -246,7 +246,7 @@ function AdminAnnouncements() {
               </div>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={modal.is_active ?? true} onChange={(e) => setModal({ ...modal, is_active: e.target.checked })} className="w-4 h-4" />
-                <span className="text-mono text-[11px] tracking-widest">ACTIVE</span>
+                <span className="text-mono text-xs tracking-widest">ACTIVE</span>
               </label>
 
               <div className="border border-border p-3" style={{ background: modal.bg_color ?? "#c8f135", color: modal.text_color ?? "#0a0a0a" }}>
@@ -273,7 +273,7 @@ function AdminAnnouncements() {
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">{label}</div>
+      <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">{label}</div>
       {children}
     </label>
   );

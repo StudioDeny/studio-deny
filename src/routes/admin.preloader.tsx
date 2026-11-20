@@ -41,7 +41,7 @@ function ImageField({ value, onChange }: { value: string; onChange: (url: string
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="border border-border h-10 px-4 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50 shrink-0"
+          className="border border-border h-10 px-4 text-mono text-xs tracking-widest hover:border-primary hover:text-primary inline-flex items-center gap-2 disabled:opacity-50 shrink-0"
         >
           {uploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
           {uploading ? `UPLOADING… ${progress}%` : "UPLOAD"}
@@ -103,20 +103,20 @@ function AdminPreloader() {
   return (
     <div>
       <h1 className="text-display text-4xl md:text-5xl mb-2">PRELOADER.</h1>
-      <p className="text-mono text-[11px] tracking-widest text-muted-foreground mb-6">
+      <p className="text-mono text-xs tracking-widest text-muted-foreground mb-6">
         THE LOADING SCREEN EVERY VISITOR SEES ON FIRST LOAD. THE GLITCH ANIMATION ITSELF IS FIXED — THIS CONTROLS THE BACKDROP AND WHAT GLITCHES.
       </p>
 
       <div className="max-w-2xl space-y-6">
         <div className="border border-border bg-surface p-4 space-y-3">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">BACKDROP</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">BACKDROP</div>
           <div className="inline-flex border border-border rounded overflow-hidden mb-3">
             {(["image", "video", "color"] as const).map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => update({ bg_type: t })}
-                className={`px-3 h-7 text-[10px] font-semibold tracking-widest uppercase transition-colors ${
+                className={`px-3 h-7 text-xs font-semibold tracking-widest uppercase transition-colors ${
                   row.bg_type === t ? "bg-foreground text-background" : "bg-background text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -150,14 +150,14 @@ function AdminPreloader() {
         </div>
 
         <div className="border border-border bg-surface p-4 space-y-3">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">WHAT GLITCHES — IMAGE OR TEXT</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">WHAT GLITCHES — IMAGE OR TEXT</div>
           <div className="inline-flex border border-border rounded overflow-hidden mb-3">
             {(["image", "text"] as const).map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => update({ content_type: t })}
-                className={`px-3 h-7 text-[10px] font-semibold tracking-widest uppercase transition-colors ${
+                className={`px-3 h-7 text-xs font-semibold tracking-widest uppercase transition-colors ${
                   row.content_type === t ? "bg-foreground text-background" : "bg-background text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -171,11 +171,11 @@ function AdminPreloader() {
           ) : (
             <div className="space-y-3">
               <label className="block">
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">TEXT</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">TEXT</div>
                 <input value={row.content_text} onChange={(e) => update({ content_text: e.target.value })} className="inp" placeholder="STUDIO DENY" />
               </label>
               <label className="block">
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">TEXT COLOUR</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">TEXT COLOUR</div>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"

@@ -17,20 +17,20 @@ export function MobileMediaField({
   return (
     <div className="border border-dashed border-border rounded p-3 bg-background/60">
       <div className="flex items-center justify-between gap-2 mb-1">
-        <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-widest text-foreground">
+        <div className="flex items-center gap-1.5 text-xs font-semibold tracking-widest text-foreground">
           <Smartphone className="size-3.5" /> MOBILE IMAGE / VIDEO (PHONES)
         </div>
         {url && (
           <button
             type="button"
             onClick={() => onChange({ url: "", type: undefined })}
-            className="text-mono text-[10px] tracking-widest text-red-500 hover:underline"
+            className="text-mono text-xs tracking-widest text-red-500 hover:underline"
           >
             REMOVE
           </button>
         )}
       </div>
-      <p className="text-[11px] text-muted-foreground mb-2">
+      <p className="text-xs text-muted-foreground mb-2">
         Optional. Shown on phones instead of the desktop media above. Leave empty to use the desktop
         one.
       </p>

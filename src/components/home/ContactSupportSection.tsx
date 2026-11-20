@@ -22,7 +22,7 @@ import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 export function ContactSupportSection() {
   const [contact, setContact] = useState<ContactSupport | null>(null);
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<ContactSupportCfg>("contact_support", { cards: DEFAULT_CARDS, cta_label: "VISIT SUPPORT PAGE" });
-  const heading = useSectionHeading("contact_support", "CONTACT SUPPORT", { eyebrow: "WE'RE HERE" });
+  const heading = useSectionHeading("contact_support", "CONTACT SUPPORT");
 
   useEffect(() => {
     getBrandSettings().then((b) => {
@@ -49,9 +49,8 @@ export function ContactSupportSection() {
     <section className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 border-t border-border bg-[#E2E2E4]">
       <div className="max-w-[1280px] mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="mb-12 text-center">
-          <span className="text-mono text-[10px] tracking-[0.3em] text-primary mb-2 block">{heading.eyebrow}</span>
           <h2
-            className="text-[clamp(2.5rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase text-display"
+            className="type-h2"
             style={heading.color ? { color: heading.color } : undefined}
           >
             {heading.text}
@@ -65,10 +64,10 @@ export function ContactSupportSection() {
                 <item.icon className="size-5 text-primary" />
               </div>
               <div>
-                <div className="text-mono text-[10px] tracking-[0.25em] text-muted-foreground mb-2">{item.label}</div>
+                <div className="text-mono text-xs tracking-[0.25em] text-muted-foreground mb-2">{item.label}</div>
                 {item.button && item.href ? (
                   <a href={item.href} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 bg-[#25D366] text-white px-5 py-2.5 mb-2 text-mono text-[11px] font-bold tracking-[0.2em] hover:opacity-85 transition-opacity">
+                    className="inline-flex items-center justify-center gap-2 bg-[#25D366] text-white px-5 py-2.5 mb-2 text-mono text-xs font-bold tracking-[0.2em] hover:opacity-85 transition-opacity">
                     <WhatsAppIcon className="size-4" /> {item.button}
                   </a>
                 ) : item.href ? (

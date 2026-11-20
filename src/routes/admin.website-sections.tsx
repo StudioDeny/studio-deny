@@ -102,7 +102,7 @@ function IconPicker({ value, onChange }: { value: string; onChange: (name: strin
                 }`}
               >
                 <Icon className="size-4" />
-                <span className="text-[8px] tracking-wide truncate w-full text-center">{name}</span>
+                <span className="text-xs tracking-wide truncate w-full text-center">{name}</span>
               </button>
             );
           })}
@@ -262,7 +262,7 @@ function AdminWebsiteSections() {
         <button
           onClick={resetOrderToDefault}
           disabled={resetting}
-          className="h-9 px-4 rounded border border-border bg-background text-[11px] font-semibold tracking-widest uppercase hover:border-primary hover:text-primary transition-colors disabled:opacity-40 shrink-0"
+          className="h-9 px-4 rounded border border-border bg-background text-xs font-semibold tracking-widest uppercase hover:border-primary hover:text-primary transition-colors disabled:opacity-40 shrink-0"
         >
           {resetting ? "RESETTING…" : "RESET ORDER TO DEFAULT"}
         </button>
@@ -272,11 +272,11 @@ function AdminWebsiteSections() {
         <table className="w-full text-sm min-w-[600px]">
           <thead>
             <tr className="border-b border-border bg-muted/50">
-              <th className="text-left px-4 py-3 text-[11px] font-semibold tracking-widest text-foreground uppercase w-24">Order</th>
-              <th className="text-left px-4 py-3 text-[11px] font-semibold tracking-widest text-foreground uppercase">Section</th>
-              <th className="text-left px-4 py-3 text-[11px] font-semibold tracking-widest text-foreground uppercase w-36">Type</th>
-              <th className="text-left px-4 py-3 text-[11px] font-semibold tracking-widest text-foreground uppercase w-32">Visibility</th>
-              <th className="text-right px-4 py-3 text-[11px] font-semibold tracking-widest text-foreground uppercase w-28">Actions</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold tracking-widest text-foreground uppercase w-24">Order</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold tracking-widest text-foreground uppercase">Section</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold tracking-widest text-foreground uppercase w-36">Type</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold tracking-widest text-foreground uppercase w-32">Visibility</th>
+              <th className="text-right px-4 py-3 text-xs font-semibold tracking-widest text-foreground uppercase w-28">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -304,13 +304,13 @@ function AdminWebsiteSections() {
                 <td className="px-4 py-3">
                   <div className="font-semibold text-foreground">{s.title}</div>
                   {s.is_locked && (
-                    <div className="text-[10px] tracking-widest text-muted-foreground mt-0.5">LOCKED</div>
+                    <div className="text-xs tracking-widest text-muted-foreground mt-0.5">LOCKED</div>
                   )}
                 </td>
 
                 {/* TYPE BADGE */}
                 <td className="px-4 py-3">
-                  <span className={`inline-block text-[10px] font-semibold tracking-wider px-2.5 py-1 rounded-full ${TYPE_COLORS[s.section_type] ?? "bg-muted text-foreground"}`}>
+                  <span className={`inline-block text-xs font-semibold tracking-wider px-2.5 py-1 rounded-full ${TYPE_COLORS[s.section_type] ?? "bg-muted text-foreground"}`}>
                     {s.section_type.toUpperCase()}
                   </span>
                 </td>
@@ -319,7 +319,7 @@ function AdminWebsiteSections() {
                 <td className="px-4 py-3">
                   <button
                     onClick={() => toggleVisible(s.id, s.is_locked, !s.is_visible)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold tracking-wide transition-colors ${
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-colors ${
                       s.is_visible
                         ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
                         : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -391,7 +391,7 @@ function AdminWebsiteSections() {
                 />
               </F>
               <div className="mt-5 pt-5 border-t border-border">
-                <div className="text-[11px] font-semibold tracking-widest text-foreground mb-4">SECTION CONTENT</div>
+                <div className="text-xs font-semibold tracking-widest text-foreground mb-4">SECTION CONTENT</div>
                 <SectionConfigForm
                   section={editing}
                   onChange={(c) => setEditing((prev) => prev && {
@@ -500,7 +500,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           {slides.map((slide, i) => (
             <div key={slide.id} className="border border-border rounded p-4 space-y-3 bg-muted/20">
               <div className="flex items-center justify-between">
-                <div className="text-[11px] font-semibold tracking-widest text-foreground">SLIDE {i + 1}</div>
+                <div className="text-xs font-semibold tracking-widest text-foreground">SLIDE {i + 1}</div>
                 <div className="flex items-center gap-1">
                   <button type="button" onClick={() => moveSlide(i, -1)} disabled={i === 0}
                     className="h-7 w-7 inline-flex items-center justify-center rounded border border-border bg-background hover:border-primary hover:text-primary disabled:opacity-25 transition-colors">
@@ -576,70 +576,12 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
     }
     case "new_arrivals": {
       const c = cfg as Partial<ArrivalsConfig>;
-      const selected = c.product_slugs ?? [];
-      const moveSlug = (i: number, dir: -1 | 1) => {
-        const j = i + dir;
-        if (j < 0 || j >= selected.length) return;
-        const next = [...selected];
-        [next[i], next[j]] = [next[j], next[i]];
-        set("product_slugs", next);
-      };
       return (
         <div className="space-y-4">
           <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
-            The heading/eyebrow/subtext for this section is managed on the <strong className="text-foreground">Headings</strong> admin page (key: new_arrivals).
+            Products appear here automatically when you tick <strong className="text-foreground">New Arrival</strong> on their product form, newest first. The heading is managed on the <strong className="text-foreground">Headings</strong> admin page (key: new_arrivals).
           </div>
-          <F label="CTA LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="VIEW ALL" /></F>
-          <F label={`ADD PRODUCTS — search and add, up to 12 (${selected.length}/12 selected)`}>
-            <div className="relative">
-              <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input
-                value={arrivalsSearch}
-                onChange={(e) => setArrivalsSearch(e.target.value)}
-                placeholder="Search products to add…"
-                className="inp"
-                style={{ paddingLeft: "2.25rem" }}
-              />
-              {arrivalsSearch.trim() && (
-                <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-background border border-border rounded shadow-lg max-h-64 overflow-y-auto">
-                  {(() => {
-                    const q = arrivalsSearch.trim().toLowerCase();
-                    const results = allProducts.filter((p) => !selected.includes(p.slug) && p.name.toLowerCase().includes(q));
-                    if (results.length === 0) return <p className="p-3 text-sm text-muted-foreground">No matching products.</p>;
-                    return results.map((p) => (
-                      <button
-                        key={p.slug}
-                        type="button"
-                        disabled={selected.length >= 12}
-                        onClick={() => { set("product_slugs", [...selected, p.slug].slice(0, 12)); setArrivalsSearch(""); }}
-                        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/40 text-left disabled:opacity-40"
-                      >
-                        <span className="text-sm text-foreground flex-1 truncate">{p.name}</span>
-                        <span className="text-[10px] text-muted-foreground font-mono">{p.slug}</span>
-                      </button>
-                    ));
-                  })()}
-                </div>
-              )}
-            </div>
-          </F>
-          {selected.length > 0 && (
-            <F label="SELECTED — order">
-              <div className="border border-border rounded divide-y divide-border">
-                {selected.map((slug, i) => {
-                  const p = allProducts.find((ap) => ap.slug === slug);
-                  return (
-                    <div key={slug} className="flex items-center gap-2 px-3 py-2">
-                      <span className="text-sm text-foreground flex-1 truncate">{p?.name ?? slug}</span>
-                      <button type="button" onClick={() => moveSlug(i, -1)} disabled={i === 0} className="text-muted-foreground hover:text-primary disabled:opacity-30"><ChevronUp className="size-4" /></button>
-                      <button type="button" onClick={() => moveSlug(i, 1)} disabled={i === selected.length - 1} className="text-muted-foreground hover:text-primary disabled:opacity-30"><ChevronDown className="size-4" /></button>
-                      <button type="button" onClick={() => set("product_slugs", selected.filter((s) => s !== slug))} className="text-muted-foreground hover:text-red-500"><X className="size-4" /></button>
-                    </div>
-                  );
-                })}
-              </div>
-            </F>
-          )}
+          <F label="CTA LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="EXPLORE COLLECTION" /></F>
         </div>
       );
     }
@@ -715,7 +657,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
                         className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/40 text-left disabled:opacity-40"
                       >
                         <span className="text-sm text-foreground flex-1 truncate">{p.name}</span>
-                        <span className="text-[10px] text-muted-foreground font-mono">{p.slug}</span>
+                        <span className="text-xs text-muted-foreground font-mono">{p.slug}</span>
                       </button>
                     ));
                   })()}
@@ -743,8 +685,8 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           {tabs.map((tab, i) => (
             <div key={i} className="border border-border rounded p-4 space-y-3 bg-muted/20">
               <div className="flex items-center justify-between">
-                <div className="text-[11px] font-semibold tracking-widest text-foreground">TAB {i + 1}</div>
-                <button type="button" onClick={() => removeTab(i)} className="text-mono text-[10px] tracking-widest text-red-500 hover:underline">REMOVE</button>
+                <div className="text-xs font-semibold tracking-widest text-foreground">TAB {i + 1}</div>
+                <button type="button" onClick={() => removeTab(i)} className="text-mono text-xs tracking-widest text-red-500 hover:underline">REMOVE</button>
               </div>
               <F label="TAB LABEL"><input value={tab.name} onChange={(e) => updateTab(i, { name: e.target.value })} className="inp" placeholder="T-SHIRTS" /></F>
               <F label="HEADLINE"><input value={tab.title} onChange={(e) => updateTab(i, { title: e.target.value })} className="inp" placeholder="300+ GSM HEAVYWEIGHT COTTON" /></F>
@@ -820,10 +762,10 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
             The heading/eyebrow/second line is managed on the <strong className="text-foreground">Headings</strong> admin page (key: why_us).
           </div>
-          <div className="text-[11px] font-semibold tracking-widest text-foreground mt-2 mb-1">PILLARS (4 items)</div>
+          <div className="text-xs font-semibold tracking-widest text-foreground mt-2 mb-1">PILLARS (4 items)</div>
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="border border-border rounded p-3 space-y-2 bg-muted/20">
-              <div className="text-[10px] font-semibold tracking-widest text-muted-foreground">PILLAR {i + 1}</div>
+              <div className="text-xs font-semibold tracking-widest text-muted-foreground">PILLAR {i + 1}</div>
               <F label="LABEL">
                 <input value={features[i]?.label ?? ""} onChange={(e) => { const next = [...features]; next[i] = { ...next[i], label: e.target.value }; set("features", next); }} className="inp" />
               </F>
@@ -867,7 +809,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           <F label="BUTTON TEXT (shown on every card)"><input value={c.explore_label ?? ""} onChange={(e) => set("explore_label", e.target.value)} className="inp" placeholder="EXPLORE" /></F>
           {cards.map((card, i) => (
             <div key={i} className="border border-border rounded p-4 space-y-3 bg-muted/20">
-              <div className="text-[11px] font-semibold tracking-widest text-foreground">CARD {i + 1}</div>
+              <div className="text-xs font-semibold tracking-widest text-foreground">CARD {i + 1}</div>
               <F label="LABEL"><input value={card.label} onChange={(e) => updateCard(i, { label: e.target.value })} className="inp" placeholder="SHOP MEN" /></F>
               <MediaField
                 label="CARD MEDIA"
@@ -917,7 +859,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           {slides.map((slide, i) => (
             <div key={i} className="border border-border rounded p-4 space-y-3 bg-muted/20">
               <div className="flex items-center justify-between">
-                <div className="text-[11px] font-semibold tracking-widest text-foreground">SLIDE {i + 1}</div>
+                <div className="text-xs font-semibold tracking-widest text-foreground">SLIDE {i + 1}</div>
                 <div className="flex items-center gap-1">
                   <button type="button" onClick={() => moveSlide(i, -1)} disabled={i === 0}
                     className="h-7 w-7 inline-flex items-center justify-center rounded border border-border bg-background hover:border-primary hover:text-primary disabled:opacity-25 transition-colors">
@@ -985,15 +927,15 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
             <button
               type="button"
               onClick={() => onChange({ ...cfg, bg_media_url: "" })}
-              className="text-mono text-[10px] tracking-widest text-red-500 hover:underline"
+              className="text-mono text-xs tracking-widest text-red-500 hover:underline"
             >
               REMOVE BACKGROUND MEDIA
             </button>
           )}
-          <div className="text-[11px] font-semibold tracking-widest text-foreground mt-2 mb-1">BENEFIT ICONS (4 items)</div>
+          <div className="text-xs font-semibold tracking-widest text-foreground mt-2 mb-1">BENEFIT ICONS (4 items)</div>
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="border border-border rounded p-3 space-y-2 bg-muted/20">
-              <div className="text-[10px] font-semibold tracking-widest text-muted-foreground">ICON {i + 1}</div>
+              <div className="text-xs font-semibold tracking-widest text-muted-foreground">ICON {i + 1}</div>
               <div className="grid grid-cols-2 gap-3">
                 <F label="ICON">
                   <IconPicker
@@ -1045,7 +987,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           </div>
           {[0, 1, 2].map((i) => (
             <div key={i} className="border border-border rounded p-3 space-y-2 bg-muted/20">
-              <div className="text-[10px] font-semibold tracking-widest text-muted-foreground">CARD {i + 1}</div>
+              <div className="text-xs font-semibold tracking-widest text-muted-foreground">CARD {i + 1}</div>
               <F label="LABEL">
                 <input value={(cards.length === 3 ? cards : DEFAULT_CARDS)[i]?.label ?? ""} onChange={(e) => updateCard(i, { label: e.target.value })} className="inp" />
               </F>
@@ -1075,8 +1017,8 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
           {quotes.map((q, i) => (
             <div key={i} className="border border-border rounded p-3 space-y-2 bg-muted/20">
               <div className="flex items-center justify-between">
-                <div className="text-[10px] font-semibold tracking-widest text-muted-foreground">FALLBACK QUOTE {i + 1}</div>
-                <button type="button" onClick={() => removeQuote(i)} className="text-mono text-[10px] tracking-widest text-red-500 hover:underline">REMOVE</button>
+                <div className="text-xs font-semibold tracking-widest text-muted-foreground">FALLBACK QUOTE {i + 1}</div>
+                <button type="button" onClick={() => removeQuote(i)} className="text-mono text-xs tracking-widest text-red-500 hover:underline">REMOVE</button>
               </div>
               <F label="QUOTE"><textarea rows={2} value={q.quote} onChange={(e) => updateQuote(i, { quote: e.target.value })} className="inp" /></F>
               <div className="grid grid-cols-2 gap-3">
@@ -1100,7 +1042,7 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <div className="text-[10px] font-semibold tracking-widest text-foreground/70 mb-1.5 uppercase">{label}</div>
+      <div className="text-xs font-semibold tracking-widest text-foreground/70 mb-1.5 uppercase">{label}</div>
       {children}
     </label>
   );

@@ -10,8 +10,8 @@ function Terms() {
   return (
     <div className="min-h-screen bg-background text-foreground pt-28 pb-24 px-4 sm:px-8 lg:px-16">
       <div className="max-w-[760px] mx-auto">
-        <p className="text-mono text-[10px] tracking-[0.3em] text-primary mb-4">LEGAL</p>
-        <h1 className="text-display text-[clamp(3rem,8vw,5rem)] leading-none tracking-[-0.03em] uppercase mb-4">TERMS &<br />CONDITIONS</h1>
+        <p className="text-mono text-xs tracking-[0.3em] text-primary mb-4">LEGAL</p>
+        <h1 className="type-h2 mb-4">TERMS &<br />CONDITIONS</h1>
         <p className="text-muted-foreground text-mono text-xs mb-10">Last updated: January 2025</p>
 
         <div className="space-y-10 text-mono text-sm leading-relaxed text-muted-foreground">

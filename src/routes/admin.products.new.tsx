@@ -171,7 +171,7 @@ export function ProductForm({
     <div className="max-w-2xl">
       <Link
         to="/admin/products"
-        className="text-mono text-[11px] tracking-widest text-muted-foreground hover:text-primary"
+        className="text-mono text-xs tracking-widest text-muted-foreground hover:text-primary"
       >
         ← BACK
       </Link>
@@ -298,7 +298,18 @@ export function ProductForm({
             className="w-4 h-4"
           />
           <span className="text-sm text-foreground">Best Seller</span>
-          <span className="text-mono text-[10px] text-muted-foreground">— shows a "Best Seller" badge on this product's card everywhere</span>
+          <span className="text-mono text-xs text-muted-foreground">— shows a "Best Seller" badge on this product's card everywhere</span>
+        </label>
+
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={p.isNewArrival ?? false}
+            onChange={(e) => set("isNewArrival", e.target.checked)}
+            className="w-4 h-4"
+          />
+          <span className="text-sm text-foreground">New Arrival</span>
+          <span className="text-mono text-xs text-muted-foreground">— lists this product in the homepage New Arrivals section</span>
         </label>
 
         <label className="flex items-center gap-2 cursor-pointer">
@@ -309,7 +320,7 @@ export function ProductForm({
             className="w-4 h-4"
           />
           <span className="text-sm text-foreground">Exclusive to physical store (hidden from website)</span>
-          <span className="text-mono text-[10px] text-muted-foreground">— never visible or purchasable on studiodeny.com, including via a direct link; still fully visible in the POS app</span>
+          <span className="text-mono text-xs text-muted-foreground">— never visible or purchasable on studiodeny.com, including via a direct link; still fully visible in the POS app</span>
         </label>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -350,7 +361,7 @@ export function ProductForm({
         {/* GALLERY IMAGES */}
         <Field label="GALLERY MEDIA (additional photos/videos — up to 8)">
           <div className="space-y-3">
-            <p className="text-mono text-[10px] text-muted-foreground leading-relaxed">
+            <p className="text-mono text-xs text-muted-foreground leading-relaxed">
               For every item, choose FULL PICTURE (shows edge-to-edge on the product page) or HALF PICTURE
               (H&M-style — pairs up with the next HALF picture to show two photos side by side in one row).
               Use the arrows to reorder — this is the order they appear on the product page.
@@ -393,7 +404,7 @@ export function ProductForm({
                   <select
                     value={item.layout}
                     onChange={(e) => setGalleryLayout(idx, e.target.value as GalleryItem["layout"])}
-                    className="w-full mt-1 bg-background border border-border text-mono text-[9px] tracking-widest h-7 px-1"
+                    className="w-full mt-1 bg-background border border-border text-mono text-xs tracking-widest h-7 px-1"
                   >
                     <option value="standalone">FULL PICTURE</option>
                     <option value="half">HALF PICTURE</option>
@@ -404,7 +415,7 @@ export function ProductForm({
                         key={t}
                         type="button"
                         onClick={() => setGalleryType(idx, t)}
-                        className={`flex-1 h-6 text-[9px] font-semibold tracking-widest uppercase transition-colors ${
+                        className={`flex-1 h-6 text-xs font-semibold tracking-widest uppercase transition-colors ${
                           (item.type ?? "image") === t ? "bg-foreground text-background" : "bg-background text-muted-foreground hover:text-foreground"
                         }`}
                       >
@@ -421,28 +432,28 @@ export function ProductForm({
                 <button
                   type="button"
                   onClick={addGalleryItem}
-                  className="mt-2 w-full h-8 border border-border text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary"
+                  className="mt-2 w-full h-8 border border-border text-mono text-xs tracking-widest hover:border-primary hover:text-primary"
                 >
                   ADD TO GALLERY
                 </button>
               </div>
             )}
             {(p.gallery ?? []).length > 0 && (
-              <span className="text-mono text-[10px] text-muted-foreground">{(p.gallery ?? []).length}/8</span>
+              <span className="text-mono text-xs text-muted-foreground">{(p.gallery ?? []).length}/8</span>
             )}
           </div>
         </Field>
 
         <div className="border border-border p-4 space-y-2">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground">STOCK &amp; VARIANTS (COLOUR × SIZE)</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground">STOCK &amp; VARIANTS (COLOUR × SIZE)</div>
           {!p.categoryId ? (
-            <p className="text-mono text-[11px] text-muted-foreground">Select a category first — the sizes come from the category.</p>
+            <p className="text-mono text-xs text-muted-foreground">Select a category first — the sizes come from the category.</p>
           ) : stockLoading ? (
-            <p className="text-mono text-[11px] text-muted-foreground">Loading stock…</p>
+            <p className="text-mono text-xs text-muted-foreground">Loading stock…</p>
           ) : (
             <>
               {!single && sizesForCategory.length === 0 && (
-                <p className="text-mono text-[11px] text-muted-foreground">
+                <p className="text-mono text-xs text-muted-foreground">
                   No sizes for this category, so stock is tracked as ONE SIZE. Add sizes in{" "}
                   <Link to="/admin/sizes" className="text-primary hover:underline">Admin → Sizes</Link>.
                 </p>
@@ -517,7 +528,7 @@ function Field({
   const Wrap = plain ? "div" : "label";
   return (
     <Wrap className="block">
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">
+      <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">
         {label}
       </div>
       {children}

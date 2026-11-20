@@ -73,7 +73,7 @@ function AdminSizes() {
 
       <div className="max-w-lg">
         <label className="block mb-5">
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">CATEGORY</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">CATEGORY</div>
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}

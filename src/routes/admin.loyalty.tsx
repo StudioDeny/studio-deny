@@ -94,7 +94,7 @@ function LoyaltyDash() {
       <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
         <h1 className="text-display text-4xl md:text-5xl">LOYALTY.</h1>
         {useSupabase && (
-          <span className="text-mono text-[10px] tracking-widest text-primary border border-primary/30 px-3 py-1">LIVE DATA</span>
+          <span className="text-mono text-xs tracking-widest text-primary border border-primary/30 px-3 py-1">LIVE DATA</span>
         )}
       </div>
       <p className="text-muted-foreground text-xs text-mono mb-6">
@@ -111,7 +111,7 @@ function LoyaltyDash() {
       </div>
 
       <div className="border border-border bg-surface p-5">
-        <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-4">TIER DISTRIBUTION</div>
+        <div className="text-mono text-xs tracking-widest text-muted-foreground mb-4">TIER DISTRIBUTION</div>
         <div className="space-y-3">
           {TIERS.map((t) => (
             <div key={t.name}>
@@ -127,7 +127,7 @@ function LoyaltyDash() {
       <h2 className="text-display text-2xl tracking-wider mt-10 mb-4">TOP MEMBERS</h2>
       <div className="border border-border bg-surface overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-mono text-[10px] tracking-widest text-muted-foreground border-b border-border">
+          <thead className="text-mono text-xs tracking-widest text-muted-foreground border-b border-border">
             <tr>
               <th className="text-left p-3">CUSTOMER</th>
               <th className="text-left p-3">POINTS</th>
@@ -142,7 +142,7 @@ function LoyaltyDash() {
                 <td className="p-3 text-mono text-xs">{m.points.toLocaleString()} pts</td>
                 <td className="p-3 text-mono text-xs">{formatINR(m.spent)}</td>
                 <td className="p-3">
-                  <span className="text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold bg-amber-100 text-amber-800">{m.tier}</span>
+                  <span className="text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold bg-amber-100 text-amber-800">{m.tier}</span>
                 </td>
               </tr>
             ))}
@@ -159,7 +159,7 @@ function LoyaltyDash() {
 function Card({ label, v }: { label: string; v: React.ReactNode }) {
   return (
     <div className="border border-border bg-surface p-5">
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{label}</div>
+      <div className="text-mono text-xs tracking-widest text-muted-foreground">{label}</div>
       <div className="text-display text-3xl mt-2">{v}</div>
     </div>
   );

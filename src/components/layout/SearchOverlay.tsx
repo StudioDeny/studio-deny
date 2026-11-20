@@ -90,7 +90,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
   if (!open) return null;
   return (
     <div data-overlay className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="px-4 md:px-8 pt-6 max-w-3xl mx-auto">
+      <div className="px-4 sm:px-8 lg:px-16 pt-6 max-w-3xl mx-auto">
         <div className="flex items-center gap-3 border-b-2 border-primary pb-3">
           <Search className="size-5 text-primary" />
           <input
@@ -101,7 +101,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
             className="flex-1 bg-transparent outline-none text-display text-2xl md:text-4xl tracking-wider placeholder:text-muted-foreground/40"
           />
           {q && (
-            <button onClick={() => setQ("")} className="text-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary">CLEAR</button>
+            <button onClick={() => setQ("")} className="text-mono text-xs tracking-widest text-muted-foreground hover:text-primary">CLEAR</button>
           )}
           <button onClick={onClose} aria-label="Close" className="p-2 hover:text-primary">
             <X className="size-5" />
@@ -111,7 +111,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
         {!q && (
           <div className="mt-6 grid sm:grid-cols-2 gap-6">
             <div>
-              <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-3 flex items-center gap-1">
+              <div className="text-mono text-xs tracking-widest text-muted-foreground mb-3 flex items-center gap-1">
                 <TrendingUp className="size-3 text-primary" /> TRENDING
               </div>
               <div className="flex flex-wrap gap-2">
@@ -124,7 +124,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
             </div>
             {recent.length > 0 && (
               <div>
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-3 flex items-center gap-1">
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-3 flex items-center gap-1">
                   <Clock className="size-3 text-secondary" /> RECENT
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -141,7 +141,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
 
         {q && completions.length > 0 && (
           <div className="mt-5">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-2 flex items-center gap-1">
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-2 flex items-center gap-1">
               <Sparkles className="size-3 text-secondary" /> SUGGESTIONS
             </div>
             <div className="flex flex-wrap gap-2">
@@ -166,7 +166,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
 
         {results.length > 0 && (
           <>
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mt-5 mb-2">PRODUCTS</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mt-5 mb-2">PRODUCTS</div>
             <ul className="divide-y divide-border border border-border bg-surface">
               {results.map((p) => (
                 <li key={p.slug}>
@@ -181,7 +181,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{p.name}</div>
-                      <div className="text-mono text-[10px] tracking-widest text-muted-foreground">{p.category.toUpperCase()}</div>
+                      <div className="text-mono text-xs tracking-widest text-muted-foreground">{p.category.toUpperCase()}</div>
                     </div>
                     <div className="text-mono text-sm">{formatINR(p.price)}</div>
                   </Link>
@@ -190,7 +190,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
             </ul>
             <button
               onClick={() => submit(q)}
-              className="mt-3 w-full text-center text-mono text-[11px] tracking-widest text-primary hover:underline"
+              className="mt-3 w-full text-center text-mono text-xs tracking-widest text-primary hover:underline"
             >
               SEE ALL RESULTS FOR "{q.toUpperCase()}" →
             </button>

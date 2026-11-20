@@ -34,9 +34,8 @@ export const Route = createFileRoute("/policies")({
 
 function Policies() {
   return (
-    <section className="px-4 md:px-8 mt-8 md:mt-12 max-w-3xl mx-auto">
-      <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-2">◢ THE FINE PRINT</div>
-      <h1 className="text-display text-6xl md:text-8xl mb-12">POLICIES.</h1>
+    <section className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-12 max-w-3xl mx-auto">
+      <h1 className="type-h2 mb-12">POLICIES.</h1>
       <div className="space-y-10">
         {sections.map((s) => (
           <div key={s.title}>

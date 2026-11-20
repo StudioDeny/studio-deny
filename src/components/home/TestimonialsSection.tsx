@@ -34,9 +34,9 @@ export function TestimonialsSection() {
   return (
     <section className="py-16 sm:py-24 overflow-hidden bg-[#E2E2E4]">
       <div className="max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16">
-        <div className="mb-10 sm:mb-14 text-center flex flex-col items-center">
+        <div className="mb-8 sm:mb-12 text-center flex flex-col items-center">
           <EditorialHeading
-            className="text-[clamp(3rem,10vw,7rem)] leading-[0.9] tracking-[-0.03em] uppercase text-display whitespace-pre-line"
+            className="type-h2 whitespace-pre-line"
             style={heading.color ? { color: heading.color } : undefined}
           >
             {heading.text}

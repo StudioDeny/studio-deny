@@ -152,7 +152,7 @@ function AdminMedia() {
             {folders.map((f) => <option key={f} value={f}>{f}</option>)}
           </select>
         )}
-        <div className="text-mono text-[10px] tracking-widest text-muted-foreground self-center">
+        <div className="text-mono text-xs tracking-widest text-muted-foreground self-center">
           {filtered.length} ASSETS
         </div>
       </div>
@@ -177,7 +177,7 @@ function AdminMedia() {
                     <img src={thumbImage(a.secure_url, 400)} alt={a.alt_text ?? ""} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-end justify-end p-1 opacity-0 group-hover:opacity-100">
-                    <span className="text-mono text-[9px] tracking-widest text-white bg-black/70 px-1">{a.format?.toUpperCase()}</span>
+                    <span className="text-mono text-xs tracking-widest text-white bg-black/70 px-1">{a.format?.toUpperCase()}</span>
                   </div>
                 </button>
               ))}
@@ -188,7 +188,7 @@ function AdminMedia() {
         {selected && (
           <div className="w-72 flex-shrink-0 border border-border bg-surface p-4 space-y-4 sticky top-20 self-start">
             <div className="flex items-center justify-between">
-              <div className="text-mono text-[11px] tracking-[0.25em] text-primary">ASSET DETAILS</div>
+              <div className="text-mono text-xs tracking-[0.25em] text-primary">ASSET DETAILS</div>
               <button onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground"><X className="size-4" /></button>
             </div>
             {selected.resource_type === "video" ? (
@@ -198,25 +198,25 @@ function AdminMedia() {
             )}
             <div className="space-y-2 text-xs">
               <div>
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground">PUBLIC ID</div>
-                <div className="font-mono text-[11px] break-all mt-0.5">{selected.public_id}</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground">PUBLIC ID</div>
+                <div className="font-mono text-xs break-all mt-0.5">{selected.public_id}</div>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <div className="text-mono text-[10px] tracking-widest text-muted-foreground">WIDTH</div>
-                  <div className="text-mono text-[11px]">{selected.width ?? "—"}px</div>
+                  <div className="text-mono text-xs tracking-widest text-muted-foreground">WIDTH</div>
+                  <div className="text-mono text-xs">{selected.width ?? "—"}px</div>
                 </div>
                 <div>
-                  <div className="text-mono text-[10px] tracking-widest text-muted-foreground">HEIGHT</div>
-                  <div className="text-mono text-[11px]">{selected.height ?? "—"}px</div>
+                  <div className="text-mono text-xs tracking-widest text-muted-foreground">HEIGHT</div>
+                  <div className="text-mono text-xs">{selected.height ?? "—"}px</div>
                 </div>
                 <div>
-                  <div className="text-mono text-[10px] tracking-widest text-muted-foreground">SIZE</div>
-                  <div className="text-mono text-[11px]">{fmtBytes(selected.bytes)}</div>
+                  <div className="text-mono text-xs tracking-widest text-muted-foreground">SIZE</div>
+                  <div className="text-mono text-xs">{fmtBytes(selected.bytes)}</div>
                 </div>
               </div>
               <div>
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">ALT TEXT</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">ALT TEXT</div>
                 <div className="flex gap-1">
                   <input
                     value={editingAlt ?? ""}
@@ -226,7 +226,7 @@ function AdminMedia() {
                   />
                   <button
                     onClick={() => saveAlt(selected.id)}
-                    className="border border-border h-8 px-2 text-mono text-[10px] hover:border-primary hover:text-primary"
+                    className="border border-border h-8 px-2 text-mono text-xs hover:border-primary hover:text-primary"
                   >
                     SAVE
                   </button>
@@ -236,13 +236,13 @@ function AdminMedia() {
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => copyUrl(selected.secure_url)}
-                className="w-full border border-border h-9 inline-flex items-center justify-center gap-2 text-mono text-[10px] tracking-widest hover:border-primary hover:text-primary"
+                className="w-full border border-border h-9 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-primary hover:text-primary"
               >
                 <Copy className="size-3" /> COPY URL
               </button>
               <button
                 onClick={() => remove(selected.id, selected.public_id)}
-                className="w-full border border-border h-9 inline-flex items-center justify-center gap-2 text-mono text-[10px] tracking-widest hover:border-destructive hover:text-destructive"
+                className="w-full border border-border h-9 inline-flex items-center justify-center gap-2 text-mono text-xs tracking-widest hover:border-destructive hover:text-destructive"
               >
                 <Trash2 className="size-3" /> DELETE
               </button>

@@ -234,7 +234,7 @@ export function ProductCard({
         {/* Product info — Increased size for legibility */}
         <div className="mt-3 px-0.5 flex flex-col gap-1.5">
           <h3
-            className="font-medium text-xs sm:text-sm leading-tight text-foreground group-hover:text-primary transition-colors tracking-wide truncate"
+            className="font-semibold text-xs sm:text-sm leading-tight text-foreground group-hover:text-primary transition-colors tracking-wide truncate"
           >
             {product.name}
           </h3>

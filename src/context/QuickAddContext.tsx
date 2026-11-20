@@ -74,7 +74,7 @@ function SizeGuideContent({ onClose }: { onClose: () => void }) {
             ))}
           </tbody>
         </table>
-        <p className="text-[11px] text-black/50 font-mono italic">
+        <p className="text-xs text-black/50 font-mono italic">
           * Standard luxury relaxed fit. Select your normal size.
         </p>
       </div>
@@ -462,10 +462,10 @@ function DesktopModal({
           data-lenis-prevent
         >
           <div>
-            <span className="text-[10px] font-mono tracking-[0.25em] text-black/45 uppercase block mb-2">
+            <span className="text-xs font-mono tracking-[0.25em] text-black/45 uppercase block mb-2">
               {product.category}
             </span>
-            <h2 className="font-body font-medium tracking-wide text-black mb-2 capitalize leading-snug"
+            <h2 className="font-body font-semibold tracking-wide text-black mb-2 capitalize leading-snug"
               style={{ fontSize: isTablet ? "18px" : "20px" }}
             >
               {product.name}
@@ -482,7 +482,7 @@ function DesktopModal({
             {/* Color swatches */}
             {product.colors && product.colors.length > 0 && (
               <div className="mb-5">
-                <span className="text-[10px] font-mono tracking-widest text-black/50 uppercase block mb-2">
+                <span className="text-xs font-mono tracking-widest text-black/50 uppercase block mb-2">
                   COLOR · {selectedColor ? (product.colors.find((c) => c.name === selectedColor)?.name ?? product.colors[0].name) : product.colors[0].name}
                 </span>
                 <div className="flex gap-2">
@@ -512,13 +512,13 @@ function DesktopModal({
             {/* Sizes */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] font-mono tracking-widest text-black/60 uppercase">
+                <span className="text-xs font-mono tracking-widest text-black/60 uppercase">
                   SELECT SIZE
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowSizeGuide(true)}
-                  className="text-[11px] font-mono text-black/55 hover:text-black underline underline-offset-4"
+                  className="text-xs font-mono text-black/55 hover:text-black underline underline-offset-4"
                 >
                   Size Guide
                 </button>
@@ -532,7 +532,7 @@ function DesktopModal({
               />
 
               {activeOpt?.inStock && activeOpt.stock > 0 && activeOpt.stock <= 3 && (
-                <p className="mt-3 text-[10px] font-mono tracking-widest text-amber-700 uppercase">
+                <p className="mt-3 text-xs font-mono tracking-widest text-amber-700 uppercase">
                   ONLY {activeOpt.stock} LEFT IN STOCK
                 </p>
               )}

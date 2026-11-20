@@ -156,12 +156,11 @@ function Account() {
   if (!user) return null;
 
   return (
-    <section className="px-4 md:px-8 mt-8 md:mt-12 pb-24 max-w-[1400px] mx-auto">
+    <section className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-12 pb-24 max-w-[1400px] mx-auto">
       {/* Header */}
       <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
         <div>
-          <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-2">◢ MEMBER</div>
-          <h1 className="text-display text-5xl md:text-7xl">HELLO, {user.name.toUpperCase()}.</h1>
+          <h1 className="type-h2">HELLO, {user.name.toUpperCase()}.</h1>
           <p className="text-muted-foreground text-sm mt-2">{user.email}</p>
         </div>
         <div className="flex gap-2">
@@ -191,8 +190,8 @@ function Account() {
             <>
               <Icon className="size-5 text-muted-foreground" />
               <div>
-                <div className="text-mono text-[11px] tracking-[0.2em] font-semibold">{label}</div>
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mt-0.5">{meta}</div>
+                <div className="text-mono text-xs tracking-[0.2em] font-semibold">{label}</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mt-0.5">{meta}</div>
               </div>
             </>
           );
@@ -237,7 +236,7 @@ function Account() {
                 </div>
                 <div className="text-mono">{formatINR(o.total)}</div>
                 <div className="flex flex-col items-start gap-1">
-                  <span className={`text-mono text-[10px] tracking-widest px-2 py-1 rounded font-semibold ${
+                  <span className={`text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold ${
                     o.status === "DELIVERED" ? "bg-emerald-100 text-emerald-800"
                     : o.status === "SHIPPED" ? "bg-amber-100 text-amber-800"
                     : o.status === "PACKED" ? "bg-yellow-100 text-yellow-800"
@@ -246,14 +245,14 @@ function Account() {
                     : "bg-red-100 text-red-800"
                   }`}>{o.status}</span>
                   {isStorePickup(o) && o.status !== "CANCELLED" && o.status !== "REFUNDED" && (
-                    <span className="text-mono text-[9px] tracking-widest px-2 py-1 rounded font-semibold bg-foreground text-background">
+                    <span className="text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold bg-foreground text-background">
                       {o.collectedAt
                         ? "STORE PICKUP · COLLECTED"
                         : `STORE PICKUP · COLLECT BY ${o.pickupDueAt ? new Date(o.pickupDueAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" }).toUpperCase() : ""}`}
                     </span>
                   )}
                   {o.returnStatus && (
-                    <span className="text-mono text-[9px] tracking-widest px-2 py-1 rounded font-semibold bg-purple-100 text-purple-800">
+                    <span className="text-mono text-xs tracking-widest px-2 py-1 rounded font-semibold bg-purple-100 text-purple-800">
                       {RETURN_STATUS_LABEL[o.returnStatus] ?? o.returnStatus}
                     </span>
                   )}
@@ -272,7 +271,7 @@ function Account() {
                   {!isStorePickup(o) && o.status === "DELIVERED" && !o.returnStatus && o.deliveredAt && (Date.now() - o.deliveredAt) / (1000 * 60 * 60 * 24) <= RETURN_WINDOW_DAYS && (
                     <button title="Request return" onClick={() => setReturnTarget(o.id)} className="text-muted-foreground hover:text-primary"><RotateCcw className="size-4" /></button>
                   )}
-                  <Link to="/order/$id" params={{ id: o.id }} className="text-mono text-[11px] tracking-widest text-primary hover:underline">VIEW →</Link>
+                  <Link to="/order/$id" params={{ id: o.id }} className="text-mono text-xs tracking-widest text-primary hover:underline">VIEW →</Link>
                 </div>
               </li>
             ))}
@@ -300,7 +299,7 @@ function Account() {
                     <img {...responsiveImage(p.image, { maxWidth: 828, sizes: "(min-width: 1024px) 20vw, (min-width: 768px) 25vw, 50vw" })} alt={p.name} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   <div className="mt-2">
-                    <p className="text-mono text-[11px] tracking-[0.15em] font-semibold uppercase truncate">{p.name}</p>
+                    <p className="text-mono text-xs tracking-[0.15em] font-semibold uppercase truncate">{p.name}</p>
                     <p className="text-mono text-xs text-muted-foreground mt-0.5">{formatINR(p.price)}</p>
                   </div>
                 </Link>
@@ -323,10 +322,10 @@ function Account() {
           <h2 className="text-display text-3xl tracking-wider">PROFILE</h2>
           {!editingProfile && !pw && (
             <div className="flex gap-2 flex-wrap">
-              <button onClick={() => setEditingProfile(true)} className="inline-flex items-center gap-2 border border-border px-4 h-9 text-mono text-[11px] tracking-widest hover:border-primary hover:text-primary">
+              <button onClick={() => setEditingProfile(true)} className="inline-flex items-center gap-2 border border-border px-4 h-9 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">
                 <Pencil className="size-3.5" /> EDIT
               </button>
-              <button onClick={() => setPw({ next: "", again: "" })} className="inline-flex items-center gap-2 border border-border px-4 h-9 text-mono text-[11px] tracking-widest hover:border-primary hover:text-primary">
+              <button onClick={() => setPw({ next: "", again: "" })} className="inline-flex items-center gap-2 border border-border px-4 h-9 text-mono text-xs tracking-widest hover:border-primary hover:text-primary">
                 <KeyRound className="size-3.5" /> CHANGE PASSWORD
               </button>
             </div>
@@ -337,7 +336,7 @@ function Account() {
             <input value={profile.name} onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))} placeholder="Full name" className="bg-background border border-border h-10 px-3 text-sm focus:border-primary outline-none" />
             <input value={profile.phone} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} placeholder="10-digit phone" inputMode="numeric" className="bg-background border border-border h-10 px-3 text-sm focus:border-primary outline-none" />
             {dobReady && <label className="sm:col-span-2 block">
-              <span className="block text-mono text-[10px] tracking-widest text-muted-foreground mb-1">DATE OF BIRTH</span>
+              <span className="block text-mono text-xs tracking-widest text-muted-foreground mb-1">DATE OF BIRTH</span>
               <input
                 type="date"
                 value={profile.dob}
@@ -352,8 +351,8 @@ function Account() {
               </span>
             </label>}
             <div className="sm:col-span-2 flex gap-3">
-              <button onClick={askSaveProfile} className="bg-foreground text-background px-6 h-10 text-mono text-[11px] tracking-widest hover:bg-primary hover:text-primary-foreground">SAVE</button>
-              <button onClick={() => { setEditingProfile(false); reloadProfile(); }} className="border border-border px-6 h-10 text-mono text-[11px] tracking-widest">CANCEL</button>
+              <button onClick={askSaveProfile} className="bg-foreground text-background px-6 h-10 text-mono text-xs tracking-widest hover:bg-primary hover:text-primary-foreground">SAVE</button>
+              <button onClick={() => { setEditingProfile(false); reloadProfile(); }} className="border border-border px-6 h-10 text-mono text-xs tracking-widest">CANCEL</button>
             </div>
             <p className="sm:col-span-2 text-xs text-muted-foreground">Email: {user.email} (can't be changed here)</p>
           </div>
@@ -363,8 +362,8 @@ function Account() {
             <input type="password" autoComplete="new-password" value={pw.again} onChange={(e) => setPw((p) => p && { ...p, again: e.target.value })} placeholder="Re-enter new password" className="bg-background border border-border h-10 px-3 text-sm focus:border-primary outline-none" />
             {pw.again !== "" && pw.again !== pw.next && <p className="sm:col-span-2 text-xs text-primary">Passwords don't match</p>}
             <div className="sm:col-span-2 flex gap-3">
-              <button onClick={askSavePassword} className="bg-foreground text-background px-6 h-10 text-mono text-[11px] tracking-widest hover:bg-primary hover:text-primary-foreground">UPDATE PASSWORD</button>
-              <button onClick={() => setPw(null)} className="border border-border px-6 h-10 text-mono text-[11px] tracking-widest">CANCEL</button>
+              <button onClick={askSavePassword} className="bg-foreground text-background px-6 h-10 text-mono text-xs tracking-widest hover:bg-primary hover:text-primary-foreground">UPDATE PASSWORD</button>
+              <button onClick={() => setPw(null)} className="border border-border px-6 h-10 text-mono text-xs tracking-widest">CANCEL</button>
             </div>
             <p className="sm:col-span-2 text-xs text-muted-foreground">At least 6 characters.</p>
           </div>
@@ -406,7 +405,7 @@ function Account() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl">
             {mine.map((c) => (
               <div key={c.id} className={`border p-5 ${couponStatus(c) === "active" ? "border-primary" : "border-border opacity-70"}`}>
-                <div className="text-mono text-[10px] tracking-[0.25em] text-muted-foreground mb-2">{personalCouponTitle(c)} · {couponLabel(c)}</div>
+                <div className="text-mono text-xs tracking-[0.25em] text-muted-foreground mb-2">{personalCouponTitle(c)} · {couponLabel(c)}</div>
                 <div className="flex items-center gap-3">
                   <span className="text-mono text-xl tracking-[0.2em]">{c.code}</span>
                   {couponStatus(c) === "active" && (
@@ -434,7 +433,7 @@ function Account() {
         <div className="flex items-baseline justify-between gap-4 mb-4 flex-wrap">
           <h2 className="text-display text-3xl tracking-wider">SAVED ADDRESSES</h2>
           {!addrForm && (
-            <button onClick={() => setAddrForm({ ...BLANK, phone: profile.phone })} className="inline-flex items-center gap-2 border border-border px-4 h-9 text-mono text-[11px] tracking-widest hover:border-primary hover:text-primary transition-colors">
+            <button onClick={() => setAddrForm({ ...BLANK, phone: profile.phone })} className="inline-flex items-center gap-2 border border-border px-4 h-9 text-mono text-xs tracking-widest hover:border-primary hover:text-primary transition-colors">
               <Plus className="size-3.5" /> ADD ADDRESS
             </button>
           )}
@@ -444,15 +443,15 @@ function Account() {
           <div className="border border-primary/40 bg-primary/5 p-4 mb-5 flex flex-wrap items-center gap-3 justify-between">
             <p className="text-sm">We found {legacyCount} address{legacyCount > 1 ? "es" : ""} saved on this device. Add {legacyCount > 1 ? "them" : "it"} to your account?</p>
             <div className="flex gap-2">
-              <button onClick={importLegacy} className="bg-foreground text-background px-4 h-9 text-mono text-[11px] tracking-widest hover:bg-primary hover:text-primary-foreground">ADD</button>
-              <button onClick={dismissLegacy} className="border border-border px-4 h-9 text-mono text-[11px] tracking-widest hover:border-primary">NO THANKS</button>
+              <button onClick={importLegacy} className="bg-foreground text-background px-4 h-9 text-mono text-xs tracking-widest hover:bg-primary hover:text-primary-foreground">ADD</button>
+              <button onClick={dismissLegacy} className="border border-border px-4 h-9 text-mono text-xs tracking-widest hover:border-primary">NO THANKS</button>
             </div>
           </div>
         )}
 
         {addrForm && (
           <div className="border border-border bg-surface p-6 mb-5">
-            <div className="text-mono text-[11px] tracking-[0.25em] text-primary mb-5">{addrForm.id ? "EDIT ADDRESS" : "NEW ADDRESS"}</div>
+            <div className="text-mono text-xs tracking-[0.25em] text-primary mb-5">{addrForm.id ? "EDIT ADDRESS" : "NEW ADDRESS"}</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               {([
                 { key: "label", placeholder: "Label (Home / Work…)", full: false },
@@ -473,8 +472,8 @@ function Account() {
               ))}
             </div>
             <div className="flex gap-3">
-              <button onClick={submitAddr} className="bg-foreground text-background px-6 h-10 text-mono text-[11px] tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors">SAVE</button>
-              <button onClick={() => setAddrForm(null)} className="border border-border px-6 h-10 text-mono text-[11px] tracking-widest hover:border-primary transition-colors">CANCEL</button>
+              <button onClick={submitAddr} className="bg-foreground text-background px-6 h-10 text-mono text-xs tracking-widest hover:bg-primary hover:text-primary-foreground transition-colors">SAVE</button>
+              <button onClick={() => setAddrForm(null)} className="border border-border px-6 h-10 text-mono text-xs tracking-widest hover:border-primary transition-colors">CANCEL</button>
             </div>
           </div>
         )}
@@ -488,11 +487,11 @@ function Account() {
             {addresses.map((a) => (
               <div key={a.id} className={`border bg-surface p-5 relative ${a.is_default ? "border-primary" : "border-border"}`}>
                 {a.is_default && (
-                  <span className="absolute top-3 right-3 text-mono text-[9px] tracking-widest text-primary flex items-center gap-1">
+                  <span className="absolute top-3 right-3 text-mono text-xs tracking-widest text-primary flex items-center gap-1">
                     <Star className="size-2.5 fill-primary" /> DEFAULT
                   </span>
                 )}
-                {a.label && <div className="text-mono text-[10px] tracking-[0.25em] text-muted-foreground mb-2 uppercase">{a.label}</div>}
+                {a.label && <div className="text-mono text-xs tracking-[0.25em] text-muted-foreground mb-2 uppercase">{a.label}</div>}
                 <div className="text-sm font-semibold mb-1">{a.name}</div>
                 <div className="text-sm text-muted-foreground leading-relaxed">
                   {a.line1}<br />{a.city}{a.state ? `, ${a.state}` : ""} — {a.pincode}
@@ -500,10 +499,10 @@ function Account() {
                 </div>
                 <div className="flex gap-3 mt-4 items-center">
                   {!a.is_default && (
-                    <button onClick={() => makeDefault(a.id)} className="text-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary transition-colors">SET DEFAULT</button>
+                    <button onClick={() => makeDefault(a.id)} className="text-mono text-xs tracking-widest text-muted-foreground hover:text-primary transition-colors">SET DEFAULT</button>
                   )}
                   <button onClick={() => setAddrForm({ id: a.id, label: a.label ?? "", name: a.name, phone: a.phone, line1: a.line1, city: a.city, state: a.state, pincode: a.pincode, is_default: a.is_default })}
-                    className="text-mono text-[10px] tracking-widest text-muted-foreground hover:text-primary">EDIT</button>
+                    className="text-mono text-xs tracking-widest text-muted-foreground hover:text-primary">EDIT</button>
                   <button onClick={() => removeAddr(a.id)} className="text-muted-foreground hover:text-red-500 transition-colors ml-auto" aria-label="Delete address">
                     <Trash2 className="size-3.5" />
                   </button>

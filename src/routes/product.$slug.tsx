@@ -456,7 +456,7 @@ function PDP() {
       <QuoteLoader active={!photosReady} />
 
       {/* Breadcrumbs */}
-      <div className="px-4 md:px-8 pt-6 pb-2">
+      <div className="px-4 sm:px-8 lg:px-16 pt-6 pb-2">
         <nav className="text-mono text-muted-foreground" style={{ fontSize: "10px", letterSpacing: "0.25em" }}>
           <Link to="/" className="hover:text-primary transition-colors">HOME</Link>
           <span className="mx-2 opacity-50">/</span>
@@ -469,7 +469,7 @@ function PDP() {
       {/* grid-cols-1 (minmax(0,1fr)), not the implicit auto column: an auto column grows
           to the thumbnail strip's min-content width, pushing the gallery off the right
           edge of narrow phones. */}
-      <section className="px-4 md:px-8 mt-4 grid grid-cols-1 md:grid-cols-[1.3fr_1fr] lg:grid-cols-[1.5fr_1fr] gap-6 lg:gap-12">
+      <section className="px-4 sm:px-8 lg:px-16 mt-4 grid grid-cols-1 md:grid-cols-[1.3fr_1fr] lg:grid-cols-[1.5fr_1fr] gap-6 lg:gap-12">
         {/* Image gallery. Desktop: continuous stack honoring each item's standalone/half
             layout (H&M-style). Mobile: standalone/half doesn't fit a narrow screen, so
             every image is one full-width swipeable slide, edge to edge, with a thumbnail
@@ -795,10 +795,9 @@ function PDP() {
 
       {/* Related Products */}
       {related.length > 0 && (
-        <section className="px-4 md:px-8 mt-24">
+        <section className="px-4 sm:px-8 lg:px-16 mt-24">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <div className="text-mono text-primary mb-2" style={{ fontSize: "11px", letterSpacing: "0.35em" }}>◢ MORE LIKE THIS</div>
               <h2 className="text-display leading-none" style={{ fontSize: "clamp(36px, 5vw, 64px)" }}>YOU MIGHT ALSO RUN</h2>
             </div>
           </div>

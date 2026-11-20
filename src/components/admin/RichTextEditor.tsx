@@ -87,7 +87,7 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().setColor(pendingColor).run()}
-          className="border border-border h-7 px-2 text-mono text-[9px] tracking-widest text-foreground hover:border-primary hover:text-primary"
+          className="border border-border h-7 px-2 text-mono text-xs tracking-widest text-foreground hover:border-primary hover:text-primary"
           title="Apply the picked color to the selected text"
         >
           APPLY
@@ -95,7 +95,7 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().unsetColor().run()}
-          className="text-mono text-[9px] tracking-widest text-muted-foreground hover:text-primary px-1.5"
+          className="text-mono text-xs tracking-widest text-muted-foreground hover:text-primary px-1.5"
           title="Remove color from selected text"
         >
           CLEAR COLOR

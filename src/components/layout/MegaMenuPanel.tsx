@@ -74,9 +74,9 @@ export function MegaMenuPanel({
           <p className="text-white font-semibold text-xs sm:text-sm tracking-wide truncate">
             {product.label}
           </p>
-          <span className="text-white/75 text-[11px] font-mono mt-0.5 block">{formatINR(product.price)}</span>
+          <span className="text-white/75 text-xs font-mono mt-0.5 block">{formatINR(product.price)}</span>
         </div>
-        <span className="text-[10px] text-white tracking-widest font-semibold shrink-0 flex items-center gap-1 group-hover:translate-x-1 transition-transform opacity-90 font-mono">
+        <span className="text-xs text-white tracking-widest font-semibold shrink-0 flex items-center gap-1 group-hover:translate-x-1 transition-transform opacity-90 font-mono">
           SHOP →
         </span>
       </div>
@@ -102,7 +102,7 @@ export function MegaMenuPanel({
                   <Link
                     to={l.href as any}
                     onClick={onNavigate}
-                    activeProps={{ className: "text-black font-medium underline underline-offset-4 decoration-black/30" }}
+                    activeProps={{ className: "text-black font-semibold underline underline-offset-4 decoration-black/30" }}
                     inactiveProps={{ className: "text-black/60 font-normal" }}
                     className="group py-1.5 text-sm tracking-wide hover:text-black transition-colors duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] flex items-center justify-between capitalize w-full bg-transparent font-body"
                   >
@@ -124,7 +124,7 @@ export function MegaMenuPanel({
             {category.links.map((l) => (
               <motion.div key={l.id} variants={mobileLink}>
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                <Link to={l.href as any} onClick={onNavigate} className="group inline-flex items-center gap-2 py-2 text-sm tracking-wide font-medium active:opacity-60 transition-opacity w-fit capitalize">
+                <Link to={l.href as any} onClick={onNavigate} className="group inline-flex items-center gap-2 py-2 text-sm tracking-wide font-semibold active:opacity-60 transition-opacity w-fit capitalize">
                   {l.label}
                   <span aria-hidden className="text-black/30 transition-transform duration-300 group-active:translate-x-1">→</span>
                 </Link>
@@ -211,7 +211,7 @@ function MobileProductCard({ product, onNavigate }: { product: MegaMenuProduct; 
           </span>
         )}
       </div>
-      <p className="mt-2 text-xs tracking-wide truncate font-medium">{product.label}</p>
+      <p className="mt-2 text-xs tracking-wide truncate font-semibold">{product.label}</p>
       <div className="flex items-center gap-1.5">
         <span className="text-sm font-semibold">{formatINR(product.price)}</span>
         {discountPct !== null && (

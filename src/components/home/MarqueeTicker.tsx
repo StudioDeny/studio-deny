@@ -31,14 +31,14 @@ export function MarqueeTicker() {
             {items.map((item, i) => (
               <span key={`${dup}-${i}`} className="flex items-center shrink-0 whitespace-nowrap">
                 <span
-                  className="font-display font-black uppercase tracking-wider px-4 sm:px-6 text-black"
+                  className="font-display font-bold uppercase tracking-wider px-4 sm:px-6 text-black"
                   style={{ fontSize: "clamp(1.1rem, 2.4vw, 1.6rem)" }}
                 >
                   {item}
                 </span>
                 
                 {/* Large Prominent Slash Separator */}
-                <span className="font-mono text-3xl sm:text-4xl font-black text-black px-4 sm:px-7 leading-none">
+                <span className="font-mono text-3xl sm:text-4xl font-bold text-black px-4 sm:px-7 leading-none">
                   /
                 </span>
               </span>

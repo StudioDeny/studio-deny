@@ -58,14 +58,14 @@ export function StockModeEditor({
         >
           <span className={`absolute top-[2px] w-3.5 h-3.5 transition-all ${single ? "left-[21px] bg-background" : "left-[2px] bg-foreground"}`} />
         </button>
-        <span className="text-mono text-[11px] tracking-widest">SINGLE ITEM (NO COLOURS OR SIZES)</span>
+        <span className="text-mono text-xs tracking-widest">SINGLE ITEM (NO COLOURS OR SIZES)</span>
       </label>
 
       {single ? (
         <div className="border border-border bg-surface p-3 space-y-2">
           <style>{`.inp{background:var(--background);border:1px solid var(--border);height:40px;padding:0 12px;width:100%;font-family:var(--font-mono,monospace);font-size:14px}`}</style>
           <label className="block max-w-[200px]">
-            <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">STOCK QUANTITY *</div>
+            <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">STOCK QUANTITY *</div>
             <input
               type="number"
               min={0}
@@ -78,7 +78,7 @@ export function StockModeEditor({
               className={`inp ${singleQty.trim() === "" ? "!border-amber-500" : ""}`}
             />
           </label>
-          <p className={`text-mono text-[10px] tracking-widest ${
+          <p className={`text-mono text-xs tracking-widest ${
             n === 0 ? "text-red-500" : n !== null && n <= 5 ? "text-amber-600" : "text-muted-foreground"
           }`}>
             {singleQty.trim() === "" ? "ENTER HOW MANY PIECES YOU HAVE" : n === 0 ? "SOLD OUT" : n !== null && n <= 5 ? "LOW STOCK" : "IN STOCK"}

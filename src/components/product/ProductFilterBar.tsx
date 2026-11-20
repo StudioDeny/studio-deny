@@ -104,6 +104,7 @@ export function ProductFilterBar({ filters, options, onChange, onClear, resultCo
   if (filters.stock) tags.push({ key: "stock", label: "IN STOCK", clear: () => onChange({ stock: false }) });
   if (filters.sale) tags.push({ key: "sale", label: "ON SALE", clear: () => onChange({ sale: false }) });
   if (filters.best) tags.push({ key: "best", label: "BEST SELLERS", clear: () => onChange({ best: false }) });
+  if (filters.arrivals) tags.push({ key: "arrivals", label: "NEW ARRIVALS", clear: () => onChange({ arrivals: false }) });
   if (filters.fresh) tags.push({ key: "fresh", label: "NEW IN", clear: () => onChange({ fresh: false }) });
 
   const moreCount = filters.brands.length + [filters.stock, filters.sale, filters.best, filters.fresh].filter(Boolean).length;
@@ -115,7 +116,7 @@ export function ProductFilterBar({ filters, options, onChange, onClear, resultCo
         <button
           type="button"
           onClick={() => setSheetOpen(true)}
-          className={`md:hidden h-9 px-3 shrink-0 border inline-flex items-center gap-2 text-mono text-[11px] tracking-widest ${active ? "border-foreground bg-foreground text-background" : "border-border bg-background"}`}
+          className={`md:hidden h-9 px-3 shrink-0 border inline-flex items-center gap-2 text-mono text-xs tracking-widest ${active ? "border-foreground bg-foreground text-background" : "border-border bg-background"}`}
         >
           <SlidersHorizontal className="size-3.5" /> FILTERS{active > 0 && ` (${active})`}
         </button>
@@ -133,10 +134,10 @@ export function ProductFilterBar({ filters, options, onChange, onClear, resultCo
         </div>
 
         <div className="ml-auto flex items-center gap-3 shrink-0">
-          <span className="text-mono text-[11px] tracking-widest text-muted-foreground whitespace-nowrap">{pieces(resultCount)}</span>
+          <span className="text-mono text-xs tracking-widest text-muted-foreground whitespace-nowrap">{pieces(resultCount)}</span>
           {trailing}
           <div className="hidden md:flex items-center gap-2">
-            <span className="text-mono text-[10px] tracking-widest text-muted-foreground">SORT</span>
+            <span className="text-mono text-xs tracking-widest text-muted-foreground">SORT</span>
             <SortSelect value={filters.sort} onChange={(sort) => onChange({ sort })} />
           </div>
         </div>
@@ -150,12 +151,12 @@ export function ProductFilterBar({ filters, options, onChange, onClear, resultCo
               type="button"
               onClick={t.clear}
               aria-label={`Remove filter ${t.label}`}
-              className="h-7 px-2.5 border border-border bg-background text-mono text-[10px] tracking-widest uppercase inline-flex items-center gap-1.5 hover:border-foreground transition-colors"
+              className="h-7 px-2.5 border border-border bg-background text-mono text-xs tracking-widest uppercase inline-flex items-center gap-1.5 hover:border-foreground transition-colors"
             >
               {t.label} <X className="size-3" />
             </button>
           ))}
-          <button type="button" onClick={onClear} className="h-7 px-1 text-mono text-[10px] tracking-widest underline underline-offset-4 hover:text-primary">
+          <button type="button" onClick={onClear} className="h-7 px-1 text-mono text-xs tracking-widest underline underline-offset-4 hover:text-primary">
             CLEAR ALL
           </button>
         </div>
@@ -237,7 +238,7 @@ type Ctx = {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section>
-      <div className="text-mono text-[11px] tracking-[0.25em] text-muted-foreground mb-3">{title}</div>
+      <div className="text-mono text-xs tracking-[0.25em] text-muted-foreground mb-3">{title}</div>
       {children}
     </section>
   );
@@ -249,7 +250,7 @@ function FacetPopover({ label, count, width = "w-72", children }: { label: strin
       <PopoverTrigger asChild>
         <button
           type="button"
-          className={`group h-9 px-3 border inline-flex items-center gap-2 text-mono text-[11px] tracking-widest transition-colors ${count > 0 ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:border-foreground data-[state=open]:border-foreground"}`}
+          className={`group h-9 px-3 border inline-flex items-center gap-2 text-mono text-xs tracking-widest transition-colors ${count > 0 ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:border-foreground data-[state=open]:border-foreground"}`}
         >
           {label}{count > 0 && ` (${count})`}
           <ChevronDown className="size-3.5 transition-transform group-data-[state=open]:rotate-180" />
@@ -281,7 +282,7 @@ function SelectBox({ value, onChange, ariaLabel, active, className = "", childre
         aria-label={ariaLabel}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`appearance-none h-9 w-full pl-3 pr-8 border bg-background text-foreground text-mono text-[11px] tracking-widest uppercase cursor-pointer outline-none truncate transition-colors focus-visible:border-foreground ${active ? "border-foreground font-semibold" : "border-border hover:border-foreground"}`}
+        className={`appearance-none h-9 w-full pl-3 pr-8 border bg-background text-foreground text-mono text-xs tracking-widest uppercase cursor-pointer outline-none truncate transition-colors focus-visible:border-foreground ${active ? "border-foreground font-semibold" : "border-border hover:border-foreground"}`}
       >
         {children}
       </select>
@@ -409,7 +410,7 @@ function PriceOptions({ filters, options, onChange }: Ctx) {
           </CheckRow>
         );
       })}
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mt-3 mb-1.5">OR ENTER YOUR OWN (₹)</div>
+      <div className="text-mono text-xs tracking-widest text-muted-foreground mt-3 mb-1.5">OR ENTER YOUR OWN (₹)</div>
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -446,7 +447,7 @@ function MoreOptions({ filters, options, onChange, toggle }: Ctx) {
       <CheckRow checked={filters.fresh} onClick={() => onChange({ fresh: !filters.fresh })}><span className="text-sm">New in (last {NEW_IN_DAYS} days)</span></CheckRow>
       {options.brands.length > 1 && (
         <>
-          <div className="text-mono text-[10px] tracking-widest text-muted-foreground mt-4 mb-1.5">BRAND</div>
+          <div className="text-mono text-xs tracking-widest text-muted-foreground mt-4 mb-1.5">BRAND</div>
           {options.brands.map((b) => (
             <CheckRow key={b} checked={filters.brands.some((x) => same(x, b))} onClick={() => toggle("brands", b)}>
               <span className="text-sm">{b}</span>

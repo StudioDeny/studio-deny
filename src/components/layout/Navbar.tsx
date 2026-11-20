@@ -9,11 +9,9 @@ import { useCart, formatINR } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { getMegaMenu, type MegaMenuCategory } from "@/lib/megaMenu";
 import { MegaMenuPanel } from "@/components/layout/MegaMenuPanel";
-import { useLenis } from "@/components/common/SmoothScroll";
 import { thumbImage } from "@/lib/image";
 
 export function Navbar() {
-  const { lenis } = useLenis();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQ, setSearchQ] = useState("");
@@ -162,7 +160,7 @@ export function Navbar() {
                     onMouseEnter={() => handleMouseEnterTab(cat.id)}
                     onClick={() => setOpenDropdown((d) => (d === cat.id ? null : cat.id))}
                     className={`nav-tab-btn group relative py-1 flex items-center gap-1.5 text-xs font-mono tracking-[0.18em] uppercase transition-colors duration-200 ${
-                      isOpen ? "text-black font-extrabold" : "text-black/80 hover:text-black font-bold"
+                      isOpen ? "text-black font-bold" : "text-black/80 hover:text-black font-bold"
                     }`}
                   >
                     <span className="transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-[1.5px]">{cat.label}</span>
@@ -188,15 +186,14 @@ export function Navbar() {
               // user back to the top instead. Other pages navigate home and
               // land at the top anyway.
               if (window.location.pathname === "/") {
-                if (lenis) lenis.scrollTo(0);
-                else window.scrollTo({ top: 0, behavior: "smooth" });
+                window.scrollTo({ top: 0, behavior: "smooth" });
               }
             }}
             className="hover:opacity-80 transition-opacity justify-self-start sm:justify-self-center"
             // HeroLogo flies into this slot on the home page and measures it.
             data-nav-logo
           >
-            <BrandLogo className="text-[18px] sm:text-[21px] lg:text-[24px]" />
+            <BrandLogo className="text-lg sm:text-xl lg:text-2xl" />
           </Link>
 
           {/* Right — icons (desktop) */}
@@ -223,7 +220,7 @@ export function Navbar() {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-black text-white text-[9px] leading-[15px] text-center font-bold"
+                    className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-black text-white text-xs leading-[15px] text-center font-bold"
                   >
                     {wishSlugs.length}
                   </motion.span>
@@ -237,7 +234,7 @@ export function Navbar() {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-black text-white text-[9px] leading-[15px] text-center font-bold"
+                    className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-black text-white text-xs leading-[15px] text-center font-bold"
                   >
                     {cartCount}
                   </motion.span>
@@ -262,7 +259,7 @@ export function Navbar() {
             <Link to="/wishlist" aria-label="Wishlist" className="relative flex items-center justify-center size-9 hover:opacity-60 transition-opacity">
               <Heart className="size-4" strokeWidth={1.5} />
               {wishSlugs.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-black text-white text-[9px] leading-[15px] text-center font-bold">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-black text-white text-xs leading-[15px] text-center font-bold">
                   {wishSlugs.length}
                 </span>
               )}
@@ -270,7 +267,7 @@ export function Navbar() {
             <Link to="/cart" aria-label="Cart" className="relative flex items-center justify-center size-9 hover:opacity-60 transition-opacity">
               <ShoppingBag className="size-4" strokeWidth={1.5} />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-black text-white text-[9px] leading-[15px] text-center font-bold">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-black text-white text-xs leading-[15px] text-center font-bold">
                   {cartCount}
                 </span>
               )}
@@ -356,7 +353,7 @@ export function Navbar() {
                   value={searchQ}
                   onChange={(e) => setSearchQ(e.target.value)}
                   placeholder="Search products…"
-                  className="flex-1 bg-transparent text-base sm:text-lg tracking-wide focus:outline-none placeholder:text-black/40 text-black font-medium"
+                  className="flex-1 bg-transparent text-base sm:text-lg tracking-wide focus:outline-none placeholder:text-black/40 text-black font-semibold"
                 />
                 {searchQ && (
                   <button type="button" onClick={() => { setSearchQ(""); setSearchResults([]); inputRef.current?.focus(); }} className="text-black/60 hover:text-black transition-colors shrink-0">
@@ -368,11 +365,11 @@ export function Navbar() {
               {/* Results list */}
               <div data-lenis-prevent className="max-h-[min(55vh,420px)] overflow-y-auto overscroll-contain">
                 {!searchQ.trim() ? (
-                  <p className="px-4 sm:px-8 lg:px-16 py-4 text-mono text-[11px] tracking-widest text-black/60 font-bold">
+                  <p className="px-4 sm:px-8 lg:px-16 py-4 text-mono text-xs tracking-widest text-black/60 font-bold">
                     START TYPING TO SEARCH
                   </p>
                 ) : searchResults.length === 0 ? (
-                  <p className="px-4 sm:px-8 lg:px-16 py-4 text-mono text-[11px] tracking-widest text-black/60 font-bold search-fade-in">
+                  <p className="px-4 sm:px-8 lg:px-16 py-4 text-mono text-xs tracking-widest text-black/60 font-bold search-fade-in">
                     NO RESULTS FOR "{searchQ.toUpperCase()}"
                   </p>
                 ) : (
@@ -394,7 +391,7 @@ export function Navbar() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold uppercase tracking-[0.1em] truncate text-black">{p.name}</p>
-                            <p className="text-mono text-[10px] tracking-widest text-black/60 font-bold">{p.category.toUpperCase()}</p>
+                            <p className="text-mono text-xs tracking-widest text-black/60 font-bold">{p.category.toUpperCase()}</p>
                           </div>
                           <div className="text-mono text-sm shrink-0 text-black font-bold">{formatINR(p.price)}</div>
                           <ArrowRight className="size-3.5 text-black/60 group-hover:text-black transition-colors shrink-0" />
@@ -407,7 +404,7 @@ export function Navbar() {
                     >
                       <button
                         onClick={handleSearch}
-                        className="w-full text-left py-2.5 text-mono text-[11px] tracking-widest text-black font-bold hover:underline"
+                        className="w-full text-left py-2.5 text-mono text-xs tracking-widest text-black font-bold hover:underline"
                       >
                         VIEW ALL RESULTS FOR "{searchQ.toUpperCase()}" →
                       </button>
@@ -455,7 +452,7 @@ export function Navbar() {
                         }}
                         aria-pressed={active}
                         className={`relative shrink-0 text-sm tracking-wide uppercase pb-1 font-bold transition-colors duration-300 ${
-                          active ? "text-black font-extrabold" : "text-black/50"
+                          active ? "text-black font-bold" : "text-black/50"
                         }`}
                       >
                         {cat.label}

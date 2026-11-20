@@ -43,10 +43,10 @@ export function StockEditor({
     <div className="space-y-3">
       <style>{`.inp{background:var(--background);border:1px solid var(--border);height:40px;padding:0 12px;width:100%;font-family:var(--font-mono,monospace);font-size:14px}`}</style>
       <div className="flex items-center justify-between">
-        <p className="text-mono text-[10px] tracking-widest text-muted-foreground">
+        <p className="text-mono text-xs tracking-widest text-muted-foreground">
           TAP A SIZE, THEN ENTER HOW MANY PIECES YOU HAVE. 0 = SOLD OUT.
         </p>
-        <span className="text-mono text-[11px] tracking-widest">TOTAL: <b>{total}</b></span>
+        <span className="text-mono text-xs tracking-widest">TOTAL: <b>{total}</b></span>
       </div>
 
       {cards.map((card) => {
@@ -117,7 +117,7 @@ export function StockEditor({
                           }`}
                         />
                         <span
-                          className={`text-mono text-[9px] text-center mt-0.5 ${
+                          className={`text-mono text-xs text-center mt-0.5 ${
                             n === 0 ? "text-red-500" : n !== null && n <= 5 ? "text-amber-600" : "text-muted-foreground"
                           }`}
                         >
@@ -125,7 +125,7 @@ export function StockEditor({
                         </span>
                       </>
                     ) : (
-                      <span className="text-mono text-[9px] text-center text-muted-foreground mt-1">NOT MADE</span>
+                      <span className="text-mono text-xs text-center text-muted-foreground mt-1">NOT MADE</span>
                     )}
                   </div>
                 );
@@ -140,7 +140,7 @@ export function StockEditor({
                   baseSizes.forEach((s) => { if (!(s in next)) next[s] = ""; });
                   update(card.key, { sizes: next });
                 }}
-                className="text-mono text-[10px] tracking-widest text-primary hover:underline"
+                className="text-mono text-xs tracking-widest text-primary hover:underline"
               >
                 SELECT ALL SIZES
               </button>
@@ -148,7 +148,7 @@ export function StockEditor({
                 <button
                   type="button"
                   onClick={() => update(card.key, { sizes: {} })}
-                  className="text-mono text-[10px] tracking-widest text-muted-foreground hover:text-red-500"
+                  className="text-mono text-xs tracking-widest text-muted-foreground hover:text-red-500"
                 >
                   CLEAR
                 </button>
@@ -157,7 +157,7 @@ export function StockEditor({
 
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">PRICE ₹ (blank = ₹{productPrice})</div>
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">PRICE ₹ (blank = ₹{productPrice})</div>
                 <input
                   type="number"
                   min={0}
@@ -168,7 +168,7 @@ export function StockEditor({
                 />
               </label>
               <label className="block">
-                <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">
+                <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">
                   COMPARE AT ₹ (blank = {productCompareAt ? `₹${productCompareAt}` : "none"})
                 </div>
                 <input
@@ -189,7 +189,7 @@ export function StockEditor({
             />
 
             {cards.length > 1 && (
-              <label className="flex items-center gap-2 cursor-pointer text-mono text-[10px] tracking-widest text-muted-foreground hover:text-foreground">
+              <label className="flex items-center gap-2 cursor-pointer text-mono text-xs tracking-widest text-muted-foreground hover:text-foreground">
                 <input
                   type="checkbox"
                   checked={false}
@@ -206,7 +206,7 @@ export function StockEditor({
       <button
         type="button"
         onClick={() => onChange([...cards, emptyCard("", "#000000")])}
-        className="flex items-center gap-2 border border-dashed border-border h-10 px-4 text-mono text-[11px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+        className="flex items-center gap-2 border border-dashed border-border h-10 px-4 text-mono text-xs tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors"
       >
         <Plus className="size-3.5" /> ADD COLOUR VARIANT
       </button>
@@ -279,7 +279,7 @@ function ColourPhotos({ colourName, images, onChange }: {
 
   return (
     <div>
-      <div className="text-mono text-[10px] tracking-widest text-muted-foreground mb-1">
+      <div className="text-mono text-xs tracking-widest text-muted-foreground mb-1">
         PHOTOS FOR {colourName ? colourName.toUpperCase() : "THIS COLOUR"} (OPTIONAL)
       </div>
       <div className="flex flex-wrap gap-2">
@@ -301,14 +301,14 @@ function ColourPhotos({ colourName, images, onChange }: {
             type="button"
             disabled={uploading}
             onClick={() => fileRef.current?.click()}
-            className="w-16 h-20 border border-dashed border-border flex flex-col items-center justify-center gap-1 text-mono text-[9px] tracking-widest text-muted-foreground hover:border-primary hover:text-primary disabled:opacity-60"
+            className="w-16 h-20 border border-dashed border-border flex flex-col items-center justify-center gap-1 text-mono text-xs tracking-widest text-muted-foreground hover:border-primary hover:text-primary disabled:opacity-60"
           >
             {uploading ? <Loader2 className="size-4 animate-spin" /> : <><ImagePlus className="size-4" /> ADD</>}
           </button>
         )}
         <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => add(e.target.files)} />
       </div>
-      <p className="text-[10px] text-muted-foreground mt-1">
+      <p className="text-xs text-muted-foreground mt-1">
         Shown when a shopper picks this colour (first photo first). Leave empty to show the main product photos.
       </p>
     </div>

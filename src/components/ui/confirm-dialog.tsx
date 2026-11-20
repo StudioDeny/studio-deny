@@ -30,10 +30,10 @@ export function ConfirmDialog({ open, onOpenChange, title, description, confirmL
         </AlertDialogHeader>
         {children}
         <AlertDialogFooter>
-          <AlertDialogCancel className="rounded-none border-border text-mono text-[11px] tracking-widest">CANCEL</AlertDialogCancel>
+          <AlertDialogCancel className="rounded-none border-border text-mono text-xs tracking-widest">CANCEL</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            className={`rounded-none text-mono text-[11px] tracking-widest ${destructive ? "bg-red-600 text-white hover:bg-red-700" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
+            className={`rounded-none text-mono text-xs tracking-widest ${destructive ? "bg-red-600 text-white hover:bg-red-700" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
           >
             {confirmLabel}
           </AlertDialogAction>

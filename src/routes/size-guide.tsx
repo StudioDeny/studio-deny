@@ -52,10 +52,9 @@ function Table({ title, rows, cols }: { title: string; rows: Record<string, stri
 
 function SizeGuide() {
   return (
-    <section className="px-4 md:px-8 mt-8 md:mt-12 max-w-4xl mx-auto space-y-10">
+    <section className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-12 max-w-4xl mx-auto space-y-10">
       <div>
-        <div className="text-mono text-[11px] tracking-[0.3em] text-primary mb-2">◢ FIT GUIDE</div>
-        <h1 className="text-display text-5xl md:text-7xl">SIZE GUIDE.</h1>
+        <h1 className="type-h2">SIZE GUIDE.</h1>
         <p className="text-muted-foreground mt-3 max-w-xl">
           All measurements in centimeters. Our cuts run oversized — when in doubt, take your usual size for a relaxed fit, or size down for a true-to-body cut.
         </p>
