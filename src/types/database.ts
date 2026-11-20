@@ -23,6 +23,7 @@ export type DBProduct = {
   is_featured: boolean;
   is_best_seller: boolean;
   is_new_arrival: boolean;
+  is_on_sale: boolean;
   store_exclusive: boolean;
   created_at: string;
   updated_at: string;
@@ -89,7 +90,7 @@ export type NotifStatus = "pending" | "sent" | "failed";
 export type WaLogStatus = "sent" | "delivered" | "read" | "failed";
 export type CampaignStatus = "draft" | "scheduled" | "running" | "completed" | "failed";
 export type FaqCategory = "general" | "orders" | "shipping" | "returns" | "sizing";
-export type SectionType = "hero" | "marquee" | "new_arrivals" | "lookbook" | "testimonials" | "faq" | "why_us" | "newsletter" | "gender_split" | "category_carousel" | "denyspace" | "popular_now" | "fabric_tabs" | "motion_picture" | "influencer_picks" | "community" | "contact_support";
+export type SectionType = "hero" | "marquee" | "sale" | "new_arrivals" | "lookbook" | "testimonials" | "faq" | "why_us" | "newsletter" | "gender_split" | "category_carousel" | "denyspace" | "popular_now" | "fabric_tabs" | "motion_picture" | "influencer_picks" | "community" | "contact_support";
 export type NavLocation = "header" | "footer" | "mobile";
 export type LoyaltyTxType = "earn" | "redeem" | "adjust";
 export type LoyaltyTier = "ROOKIE" | "RUNNER" | "RIOT" | "LEGEND";

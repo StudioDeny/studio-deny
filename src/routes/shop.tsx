@@ -92,7 +92,7 @@ function Shop() {
     <section ref={pageRef} className="px-4 sm:px-8 lg:px-16 mt-8 md:mt-12 pb-24">
       <div className="mb-6">
         {/* ?best=1 is the Best Sellers page; ?arrivals=1 is the New Arrivals page. */}
-        <h1 className="type-h2">{filters.best ? "BEST SELLERS" : filters.arrivals ? "NEW ARRIVALS" : "SHOP"}</h1>
+        <h1 className="type-h2">{filters.best ? "BEST SELLERS" : filters.arrivals ? "NEW ARRIVALS" : filters.onSale ? "SALE" : "SHOP"}</h1>
       </div>
 
       <ProductFilterBar

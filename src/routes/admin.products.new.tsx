@@ -315,6 +315,17 @@ export function ProductForm({
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
+            checked={p.isOnSale ?? false}
+            onChange={(e) => set("isOnSale", e.target.checked)}
+            className="w-4 h-4"
+          />
+          <span className="text-sm text-foreground">On Sale</span>
+          <span className="text-mono text-xs text-muted-foreground">— lists this product in the homepage Sale section</span>
+        </label>
+
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
             checked={p.storeExclusive ?? false}
             onChange={(e) => set("storeExclusive", e.target.checked)}
             className="w-4 h-4"

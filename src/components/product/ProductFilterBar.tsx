@@ -105,6 +105,7 @@ export function ProductFilterBar({ filters, options, onChange, onClear, resultCo
   if (filters.sale) tags.push({ key: "sale", label: "ON SALE", clear: () => onChange({ sale: false }) });
   if (filters.best) tags.push({ key: "best", label: "BEST SELLERS", clear: () => onChange({ best: false }) });
   if (filters.arrivals) tags.push({ key: "arrivals", label: "NEW ARRIVALS", clear: () => onChange({ arrivals: false }) });
+  if (filters.onSale) tags.push({ key: "onsale", label: "SALE", clear: () => onChange({ onSale: false }) });
   if (filters.fresh) tags.push({ key: "fresh", label: "NEW IN", clear: () => onChange({ fresh: false }) });
 
   const moreCount = filters.brands.length + [filters.stock, filters.sale, filters.best, filters.fresh].filter(Boolean).length;

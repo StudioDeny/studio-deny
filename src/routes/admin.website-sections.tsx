@@ -120,6 +120,7 @@ const TYPE_COLORS: Record<string, string> = {
   popular_now:   "bg-sky-100 text-sky-800",
   why_us:        "bg-cyan-100 text-cyan-800",
   lookbook:      "bg-amber-100 text-amber-800",
+  sale:          "bg-red-100 text-red-800",
   new_arrivals:  "bg-emerald-100 text-emerald-800",
   fabric_tabs:   "bg-violet-100 text-violet-800",
   denyspace:     "bg-fuchsia-100 text-fuchsia-800",
@@ -137,9 +138,9 @@ const TYPE_COLORS: Record<string, string> = {
 // slides, etc.) is never touched.
 const DEFAULT_POSITIONS: Record<string, number> = {
   hero: 0, marquee: 1, gender_split: 2, category_carousel: 3, popular_now: 4,
-  why_us: 5, lookbook: 6, new_arrivals: 7, fabric_tabs: 8, denyspace: 9,
-  influencer_picks: 10, motion_picture: 11, community: 12, contact_support: 13,
-  testimonials: 14, newsletter: 15, faq: 16,
+  why_us: 5, lookbook: 6, new_arrivals: 7, sale: 8, fabric_tabs: 9, denyspace: 10,
+  influencer_picks: 11, motion_picture: 12, community: 13, contact_support: 14,
+  testimonials: 15, newsletter: 16, faq: 17,
 };
 
 function AdminWebsiteSections() {
@@ -1031,6 +1032,17 @@ function SectionConfigForm({ section, onChange }: { section: WebsiteSection; onC
             className="w-full h-10 rounded border border-dashed border-border text-xs font-semibold tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-colors">
             + ADD FALLBACK QUOTE
           </button>
+        </div>
+      );
+    }
+    case "sale": {
+      const c = cfg as Partial<{ cta_label: string }>;
+      return (
+        <div className="space-y-4">
+          <div className="p-3 rounded bg-muted/60 text-sm text-muted-foreground">
+            Products appear here automatically when you tick <strong className="text-foreground">On Sale</strong> on their product form, newest first. The heading is managed on the <strong className="text-foreground">Headings</strong> admin page (key: sale).
+          </div>
+          <F label="CTA LABEL"><input value={c.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} className="inp" placeholder="EXPLORE COLLECTION" /></F>
         </div>
       );
     }

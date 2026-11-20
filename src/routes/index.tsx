@@ -7,6 +7,7 @@ import { LoyaltyModal } from "@/components/home/LoyaltyModal";
 import { HeroSlider, type HeroSlide } from "@/components/home/HeroSlider";
 import { MarqueeTicker } from "@/components/home/MarqueeTicker";
 import { NewArrivalsGrid } from "@/components/home/NewArrivalsGrid";
+import { SaleGrid } from "@/components/home/SaleGrid";
 import { LookbookCarousel } from "@/components/home/LookbookCarousel";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { WhyUsSection } from "@/components/home/WhyUsSection";
@@ -52,6 +53,7 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType> = {
   popular_now: PopularNowGrid,
   why_us: WhyUsSection,
   lookbook: LookbookCarousel,
+  sale: SaleGrid,
   new_arrivals: NewArrivalsGrid,
   fabric_tabs: FabricTabsSection,
   denyspace: DenySpace,

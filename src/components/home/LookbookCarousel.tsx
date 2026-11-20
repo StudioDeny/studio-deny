@@ -5,6 +5,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
 import type { LookbookSlide } from "@/types/database";
 import { useSectionHeading } from "@/lib/sectionHeadings";
+import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 import { EditorialHeading, EditorialSubheading } from "@/components/ui/EditorialHeading";
 import { responsiveImage } from "@/lib/image";
 
@@ -15,6 +16,8 @@ export function LookbookCarousel() {
   const [slides, setSlides] = useState<LookbookSlide[]>([]);
   const [products, setProducts] = useState<Record<string, MiniProduct>>({});
   const heading = useSectionHeading("lookbook", "LOOKBOOK");
+  // The admin Website Sections switch controls whether this section shows.
+  const { isVisible: visible } = useWebsiteSectionConfig("lookbook", {});
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isSectionHovered, setIsSectionHovered] = useState(false);
@@ -164,7 +167,7 @@ export function LookbookCarousel() {
     hasDraggedRef.current = false;
   };
 
-  if (total === 0) return null;
+  if (!visible || total === 0) return null;
 
   // Responsive Breakpoints:
   // Desktop (>= 1024): 9 participating cards (maxOffset = 4)

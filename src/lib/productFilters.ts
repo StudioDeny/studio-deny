@@ -35,6 +35,7 @@ export type FilterSearch = {
   sale?: number;
   best?: number;
   arrivals?: number;
+  onsale?: number;
   new?: number;
   stock?: number;
   q?: string;
@@ -80,6 +81,7 @@ export type Filters = {
   sale: boolean;
   best: boolean;
   arrivals: boolean;
+  onSale: boolean;
   fresh: boolean;
   stock: boolean;
   q: string;
@@ -102,6 +104,7 @@ export function filtersFromSearch(s: FilterSearch): Filters {
     // default "Best Sellers" slide links to /shop?sort=best.
     best: !!s.best || s.sort === "best",
     arrivals: !!s.arrivals,
+    onSale: !!s.onsale,
     fresh: !!s.new,
     stock: !!s.stock,
     q: s.q ?? "",
@@ -123,6 +126,7 @@ export function searchFromFilters(f: Filters): FilterSearch {
     sale: f.sale ? 1 : undefined,
     best: f.best ? 1 : undefined,
     arrivals: f.arrivals ? 1 : undefined,
+    onsale: f.onSale ? 1 : undefined,
     new: f.fresh ? 1 : undefined,
     stock: f.stock ? 1 : undefined,
     q: f.q || undefined,
@@ -142,6 +146,7 @@ export function activeFilterCount(f: Filters): number {
     (f.sale ? 1 : 0) +
     (f.best ? 1 : 0) +
     (f.arrivals ? 1 : 0) +
+    (f.onSale ? 1 : 0) +
     (f.fresh ? 1 : 0) +
     (f.stock ? 1 : 0) +
     (f.q ? 1 : 0)
@@ -261,6 +266,7 @@ export function applyFilters(products: Product[], f: Filters, facts: FilterFacts
     if (f.sale && discountPct(p) === 0) return false;
     if (f.best && !p.isBestSeller) return false;
     if (f.arrivals && !p.isNewArrival) return false;
+    if (f.onSale && !p.isOnSale) return false;
     if (f.fresh && !(p.createdAt && now - new Date(p.createdAt).getTime() <= NEW_IN_DAYS * DAY_MS)) return false;
     if (f.stock && !isInStock(p, facts)) return false;
     return true;
