@@ -20,10 +20,10 @@ const DEFAULTS: PopularNowConfig = { items: [] };
 
 // "Explore collection" and the "View all" tile open the Best Sellers page:
 // every product with "Best Seller" ticked in its product form.
-const BEST_SELLERS_HREF = "/shop?best=1";
+const BEST_SELLERS_HREF = "/shop";
 
 // Every bestseller tile (and the "View All" tile) uses this one uniform size.
-const TILE_SIZE_CLASS = "w-[220px] sm:w-[260px] md:w-[290px] h-[330px] sm:h-[380px]";
+const TILE_SIZE_CLASS = "w-[220px] sm:w-[260px] md:w-[290px] h-[370px] sm:h-[440px]";
 
 import { useWebsiteSectionConfig } from "@/lib/websiteSections";
 import { ProductTile } from "./ProductTile";
@@ -86,16 +86,6 @@ export function PopularNowGrid() {
           {products.map((p) => (
             <ProductTile key={p.slug} product={p} sizeClass={TILE_SIZE_CLASS} />
           ))}
-
-          <SiteLink
-            href={BEST_SELLERS_HREF}
-            className={`group relative shrink-0 overflow-hidden bg-foreground text-background border border-foreground flex flex-col items-center justify-center gap-3 ${TILE_SIZE_CLASS}`}
-          >
-            <span className="text-sm font-semibold uppercase tracking-[0.15em] text-mono text-center px-4">View All</span>
-            <span className="size-10 rounded-full border border-background/40 flex items-center justify-center transition-transform group-hover:translate-x-1">
-              <ArrowRight className="size-4" />
-            </span>
-          </SiteLink>
         </div>
       </div>
 

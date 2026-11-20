@@ -134,14 +134,10 @@ export function Navbar() {
         transition={{ duration: 0.8, delay: 0.2 }}
         className="relative z-[100] flex flex-col text-black border-b border-black/[0.08]"
       >
-        {/* Glass. On its own layer rather than on the <nav>: backdrop-filter
-            makes an element the containing block for its fixed descendants,
-            and the mobile menu and mega-menu backdrop below are fixed
-            full-screen layers — blurring the <nav> itself would shrink them
-            to the bar. Mostly-opaque fallback where blur isn't supported. */}
+        {/* Solid navbar background (no blur / transparency). */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 bg-white/90 supports-[backdrop-filter]:bg-white/60 supports-[backdrop-filter]:backdrop-blur-xl supports-[backdrop-filter]:backdrop-saturate-150"
+          className="pointer-events-none absolute inset-0 -z-10 bg-white"
         />
         {/* Main bar — left: category dropdowns, center: logo, right: icons — ALWAYS z-[100] ON TOP */}
         <div

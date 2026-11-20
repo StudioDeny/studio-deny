@@ -13,10 +13,10 @@ const DEFAULTS: ArrivalsConfig = { cta_label: "" };
 
 // The products shown here are the ones ticked "New Arrival" in the product form,
 // newest first. "Explore collection" and "View All" open that filtered shop page.
-const NEW_ARRIVALS_HREF = "/shop?arrivals=1";
+const NEW_ARRIVALS_HREF = "/shop";
 
 // Same uniform tile size as the Best Sellers section.
-const TILE_SIZE_CLASS = "w-[220px] sm:w-[260px] md:w-[290px] h-[330px] sm:h-[380px]";
+const TILE_SIZE_CLASS = "w-[220px] sm:w-[260px] md:w-[290px] h-[370px] sm:h-[440px]";
 
 export function NewArrivalsGrid() {
   const { config: cfg, isVisible: visible } = useWebsiteSectionConfig<ArrivalsConfig>("new_arrivals", DEFAULTS);
@@ -67,16 +67,6 @@ export function NewArrivalsGrid() {
           {products.map((p) => (
             <ProductTile key={p.slug} product={p} sizeClass={TILE_SIZE_CLASS} />
           ))}
-
-          <SiteLink
-            href={NEW_ARRIVALS_HREF}
-            className={`group relative shrink-0 overflow-hidden bg-foreground text-background border border-foreground flex flex-col items-center justify-center gap-3 ${TILE_SIZE_CLASS}`}
-          >
-            <span className="text-sm font-semibold uppercase tracking-[0.15em] text-mono text-center px-4">View All</span>
-            <span className="size-10 rounded-full border border-background/40 flex items-center justify-center transition-transform group-hover:translate-x-1">
-              <ArrowRight className="size-4" />
-            </span>
-          </SiteLink>
         </div>
       </div>
       <div className="mt-10 sm:mt-12 flex justify-center px-4">
