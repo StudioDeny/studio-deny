@@ -134,14 +134,9 @@ export function Navbar() {
         transition={{ duration: 0.8, delay: 0.2 }}
         className="relative z-[100] flex flex-col text-black border-b border-black/[0.08]"
       >
-        {/* Solid navbar background (no blur / transparency). */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 bg-white"
-        />
         {/* Main bar — left: category dropdowns, center: logo, right: icons — ALWAYS z-[100] ON TOP */}
         <div
-          className="relative z-[100] flex sm:grid sm:grid-cols-[1fr_auto_1fr] items-center justify-between px-4 sm:px-8 lg:px-16 py-2.5 sm:py-3"
+          className="relative z-[100] bg-white flex sm:grid sm:grid-cols-[1fr_auto_1fr] items-center justify-between px-4 sm:px-8 lg:px-16 py-2.5 sm:py-3"
           onMouseLeave={handleMouseLeaveNav}
         >
           {/* Left — category nav (desktop only) */}

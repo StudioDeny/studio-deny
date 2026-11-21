@@ -192,10 +192,10 @@ export function ProductCard({
           <button
             aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
             onClick={(e) => { e.preventDefault(); toggle(product.slug); }}
-            className={`absolute top-2.5 right-2.5 p-1.5 transition-all duration-300 ease-out ${wished ? "text-primary opacity-100" : "text-white/70 hover:text-primary opacity-90 hover:opacity-100"
+            className={`absolute top-2.5 right-2.5 p-1.5 transition-all duration-300 ease-out ${wished ? "text-accent opacity-100" : "text-white/70 hover:text-primary opacity-90 hover:opacity-100"
               }`}
           >
-            <Heart className={`size-4 drop-shadow ${wished ? "fill-primary" : ""}`} />
+            <Heart className={`size-4 drop-shadow ${wished ? "fill-accent" : ""}`} />
           </button>
 
           {/* Quick add button */}
@@ -232,14 +232,14 @@ export function ProductCard({
         </div>
 
         {/* Product info — Increased size for legibility */}
-        <div className="mt-3 px-0.5 flex flex-col gap-1.5">
+        <div className="mt-3 px-0.5 flex flex-col items-center text-center gap-1.5">
           <h3
-            className="font-semibold text-xs sm:text-sm leading-tight text-foreground group-hover:text-primary transition-colors tracking-wide truncate"
+            className="font-semibold text-xs sm:text-sm leading-snug text-foreground group-hover:text-primary transition-colors tracking-[0.02em] uppercase"
           >
             {product.name}
           </h3>
 
-          <div className="flex items-baseline gap-2 text-mono">
+          <div className="flex items-baseline justify-center gap-2 text-mono">
             <span className="font-bold text-sm sm:text-base text-foreground">{formatINR(product.price)}</span>
             {hasDiscount && (
               <span className="text-muted-foreground line-through text-xs sm:text-sm">

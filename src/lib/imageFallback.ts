@@ -50,6 +50,6 @@ const UNAVAILABLE_TILE =
       `<g fill="none" stroke="#4A4844" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.45">` +
       `<rect x="258" y="246" width="44" height="34"/><path d="m261 277 13-13 9 9 6-6 11 11"/><path d="m252 242 56 42"/>` +
       `</g>` +
-      `<text x="280" y="310" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" letter-spacing="2.5" fill="#4A4844" opacity="0.6">IMAGE UNAVAILABLE</text>` +
+      `<text x="280" y="310" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" letter-spacing="2.5" fill="#4A4844" opacity="0.6">IMAGE UNAVAILABLE</text>` +
       `</svg>`,
   );

@@ -112,12 +112,12 @@ export function ProductFilterBar({ filters, options, onChange, onClear, resultCo
 
   return (
     <>
-      <div className="flex items-center gap-2 py-3 border-y border-border">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-3 py-4 border-y border-border">
         {/* Phones */}
         <button
           type="button"
           onClick={() => setSheetOpen(true)}
-          className={`md:hidden h-9 px-3 shrink-0 border inline-flex items-center gap-2 text-mono text-xs tracking-widest ${active ? "border-foreground bg-foreground text-background" : "border-border bg-background"}`}
+          className={`md:hidden h-10 px-4 shrink-0 border inline-flex items-center gap-2 text-xs font-semibold tracking-[0.12em] uppercase ${active ? "border-foreground bg-foreground text-background" : "border-border bg-background"}`}
         >
           <SlidersHorizontal className="size-3.5" /> FILTERS{active > 0 && ` (${active})`}
         </button>
@@ -126,38 +126,38 @@ export function ProductFilterBar({ filters, options, onChange, onClear, resultCo
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-2 flex-wrap">
           {showSearch && <SearchBox value={filters.q} onChange={(q) => onChange({ q })} className="w-48" />}
-          <CategorySelect {...ctx} allLabel={allCategoriesLabel} />
+          <CategorySelect {...ctx} allLabel={allCategoriesLabel} className="w-52" />
           <FacetPopover label="SIZE" count={filters.sizes.length} width="w-64"><SizeOptions {...ctx} /></FacetPopover>
           <FacetPopover label="COLOUR" count={filters.colors.length}><ColorOptions {...ctx} /></FacetPopover>
           <FacetPopover label="PRICE" count={filters.min != null || filters.max != null ? 1 : 0}><PriceOptions {...ctx} /></FacetPopover>
-          <DiscountSelect {...ctx} />
+          <DiscountSelect {...ctx} className="w-44" />
           <FacetPopover label="MORE" count={moreCount}><MoreOptions {...ctx} /></FacetPopover>
         </div>
 
-        <div className="ml-auto flex items-center gap-3 shrink-0">
-          <span className="text-mono text-xs tracking-widest text-muted-foreground whitespace-nowrap">{pieces(resultCount)}</span>
+        <div className="ml-auto flex items-center gap-4 shrink-0">
+          <span className="text-xs font-semibold tracking-[0.12em] uppercase text-muted-foreground whitespace-nowrap">{pieces(resultCount)}</span>
           {trailing}
           <div className="hidden md:flex items-center gap-2">
-            <span className="text-mono text-xs tracking-widest text-muted-foreground">SORT</span>
+            <span className="text-xs font-semibold tracking-[0.12em] uppercase text-muted-foreground">SORT</span>
             <SortSelect value={filters.sort} onChange={(sort) => onChange({ sort })} />
           </div>
         </div>
       </div>
 
       {tags.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 pt-3">
+        <div className="flex flex-wrap items-center gap-2 pt-4">
           {tags.map((t) => (
             <button
               key={t.key}
               type="button"
               onClick={t.clear}
               aria-label={`Remove filter ${t.label}`}
-              className="h-7 px-2.5 border border-border bg-background text-mono text-xs tracking-widest uppercase inline-flex items-center gap-1.5 hover:border-foreground transition-colors"
+              className="h-8 px-3 bg-surface text-xs font-semibold tracking-[0.1em] uppercase inline-flex items-center gap-2 hover:bg-foreground hover:text-background transition-colors"
             >
               {t.label} <X className="size-3" />
             </button>
           ))}
-          <button type="button" onClick={onClear} className="h-7 px-1 text-mono text-xs tracking-widest underline underline-offset-4 hover:text-primary">
+          <button type="button" onClick={onClear} className="h-8 px-1 text-xs font-semibold tracking-[0.1em] uppercase underline underline-offset-4 hover:text-primary">
             CLEAR ALL
           </button>
         </div>
@@ -251,7 +251,7 @@ function FacetPopover({ label, count, width = "w-72", children }: { label: strin
       <PopoverTrigger asChild>
         <button
           type="button"
-          className={`group h-9 px-3 border inline-flex items-center gap-2 text-mono text-xs tracking-widest transition-colors ${count > 0 ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:border-foreground data-[state=open]:border-foreground"}`}
+          className={`group h-10 px-4 border inline-flex items-center gap-2 text-xs font-semibold tracking-[0.12em] uppercase transition-colors ${count > 0 ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:border-foreground data-[state=open]:border-foreground"}`}
         >
           {label}{count > 0 && ` (${count})`}
           <ChevronDown className="size-3.5 transition-transform group-data-[state=open]:rotate-180" />
@@ -260,7 +260,7 @@ function FacetPopover({ label, count, width = "w-72", children }: { label: strin
       <PopoverContent
         align="start"
         sideOffset={6}
-        className={`${width} rounded-none border-border bg-background p-4 shadow-none max-h-[60vh] overflow-y-auto`}
+        className={`${width} rounded-none border-border bg-background p-5 shadow-none max-h-[60vh] overflow-y-auto`}
         data-lenis-prevent
       >
         {children}
@@ -283,11 +283,11 @@ function SelectBox({ value, onChange, ariaLabel, active, className = "", childre
         aria-label={ariaLabel}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`appearance-none h-9 w-full pl-3 pr-8 border bg-background text-foreground text-mono text-xs tracking-widest uppercase cursor-pointer outline-none truncate transition-colors focus-visible:border-foreground ${active ? "border-foreground font-semibold" : "border-border hover:border-foreground"}`}
+        className={`appearance-none h-10 w-full pl-4 pr-9 border bg-background text-foreground text-xs font-semibold tracking-[0.12em] uppercase cursor-pointer outline-none truncate transition-colors focus-visible:border-foreground ${active ? "border-foreground" : "border-border hover:border-foreground"}`}
       >
         {children}
       </select>
-      <ChevronDown className="size-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <ChevronDown className="size-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
     </div>
   );
 }
@@ -303,14 +303,14 @@ function SortSelect({ value, onChange, className }: { value: Sort; onChange: (v:
 function SearchBox({ value, onChange, className = "" }: { value: string; onChange: (v: string) => void; className?: string }) {
   return (
     <div className={`relative ${className}`}>
-      <SearchIcon className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+      <SearchIcon className="size-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
       <input
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search drops…"
         aria-label="Search products"
-        className="h-9 w-full pl-8 pr-3 border border-border bg-background text-sm outline-none focus:border-foreground"
+        className="h-10 w-full pl-9 pr-3 border border-border bg-background text-sm outline-none focus:border-foreground"
       />
     </div>
   );

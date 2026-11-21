@@ -126,7 +126,7 @@ function CollectionPage() {
     </div>
   );
 
-  const gridClass = `grid gap-4 sm:gap-6 ${gridCols === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"}`;
+  const gridClass = `grid gap-2 sm:gap-3 ${gridCols === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"}`;
 
   return (
     <section ref={pageRef} className="px-4 sm:px-8 lg:px-16 mt-4 md:mt-8 pb-16 max-w-[1700px] mx-auto">

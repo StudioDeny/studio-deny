@@ -187,10 +187,10 @@ export function QuickViewModal({ product, open, onClose }: Props) {
                 onClick={() => toggle(product.slug)}
                 aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
                 className={`w-12 h-12 border flex items-center justify-center transition-all ${
-                  wished ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+                  wished ? "border-accent bg-accent/10 text-accent" : "border-border text-muted-foreground hover:border-primary hover:text-primary"
                 }`}
               >
-                <Heart className={`size-4 ${wished ? "fill-primary" : ""}`} />
+                <Heart className={`size-4 ${wished ? "fill-accent" : ""}`} />
               </button>
             </div>
 

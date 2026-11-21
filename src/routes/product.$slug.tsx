@@ -381,18 +381,17 @@ function PDP() {
     setVariantId(opt.variantId);
   };
 
-  // Wishlist + share sit on the image's top-right corner (Flipkart-style),
-  // stacked, on both the mobile carousel and the desktop gallery.
-  const imageActions = (
-    <div className="flex flex-col gap-2">
+  // Wishlist + share sit in the product info column, top-right, above the title.
+  const productActions = (
+    <div className="flex items-center gap-2 shrink-0">
       <button
         type="button"
         aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
         aria-pressed={wished}
         onClick={() => toggle(product.slug)}
-        className={`size-10 border flex items-center justify-center transition-colors ${wished ? "border-primary bg-background text-primary" : "border-border bg-background text-foreground hover:border-primary hover:text-primary"}`}
+        className={`size-10 border flex items-center justify-center transition-colors ${wished ? "border-accent bg-background text-accent" : "border-border bg-background text-foreground hover:border-primary hover:text-primary"}`}
       >
-        <Heart className={`size-[18px] ${wished ? "fill-primary" : ""}`} />
+        <Heart className={`size-[18px] ${wished ? "fill-accent" : ""}`} />
       </button>
       <button
         type="button"
@@ -476,11 +475,6 @@ function PDP() {
             strip below to jump to any image directly — the standard mobile PDP pattern. */}
         <div className="flex flex-col min-w-0 -mx-4 md:mx-0">
           <div className="hidden md:flex md:flex-col">
-            {/* Zero-height sticky rail: the buttons float over the images and
-                stay in reach while the gallery scrolls under them. */}
-            <div className="sticky z-10 h-0 self-end" style={{ top: "calc(var(--topbar-h) + 16px)" }}>
-              <div className="pt-4 pr-4">{imageActions}</div>
-            </div>
             {(() => {
               let imgIndex = -1;
               return galleryRows.map((row, rowIdx) => {
@@ -502,7 +496,6 @@ function PDP() {
 
           <div className="md:hidden">
             <div className="relative">
-              <div className="absolute top-3 right-3 z-10">{imageActions}</div>
               <div
                 ref={mobileGalleryRef}
                 onScroll={handleMobileGalleryScroll}
@@ -540,21 +533,24 @@ function PDP() {
 
         {/* Product Info — pinned via sticky while the gallery scrolls underneath. */}
         <div className="md:sticky md:top-24 md:self-start flex flex-col min-w-0">
-          <div className="text-mono text-primary flex items-center gap-2" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>
-            <span className="size-1 bg-primary rounded-full pulse-dot" />
-            {product.category.toUpperCase()}
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-mono text-primary flex items-center gap-2" style={{ fontSize: "11px", letterSpacing: "0.3em" }}>
+              <span className="size-1 bg-primary rounded-full pulse-dot" />
+              {product.category.toUpperCase()}
+            </div>
+            {productActions}
           </div>
 
-          {/* 24px on phones (long names wrapped to 3–4 lines at the old 42px). */}
-          <h1 className="text-display leading-[1.05] mt-3" style={{ fontSize: "clamp(24px, 5.5vw, 72px)" }}>
+          {/* Title scale: 32px on phones, up to 52px on wide screens; long names wrap cleanly. */}
+          <h1 className="text-display leading-[1] tracking-[-0.01em] mt-4" style={{ fontSize: "clamp(2rem, 3.4vw, 3.25rem)" }}>
             {product.name}
           </h1>
 
-          <div className="mt-5 flex items-baseline gap-4 text-mono">
-            <span className="text-foreground" style={{ fontSize: "28px" }}>{formatINR(displayPrice)}</span>
+          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-mono">
+            <span className="text-foreground font-semibold" style={{ fontSize: "24px" }}>{formatINR(displayPrice)}</span>
             {product.compareAt && (
               <>
-                <span className="text-muted-foreground line-through" style={{ fontSize: "16px" }}>{formatINR(product.compareAt)}</span>
+                <span className="text-muted-foreground line-through" style={{ fontSize: "15px" }}>{formatINR(product.compareAt)}</span>
                 <span className="bg-secondary text-secondary-foreground font-bold px-2 py-0.5" style={{ fontSize: "11px", letterSpacing: "0.15em" }}>
                   SAVE {Math.round(((product.compareAt - displayPrice) / product.compareAt) * 100)}%
                 </span>
@@ -564,14 +560,13 @@ function PDP() {
 
           <RichText
             html={product.description}
-            className="mt-6 text-muted-foreground leading-relaxed"
-            style={{ fontSize: "14px" }}
+            className="mt-5 max-w-[52ch] text-sm leading-relaxed text-muted-foreground"
           />
 
           {/* Color Selection */}
           {colorOptions.length > 0 && (
-            <div className="mt-8 border-t border-border pt-6">
-              <div className="flex items-center justify-between mb-3">
+            <div className="mt-7 border-t border-border pt-6">
+              <div className="flex items-center justify-between mb-4">
                 <div className="text-mono text-muted-foreground" style={{ fontSize: "11px", letterSpacing: "0.25em" }}>
                   COLOR <span className="mx-2">·</span> <span className="text-foreground">{(colorOptions.find((c) => c.key === effectiveColorKey) ?? colorOptions[0]).name.toUpperCase()}</span>
                 </div>
@@ -603,7 +598,7 @@ function PDP() {
           )}
 
           {/* Size Selection (single items have none) */}
-          <div className="mt-8">
+          <div className="mt-7">
             {!singleVariant && (<>
             <div className="flex items-center justify-between mb-4">
               <div className="text-mono text-muted-foreground" style={{ fontSize: "11px", letterSpacing: "0.25em" }}>SIZE</div>
