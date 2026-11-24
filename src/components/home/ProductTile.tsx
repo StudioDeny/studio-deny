@@ -80,7 +80,7 @@ export function ProductTile({ product, sizeClass }: { product: Product & { tag?:
       onMouseMove={handleMouseMove}
     >
       {/* Photo area: fills the card above the name and price */}
-      <div className="relative flex-1 min-h-0 overflow-hidden bg-surface">
+      <div className="relative flex-1 min-h-0 overflow-hidden bg-surface rounded-2xl">
         {/* Product Photos Stack with Crossfade */}
         {photos.map((src, i) => (
           <img
@@ -96,7 +96,10 @@ export function ProductTile({ product, sizeClass }: { product: Product & { tag?:
         ))}
 
         {product.tag && (
-          <span className="absolute top-2.5 left-2.5 z-10 bg-black/85 text-white text-xs font-semibold uppercase tracking-[0.12em] px-2 py-0.5">
+          <span
+            className="absolute top-2.5 left-2.5 z-10 text-mono font-semibold uppercase text-zinc-950 bg-white/85 backdrop-blur-md border border-white/40 px-2.5 py-0.5 leading-none shadow-xs rounded-full"
+            style={{ fontSize: "9px", letterSpacing: "0.14em" }}
+          >
             {product.tag.toUpperCase()}
           </span>
         )}

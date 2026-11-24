@@ -53,7 +53,7 @@ export function CommunityBento() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: idx * 0.04 }}
               viewport={{ once: true }}
-              className={`relative overflow-hidden rounded-none border border-border group ${spanClass}`}
+              className={`relative overflow-hidden rounded-2xl border border-border group ${spanClass}`}
             >
               {photo.media_type === "video" ? (
                 <video src={photo.image_url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
@@ -63,8 +63,8 @@ export function CommunityBento() {
 
               {/* Hero Bento Badge */}
               {isHero && (
-                <div className="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-none border border-white/20 bg-black/60 backdrop-blur-md text-xs text-mono tracking-[0.2em] font-bold text-white uppercase">
-                  <span className="w-1.5 h-1.5 rounded-none bg-primary animate-pulse" />
+                <div className="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/20 bg-black/60 backdrop-blur-md text-xs text-mono tracking-[0.2em] font-bold text-white uppercase">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                   FEATURED FIT
                 </div>
               )}
@@ -74,7 +74,7 @@ export function CommunityBento() {
                 <>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   <div className="absolute bottom-3 left-3.5 sm:bottom-4 sm:left-4 pointer-events-none z-10 flex items-center gap-2">
-                    <div className="px-2.5 py-1 rounded-none bg-black/60 backdrop-blur-md border border-white/15">
+                    <div className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15">
                       <p className="text-xs sm:text-xs tracking-[0.15em] text-white text-mono font-semibold drop-shadow">{photo.handle}</p>
                     </div>
                   </div>

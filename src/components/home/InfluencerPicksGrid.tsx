@@ -40,7 +40,7 @@ function GridTile({ pick, onOpen }: { pick: PickWithTags; onOpen: () => void }) 
       onMouseLeave={() => setHovered(false)}
       className="shrink-0 w-[65vw] sm:w-[28vw] lg:w-[19vw] text-left group/tile"
     >
-      <div className="relative aspect-[9/16] overflow-hidden bg-surface border border-border">
+      <div className="relative aspect-[9/16] overflow-hidden bg-surface border border-border rounded-2xl">
         {hasVideo && hovered ? (
           <video
             src={pick.video_url!}

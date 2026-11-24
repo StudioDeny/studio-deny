@@ -345,6 +345,12 @@
     overflow: hidden;
   }
 
+  /* Footer strictly maintains square, unrounded corners */
+  footer,
+  footer * {
+    border-radius: 0 !important;
+  }
+
   .btn-fill-bg {
     position: absolute;
     inset: 0;

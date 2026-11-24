@@ -61,6 +61,7 @@ export function ProductCard({
   // DROP/LAST PIECE/SOLD OUT) are unaffected and still render top-left.
   const showPctBadge = product.badge === "SALE" && hasDiscount;
   const topLeftBadge = product.badge && product.badge !== "SALE" ? product.badge : null;
+  const tag = (product as Product & { tag?: string }).tag;
 
   const handleOpenSizes = () => {
     setShowSizes(true);
@@ -94,7 +95,7 @@ export function ProductCard({
       >
         {/* Image container */}
         <div
-          className="relative overflow-hidden"
+          className="relative overflow-hidden rounded-2xl"
           style={{ aspectRatio: "3/4", background: "var(--color-surface)" }}
         >
           {/* Desktop: simple crossfade between main and hover image only */}
@@ -151,26 +152,34 @@ export function ProductCard({
             </div>
           )}
 
-          {/* Badges */}
-          {(topLeftBadge || product.isBestSeller) && (
+          {/* Badges / Tags */}
+          {(topLeftBadge || product.isBestSeller || tag) && (
             <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1">
+              {tag && (
+                <span
+                  className="text-mono font-semibold px-2.5 py-0.5 bg-white/85 backdrop-blur-md border border-white/40 text-zinc-950 uppercase leading-none shadow-xs rounded-full"
+                  style={{ fontSize: "9px", letterSpacing: "0.14em" }}
+                >
+                  {tag.toUpperCase()}
+                </span>
+              )}
               {product.isBestSeller && (
                 <span
-                  className="text-mono font-semibold px-2 py-1 bg-accent text-accent-foreground"
-                  style={{ fontSize: "9px", letterSpacing: "0.25em" }}
+                  className="text-mono font-medium px-2.5 py-0.5 bg-accent text-accent-foreground leading-none rounded-full"
+                  style={{ fontSize: "9px", letterSpacing: "0.16em" }}
                 >
                   BEST SELLER
                 </span>
               )}
               {topLeftBadge && (
                 <span
-                  className={`text-mono font-semibold px-2 py-1 ${topLeftBadge === "SOLD OUT"
+                  className={`text-mono font-medium px-2.5 py-0.5 leading-none rounded-full ${topLeftBadge === "SOLD OUT"
                     ? "bg-muted text-muted-foreground"
                     : topLeftBadge === "LAST PIECE"
                       ? "bg-primary text-primary-foreground glow-primary-sm"
                       : "bg-primary text-primary-foreground"
                     }`}
-                  style={{ fontSize: "9px", letterSpacing: "0.25em" }}
+                  style={{ fontSize: "9px", letterSpacing: "0.16em" }}
                 >
                   {topLeftBadge}
                 </span>
@@ -181,8 +190,8 @@ export function ProductCard({
           {/* Dynamic discount badge — replaces the SALE badge, bottom-left */}
           {showPctBadge && (
             <span
-              className="absolute bottom-2.5 left-2.5 bg-red-600 text-white font-bold px-2 py-1"
-              style={{ fontSize: "10px", letterSpacing: "0.05em" }}
+              className="absolute bottom-2.5 left-2.5 bg-red-600 text-white font-medium px-2 py-0.5 leading-none rounded-full"
+              style={{ fontSize: "9px", letterSpacing: "0.05em" }}
             >
               -{discountPct}%
             </span>

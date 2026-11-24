@@ -55,12 +55,12 @@ export function QuickViewModal({ product, open, onClose }: Props) {
     >
       <div className="absolute inset-0 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200" />
       <div
-        className="relative z-10 w-full sm:max-w-[680px] bg-background border border-border animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-300"
+        className="relative z-10 w-full sm:max-w-[680px] bg-background border border-border overflow-hidden rounded-2xl animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 size-8 border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+          className="absolute top-4 right-4 z-10 size-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
           aria-label="Close"
         >
           <X className="size-4" />
@@ -68,22 +68,30 @@ export function QuickViewModal({ product, open, onClose }: Props) {
 
         <div className="grid sm:grid-cols-2">
           {/* Image */}
-          <div className="relative hidden sm:block" style={{ aspectRatio: "4/5", background: "var(--color-surface)" }}>
+          <div className="relative hidden sm:block overflow-hidden rounded-xl m-2" style={{ aspectRatio: "4/5", background: "var(--color-surface)" }}>
             <img {...responsiveImage(product.image, { maxWidth: 1080, sizes: "340px" })} style={skeletonStyle} alt={product.name} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
-            {(product.badge || product.isBestSeller) && (
+            {(product.badge || product.isBestSeller || (product as any).tag) && (
               <div className="absolute top-3 left-3 flex flex-col items-start gap-1">
+                {(product as any).tag && (
+                  <span
+                    className="text-mono font-semibold px-2.5 py-0.5 bg-white/85 backdrop-blur-md border border-white/40 text-zinc-950 uppercase leading-none shadow-xs rounded-full"
+                    style={{ fontSize: "9px", letterSpacing: "0.14em" }}
+                  >
+                    {String((product as any).tag).toUpperCase()}
+                  </span>
+                )}
                 {product.isBestSeller && (
                   <span
-                    className="text-mono font-semibold px-2 py-1 bg-accent text-accent-foreground"
-                    style={{ fontSize: "9px", letterSpacing: "0.25em" }}
+                    className="text-mono font-medium px-2.5 py-0.5 bg-accent text-accent-foreground leading-none rounded-full"
+                    style={{ fontSize: "9px", letterSpacing: "0.16em" }}
                   >
                     BEST SELLER
                   </span>
                 )}
                 {product.badge && (
                   <span
-                    className="text-mono font-semibold px-2 py-1 bg-primary text-primary-foreground"
-                    style={{ fontSize: "9px", letterSpacing: "0.25em" }}
+                    className="text-mono font-medium px-2.5 py-0.5 bg-primary text-primary-foreground leading-none rounded-full"
+                    style={{ fontSize: "9px", letterSpacing: "0.16em" }}
                   >
                     {product.badge}
                   </span>

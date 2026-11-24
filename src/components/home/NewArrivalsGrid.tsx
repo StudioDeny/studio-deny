@@ -72,7 +72,7 @@ export function NewArrivalsGrid() {
       <div className="mt-10 sm:mt-12 flex justify-center px-4">
         <SiteLink
           href={NEW_ARRIVALS_HREF}
-          className="btn-fill relative inline-flex items-center whitespace-nowrap border border-foreground hover:border-white px-6 py-3 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase text-foreground transition-colors duration-500"
+          className="btn-fill relative inline-flex items-center whitespace-nowrap border border-foreground hover:border-white px-6 py-3 text-mono text-xs sm:text-sm font-bold tracking-[0.2em] uppercase text-foreground transition-colors duration-500 rounded-full"
         >
           <span className="btn-fill-bg bg-white" aria-hidden="true" />
           <span className="btn-fill-front inline-flex items-center gap-2">

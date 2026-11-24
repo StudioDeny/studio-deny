@@ -130,7 +130,7 @@ export function WhyUsSection() {
   const renderCard = (feature: Feature, idx: number) => {
     const Icon = ICONS[idx % ICONS.length];
     return (
-      <article className="group/card h-full min-h-[340px] sm:min-h-[400px] flex flex-col justify-between border border-border bg-surface/40 p-6 sm:p-8 transition-colors duration-500 hover:bg-foreground hover:text-white">
+      <article className="group/card h-full min-h-[340px] sm:min-h-[400px] flex flex-col justify-between border border-border bg-surface/40 p-6 sm:p-8 transition-colors duration-500 hover:bg-foreground hover:text-white rounded-2xl">
         <div className="flex items-start justify-between gap-4">
           <span
             aria-hidden

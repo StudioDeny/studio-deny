@@ -132,10 +132,10 @@ export function Footer() {
   ].filter((s): s is { href: string; label: string; Icon: typeof Instagram } => !!s.href);
 
   return (
-    <footer className="border-t border-border mt-24" style={{ background: "var(--color-surface)" }}>
+    <footer className="border-t border-border mt-24 rounded-none" style={{ background: "var(--color-surface)" }}>
       {/* Upper footer: the logo's black sweeps in from the left on hover; text
           turns white and the logo block flips to white so it stays visible. */}
-      <div className="btn-fill group/top">
+      <div className="btn-fill group/top rounded-none">
         <span className="btn-fill-bg bg-foreground" aria-hidden="true" />
         <div className="relative z-[1] px-4 sm:px-8 lg:px-16 py-12 md:py-16 flex flex-col md:flex-row gap-12 md:gap-16 lg:gap-24 max-w-[1560px] mx-auto">
           {/* Brand column */}
@@ -190,7 +190,7 @@ export function Footer() {
 
       {/* Brand strip: solid black, huge white "Studio Deny." in the logo lettering; on hover
           white sweeps in from the left and the letters turn black — the logo inverted. */}
-      <Link to="/" className="btn-fill group block bg-foreground text-white" aria-label="STUDIO DENY home">
+      <Link to="/" className="btn-fill group block bg-foreground text-white rounded-none" aria-label="STUDIO DENY home">
         <span className="btn-fill-bg bg-white" />
         <span className="relative z-[1] block max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-16 py-6 md:py-8">
           <span className="block brand-logo-type text-white group-hover:text-foreground transition-colors duration-500 min-w-0" style={{ fontSize: "clamp(44px, 9vw, 136px)" }}>

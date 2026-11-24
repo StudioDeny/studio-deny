@@ -354,7 +354,7 @@ export function LookbookCarousel() {
                     setActiveIndex(i);
                   }
                 }}
-                className="relative w-full h-full overflow-hidden rounded-none bg-neutral-900 shadow-xl border border-black/10 block"
+                className="relative w-full h-full overflow-hidden rounded-2xl bg-neutral-900 shadow-xl border border-black/10 block"
               >
                 {/* 100% Full-Bleed Image/Video.
                     `sizes` is the card's *rendered* width, not its layout

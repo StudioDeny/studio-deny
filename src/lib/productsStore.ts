@@ -24,6 +24,7 @@ export type Product = {
   hoverImageType?: "image" | "video";
   gallery?: GalleryItem[];
   badge?: "NEW DROP" | "LAST PIECE" | "SALE" | "SOLD OUT";
+  tag?: string;
   sizes: string[];
   colors: Color[];
   description: string;
